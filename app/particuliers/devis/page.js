@@ -796,7 +796,8 @@ export default function DevisPage() {
           <PackBlock title="🎬 Vidéo & Écrans" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.22)">
             {VIDEO_OPTS.map(o => (
               <RadioRow key={o.id}
-                label={o.id === 'none' && karaokeActive ? 'Écran fourni (karaoké)' : o.label}
+                label={o.id === 'none' && karaokeActive ? 'Je fournis mon écran' : o.label}
+                note={o.id === 'none' && karaokeActive ? 'Vous apportez votre propre écran pour le karaoké' : ''}
                 price={o.price}
                 selected={videoChoice === o.id}
                 onSelect={() => setVideoChoice(o.id)}
@@ -1170,7 +1171,7 @@ function ToggleRow({ label, price, checked, onChange, note }) {
   );
 }
 
-function RadioRow({ label, price, selected, onSelect }) {
+function RadioRow({ label, note, price, selected, onSelect }) {
   return (
     <div onClick={onSelect}
       style={{
@@ -1187,11 +1188,14 @@ function RadioRow({ label, price, selected, onSelect }) {
       }}>
         {selected && <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#0d1b2a' }} />}
       </div>
-      <div style={{ flex: 1, fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14, color: selected ? 'var(--lime)' : 'white' }}>
-        {label}
+      <div style={{ flex: 1 }}>
+        <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14, color: selected ? 'var(--lime)' : 'white' }}>
+          {label}
+        </div>
+        {note && <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>{note}</div>}
       </div>
       <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 14, color: selected ? 'var(--lime)' : 'rgba(255,255,255,0.55)', whiteSpace: 'nowrap' }}>
-        {price > 0 ? `${price} €` : price === 0 ? 'Gratuit' : ''}
+        {price > 0 ? `${price} €` : ''}
       </div>
     </div>
   );

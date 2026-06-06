@@ -104,3 +104,17 @@ img {
   transition: opacity 0.2s;
 }
 .btn-indigo:hover { opacity: 0.88; }
+
+/* Animation barre d'onde sonore */
+@keyframes waveBar {
+  0%   { transform: scaleY(0.38); }
+  100% { transform: scaleY(1); }
+}
+
+/* Responsive nav */
+@media (max-width: 768px) {
+  .hide-mobile  { display: none !important; }
+}
+@media (min-width: 769px) {
+  .hide-desktop { display: none !important; }
+}

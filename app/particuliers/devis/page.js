@@ -465,6 +465,11 @@ export default function DevisPage() {
             <input placeholder="Téléphone *" value={tel} onChange={e => setTel(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
             <input value={email} readOnly style={{ ...IS, color: 'rgba(255,255,255,0.4)', cursor: 'default' }} />
           </div>
+          {(!prenom || !nom || !tel) && (
+            <p style={{ fontSize: 11, color: 'rgba(249,115,22,0.85)', marginTop: 10 }}>
+              ⚠ Requis : {[!prenom && 'Prénom', !nom && 'Nom', !tel && 'Téléphone'].filter(Boolean).join(', ')}
+            </p>
+          )}
         </div>
 
         {/* Événement */}
@@ -500,6 +505,11 @@ export default function DevisPage() {
                 <div style={{ marginTop: 8, padding: '10px 12px', background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.28)', borderRadius: 8, fontSize: 12, color: '#f97316', lineHeight: 1.6 }}>
                   ⚠️ <strong>{DEVIS_PENDING[date]} devis déjà demandé{DEVIS_PENDING[date] > 1 ? 's' : ''}</strong> pour cette date — pour être prioritaire, signez et réglez votre acompte immédiatement après envoi du devis.
                 </div>
+              )}
+              {!date && (
+                <p style={{ fontSize: 11, color: 'rgba(249,115,22,0.85)', marginTop: 8 }}>
+                  ⚠ Sélectionnez une date pour continuer
+                </p>
               )}
             </div>
           </div>
@@ -545,20 +555,16 @@ export default function DevisPage() {
               </div>
             </div>
           )}
+          {lieu.trim() && !km && !kmLoading && (
+            <p style={{ fontSize: 11, color: 'rgba(249,115,22,0.85)', marginTop: 10 }}>
+              ⚠ Cliquez sur "Estimer le trajet" pour valider l'adresse avant de continuer
+            </p>
+          )}
         </div>
 
         <BtnPrimary onClick={() => goStep(2)} disabled={!prenom || !nom || !tel || !date || (lieu.trim() && !km)}>
           Continuer →
         </BtnPrimary>
-        {(!prenom || !nom || !tel || !date || (lieu.trim() && !km)) && (
-          <p style={{ fontSize: 12, color: 'rgba(249,115,22,0.85)', marginTop: 6 }}>
-            ⚠ Champs obligatoires manquants : {[
-              !prenom && 'Prénom', !nom && 'Nom', !tel && 'Téléphone',
-              !date && "Date de l'événement",
-              (lieu.trim() && !km) && 'Estimation du trajet',
-            ].filter(Boolean).join(' · ')}
-          </p>
-        )}
       </div>
     </div>
   );
@@ -591,6 +597,11 @@ export default function DevisPage() {
           </div>
         )}
       </div>
+      {nb === 0 && (
+        <p style={{ fontSize: 11, color: 'rgba(249,115,22,0.85)', marginBottom: 10 }}>
+          ⚠ Indiquez le nombre de personnes pour continuer (minimum 50)
+        </p>
+      )}
       {nb > 100 && (
         <div style={{ fontSize: 12, color: '#f97316', background: 'rgba(249,115,22,0.07)', border: '1px solid rgba(249,115,22,0.2)', borderRadius: 8, padding: '10px 14px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
           👨‍🔧 Événement de plus de 100 personnes — technicien journée inclus automatiquement · <strong>+{TECH_PRICE} €</strong>
@@ -725,7 +736,7 @@ export default function DevisPage() {
             <AnimatedPrice value={totalBrut} /> €
           </div>
         </div>
-        <BtnPrimary onClick={() => goStep(3)}>
+        <BtnPrimary onClick={() => goStep(3)} disabled={nb < 50 || !son}>
           Continuer →
         </BtnPrimary>
       </div>

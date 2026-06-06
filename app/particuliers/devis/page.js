@@ -577,10 +577,11 @@ export default function DevisPage() {
         <span style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', flexShrink: 0 }}>
           👥 Nombre de personnes
         </span>
-        <input type="number" min={1} max={2000} placeholder="Ex : 120"
+        <input type="number" min={50} max={2000} placeholder="Min. 50"
           value={nbPersons} onChange={e => setNbPersons(e.target.value)}
+          onBlur={e => { bl(e); const v = parseInt(e.target.value) || 0; if (v > 0 && v < 50) setNbPersons('50'); }}
           style={{ ...IS, width: 110, textAlign: 'center', fontSize: 17, fontWeight: 700 }}
-          onFocus={fo} onBlur={bl} />
+          onFocus={fo} />
         {nb > 0 && (
           <div style={{ fontSize: 12, color: 'var(--lime)', fontFamily: 'var(--font-display), sans-serif', fontWeight: 600 }}>
             ✓ {nb.toLocaleString('fr-FR')} personnes
@@ -738,7 +739,10 @@ export default function DevisPage() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <input placeholder="Numéro et rue *" value={adresse} onChange={e => setAdresse(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
         <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr', gap: 12 }}>
-          <input placeholder="Code postal *" value={cp} onChange={e => setCp(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
+          <input placeholder="Code postal *" value={cp}
+            onChange={e => setCp(e.target.value.replace(/\D/g, '').slice(0, 5))}
+            inputMode="numeric" maxLength={5}
+            style={IS} onFocus={fo} onBlur={bl} />
           <input placeholder="Ville *" value={ville} onChange={e => setVille(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
         </div>
         <BtnPrimary onClick={() => goStep(4)} disabled={!adresse || !cp || !ville} style={{ marginTop: 8 }}>

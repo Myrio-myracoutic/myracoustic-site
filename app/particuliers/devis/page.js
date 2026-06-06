@@ -10,10 +10,22 @@ import { AnimatedWave } from '../../components/AnimatedWave';
 
 const TODAY = new Date(2026, 5, 6);
 
-/* Dates indisponibles (exemple) */
-const UNAVAIL = new Set([
-  '2026-06-14', '2026-06-21', '2026-06-28',
-  '2026-07-04', '2026-07-12', '2026-07-19', '2026-07-26',
+/* Dates disponibles — à mettre à jour selon le planning réel */
+const AVAIL = new Set([
+  // Juin 2026
+  '2026-06-07','2026-06-13','2026-06-20','2026-06-27',
+  // Juillet 2026
+  '2026-07-05','2026-07-11','2026-07-18','2026-07-25',
+  // Août 2026
+  '2026-08-01','2026-08-08','2026-08-15','2026-08-22','2026-08-29',
+  // Septembre 2026
+  '2026-09-05','2026-09-12','2026-09-19','2026-09-26',
+  // Octobre 2026
+  '2026-10-03','2026-10-10','2026-10-17','2026-10-24','2026-10-31',
+  // Novembre 2026
+  '2026-11-07','2026-11-14','2026-11-21','2026-11-28',
+  // Décembre 2026
+  '2026-12-05','2026-12-12','2026-12-19',
 ]);
 
 const MONTHS_FR = [
@@ -131,15 +143,15 @@ function MiniCal({ selected, onSelect }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 2 }}>
         {days.map((d, i) => {
           if (!d) return <div key={i} />;
-          const k = mk(d), un = UNAVAIL.has(k), pt = past(d), sel = selected === k;
+          const k = mk(d), avail = AVAIL.has(k), pt = past(d), sel = selected === k;
           return (
-            <button key={i} onClick={() => !un && !pt && onSelect(k)} disabled={un || pt}
+            <button key={i} onClick={() => avail && !pt && onSelect(k)} disabled={!avail || pt}
               style={{
-                background: sel ? 'var(--lime)' : un ? 'rgba(239,68,68,0.1)' : 'transparent',
-                color: sel ? '#0d1b2a' : un ? '#ef4444' : pt ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.82)',
-                border: `1px solid ${sel ? 'var(--lime)' : 'transparent'}`,
+                background: sel ? 'var(--lime)' : avail && !pt ? 'rgba(184,239,11,0.07)' : 'transparent',
+                color: sel ? '#0d1b2a' : (!avail || pt) ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.82)',
+                border: `1px solid ${sel ? 'var(--lime)' : avail && !pt ? 'rgba(184,239,11,0.25)' : 'transparent'}`,
                 borderRadius: 5, padding: '5px 0', fontSize: 12,
-                cursor: un || pt ? 'default' : 'pointer',
+                cursor: !avail || pt ? 'default' : 'pointer',
                 fontFamily: 'var(--font-display), sans-serif', fontWeight: sel ? 700 : 400,
               }}>
               {d}
@@ -150,11 +162,11 @@ function MiniCal({ selected, onSelect }) {
       <div style={{ marginTop: 8, display: 'flex', gap: 12, fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>
         <span>
           <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: 'var(--lime)', marginRight: 4 }} />
-          Dispo
+          Disponible
         </span>
         <span>
-          <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: '#ef4444', marginRight: 4 }} />
-          Occupé
+          <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', marginRight: 4 }} />
+          Indisponible
         </span>
       </div>
     </div>
@@ -245,7 +257,6 @@ export default function DevisPage() {
   const [nbPersons,     setNbPersons]     = useState('');
   const [eclairOpts,    setEclairOpts]    = useState({ archi: false, etincelles: false, fumee: false });
   const [videoChoice,   setVideoChoice]   = useState('none');
-  const [djActive,      setDjActive]      = useState(false);
   const [djDuration,    setDjDuration]    = useState(6);
   const [karaokeActive, setKaraokeActive] = useState(false);
 
@@ -280,8 +291,8 @@ export default function DevisPage() {
     return acc + o.price;
   }, 0);
   const videoPrice    = VIDEO_OPTS.find(v => v.id === videoChoice)?.price ?? 0;
-  const djForFait     = djActive ? djCfg.forfait : 0;
-  const djXtraHours   = djActive ? Math.max(0, djDuration - djCfg.minDur) : 0;
+  const djForFait     = djCfg.forfait;
+  const djXtraHours   = Math.max(0, djDuration - djCfg.minDur);
   const djXtraCost    = djXtraHours * djCfg.xph;
   const nb            = parseInt(nbPersons) || 0;
   const techPrice     = nb > 100 ? TECH_PRICE : 0;
@@ -366,7 +377,7 @@ export default function DevisPage() {
   const renderGate = () => (
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
       <div style={{ width: '100%', maxWidth: 640, textAlign: 'center' }}>
-        <AnimatedWave bars={36} height={60} style={{ marginBottom: 28 }} />
+        <AnimatedWave bars={36} height={60} style={{ marginBottom: 28, display: 'block', margin: '0 auto 28px' }} />
         <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(22px,4vw,34px)', fontWeight: 700, marginBottom: 8 }}>
           Demande de devis
         </h1>
@@ -389,7 +400,7 @@ export default function DevisPage() {
   const renderStep0 = () => (
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
       <div style={{ width: '100%', maxWidth: 440, textAlign: 'center' }}>
-        <AnimatedWave bars={28} height={48} style={{ marginBottom: 24 }} />
+        <AnimatedWave bars={28} height={48} style={{ display: 'block', margin: '0 auto 24px' }} />
         <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(20px,3vw,30px)', fontWeight: 700, marginBottom: 8 }}>
           Votre adresse e-mail
         </h2>
@@ -442,7 +453,7 @@ export default function DevisPage() {
             <div>
               <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 10 }}>Type d'événement</div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {['Mariage', 'Anniversaire', 'Autre'].map(t => (
+                {['Mariage', 'PACS', 'Anniversaire', 'Soirée privée', 'EVJF / EVG', 'Bat / Bar-Mitzvah', 'Communion', 'Fête familiale', 'Autre'].map(t => (
                   <button key={t} onClick={() => setEventType(t)} style={{
                     padding: '8px 16px', borderRadius: 7,
                     border: `1px solid ${eventType === t ? 'var(--lime)' : 'rgba(255,255,255,0.12)'}`,
@@ -605,37 +616,43 @@ export default function DevisPage() {
       </PackBlock>
 
       {/* DJ */}
-      <PackBlock title="🎧 Animation DJ" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.22)">
-        <ToggleRow label="Inclure un DJ professionnel" price={null}
-          checked={djActive}
-          onChange={() => setDjActive(v => !v)}
-          note={djActive ? `Forfait ${eventType === 'Mariage' ? 'mariage 6h' : 'soirée 4h'} inclus` : ''}
-        />
-        {djActive && (
-          <div style={{ padding: '14px 18px', borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(184,239,11,0.04)' }}>
-            <div style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 10 }}>
-              ⏱ Durée — minimum <span style={{ color: 'var(--lime)' }}>{djCfg.minDur}h</span>
+      <PackBlock title="🎧 Animation DJ" badge="OBLIGATOIRE" badgeColor="#f87171">
+        <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+          <div>
+            <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14, color: 'var(--lime)', marginBottom: 3 }}>
+              ✓ DJ professionnel inclus dans chaque prestation
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 8, overflow: 'hidden' }}>
-                <button onClick={() => setDjDuration(d => Math.max(djCfg.minDur, d - 1))}
-                  style={{ width: 40, height: 40, background: 'rgba(255,255,255,0.04)', border: 'none', color: 'white', cursor: 'pointer', fontSize: 20 }}>−</button>
-                <div style={{ width: 64, textAlign: 'center', fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 22, color: 'var(--lime)' }}>{djDuration}h</div>
-                <button onClick={() => setDjDuration(d => d + 1)}
-                  style={{ width: 40, height: 40, background: 'rgba(255,255,255,0.04)', border: 'none', color: 'white', cursor: 'pointer', fontSize: 20 }}>+</button>
-              </div>
-              <div style={{ fontSize: 13 }}>
-                <span style={{ color: 'rgba(255,255,255,0.55)' }}>Forfait : </span>
-                <span style={{ color: 'var(--lime)', fontWeight: 700 }}>{djCfg.forfait} €</span>
-                {djXtraHours > 0 && (
-                  <span style={{ color: 'rgba(255,255,255,0.5)' }}>
-                    {' '}+ {djXtraHours}h supp. · <span style={{ color: 'var(--lime)', fontWeight: 700 }}>+{djXtraCost} €</span>
-                  </span>
-                )}
-              </div>
+            <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>
+              Choisissez la durée selon votre événement — minimum {djCfg.minDur}h
             </div>
           </div>
-        )}
+          <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 14, color: 'var(--lime)' }}>
+            {djCfg.forfait} €
+          </div>
+        </div>
+        <div style={{ padding: '14px 18px', background: 'rgba(184,239,11,0.04)' }}>
+          <div style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 10 }}>
+            ⏱ Durée — minimum <span style={{ color: 'var(--lime)' }}>{djCfg.minDur}h</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 8, overflow: 'hidden' }}>
+              <button onClick={() => setDjDuration(d => Math.max(djCfg.minDur, d - 1))}
+                style={{ width: 40, height: 40, background: 'rgba(255,255,255,0.04)', border: 'none', color: 'white', cursor: 'pointer', fontSize: 20 }}>−</button>
+              <div style={{ width: 64, textAlign: 'center', fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 22, color: 'var(--lime)' }}>{djDuration}h</div>
+              <button onClick={() => setDjDuration(d => d + 1)}
+                style={{ width: 40, height: 40, background: 'rgba(255,255,255,0.04)', border: 'none', color: 'white', cursor: 'pointer', fontSize: 20 }}>+</button>
+            </div>
+            <div style={{ fontSize: 13 }}>
+              <span style={{ color: 'rgba(255,255,255,0.55)' }}>Forfait : </span>
+              <span style={{ color: 'var(--lime)', fontWeight: 700 }}>{djCfg.forfait} €</span>
+              {djXtraHours > 0 && (
+                <span style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  {' '}+ {djXtraHours}h supp. · <span style={{ color: 'var(--lime)', fontWeight: 700 }}>+{djXtraCost} €</span>
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
       </PackBlock>
 
       {/* Karaoké */}
@@ -740,7 +757,7 @@ export default function DevisPage() {
       ['Éclairage ambiance', ECLAIR_BASE_PRICE],
       ...ECLAIR_OPTS.filter(o => eclairOpts[o.id] && (!o.mariageOnly || eventType === 'Mariage')).map(o => [o.label, o.price]),
       videoChoice !== 'none' && [VIDEO_OPTS.find(v => v.id === videoChoice)?.label, videoPrice],
-      djActive && [`DJ (${djDuration}h)`, djForFait + djXtraCost],
+      [`DJ (${djDuration}h)`, djForFait + djXtraCost],
       karaokeActive && ['Karaoké', KARAOKE_PRICE],
       ['Installation / désinstallation', INSTALL_PRICE],
       nb > 100 && ['Technicien journée', TECH_PRICE],

@@ -313,9 +313,11 @@ export default function DevisPage() {
     setStep(s => s - 1);
   };
 
+  const goStep = (s) => { setStep(s); window.scrollTo({ top: 0, behavior: 'instant' }); };
+
   const validateEmail = () => {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setEmailErr('Adresse invalide.'); return; }
-    setEmailErr(''); setStep(1);
+    setEmailErr(''); goStep(1);
   };
 
   const estimateKm = () => {
@@ -377,7 +379,7 @@ export default function DevisPage() {
   const renderGate = () => (
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
       <div style={{ width: '100%', maxWidth: 640, textAlign: 'center' }}>
-        <AnimatedWave bars={36} height={60} style={{ marginBottom: 28, display: 'block', margin: '0 auto 28px' }} />
+        <AnimatedWave bars={36} height={60} style={{ maxWidth: 480, margin: '0 auto 28px' }} />
         <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(22px,4vw,34px)', fontWeight: 700, marginBottom: 8 }}>
           Demande de devis
         </h1>
@@ -400,7 +402,7 @@ export default function DevisPage() {
   const renderStep0 = () => (
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
       <div style={{ width: '100%', maxWidth: 440, textAlign: 'center' }}>
-        <AnimatedWave bars={28} height={48} style={{ display: 'block', margin: '0 auto 24px' }} />
+        <AnimatedWave bars={28} height={48} style={{ maxWidth: 380, margin: '0 auto 24px' }} />
         <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(20px,3vw,30px)', fontWeight: 700, marginBottom: 8 }}>
           Votre adresse e-mail
         </h2>
@@ -453,7 +455,7 @@ export default function DevisPage() {
             <div>
               <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 10 }}>Type d'événement</div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {['Mariage', 'PACS', 'Anniversaire', 'Soirée privée', 'EVJF / EVG', 'Bat / Bar-Mitzvah', 'Communion', 'Fête familiale', 'Autre'].map(t => (
+                {['Mariage', 'PACS', 'Anniversaire', 'Soirée privée', 'EVJF / EVG', 'Baptême', 'Communion', 'Fête familiale', 'Autre'].map(t => (
                   <button key={t} onClick={() => setEventType(t)} style={{
                     padding: '8px 16px', borderRadius: 7,
                     border: `1px solid ${eventType === t ? 'var(--lime)' : 'rgba(255,255,255,0.12)'}`,
@@ -519,7 +521,7 @@ export default function DevisPage() {
           )}
         </div>
 
-        <BtnPrimary onClick={() => setStep(2)} disabled={!prenom || !nom || !tel || !date}>
+        <BtnPrimary onClick={() => goStep(2)} disabled={!prenom || !nom || !tel || !date || (lieu.trim() && !km)}>
           Continuer →
         </BtnPrimary>
       </div>
@@ -659,7 +661,11 @@ export default function DevisPage() {
       <PackBlock title="🎤 Karaoké" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.22)">
         <ToggleRow label="Ajouter un système karaoké" price={KARAOKE_PRICE}
           checked={karaokeActive}
-          onChange={() => setKaraokeActive(v => !v)}
+          onChange={() => {
+            const next = !karaokeActive;
+            setKaraokeActive(next);
+            if (next && videoChoice === 'none') setVideoChoice('projecteur');
+          }}
         />
       </PackBlock>
 
@@ -678,7 +684,7 @@ export default function DevisPage() {
             <AnimatedPrice value={totalBrut} /> €
           </div>
         </div>
-        <BtnPrimary onClick={() => setStep(3)}>
+        <BtnPrimary onClick={() => goStep(3)}>
           Continuer →
         </BtnPrimary>
       </div>
@@ -698,7 +704,7 @@ export default function DevisPage() {
           <input placeholder="Code postal *" value={cp} onChange={e => setCp(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
           <input placeholder="Ville *" value={ville} onChange={e => setVille(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
         </div>
-        <BtnPrimary onClick={() => setStep(4)} disabled={!adresse || !cp || !ville} style={{ marginTop: 8 }}>
+        <BtnPrimary onClick={() => goStep(4)} disabled={!adresse || !cp || !ville} style={{ marginTop: 8 }}>
           Continuer →
         </BtnPrimary>
       </div>
@@ -864,7 +870,7 @@ export default function DevisPage() {
           <input placeholder="Téléphone *" value={proTel} onChange={e => setProTel(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
         </div>
         <input placeholder="Poste / Fonction" value={proPoste} onChange={e => setProPoste(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
-        <BtnPrimary onClick={() => setStep(11)} disabled={!proPrenom || !proNom || !proSociete || !proEmail || !proTel} style={{ marginTop: 8 }}>
+        <BtnPrimary onClick={() => goStep(11)} disabled={!proPrenom || !proNom || !proSociete || !proEmail || !proTel} style={{ marginTop: 8 }}>
           Continuer →
         </BtnPrimary>
       </div>

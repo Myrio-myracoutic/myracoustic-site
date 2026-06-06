@@ -412,12 +412,6 @@ export default function DevisPage() {
             sub={"Séminaire, gala\nsoirée d'entreprise"} badge="Prise de contact"
             onClick={() => { setProfil('professionnel'); setStep(10); }} />
         </div>
-        <div style={{ marginTop: 20, padding: '12px 16px', background: 'rgba(184,239,11,0.06)', border: '1px solid rgba(184,239,11,0.18)', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 18, flexShrink: 0 }}>💸</span>
-          <p style={{ margin: 0, fontSize: 12, color: 'rgba(255,255,255,0.55)', lineHeight: 1.7, textAlign: 'left' }}>
-            <span style={{ color: 'var(--lime)', fontWeight: 700 }}>−15% de remise</span> appliqués automatiquement sur votre devis particulier — réservée aux clients qui signent rapidement après réception.
-          </p>
-        </div>
       </div>
     </div>
   );
@@ -459,7 +453,7 @@ export default function DevisPage() {
       <div style={{ marginBottom: 20, padding: '11px 14px', background: 'rgba(184,239,11,0.06)', border: '1px solid rgba(184,239,11,0.2)', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
         <span style={{ fontSize: 15, flexShrink: 0 }}>💸</span>
         <p style={{ margin: 0, fontSize: 12, color: 'rgba(255,255,255,0.55)', lineHeight: 1.7 }}>
-          <span style={{ color: 'var(--lime)', fontWeight: 700 }}>−15% appliqués automatiquement</span> sur votre total — remise réservée aux clients qui signent rapidement après réception du devis.
+          <span style={{ color: 'var(--lime)', fontWeight: 700 }}>−15% de remise</span> appliqués automatiquement sur votre devis dans le délai imparti.
         </p>
       </div>
 

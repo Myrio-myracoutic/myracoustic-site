@@ -670,6 +670,19 @@ export default function DevisPage() {
           🎛 Avez-vous besoin de matériel ?
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <button onClick={() => setNeedsMaterial(true)}
+            style={{
+              padding: '14px 16px', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
+              background: needsMaterial === true ? 'rgba(184,239,11,0.08)' : 'transparent',
+              border: `1px solid ${needsMaterial === true ? 'var(--lime)' : 'rgba(255,255,255,0.1)'}`,
+              color: needsMaterial === true ? 'var(--lime)' : 'rgba(255,255,255,0.45)',
+              transition: 'all 0.2s',
+            }}>
+            <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 14, marginBottom: 3 }}>
+              {needsMaterial === true ? '✓ ' : ''}Myracoustic fournit tout le matériel
+            </div>
+            <div style={{ fontSize: 11, color: needsMaterial === true ? 'rgba(184,239,11,0.6)' : 'rgba(255,255,255,0.35)' }}>Son, lumière et vidéo assurés par le DJ</div>
+          </button>
           <button onClick={() => setNeedsMaterial(false)}
             style={{
               padding: '14px 16px', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
@@ -682,19 +695,6 @@ export default function DevisPage() {
               {needsMaterial === false ? '✓ ' : ''}Je prends en charge le matériel
             </div>
             <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>Son et lumières fournis par le client</div>
-          </button>
-          <button onClick={() => setNeedsMaterial(true)}
-            style={{
-              padding: '14px 16px', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
-              background: needsMaterial === true ? 'rgba(184,239,11,0.08)' : 'transparent',
-              border: `1px solid ${needsMaterial === true ? 'var(--lime)' : 'rgba(255,255,255,0.1)'}`,
-              color: needsMaterial === true ? 'var(--lime)' : 'rgba(255,255,255,0.45)',
-              transition: 'all 0.2s',
-            }}>
-            <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 14, marginBottom: 3 }}>
-              {needsMaterial === true ? '✓ ' : ''}Le DJ ramène son matériel
-            </div>
-            <div style={{ fontSize: 11, color: needsMaterial === true ? 'rgba(184,239,11,0.6)' : 'rgba(255,255,255,0.35)' }}>Son, lumière et vidéo fournis par Myracoustic</div>
           </button>
         </div>
       </div>

@@ -1,0 +1,293 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { AnimatedWave, WaveBullet, SectionLabel } from '../components/AnimatedWave';
+import TestimonialCard from '../components/TestimonialCard';
+
+/* ─── Bullet point avec onde ────────────────────────────────────── */
+function BulletItem({ children }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 14 }}>
+      <WaveBullet size={16} />
+      <span style={{ color: 'rgba(255,255,255,0.72)', fontSize: 15, lineHeight: 1.65 }}>
+        {children}
+      </span>
+    </div>
+  );
+}
+
+/* ─── Carte prestation détaillée ────────────────────────────────── */
+function ServiceDetailCard({ icon, tag, title, desc, items }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <div
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        background: hov ? '#111e2d' : 'var(--card)',
+        border: `1px solid ${hov ? 'var(--lime)' : 'rgba(255,255,255,0.07)'}`,
+        borderRadius: 12, overflow: 'hidden', transition: 'all 0.28s',
+        transform: hov ? 'translateY(-4px)' : 'none',
+        display: 'flex', flexDirection: 'column',
+      }}
+    >
+      <div style={{ padding: '32px 28px', flex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+          <span style={{
+            fontFamily: 'var(--font-display), sans-serif',
+            fontSize: 11, letterSpacing: '0.2em',
+            color: hov ? 'var(--lime)' : 'rgba(255,255,255,0.3)',
+            border: `1px solid ${hov ? 'var(--lime)' : 'rgba(255,255,255,0.15)'}`,
+            padding: '3px 10px', borderRadius: 3, transition: 'all 0.28s',
+          }}>
+            {tag}
+          </span>
+          <span style={{ fontSize: 28 }}>{icon}</span>
+        </div>
+        <h3 style={{
+          fontFamily: 'var(--font-display), sans-serif',
+          fontSize: 24, fontWeight: 700, marginBottom: 10,
+        }}>
+          {title}
+        </h3>
+        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, lineHeight: 1.7, marginBottom: 18 }}>
+          {desc}
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+          {items.map((it, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--lime)', flexShrink: 0 }} />
+              <span style={{ color: 'rgba(255,255,255,0.55)', fontSize: 13 }}>{it}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div style={{
+        padding: '16px 28px',
+        borderTop: '1px solid rgba(255,255,255,0.06)',
+      }}>
+        <Link href="/particuliers/devis" style={{
+          background: 'var(--lime)', color: '#0d1b2a',
+          padding: '8px 16px', borderRadius: 5, fontSize: 13, fontWeight: 700,
+          fontFamily: 'var(--font-display), sans-serif',
+          textDecoration: 'none', display: 'inline-block', transition: 'background 0.2s',
+        }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = '#ceff2a'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; }}
+        >
+          Devis →
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Données ───────────────────────────────────────────────────── */
+const SERVICES = [
+  {
+    icon: '🔊', tag: 'SON', title: 'Sonorisation',
+    desc: "De la sono d'appoint au système de scène professionnel. Chaque espace acoustique est unique, chaque installation aussi.",
+    items: ['Systèmes Line Array & point source', 'Technicien son inclus', 'Réglage acoustique sur mesure', 'Micro HF et retours de scène'],
+  },
+  {
+    icon: '💡', tag: 'LUMIÈRE', title: 'Éclairage',
+    desc: 'Des ambiances lumineuses qui subliment votre salle et créent des instants magiques tout au long de la soirée.',
+    items: ['Moving heads & PAR LED', 'Lasers & machines à effets', "Éclairage d'ambiance piste de danse", 'Machine à fumée incluse'],
+  },
+  {
+    icon: '🎬', tag: 'VIDÉO', title: 'Vidéo & Écrans',
+    desc: 'Diffusion de vos photos, vidéos et diaporamas sur grands écrans LED pour des moments intenses et partagés.',
+    items: ['Vidéoprojecteur & support', 'Mur LED 2 m² ou 4 m²', 'Retransmission live HD', 'Contenu personnalisé'],
+  },
+  {
+    icon: '🎧', tag: 'DJ', title: 'Animation DJ',
+    desc: 'DJ professionnel qui lit son public et adapte son set pour garantir une piste de danse pleine du début à la fin.',
+    items: ['DJ professionnel avec références', 'Matériel haut de gamme inclus', 'Playlist 100% personnalisée', 'MC & animations sur demande'],
+  },
+];
+
+const INCLUDES = [
+  'Visite technique du lieu avant l\'événement',
+  'Installation et démontage inclus dans le devis',
+  'Technicien présent toute la soirée',
+  'Devis personnalisé en ligne en moins de 3 minutes',
+  'Contrat clair avec engagement de qualité',
+  'Assurance responsabilité civile professionnelle',
+];
+
+const TESTIMONIALS = [
+  { name: 'Sophie & Marc',  event: 'Mariage · 180 invités', stars: 5,
+    text: "Tout était parfait : son, lumières, DJ. Les invités en parlent encore. Un grand merci à toute l'équipe Myracoustic !" },
+  { name: 'Lucie B.',       event: 'Anniversaire 40 ans', stars: 5,
+    text: "J'ai adoré le suivi et la réactivité. Ils ont su transformer une simple salle en une vraie salle de fête. Bluffant." },
+  { name: 'Thomas & Élise', event: 'Mariage · Château', stars: 5,
+    text: "Le mapping vidéo sur les murs du château était spectaculaire. Nos invités n'avaient jamais vu ça. Inoubliable." },
+];
+
+/* ─── Page ──────────────────────────────────────────────────────── */
+export default function ParticuliersPage() {
+  return (
+    <div style={{ paddingTop: 70 }}>
+
+      {/* ── HERO ────────────────────────────────────────────────── */}
+      <section style={{
+        padding: 'clamp(64px,9vw,110px) 32px clamp(80px,10vw,120px)',
+        background: 'var(--bg)',
+        position: 'relative', overflow: 'hidden',
+      }}>
+        {/* Fond dégradé violet festif */}
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 0,
+          background: 'linear-gradient(135deg,#1a0a3d 0%,#4a1a8e 40%,#2a0d5e 70%,#0d1b2a 100%)',
+          opacity: 0.28,
+        }} />
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
+          background: 'linear-gradient(to right,rgba(13,27,42,0.92) 0%,rgba(13,27,42,0.55) 60%,rgba(13,27,42,0.2) 100%)',
+        }} />
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
+          background: 'radial-gradient(ellipse 70% 60% at 80% 40%,rgba(184,239,11,0.06) 0%,transparent 55%)',
+        }} />
+
+        <div style={{ maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 2 }}>
+          <SectionLabel>Particuliers</SectionLabel>
+          <h1 style={{
+            fontFamily: 'var(--font-display), sans-serif',
+            fontSize: 'clamp(42px,7vw,96px)', fontWeight: 700,
+            lineHeight: 0.95, letterSpacing: '-0.02em', marginBottom: 24,
+          }}>
+            VOTRE FÊTE,<br /><span style={{ color: 'var(--lime)' }}>NOTRE SON</span>
+          </h1>
+          <p style={{
+            color: 'rgba(255,255,255,0.56)',
+            fontSize: 'clamp(15px,1.5vw,18px)', lineHeight: 1.75,
+            maxWidth: 520, marginBottom: 36,
+          }}>
+            Mariage, anniversaire, fête de famille — nous créons l'ambiance sonore et visuelle parfaite pour que votre événement soit inoubliable.
+          </p>
+          <Link href="/particuliers/devis" style={{
+            background: 'var(--lime)', color: '#0d1b2a',
+            padding: '15px 32px', borderRadius: 8, fontSize: 16, fontWeight: 700,
+            fontFamily: 'var(--font-display), sans-serif',
+            textDecoration: 'none', display: 'inline-block', transition: 'all 0.2s',
+          }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = '#ceff2a'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+          >
+            Calculer mon devis en ligne →
+          </Link>
+        </div>
+
+        {/* Onde décorative en bas du hero */}
+        <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 80, zIndex: 2 }}>
+          <AnimatedWave bars={60} height={80} opacity={0.6} />
+        </div>
+      </section>
+
+      {/* ── SERVICES ────────────────────────────────────────────── */}
+      <section style={{ padding: 'clamp(64px,8vw,96px) 32px' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+          <SectionLabel>Nos prestations</SectionLabel>
+          <h2 style={{
+            fontFamily: 'var(--font-display), sans-serif',
+            fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 700, marginBottom: 44,
+          }}>
+            Choisissez vos services
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 18 }}>
+            {SERVICES.map((s) => <ServiceDetailCard key={s.tag} {...s} />)}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CE QUE VOUS OBTENEZ ─────────────────────────────────── */}
+      <section style={{ padding: 'clamp(48px,6vw,80px) 32px', background: '#060e16' }}>
+        <div style={{
+          maxWidth: 1280, margin: '0 auto',
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))',
+          gap: 48, alignItems: 'center',
+        }}>
+          <div>
+            <SectionLabel>Inclus dans chaque prestation</SectionLabel>
+            <h2 style={{
+              fontFamily: 'var(--font-display), sans-serif',
+              fontSize: 'clamp(24px,3vw,40px)', fontWeight: 700, marginBottom: 32,
+            }}>
+              Ce que vous <span style={{ color: 'var(--lime)' }}>obtenez</span>
+            </h2>
+            {INCLUDES.map((item, i) => <BulletItem key={i}>{item}</BulletItem>)}
+          </div>
+          {/* Placeholder photo événement */}
+          <div style={{
+            borderRadius: 16, minHeight: 380,
+            background: 'linear-gradient(135deg,#1a0a3d 0%,#3d1a8e 45%,#0a2a3d 80%,#0d1b2a 100%)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            position: 'relative', overflow: 'hidden',
+          }}>
+            <div style={{
+              position: 'absolute', inset: 0,
+              backgroundImage: 'repeating-linear-gradient(45deg,transparent,transparent 18px,rgba(255,255,255,0.018) 18px,rgba(255,255,255,0.018) 36px)',
+            }} />
+            <span style={{
+              fontFamily: 'var(--font-display), sans-serif', fontSize: 11,
+              color: 'rgba(255,255,255,0.22)', letterSpacing: '0.14em',
+              textTransform: 'uppercase', zIndex: 1, textAlign: 'center', padding: '0 24px',
+            }}>
+              Photo événement · Mariage &amp; réception
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* ── TÉMOIGNAGES ─────────────────────────────────────────── */}
+      <section style={{ padding: 'clamp(56px,7vw,88px) 32px' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 48 }}>
+            <SectionLabel style={{ justifyContent: 'center' }}>Ils en parlent</SectionLabel>
+            <h2 style={{
+              fontFamily: 'var(--font-display), sans-serif',
+              fontSize: 'clamp(24px,3.5vw,42px)', fontWeight: 700,
+            }}>
+              Ce que disent nos clients
+            </h2>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 18 }}>
+            {TESTIMONIALS.map((t, i) => <TestimonialCard key={i} {...t} />)}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA FINAL ───────────────────────────────────────────── */}
+      <section style={{
+        padding: 'clamp(56px,7vw,88px) 32px', textAlign: 'center',
+        background: 'linear-gradient(135deg,#0d1b2a 0%,#1a2260 50%,#0d1b2a 100%)',
+        borderTop: '1px solid rgba(184,239,11,0.18)',
+      }}>
+        <AnimatedWave bars={48} height={50} style={{ maxWidth: 560, margin: '0 auto 28px' }} opacity={0.55} />
+        <h2 style={{
+          fontFamily: 'var(--font-display), sans-serif',
+          fontSize: 'clamp(24px,3.5vw,44px)', fontWeight: 700, marginBottom: 12,
+        }}>
+          Prêt à commencer ?
+        </h2>
+        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 16, marginBottom: 32 }}>
+          Calculez votre devis en ligne en moins de 3 minutes.
+        </p>
+        <Link href="/particuliers/devis" style={{
+          background: 'var(--lime)', color: '#0d1b2a',
+          padding: '16px 40px', borderRadius: 8, fontSize: 17, fontWeight: 700,
+          fontFamily: 'var(--font-display), sans-serif',
+          textDecoration: 'none', display: 'inline-block', transition: 'all 0.2s',
+        }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = '#ceff2a'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+        >
+          Calculer mon devis en ligne →
+        </Link>
+      </section>
+
+    </div>
+  );
+}

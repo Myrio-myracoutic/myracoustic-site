@@ -90,6 +90,9 @@ export default function Footer() {
               📍 Nort-sur-Erdre — Loire-Atlantique
             </p>
             <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, marginBottom: 9 }}>
+              📞 07 68 53 33 08
+            </p>
+            <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, marginBottom: 9 }}>
               ✉️ contact@myracoustic.com
             </p>
           </div>

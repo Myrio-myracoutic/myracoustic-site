@@ -10,6 +10,7 @@
   --text-muted:  rgba(255,255,255,0.62);
   --text-light:  rgba(255,255,255,0.38);
   --separator:   rgba(255,255,255,0.12);
+  --card2:       #0e1f33;
 
   /* Alias utiles */
   --background: var(--bg);

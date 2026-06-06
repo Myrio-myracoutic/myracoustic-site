@@ -1,28 +1,476 @@
-export default function Home() {
+'use client';
+
+import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import { AnimatedWave, WaveBullet, SectionLabel } from './components/AnimatedWave';
+
+/* ─── Compteur animé ───────────────────────────────────────────── */
+function useCountUp(target, duration = 1800) {
+  const [val, setVal] = useState(0);
+  const [on, setOn] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setOn(true); obs.disconnect(); } },
+      { threshold: 0.5 }
+    );
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!on) return;
+    const t0 = Date.now();
+    const tick = () => {
+      const p = Math.min((Date.now() - t0) / duration, 1);
+      const ease = 1 - Math.pow(1 - p, 3);
+      setVal(Math.floor(ease * target));
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }, [on, target, duration]);
+
+  return [val, ref];
+}
+
+function StatItem({ value, suffix, label }) {
+  const [count, ref] = useCountUp(parseInt(value));
   return (
-    <main
+    <div ref={ref} style={{ textAlign: 'center', padding: '0 16px' }}>
+      <div style={{
+        fontFamily: 'var(--font-display), sans-serif',
+        fontSize: 'clamp(38px,5vw,68px)', fontWeight: 700,
+        color: 'var(--lime)', lineHeight: 1,
+      }}>
+        {count}{suffix}
+      </div>
+      <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, marginTop: 8, letterSpacing: '0.04em' }}>
+        {label}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Carte service ────────────────────────────────────────────── */
+function ServiceCard({ icon, tag, title, desc, index }) {
+  const [hov, setHov] = useState(false);
+  const radii = ['12px 0 0 0', '0 12px 0 0', '0 0 0 12px', '0 0 12px 0'];
+  return (
+    <div
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
       style={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 24,
-        background: "var(--bg)",
+        position: 'relative', padding: '40px 36px',
+        background: hov ? '#111e2d' : 'var(--card)',
+        border: `1px solid ${hov ? 'var(--lime)' : 'rgba(255,255,255,0.07)'}`,
+        borderRadius: radii[index] || 0,
+        transition: 'all 0.28s ease', cursor: 'default', overflow: 'hidden',
       }}
     >
-      <img src="/logo.png" alt="Myracoustic" style={{ height: 60 }} />
-      <p
-        style={{
-          fontFamily: "var(--font-mono), monospace",
-          color: "var(--lime)",
-          letterSpacing: "0.2em",
-          fontSize: 13,
-          textTransform: "uppercase",
-        }}
-      >
-        Studio en cours de construction
+      {hov && (
+        <div style={{
+          position: 'absolute', top: 0, left: 0, width: 4, height: '100%',
+          background: 'var(--lime)',
+        }} />
+      )}
+      <div style={{ marginBottom: 18 }}>
+        <span style={{
+          fontFamily: 'var(--font-display), sans-serif',
+          fontSize: 11, letterSpacing: '0.2em',
+          color: hov ? 'var(--lime)' : 'rgba(255,255,255,0.3)',
+          border: `1px solid ${hov ? 'var(--lime)' : 'rgba(255,255,255,0.15)'}`,
+          padding: '3px 10px', borderRadius: 3, transition: 'all 0.28s',
+        }}>
+          {tag}
+        </span>
+      </div>
+      <div style={{ fontSize: 36, marginBottom: 14 }}>{icon}</div>
+      <h3 style={{
+        fontFamily: 'var(--font-display), sans-serif',
+        fontSize: 26, fontWeight: 700, marginBottom: 10,
+      }}>
+        {title}
+      </h3>
+      <p style={{ color: 'rgba(255,255,255,0.52)', fontSize: 15, lineHeight: 1.75, maxWidth: 320 }}>
+        {desc}
       </p>
-    </main>
+      <div style={{
+        position: 'absolute', bottom: 24, right: 24, fontSize: 20,
+        color: 'var(--lime)', opacity: hov ? 1 : 0,
+        transform: hov ? 'translateX(0)' : 'translateX(-12px)',
+        transition: 'all 0.28s',
+      }}>
+        →
+      </div>
+    </div>
+  );
+}
+
+/* ─── Carte témoignage ─────────────────────────────────────────── */
+function TestimonialCard({ name, event, stars, text }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <div
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      style={{
+        background: 'var(--card2)', padding: 28, borderRadius: 12,
+        border: `1px solid ${hov ? 'var(--lime)' : 'rgba(255,255,255,0.07)'}`,
+        transition: 'all 0.25s', transform: hov ? 'translateY(-5px)' : 'none',
+      }}
+    >
+      <div style={{ display: 'flex', gap: 3, marginBottom: 16 }}>
+        {Array.from({ length: stars }).map((_, i) => (
+          <span key={i} style={{ color: 'var(--lime)', fontSize: 17 }}>★</span>
+        ))}
+      </div>
+      <p style={{
+        color: 'rgba(255,255,255,0.78)', lineHeight: 1.75, fontSize: 15,
+        marginBottom: 20, fontStyle: 'italic',
+      }}>
+        "{text}"
+      </p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+        <div style={{
+          width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
+          background: 'linear-gradient(135deg,var(--indigo),var(--lime))',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 15, color: '#0d1b2a',
+        }}>
+          {name[0]}
+        </div>
+        <div>
+          <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14 }}>{name}</div>
+          <div style={{ color: 'rgba(255,255,255,0.38)', fontSize: 12, marginTop: 2 }}>{event}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Placeholder image ────────────────────────────────────────── */
+function ImgPh({ label, style = {}, g = '135deg,#0d2a3d 0%,#343790 65%,#0d1b2a 100%' }) {
+  return (
+    <div style={{
+      background: `linear-gradient(${g})`,
+      position: 'relative', overflow: 'hidden',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      ...style,
+    }}>
+      <div style={{
+        position: 'absolute', inset: 0,
+        backgroundImage: 'repeating-linear-gradient(45deg,transparent,transparent 18px,rgba(255,255,255,0.018) 18px,rgba(255,255,255,0.018) 36px)',
+      }} />
+      <span style={{
+        fontFamily: 'var(--font-display), sans-serif', fontSize: 11,
+        color: 'rgba(255,255,255,0.22)', letterSpacing: '0.14em',
+        textTransform: 'uppercase', zIndex: 1, textAlign: 'center', padding: '0 12px',
+      }}>
+        {label}
+      </span>
+    </div>
+  );
+}
+
+/* ─── Page d'accueil ───────────────────────────────────────────── */
+const SERVICES = [
+  { icon: '🔊', tag: 'SON',     title: 'Sonorisation',  index: 0,
+    desc: 'Systèmes audio de pointe, du cocktail intime aux grandes salles. Son clair, puissant, maîtrisé.' },
+  { icon: '💡', tag: 'LUMIÈRE', title: 'Éclairage',     index: 1,
+    desc: 'Moving heads, lasers, LED et gobos pour créer des ambiances spectaculaires et sur mesure.' },
+  { icon: '🎬', tag: 'VIDÉO',   title: 'Vidéo & Mapping', index: 2,
+    desc: 'Écrans LED, projection architecturale et retransmission live en haute définition.' },
+  { icon: '🎧', tag: 'DJ',      title: 'Animation DJ',  index: 3,
+    desc: 'DJ professionnel qui lit son public et fait danser du premier au dernier morceau.' },
+];
+
+const TESTIMONIALS = [
+  { name: 'Sophie & Marc',  event: 'Mariage · Château de Vaux', stars: 5,
+    text: "La sono était parfaite, tout le monde a dansé jusqu'au bout de la nuit. Un événement magique grâce à toute l'équipe Myracoustic !" },
+  { name: 'Alexandre D.',   event: 'Séminaire · 200 personnes', stars: 5,
+    text: "Installation impeccable, équipe ultra-réactive. Un son d'une qualité remarquable. Nous faisons appel à eux pour tous nos événements d'entreprise." },
+  { name: 'Jennifer M.',    event: 'Anniversaire 30 ans', stars: 5,
+    text: "Les lumières et la vidéo ont transformé la salle. Une ambiance de folie, exactement ce qu'on voulait. Merci Myracoustic !" },
+];
+
+export default function Home() {
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setLoaded(true), 80);
+    return () => clearTimeout(t);
+  }, []);
+
+  const anim = (delay) => ({
+    opacity: loaded ? 1 : 0,
+    transform: loaded ? 'translateY(0)' : 'translateY(28px)',
+    transition: `opacity 0.7s ease ${delay}s, transform 0.7s ease ${delay}s`,
+  });
+
+  return (
+    <div>
+      {/* ── HERO ──────────────────────────────────────────────────── */}
+      <section style={{
+        minHeight: '100vh', position: 'relative',
+        display: 'flex', flexDirection: 'column', justifyContent: 'center',
+        overflow: 'hidden',
+        backgroundImage: 'url(/hero.png)',
+        backgroundSize: 'cover', backgroundPosition: 'center top',
+      }}>
+        <div style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          background: 'linear-gradient(105deg,rgba(13,27,42,0.93) 0%,rgba(13,27,42,0.72) 55%,rgba(13,27,42,0.55) 100%)',
+        }} />
+        <div style={{
+          position: 'absolute', inset: 0, pointerEvents: 'none',
+          background: 'radial-gradient(ellipse 60% 70% at 10% 50%,rgba(52,55,144,0.22) 0%,transparent 55%)',
+        }} />
+
+        <div style={{ maxWidth: 1280, margin: '0 auto', padding: 'clamp(100px,12vw,140px) 32px 60px', width: '100%' }}>
+          <div style={{ maxWidth: 780 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28, ...anim(0.15) }}>
+              <WaveBullet size={16} />
+              <span style={{
+                fontFamily: 'var(--font-display), sans-serif',
+                fontSize: 12, letterSpacing: '0.22em', textTransform: 'uppercase',
+                color: 'rgba(255,255,255,0.45)',
+              }}>
+                Son · Lumière · Vidéo · DJ
+              </span>
+            </div>
+
+            <h1 style={{
+              fontFamily: 'var(--font-display), sans-serif',
+              fontSize: 'clamp(54px,9vw,124px)',
+              fontWeight: 700, lineHeight: 0.92, letterSpacing: '-0.025em',
+              marginBottom: 28,
+              ...anim(0.3),
+            }}>
+              SUBLIMEZ<br />
+              <span style={{ color: 'var(--lime)' }}>VOS</span><br />
+              ÉVÉNEMENTS
+            </h1>
+
+            <p style={{
+              color: 'rgba(255,255,255,0.56)',
+              fontSize: 'clamp(15px,1.6vw,18px)', lineHeight: 1.75,
+              maxWidth: 520, marginBottom: 40,
+              ...anim(0.45),
+            }}>
+              Prestataire événementiel — son, lumière, vidéo et DJ pour{' '}
+              <strong style={{ color: 'white' }}>mariages et événements privés</strong>{' '}
+              comme pour vos <strong style={{ color: 'white' }}>séminaires et galas d'entreprise</strong>.
+            </p>
+
+            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', ...anim(0.6) }}>
+              <Link href="/entreprises" style={{
+                background: 'var(--lime)', color: '#0d1b2a',
+                padding: 'clamp(13px,1.5vw,16px) clamp(22px,2.5vw,32px)',
+                borderRadius: 8, fontSize: 'clamp(14px,1.2vw,16px)', fontWeight: 700,
+                display: 'flex', alignItems: 'center', gap: 9,
+                fontFamily: 'var(--font-display), sans-serif',
+                textDecoration: 'none', transition: 'all 0.2s',
+              }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#ceff2a'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+              >
+                Entreprises <span>→</span>
+              </Link>
+              <Link href="/particuliers" style={{
+                background: 'transparent', color: 'white',
+                border: '2px solid rgba(255,255,255,0.35)',
+                padding: 'clamp(13px,1.5vw,16px) clamp(22px,2.5vw,32px)',
+                borderRadius: 8, fontSize: 'clamp(14px,1.2vw,16px)', fontWeight: 600,
+                display: 'flex', alignItems: 'center', gap: 9,
+                fontFamily: 'var(--font-display), sans-serif',
+                textDecoration: 'none', transition: 'all 0.2s',
+              }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--lime)'; e.currentTarget.style.color = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.35)'; e.currentTarget.style.color = 'white'; e.currentTarget.style.transform = 'translateY(0)'; }}
+              >
+                Particuliers <span>→</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── STATS ─────────────────────────────────────────────────── */}
+      <section style={{
+        padding: '72px 32px',
+        background: '#060e16',
+        borderBottom: '1px solid rgba(255,255,255,0.06)',
+      }}>
+        <div style={{
+          maxWidth: 1280, margin: '0 auto',
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 32,
+        }}>
+          <StatItem value="26" suffix="+" label="Années d'expérience" />
+          <StatItem value="500" suffix="+" label="Événements réalisés" />
+          <StatItem value="4" suffix="" label="Prestations phare" />
+        </div>
+      </section>
+
+      {/* ── SERVICES ──────────────────────────────────────────────── */}
+      <section style={{ padding: 'clamp(64px,8vw,100px) 32px' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+          <div style={{
+            marginBottom: 52,
+            display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
+            gap: 20, flexWrap: 'wrap',
+          }}>
+            <div>
+              <SectionLabel>Nos Prestations</SectionLabel>
+              <h2 style={{
+                fontFamily: 'var(--font-display), sans-serif',
+                fontSize: 'clamp(28px,4vw,52px)', fontWeight: 700, lineHeight: 1.1,
+              }}>
+                Tout ce qu'il faut pour<br />
+                <span style={{ color: 'var(--lime)' }}>un événement parfait</span>
+              </h2>
+            </div>
+            <Link href="/particuliers" style={{
+              background: 'transparent', color: 'white',
+              border: '1px solid rgba(255,255,255,0.25)',
+              padding: '11px 22px', borderRadius: 6, fontSize: 14,
+              fontFamily: 'var(--font-display), sans-serif', fontWeight: 500,
+              textDecoration: 'none', transition: 'all 0.2s', whiteSpace: 'nowrap',
+            }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--lime)'; e.currentTarget.style.color = 'var(--lime)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)'; e.currentTarget.style.color = 'white'; }}
+            >
+              Voir toutes les offres →
+            </Link>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 2 }}>
+            {SERVICES.map((s) => <ServiceCard key={s.tag} {...s} />)}
+          </div>
+        </div>
+      </section>
+
+      {/* ── GALERIE TEASER ────────────────────────────────────────── */}
+      <section style={{ padding: '0 32px clamp(64px,8vw,100px)' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+          <div style={{
+            marginBottom: 36,
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            gap: 16, flexWrap: 'wrap',
+          }}>
+            <div>
+              <SectionLabel>Galerie</SectionLabel>
+              <h2 style={{
+                fontFamily: 'var(--font-display), sans-serif',
+                fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 700,
+              }}>
+                Nos plus belles réalisations
+              </h2>
+            </div>
+            <Link href="/galerie" style={{
+              background: 'transparent', color: 'white',
+              border: '1px solid rgba(255,255,255,0.25)',
+              padding: '11px 22px', borderRadius: 6, fontSize: 14,
+              fontFamily: 'var(--font-display), sans-serif', fontWeight: 500,
+              textDecoration: 'none', transition: 'all 0.2s', whiteSpace: 'nowrap',
+            }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--lime)'; e.currentTarget.style.color = 'var(--lime)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)'; e.currentTarget.style.color = 'white'; }}
+            >
+              Voir la galerie →
+            </Link>
+          </div>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '2fr 1fr 1fr',
+            gridTemplateRows: '260px 260px',
+            gap: 5, borderRadius: 14, overflow: 'hidden',
+          }}>
+            <ImgPh label="Mariage · Salle de réception" style={{ gridRow: '1/3', borderRadius: '12px 0 0 12px' }} g="135deg,#1a0a3d 0%,#343790 55%,#0d2a3d 100%" />
+            <ImgPh label="Soirée d'entreprise · Gala" g="135deg,#0a2a1a 0%,#1a6330 60%,#0d1b2a 100%" />
+            <ImgPh label="Concert · Scène live" g="135deg,#2a0d0d 0%,#7c1919 60%,#0d1b2a 100%" />
+            <ImgPh label="Anniversaire · Déco LED" g="135deg,#0d1b2a 0%,#1a3050 50%,#343790 100%" />
+            <ImgPh label="Mapping vidéo" style={{ borderRadius: '0 0 12px 0' }} g="135deg,#1a0d3d 0%,#5b21b6 60%,#0d1b2a 100%" />
+          </div>
+        </div>
+      </section>
+
+      {/* ── TÉMOIGNAGES ───────────────────────────────────────────── */}
+      <section style={{
+        padding: 'clamp(56px,7vw,88px) 32px',
+        background: 'linear-gradient(180deg,transparent 0%,#060e16 100%)',
+      }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+          <div style={{ marginBottom: 52, textAlign: 'center' }}>
+            <SectionLabel style={{ justifyContent: 'center' }}>Avis Clients</SectionLabel>
+            <h2 style={{
+              fontFamily: 'var(--font-display), sans-serif',
+              fontSize: 'clamp(26px,3.5vw,46px)', fontWeight: 700,
+            }}>
+              Ils nous ont fait confiance
+            </h2>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 18 }}>
+            {TESTIMONIALS.map((t, i) => <TestimonialCard key={i} {...t} />)}
+          </div>
+
+          <div style={{ textAlign: 'center', marginTop: 52 }}>
+            <Link href="/particuliers/devis" style={{
+              background: 'var(--lime)', color: '#0d1b2a',
+              padding: '16px 42px', borderRadius: 8, fontSize: 17, fontWeight: 700,
+              fontFamily: 'var(--font-display), sans-serif',
+              display: 'inline-flex', alignItems: 'center', gap: 10,
+              textDecoration: 'none', transition: 'all 0.22s',
+            }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = '#ceff2a'; e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(184,239,11,0.28)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+            >
+              Calculer mon devis en ligne <span style={{ fontSize: 20 }}>→</span>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA FINAL ─────────────────────────────────────────────── */}
+      <section style={{
+        padding: 'clamp(56px,7vw,88px) 32px', textAlign: 'center',
+        background: 'linear-gradient(135deg,#0d1b2a 0%,#1a2260 50%,#0d1b2a 100%)',
+        borderTop: '1px solid rgba(184,239,11,0.18)',
+      }}>
+        <h2 style={{
+          fontFamily: 'var(--font-display), sans-serif',
+          fontSize: 'clamp(26px,4vw,50px)', fontWeight: 700, marginBottom: 14,
+        }}>
+          Prêt à créer un <span style={{ color: 'var(--lime)' }}>événement mémorable ?</span>
+        </h2>
+        <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 17, marginBottom: 36 }}>
+          Obtenez votre devis personnalisé en quelques minutes.
+        </p>
+        <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <Link href="/particuliers/devis" style={{
+            background: 'var(--lime)', color: '#0d1b2a',
+            padding: '15px 34px', borderRadius: 8, fontSize: 16, fontWeight: 700,
+            fontFamily: 'var(--font-display), sans-serif',
+            textDecoration: 'none', transition: 'all 0.2s',
+          }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = '#ceff2a'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+          >
+            Calculer mon devis →
+          </Link>
+          <Link href="/entreprises" style={{
+            background: 'transparent', color: 'white',
+            border: '2px solid rgba(255,255,255,0.3)',
+            padding: '15px 34px', borderRadius: 8, fontSize: 16, fontWeight: 600,
+            fontFamily: 'var(--font-display), sans-serif',
+            textDecoration: 'none', transition: 'all 0.2s',
+          }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--lime)'; e.currentTarget.style.color = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'; e.currentTarget.style.color = 'white'; e.currentTarget.style.transform = 'translateY(0)'; }}
+          >
+            Contact Entreprises
+          </Link>
+        </div>
+        <AnimatedWave bars={56} height={52} style={{ marginTop: 48 }} opacity={0.55} />
+      </section>
+    </div>
   );
 }

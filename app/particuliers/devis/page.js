@@ -321,8 +321,8 @@ export default function DevisPage() {
     (karaokeActive ? KARAOKE_PRICE : 0) + INSTALL_PRICE + techPrice + kmFee;
   const remiseDelai   = getRemise(date);
   const totalNet      = remiseDelai ? Math.round(totalBrut * 0.85) : totalBrut;
-  const acompte60     = Math.round(totalBrut * 0.6);
-  const solde40       = totalBrut - acompte60;
+  const acompte60     = Math.round(totalNet * 0.6);
+  const solde40       = totalNet - acompte60;
 
   /* ── Actions ────────────────────────────────────────────────────── */
   const goBack = () => {
@@ -446,13 +446,16 @@ export default function DevisPage() {
       <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
         Vos informations
       </h2>
-      <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 24 }}>Étape 1 sur 5 · Infos personnelles & événement</p>
+      <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 12 }}>Étape 1 sur 5 · Infos personnelles & événement</p>
+      <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.22)', marginBottom: 20 }}>
+        Les champs marqués <span style={{ color: '#ef4444' }}>*</span> sont obligatoires pour continuer.
+      </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {/* Identité */}
         <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: 20 }}>
           <div style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 12 }}>
-            👤 Identité
+            👤 Identité <span style={{ color: '#ef4444' }}>*</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
             <input placeholder="Prénom *" value={prenom} onChange={e => setPrenom(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
@@ -486,7 +489,7 @@ export default function DevisPage() {
               </div>
             </div>
             <div>
-              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 10 }}>Date de l'événement</div>
+              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 10 }}>Date de l'événement <span style={{ color: '#ef4444' }}>*</span></div>
               <MiniCal selected={date} onSelect={setDate} devisPending={DEVIS_PENDING} />
               {date && (
                 <div style={{ marginTop: 8, fontSize: 12, color: 'var(--lime)', fontFamily: 'var(--font-display), sans-serif' }}>
@@ -548,11 +551,11 @@ export default function DevisPage() {
           Continuer →
         </BtnPrimary>
         {(!prenom || !nom || !tel || !date || (lieu.trim() && !km)) && (
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', marginTop: 6 }}>
-            Informations requises : {[
+          <p style={{ fontSize: 12, color: 'rgba(249,115,22,0.85)', marginTop: 6 }}>
+            ⚠ Champs obligatoires manquants : {[
               !prenom && 'Prénom', !nom && 'Nom', !tel && 'Téléphone',
               !date && "Date de l'événement",
-              (lieu.trim() && !km) && 'Cliquez sur "Estimer le trajet"',
+              (lieu.trim() && !km) && 'Estimation du trajet',
             ].filter(Boolean).join(' · ')}
           </p>
         )}
@@ -748,6 +751,13 @@ export default function DevisPage() {
         <BtnPrimary onClick={() => goStep(4)} disabled={!adresse || !cp || !ville} style={{ marginTop: 8 }}>
           Continuer →
         </BtnPrimary>
+        {(!adresse || !cp || !ville) && (
+          <p style={{ fontSize: 12, color: 'rgba(249,115,22,0.85)', marginTop: 6 }}>
+            ⚠ Champs obligatoires manquants : {[
+              !adresse && 'Numéro et rue', !cp && 'Code postal', !ville && 'Ville',
+            ].filter(Boolean).join(' · ')}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -853,9 +863,18 @@ export default function DevisPage() {
               <span style={{ color: 'rgba(255,255,255,0.82)', fontFamily: 'var(--font-display), sans-serif', fontWeight: 600 }}>{Number(v).toLocaleString('fr-FR')} €</span>
             </div>
           ))}
-          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '14px 16px', fontSize: 17 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', fontSize: 17 }}>
             <span style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, color: 'rgba(255,255,255,0.6)' }}>TOTAL TTC</span>
-            <span style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, color: 'var(--lime)', fontSize: 22 }}>{totalBrut.toLocaleString('fr-FR')} €</span>
+            <div style={{ textAlign: 'right' }}>
+              {remiseDelai && (
+                <div style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 13, color: 'rgba(255,255,255,0.3)', textDecoration: 'line-through' }}>
+                  {totalBrut.toLocaleString('fr-FR')} €
+                </div>
+              )}
+              <span style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, color: 'var(--lime)', fontSize: 22 }}>
+                {totalNet.toLocaleString('fr-FR')} €
+              </span>
+            </div>
           </div>
         </div>
 

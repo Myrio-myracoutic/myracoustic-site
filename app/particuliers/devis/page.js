@@ -679,9 +679,9 @@ export default function DevisPage() {
               transition: 'all 0.2s',
             }}>
             <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 14, marginBottom: 3 }}>
-              {needsMaterial === false ? '✓ ' : ''}Non
+              {needsMaterial === false ? '✓ ' : ''}Je prends en charge le matériel
             </div>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>DJ uniquement</div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>Son et lumières fournis par le client</div>
           </button>
           <button onClick={() => setNeedsMaterial(true)}
             style={{
@@ -692,9 +692,9 @@ export default function DevisPage() {
               transition: 'all 0.2s',
             }}>
             <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 14, marginBottom: 3 }}>
-              {needsMaterial === true ? '✓ ' : ''}Oui
+              {needsMaterial === true ? '✓ ' : ''}Le DJ ramène son matériel
             </div>
-            <div style={{ fontSize: 11, color: needsMaterial === true ? 'rgba(184,239,11,0.6)' : 'rgba(255,255,255,0.35)' }}>Son, lumière, vidéo…</div>
+            <div style={{ fontSize: 11, color: needsMaterial === true ? 'rgba(184,239,11,0.6)' : 'rgba(255,255,255,0.35)' }}>Son, lumière et vidéo fournis par Myracoustic</div>
           </button>
         </div>
       </div>
@@ -784,26 +784,24 @@ export default function DevisPage() {
             ))}
           </PackBlock>
 
-          {/* Vidéo */}
-          <PackBlock title="🎬 Vidéo & Écrans" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.22)">
-            {VIDEO_OPTS.map(o => (
-              <RadioRow key={o.id} label={o.label} price={o.price}
-                selected={videoChoice === o.id}
-                onSelect={() => setVideoChoice(o.id)}
-              />
-            ))}
-          </PackBlock>
-
           {/* Karaoké */}
           <PackBlock title="🎤 Karaoké" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.22)">
             <ToggleRow label="Ajouter un système karaoké" price={KARAOKE_PRICE}
               checked={karaokeActive}
-              onChange={() => {
-                const next = !karaokeActive;
-                setKaraokeActive(next);
-                if (next && videoChoice === 'none') setVideoChoice('projecteur');
-              }}
+              onChange={() => setKaraokeActive(v => !v)}
             />
+          </PackBlock>
+
+          {/* Vidéo */}
+          <PackBlock title="🎬 Vidéo & Écrans" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.22)">
+            {VIDEO_OPTS.map(o => (
+              <RadioRow key={o.id}
+                label={o.id === 'none' && karaokeActive ? 'Écran fourni (karaoké)' : o.label}
+                price={o.price}
+                selected={videoChoice === o.id}
+                onSelect={() => setVideoChoice(o.id)}
+              />
+            ))}
           </PackBlock>
         </>
       )}

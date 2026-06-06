@@ -265,7 +265,7 @@ export default function DevisPage() {
   const [prenom,     setPrenom]     = useState('');
   const [nom,        setNom]        = useState('');
   const [tel,        setTel]        = useState('');
-  const [eventType,  setEventType]  = useState('Mariage');
+  const [eventType,  setEventType]  = useState('Soirée privée');
   const [date,       setDate]       = useState('');
   const [lieu,       setLieu]       = useState('');
   const [km,         setKm]         = useState(null);
@@ -487,7 +487,7 @@ export default function DevisPage() {
             <div>
               <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 10 }}>Type d'événement</div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {['Mariage', 'PACS', 'Anniversaire', 'Soirée privée', 'EVJF / EVG', 'Baptême', 'Communion', 'Fête familiale', 'Autre'].map(t => (
+                {['Soirée privée', 'Mariage', 'PACS', 'Anniversaire', 'EVJF / EVG', 'Baptême', 'Communion', 'Fête familiale', 'Autre'].map(t => (
                   <button key={t} onClick={() => setEventType(t)} style={{
                     padding: '8px 16px', borderRadius: 7,
                     border: `1px solid ${eventType === t ? 'var(--lime)' : 'rgba(255,255,255,0.12)'}`,

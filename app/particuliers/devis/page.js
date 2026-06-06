@@ -796,8 +796,8 @@ export default function DevisPage() {
           <PackBlock title="🎬 Vidéo & Écrans" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.22)">
             {VIDEO_OPTS.map(o => (
               <RadioRow key={o.id}
-                label={o.id === 'none' && karaokeActive ? 'Je fournis mon écran' : o.label}
-                note={o.id === 'none' && karaokeActive ? 'Vous apportez votre propre écran pour le karaoké' : ''}
+                label={o.id === 'none' && karaokeActive ? 'Je mets un écran à disposition du DJ' : o.label}
+                note={o.id === 'none' && karaokeActive ? 'Vous fournissez l\'écran nécessaire au karaoké' : ''}
                 price={o.price}
                 selected={videoChoice === o.id}
                 onSelect={() => setVideoChoice(o.id)}

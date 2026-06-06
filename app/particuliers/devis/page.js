@@ -28,6 +28,15 @@ const AVAIL = new Set([
   '2026-12-05','2026-12-12','2026-12-19',
 ]);
 
+/* Devis déjà en cours par date — à mettre à jour selon les demandes reçues */
+const DEVIS_PENDING = {
+  '2026-06-13': 2,
+  '2026-07-18': 3,
+  '2026-08-29': 1,
+  '2026-10-10': 2,
+  '2026-12-19': 3,
+};
+
 const MONTHS_FR = [
   'Janvier','Février','Mars','Avril','Mai','Juin',
   'Juillet','Août','Septembre','Octobre','Novembre','Décembre',
@@ -115,7 +124,7 @@ function AnimatedPrice({ value }) {
   return <span>{disp.toLocaleString('fr-FR')}</span>;
 }
 
-function MiniCal({ selected, onSelect }) {
+function MiniCal({ selected, onSelect, devisPending = {} }) {
   const [month, setMonth] = useState(5);
   const yr   = 2026;
   const dim  = new Date(yr, month + 1, 0).getDate();
@@ -144,6 +153,7 @@ function MiniCal({ selected, onSelect }) {
         {days.map((d, i) => {
           if (!d) return <div key={i} />;
           const k = mk(d), avail = AVAIL.has(k), pt = past(d), sel = selected === k;
+          const pCount = avail && !pt ? (devisPending[k] ?? 0) : 0;
           return (
             <button key={i} onClick={() => avail && !pt && onSelect(k)} disabled={!avail || pt}
               style={{
@@ -153,16 +163,24 @@ function MiniCal({ selected, onSelect }) {
                 borderRadius: 5, padding: '5px 0', fontSize: 12,
                 cursor: !avail || pt ? 'default' : 'pointer',
                 fontFamily: 'var(--font-display), sans-serif', fontWeight: sel ? 700 : 400,
+                position: 'relative',
               }}>
               {d}
+              {pCount > 0 && (
+                <span style={{ position: 'absolute', top: 2, right: 2, width: 5, height: 5, borderRadius: '50%', background: sel ? '#0d1b2a' : '#f97316' }} />
+              )}
             </button>
           );
         })}
       </div>
-      <div style={{ marginTop: 8, display: 'flex', gap: 12, fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>
+      <div style={{ marginTop: 8, display: 'flex', gap: 12, fontSize: 10, color: 'rgba(255,255,255,0.35)', flexWrap: 'wrap' }}>
         <span>
           <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: 'var(--lime)', marginRight: 4 }} />
           Disponible
+        </span>
+        <span>
+          <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: '#f97316', marginRight: 4 }} />
+          Déjà demandé
         </span>
         <span>
           <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', marginRight: 4 }} />
@@ -469,10 +487,15 @@ export default function DevisPage() {
             </div>
             <div>
               <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 10 }}>Date de l'événement</div>
-              <MiniCal selected={date} onSelect={setDate} />
+              <MiniCal selected={date} onSelect={setDate} devisPending={DEVIS_PENDING} />
               {date && (
                 <div style={{ marginTop: 8, fontSize: 12, color: 'var(--lime)', fontFamily: 'var(--font-display), sans-serif' }}>
                   ✓ {new Date(date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                </div>
+              )}
+              {date && (DEVIS_PENDING[date] ?? 0) > 0 && (
+                <div style={{ marginTop: 8, padding: '10px 12px', background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.28)', borderRadius: 8, fontSize: 12, color: '#f97316', lineHeight: 1.6 }}>
+                  ⚠️ <strong>{DEVIS_PENDING[date]} devis déjà demandé{DEVIS_PENDING[date] > 1 ? 's' : ''}</strong> pour cette date — pour être prioritaire, signez et réglez votre acompte immédiatement après envoi du devis.
                 </div>
               )}
             </div>
@@ -524,6 +547,15 @@ export default function DevisPage() {
         <BtnPrimary onClick={() => goStep(2)} disabled={!prenom || !nom || !tel || !date || (lieu.trim() && !km)}>
           Continuer →
         </BtnPrimary>
+        {(!prenom || !nom || !tel || !date || (lieu.trim() && !km)) && (
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', marginTop: 6 }}>
+            Informations requises : {[
+              !prenom && 'Prénom', !nom && 'Nom', !tel && 'Téléphone',
+              !date && "Date de l'événement",
+              (lieu.trim() && !km) && 'Cliquez sur "Estimer le trajet"',
+            ].filter(Boolean).join(' · ')}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -555,6 +587,11 @@ export default function DevisPage() {
           </div>
         )}
       </div>
+      {nb > 100 && (
+        <div style={{ fontSize: 12, color: '#f97316', background: 'rgba(249,115,22,0.07)', border: '1px solid rgba(249,115,22,0.2)', borderRadius: 8, padding: '10px 14px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+          👨‍🔧 Événement de plus de 100 personnes — technicien journée inclus automatiquement · <strong>+{TECH_PRICE} €</strong>
+        </div>
+      )}
 
       {/* Son */}
       <PackBlock title="🔊 Sonorisation" badge="OBLIGATOIRE" badgeColor="#f87171">

@@ -311,6 +311,7 @@ export default function DevisPage() {
   const [kmLoading,  setKmLoading]  = useState(false);
 
   /* ── Particulier — prestations ──────────────────────────────────── */
+  const [needsMaterial, setNeedsMaterial] = useState(null);
   const [nbPersons,     setNbPersons]     = useState('');
   const [eclairOpts,    setEclairOpts]    = useState({ archi: false, etincelles: false, fumee: false });
   const [videoChoice,   setVideoChoice]   = useState('none');
@@ -354,10 +355,11 @@ export default function DevisPage() {
   const nb            = parseInt(nbPersons) || 0;
   const techPrice     = nb > 100 ? TECH_PRICE : 0;
   const kmFee         = getTransportFee(km) ?? 0;
-  const totalBrut     =
-    sonPrice + ECLAIR_BASE_PRICE + eclairOptTotal +
-    videoPrice + djForFait + djXtraCost +
-    (karaokeActive ? KARAOKE_PRICE : 0) + INSTALL_PRICE + techPrice + kmFee;
+  const materialTotal = needsMaterial
+    ? sonPrice + ECLAIR_BASE_PRICE + eclairOptTotal + videoPrice +
+      (karaokeActive ? KARAOKE_PRICE : 0) + INSTALL_PRICE + techPrice
+    : 0;
+  const totalBrut     = materialTotal + djForFait + djXtraCost + kmFee;
   const remiseDelai   = getRemise(date);
   const totalNet      = remiseDelai ? Math.round(totalBrut * 0.85) : totalBrut;
   const acompte60     = Math.round(totalNet * 0.6);
@@ -622,99 +624,7 @@ export default function DevisPage() {
       </h2>
       <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 24 }}>Étape 2 sur 5 · Configurez votre événement</p>
 
-      {/* Nombre de personnes */}
-      <div style={{
-        background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
-        borderRadius: 12, padding: '16px 20px', marginBottom: 12,
-        display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap',
-      }}>
-        <span style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', flexShrink: 0 }}>
-          👥 Nombre de personnes
-        </span>
-        <input type="number" min={50} max={2000} placeholder="Min. 50"
-          value={nbPersons} onChange={e => setNbPersons(e.target.value)}
-          onBlur={e => { bl(e); const v = parseInt(e.target.value) || 0; if (v > 0 && v < 50) setNbPersons('50'); }}
-          style={{ ...IS, width: 110, textAlign: 'center', fontSize: 17, fontWeight: 700 }}
-          onFocus={fo} />
-        {nb > 0 && (
-          <div style={{ fontSize: 12, color: 'var(--lime)', fontFamily: 'var(--font-display), sans-serif', fontWeight: 600 }}>
-            ✓ {nb.toLocaleString('fr-FR')} personnes
-          </div>
-        )}
-      </div>
-      {nb === 0 && (
-        <p style={{ fontSize: 11, color: 'rgba(249,115,22,0.85)', marginBottom: 10 }}>
-          ⚠ Indiquez le nombre de personnes pour continuer (minimum 50)
-        </p>
-      )}
-      {nb > 100 && (
-        <div style={{ fontSize: 12, color: '#f97316', background: 'rgba(249,115,22,0.07)', border: '1px solid rgba(249,115,22,0.2)', borderRadius: 8, padding: '10px 14px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-          👨‍🔧 Événement de plus de 100 personnes — technicien journée inclus automatiquement · <strong>+{TECH_PRICE} €</strong>
-        </div>
-      )}
-
-      {/* Son */}
-      <PackBlock title="🔊 Sonorisation" badge="OBLIGATOIRE" badgeColor="#f87171">
-        {nb > 0 ? (
-          son ? (
-            <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14, color: 'var(--lime)', marginBottom: 3 }}>
-                  ✓ {son.label} — forfait automatique
-                </div>
-                <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>
-                  Système adapté à votre configuration · technicien inclus
-                </div>
-              </div>
-              <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 15, color: 'var(--lime)' }}>
-                {son.price} €
-              </div>
-            </div>
-          ) : (
-            <div style={{ padding: '14px 18px', color: '#f97316', fontSize: 13 }}>
-              Plus de 500 personnes · tarif sur devis — contactez-nous directement.
-            </div>
-          )
-        ) : (
-          <div style={{ padding: '14px 18px', color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>
-            ↑ Indiquez le nombre de personnes pour voir votre forfait son.
-          </div>
-        )}
-      </PackBlock>
-
-      {/* Éclairage */}
-      <PackBlock title="💡 Éclairage" badge="OBLIGATOIRE" badgeColor="#f87171">
-        <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-          <div>
-            <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14, marginBottom: 3 }}>
-              Ambiance piste de danse — machine à fumée incluse
-            </div>
-            <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>Inclus obligatoirement dans chaque prestation</div>
-          </div>
-          <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 14, color: 'rgba(255,255,255,0.55)' }}>
-            {ECLAIR_BASE_PRICE} €
-          </div>
-        </div>
-        {ECLAIR_OPTS.filter(o => !o.mariageOnly || eventType === 'Mariage').map(o => (
-          <ToggleRow key={o.id} label={o.label} price={o.price}
-            checked={eclairOpts[o.id]}
-            onChange={() => setEclairOpts(prev => ({ ...prev, [o.id]: !prev[o.id] }))}
-            note={o.mariageOnly ? 'Mariages uniquement' : ''}
-          />
-        ))}
-      </PackBlock>
-
-      {/* Vidéo */}
-      <PackBlock title="🎬 Vidéo & Écrans" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.22)">
-        {VIDEO_OPTS.map(o => (
-          <RadioRow key={o.id} label={o.label} price={o.price}
-            selected={videoChoice === o.id}
-            onSelect={() => setVideoChoice(o.id)}
-          />
-        ))}
-      </PackBlock>
-
-      {/* DJ */}
+      {/* DJ en premier — toujours affiché */}
       <PackBlock title="🎧 Animation DJ" badge="OBLIGATOIRE" badgeColor="#f87171">
         <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
           <div>
@@ -754,17 +664,149 @@ export default function DevisPage() {
         </div>
       </PackBlock>
 
-      {/* Karaoké */}
-      <PackBlock title="🎤 Karaoké" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.22)">
-        <ToggleRow label="Ajouter un système karaoké" price={KARAOKE_PRICE}
-          checked={karaokeActive}
-          onChange={() => {
-            const next = !karaokeActive;
-            setKaraokeActive(next);
-            if (next && videoChoice === 'none') setVideoChoice('projecteur');
-          }}
-        />
-      </PackBlock>
+      {/* Question matériel */}
+      <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '18px 20px', marginBottom: 12 }}>
+        <div style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 14 }}>
+          🎛 Avez-vous besoin de matériel ?
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <button onClick={() => setNeedsMaterial(false)}
+            style={{
+              padding: '14px 16px', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
+              background: needsMaterial === false ? 'rgba(255,255,255,0.07)' : 'transparent',
+              border: `1px solid ${needsMaterial === false ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.1)'}`,
+              color: needsMaterial === false ? 'white' : 'rgba(255,255,255,0.45)',
+              transition: 'all 0.2s',
+            }}>
+            <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 14, marginBottom: 3 }}>
+              {needsMaterial === false ? '✓ ' : ''}Non
+            </div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>DJ uniquement</div>
+          </button>
+          <button onClick={() => setNeedsMaterial(true)}
+            style={{
+              padding: '14px 16px', borderRadius: 10, cursor: 'pointer', textAlign: 'left',
+              background: needsMaterial === true ? 'rgba(184,239,11,0.08)' : 'transparent',
+              border: `1px solid ${needsMaterial === true ? 'var(--lime)' : 'rgba(255,255,255,0.1)'}`,
+              color: needsMaterial === true ? 'var(--lime)' : 'rgba(255,255,255,0.45)',
+              transition: 'all 0.2s',
+            }}>
+            <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 14, marginBottom: 3 }}>
+              {needsMaterial === true ? '✓ ' : ''}Oui
+            </div>
+            <div style={{ fontSize: 11, color: needsMaterial === true ? 'rgba(184,239,11,0.6)' : 'rgba(255,255,255,0.35)' }}>Son, lumière, vidéo…</div>
+          </button>
+        </div>
+      </div>
+
+      {/* Matériel complet — affiché uniquement si needsMaterial === true */}
+      {needsMaterial === true && (
+        <>
+          {/* Nombre de personnes */}
+          <div style={{
+            background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: 12, padding: '16px 20px', marginBottom: 12,
+            display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap',
+          }}>
+            <span style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', flexShrink: 0 }}>
+              👥 Nombre de personnes
+            </span>
+            <input type="number" min={50} max={2000} placeholder="Min. 50"
+              value={nbPersons} onChange={e => setNbPersons(e.target.value)}
+              onBlur={e => { bl(e); const v = parseInt(e.target.value) || 0; if (v > 0 && v < 50) setNbPersons('50'); }}
+              style={{ ...IS, width: 110, textAlign: 'center', fontSize: 17, fontWeight: 700 }}
+              onFocus={fo} />
+            {nb > 0 && (
+              <div style={{ fontSize: 12, color: 'var(--lime)', fontFamily: 'var(--font-display), sans-serif', fontWeight: 600 }}>
+                ✓ {nb.toLocaleString('fr-FR')} personnes
+              </div>
+            )}
+          </div>
+          {nb === 0 && (
+            <p style={{ fontSize: 11, color: 'rgba(249,115,22,0.85)', marginBottom: 10 }}>
+              ⚠ Indiquez le nombre de personnes pour continuer (minimum 50)
+            </p>
+          )}
+          {nb > 100 && (
+            <div style={{ fontSize: 12, color: '#f97316', background: 'rgba(249,115,22,0.07)', border: '1px solid rgba(249,115,22,0.2)', borderRadius: 8, padding: '10px 14px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+              👨‍🔧 Événement de plus de 100 personnes — technicien journée inclus automatiquement · <strong>+{TECH_PRICE} €</strong>
+            </div>
+          )}
+
+          {/* Son */}
+          <PackBlock title="🔊 Sonorisation" badge="OBLIGATOIRE" badgeColor="#f87171">
+            {nb > 0 ? (
+              son ? (
+                <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14, color: 'var(--lime)', marginBottom: 3 }}>
+                      ✓ {son.label} — forfait automatique
+                    </div>
+                    <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>
+                      Système adapté à votre configuration · technicien inclus
+                    </div>
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 15, color: 'var(--lime)' }}>
+                    {son.price} €
+                  </div>
+                </div>
+              ) : (
+                <div style={{ padding: '14px 18px', color: '#f97316', fontSize: 13 }}>
+                  Plus de 500 personnes · tarif sur devis — contactez-nous directement.
+                </div>
+              )
+            ) : (
+              <div style={{ padding: '14px 18px', color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>
+                ↑ Indiquez le nombre de personnes pour voir votre forfait son.
+              </div>
+            )}
+          </PackBlock>
+
+          {/* Éclairage */}
+          <PackBlock title="💡 Éclairage" badge="OBLIGATOIRE" badgeColor="#f87171">
+            <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+              <div>
+                <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14, marginBottom: 3 }}>
+                  Ambiance piste de danse — machine à fumée incluse
+                </div>
+                <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>Inclus obligatoirement dans chaque prestation</div>
+              </div>
+              <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 14, color: 'rgba(255,255,255,0.55)' }}>
+                {ECLAIR_BASE_PRICE} €
+              </div>
+            </div>
+            {ECLAIR_OPTS.filter(o => !o.mariageOnly || eventType === 'Mariage').map(o => (
+              <ToggleRow key={o.id} label={o.label} price={o.price}
+                checked={eclairOpts[o.id]}
+                onChange={() => setEclairOpts(prev => ({ ...prev, [o.id]: !prev[o.id] }))}
+                note={o.mariageOnly ? 'Mariages uniquement' : ''}
+              />
+            ))}
+          </PackBlock>
+
+          {/* Vidéo */}
+          <PackBlock title="🎬 Vidéo & Écrans" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.22)">
+            {VIDEO_OPTS.map(o => (
+              <RadioRow key={o.id} label={o.label} price={o.price}
+                selected={videoChoice === o.id}
+                onSelect={() => setVideoChoice(o.id)}
+              />
+            ))}
+          </PackBlock>
+
+          {/* Karaoké */}
+          <PackBlock title="🎤 Karaoké" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.22)">
+            <ToggleRow label="Ajouter un système karaoké" price={KARAOKE_PRICE}
+              checked={karaokeActive}
+              onChange={() => {
+                const next = !karaokeActive;
+                setKaraokeActive(next);
+                if (next && videoChoice === 'none') setVideoChoice('projecteur');
+              }}
+            />
+          </PackBlock>
+        </>
+      )}
 
       {/* Barre totale fixe */}
       <div style={{
@@ -781,7 +823,7 @@ export default function DevisPage() {
             <AnimatedPrice value={totalBrut} /> €
           </div>
         </div>
-        <BtnPrimary onClick={() => goStep(3)} disabled={nb < 50 || !son}>
+        <BtnPrimary onClick={() => goStep(3)} disabled={needsMaterial === null || (needsMaterial === true && (nb < 50 || !son))}>
           Continuer →
         </BtnPrimary>
       </div>
@@ -866,14 +908,14 @@ export default function DevisPage() {
     ].filter(Boolean);
 
     const prestLines = [
-      son && [`Son (${son.label})`, son.price],
-      ['Éclairage ambiance', ECLAIR_BASE_PRICE],
-      ...ECLAIR_OPTS.filter(o => eclairOpts[o.id] && (!o.mariageOnly || eventType === 'Mariage')).map(o => [o.label, o.price]),
-      videoChoice !== 'none' && [VIDEO_OPTS.find(v => v.id === videoChoice)?.label, videoPrice],
       [`DJ (${djDuration}h)`, djForFait + djXtraCost],
-      karaokeActive && ['Karaoké', KARAOKE_PRICE],
-      ['Installation / désinstallation', INSTALL_PRICE],
-      nb > 100 && ['Technicien journée', TECH_PRICE],
+      needsMaterial && son && [`Son (${son.label})`, son.price],
+      needsMaterial && ['Éclairage ambiance', ECLAIR_BASE_PRICE],
+      ...(needsMaterial ? ECLAIR_OPTS.filter(o => eclairOpts[o.id] && (!o.mariageOnly || eventType === 'Mariage')).map(o => [o.label, o.price]) : []),
+      needsMaterial && videoChoice !== 'none' && [VIDEO_OPTS.find(v => v.id === videoChoice)?.label, videoPrice],
+      needsMaterial && karaokeActive && ['Karaoké', KARAOKE_PRICE],
+      needsMaterial && ['Installation / désinstallation', INSTALL_PRICE],
+      needsMaterial && nb > 100 && ['Technicien journée', TECH_PRICE],
       kmFee > 0 && ['Forfait déplacement', kmFee],
     ].filter(Boolean);
 

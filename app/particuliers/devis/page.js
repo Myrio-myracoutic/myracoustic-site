@@ -125,24 +125,63 @@ function AnimatedPrice({ value }) {
 }
 
 function MiniCal({ selected, onSelect, devisPending = {} }) {
-  const [month, setMonth] = useState(5);
-  const yr   = 2026;
-  const dim  = new Date(yr, month + 1, 0).getDate();
-  const fd   = (new Date(yr, month, 1).getDay() + 6) % 7;
+  const startYr = TODAY.getFullYear();
+  const YEARS   = [startYr, startYr + 1, startYr + 2];
+  const [year,  setYear]  = useState(startYr);
+  const [month, setMonth] = useState(TODAY.getMonth());
+
+  const dim  = new Date(year, month + 1, 0).getDate();
+  const fd   = (new Date(year, month, 1).getDay() + 6) % 7;
   const days = [...Array(fd).fill(null), ...Array.from({ length: dim }, (_, i) => i + 1)];
-  const mk   = (d) => `${yr}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-  const past = (d) => new Date(yr, month, d) < TODAY;
+  const mk   = (d) => `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+  const past = (d) => new Date(year, month, d) < TODAY;
+
+  const canPrev = year > startYr || (year === startYr && month > TODAY.getMonth());
+  const canNext = year < YEARS[YEARS.length - 1] || month < 11;
+
+  const prevMonth = () => {
+    if (!canPrev) return;
+    if (month === 0) { setMonth(11); setYear(y => y - 1); }
+    else setMonth(m => m - 1);
+  };
+  const nextMonth = () => {
+    if (!canNext) return;
+    if (month === 11) { setMonth(0); setYear(y => y + 1); }
+    else setMonth(m => m + 1);
+  };
+
+  const selectYear = (y) => {
+    setYear(y);
+    if (y === startYr && month < TODAY.getMonth()) setMonth(TODAY.getMonth());
+  };
 
   return (
     <div style={{ background: 'var(--card)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: 16 }}>
+      {/* Sélecteur d'année */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 10, justifyContent: 'center' }}>
+        {YEARS.map(y => (
+          <button key={y} onClick={() => selectYear(y)}
+            style={{
+              background: year === y ? 'var(--lime)' : 'rgba(255,255,255,0.05)',
+              color: year === y ? '#0d1b2a' : 'rgba(255,255,255,0.45)',
+              border: `1px solid ${year === y ? 'var(--lime)' : 'rgba(255,255,255,0.1)'}`,
+              borderRadius: 20, padding: '3px 12px', fontSize: 12, cursor: 'pointer',
+              fontFamily: 'var(--font-display), sans-serif', fontWeight: year === y ? 700 : 400,
+              transition: 'all 0.2s',
+            }}>
+            {y}
+          </button>
+        ))}
+      </div>
+      {/* Navigation mois */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-        <button onClick={() => setMonth(m => Math.max(5, m - 1))}
-          style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: 18, padding: '2px 8px' }}>‹</button>
+        <button onClick={prevMonth} disabled={!canPrev}
+          style={{ background: 'none', border: 'none', color: canPrev ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.15)', cursor: canPrev ? 'pointer' : 'default', fontSize: 18, padding: '2px 8px' }}>‹</button>
         <span style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 13 }}>
-          {MONTHS_FR[month]} {yr}
+          {MONTHS_FR[month]} {year}
         </span>
-        <button onClick={() => setMonth(m => Math.min(11, m + 1))}
-          style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', fontSize: 18, padding: '2px 8px' }}>›</button>
+        <button onClick={nextMonth} disabled={!canNext}
+          style={{ background: 'none', border: 'none', color: canNext ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.15)', cursor: canNext ? 'pointer' : 'default', fontSize: 18, padding: '2px 8px' }}>›</button>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 2, marginBottom: 3 }}>
         {['L','M','M','J','V','S','D'].map((d, i) => (

@@ -120,10 +120,6 @@ const INCLUDES = [
 const TESTIMONIALS = [
   { name: 'Sophie & Marc',  event: 'Mariage · 180 invités', stars: 5,
     text: "Tout était parfait : son, lumières, DJ. Les invités en parlent encore. Un grand merci à toute l'équipe Myracoustic !" },
-  { name: 'Lucie B.',       event: 'Anniversaire 40 ans', stars: 5,
-    text: "J'ai adoré le suivi et la réactivité. Ils ont su transformer une simple salle en une vraie salle de fête. Bluffant." },
-  { name: 'Thomas & Élise', event: 'Mariage · Château', stars: 5,
-    text: "Le mapping vidéo sur les murs du château était spectaculaire. Nos invités n'avaient jamais vu ça. Inoubliable." },
   { name: 'Treecy et Jerry', event: 'Mariage', stars: 5,
     text: "C'est un dj très professionnel, compréhensif et qui s'adapte à toutes situations. Le rapport qualité prix est au top. Je recommande fortement. Amusement garantie." },
   { name: 'Sandra et Stéphanie', event: 'Mariage', stars: 5,

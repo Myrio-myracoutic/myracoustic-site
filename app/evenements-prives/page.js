@@ -124,6 +124,12 @@ const TESTIMONIALS = [
     text: "J'ai adoré le suivi et la réactivité. Ils ont su transformer une simple salle en une vraie salle de fête. Bluffant." },
   { name: 'Thomas & Élise', event: 'Mariage · Château', stars: 5,
     text: "Le mapping vidéo sur les murs du château était spectaculaire. Nos invités n'avaient jamais vu ça. Inoubliable." },
+  { name: 'Treecy et Jerry', event: 'Mariage', stars: 5,
+    text: "C'est un dj très professionnel, compréhensif et qui s'adapte à toutes situations. Le rapport qualité prix est au top. Je recommande fortement. Amusement garantie." },
+  { name: 'Sandra et Stéphanie', event: 'Mariage', stars: 5,
+    text: "Myrio a été à l'écoute de nos envies, on a tout calé ensemble. Ces propositions ont été pertinentes. Nous l'avions déjà vu comme dj dans des soirées repas d'entreprise et comme nous l'avions apprécié nous l'avons contacté pour notre mariage. Il est en plus super bien équipé en matériel du coup ça facilite pour faire des animations tout au long de la soirée." },
+  { name: 'Patricia.A', event: 'Anniversaire intergénérationnel', stars: 5,
+    text: "Une soirée comme on en rêve pour réunir plusieurs générations : tout le monde a dansé, des plus jeunes aux plus grands. Merci à Myrio pour cette ambiance chaleureuse du début à la fin !" },
 ];
 
 /* ─── Page ──────────────────────────────────────────────────────── */

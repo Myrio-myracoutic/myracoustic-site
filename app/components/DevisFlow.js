@@ -736,7 +736,7 @@ export default function DevisFlow({ forcedProfil = null }) {
       {/* Question matériel */}
       <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '18px 20px', marginBottom: 12 }}>
         <div style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 14 }}>
-          🎛 Avez-vous besoin de matériel ?
+          🎛 Le DJ doit-il apporter son équipement ?
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
           <button onClick={() => setNeedsMaterial(true)}
@@ -748,9 +748,9 @@ export default function DevisFlow({ forcedProfil = null }) {
               transition: 'all 0.2s',
             }}>
             <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 14, marginBottom: 3 }}>
-              {needsMaterial === true ? '✓ ' : ''}Myracoustic fournit tout le matériel
+              {needsMaterial === true ? '✓ ' : ''}Oui, qu'il amène tout
             </div>
-            <div style={{ fontSize: 11, color: needsMaterial === true ? 'rgba(184,239,11,0.6)' : 'rgba(255,255,255,0.35)' }}>Son, lumière et vidéo assurés par le DJ</div>
+            <div style={{ fontSize: 11, color: needsMaterial === true ? 'rgba(184,239,11,0.6)' : 'rgba(255,255,255,0.35)' }}>Sonorisation, éclairage et vidéo inclus</div>
           </button>
           <button onClick={() => setNeedsMaterial(false)}
             style={{
@@ -761,9 +761,9 @@ export default function DevisFlow({ forcedProfil = null }) {
               transition: 'all 0.2s',
             }}>
             <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 14, marginBottom: 3 }}>
-              {needsMaterial === false ? '✓ ' : ''}Je prends en charge le matériel
+              {needsMaterial === false ? '✓ ' : ''}Non, j'ai déjà mon matériel sur place
             </div>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>Son et lumières fournis par le client</div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>Le DJ utilise mon installation existante</div>
           </button>
         </div>
       </div>

@@ -99,7 +99,7 @@ const SERVICES = [
   {
     icon: '🎬', tag: 'VIDÉO', title: 'Vidéo & Écrans',
     desc: 'Diffusion de vos photos, vidéos et diaporamas sur grands écrans LED pour des moments intenses et partagés.',
-    items: ['Vidéoprojecteur & support', 'Mur LED 2 m² ou 4 m²', 'Mapping & projection architecturale', 'Retransmission live HD', 'Contenu personnalisé'],
+    items: ['Vidéoprojecteur & support', 'Mur LED 2 m² ou 4 m²', 'Contenu personnalisé'],
   },
   {
     icon: '🎧', tag: 'DJ', title: 'Animation DJ',
@@ -112,7 +112,7 @@ const INCLUDES = [
   'Visite technique du lieu avant l\'événement',
   'Installation et démontage inclus dans le devis',
   'Technicien présent toute la soirée',
-  'Devis personnalisé en ligne en moins de 3 minutes',
+  'Devis personnalisé en ligne en moins de 2 minutes',
   'Contrat clair avec engagement de qualité',
   'Assurance responsabilité civile professionnelle',
 ];
@@ -144,7 +144,7 @@ export default function ParticuliersPage() {
         <div style={{
           position: 'absolute', inset: 0, zIndex: 0,
           background: 'linear-gradient(135deg,#1a0a3d 0%,#4a1a8e 40%,#2a0d5e 70%,#0d1b2a 100%)',
-          opacity: 0.55,
+          opacity: 0.4,
         }} />
         <div style={{
           position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
@@ -223,8 +223,18 @@ export default function ParticuliersPage() {
       </section>
 
       {/* ── CE QUE VOUS OBTENEZ ─────────────────────────────────── */}
-      <section style={{ padding: 'clamp(48px,6vw,80px) 32px', background: '#060e16' }}>
+      <section style={{
+        padding: 'clamp(48px,6vw,80px) 32px',
+        backgroundImage: 'url(/ban_prestation_son.jpg)',
+        backgroundSize: 'cover', backgroundPosition: 'center',
+        position: 'relative', overflow: 'hidden',
+      }}>
         <div style={{
+          position: 'absolute', inset: 0, zIndex: 0,
+          background: 'rgba(6,14,22,0.65)',
+        }} />
+        <div style={{
+          position: 'relative', zIndex: 1,
           maxWidth: 1280, margin: '0 auto',
           display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))',
           gap: 48, alignItems: 'center',

@@ -508,8 +508,11 @@ export default function DevisFlow({ forcedProfil = null }) {
         <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(20px,3vw,30px)', fontWeight: 700, marginBottom: 8 }}>
           Votre adresse e-mail
         </h2>
-        <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, marginBottom: 24, lineHeight: 1.65 }}>
+        <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, marginBottom: 6, lineHeight: 1.65 }}>
           Nous l'utiliserons pour vous envoyer votre devis.
+        </p>
+        <p style={{ color: 'var(--lime)', fontSize: 13, fontWeight: 600, marginBottom: 24, lineHeight: 1.65 }}>
+          Réalisez votre devis en moins de deux minutes.
         </p>
         <input type="email" placeholder="votre@email.com" value={email}
           onChange={e => { setEmail(e.target.value); setEmailErr(''); }}
@@ -912,7 +915,7 @@ export default function DevisFlow({ forcedProfil = null }) {
     if (sent) return (
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
         <div style={{ textAlign: 'center', maxWidth: 520 }}>
-          <AnimatedWave bars={32} height={56} style={{ marginBottom: 24 }} />
+          <AnimatedWave bars={32} height={56} style={{ maxWidth: 420, margin: '0 auto 24px' }} />
           <div style={{ fontSize: 52, marginBottom: 16 }}>🎉</div>
           <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(20px,3vw,32px)', fontWeight: 700, marginBottom: 10 }}>
             Votre devis a été envoyé !
@@ -1091,7 +1094,7 @@ export default function DevisFlow({ forcedProfil = null }) {
     if (sent) return (
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
         <div style={{ textAlign: 'center', maxWidth: 480 }}>
-          <AnimatedWave bars={32} height={56} style={{ marginBottom: 24 }} />
+          <AnimatedWave bars={32} height={56} style={{ maxWidth: 380, margin: '0 auto 24px' }} />
           <div style={{ fontSize: 48, marginBottom: 14 }}>📅</div>
           <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(20px,3vw,30px)', fontWeight: 700, marginBottom: 10 }}>
             Demande reçue !

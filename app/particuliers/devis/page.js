@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AnimatedWave } from '../../components/AnimatedWave';
 
@@ -293,6 +294,8 @@ const BtnPrimary = ({ children, onClick, disabled, style }) => (
 ══════════════════════════════════════════════════════════════════════ */
 
 export default function DevisPage() {
+  const router = useRouter();
+
   /* ── Navigation tunnel ─────────────────────────────────────────── */
   const [profil, setProfil] = useState('');
   const [step,   setStep]   = useState(-1);
@@ -367,7 +370,7 @@ export default function DevisPage() {
 
   /* ── Actions ────────────────────────────────────────────────────── */
   const goBack = () => {
-    if (step === -1) return;
+    if (step === -1) { router.back(); return; }
     if (step === 0 || step === 10) { setStep(-1); setProfil(''); return; }
     setStep(s => s - 1);
   };

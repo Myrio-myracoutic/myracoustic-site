@@ -750,7 +750,7 @@ export default function DevisFlow({ forcedProfil = null }) {
             <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 14, marginBottom: 3 }}>
               {needsMaterial === true ? '✓ ' : ''}Oui, qu'il amène tout
             </div>
-            <div style={{ fontSize: 11, color: needsMaterial === true ? 'rgba(184,239,11,0.6)' : 'rgba(255,255,255,0.35)' }}>Sonorisation, éclairage et vidéo inclus</div>
+            <div style={{ fontSize: 11, color: needsMaterial === true ? 'rgba(184,239,11,0.6)' : 'rgba(255,255,255,0.35)' }}>À configurer juste après selon votre événement</div>
           </button>
           <button onClick={() => setNeedsMaterial(false)}
             style={{

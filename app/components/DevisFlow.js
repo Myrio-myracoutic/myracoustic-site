@@ -88,13 +88,14 @@ function getTransportFee(km) {
   return null; /* sur devis */
 }
 
-/* Remise anticipation : 15 % si signé rapidement */
-function getRemise(dateStr) {
+/* Remise anticipation : 15 % si signature avant une échéance calculée depuis la date d'établissement du devis (aujourd'hui) */
+function getRemiseDeadline(dateStr) {
   if (!dateStr) return null;
   const diff = Math.round((new Date(dateStr + 'T12:00:00') - TODAY) / 86400000);
-  if (diff < 90)  return '3 jours';
-  if (diff < 180) return '1 semaine';
-  return '2 semaines';
+  const delayDays = diff < 90 ? 3 : diff < 180 ? 7 : 14;
+  const deadline = new Date(TODAY);
+  deadline.setDate(deadline.getDate() + delayDays);
+  return deadline;
 }
 
 /* Estimation km sans API (hash déterministe) */
@@ -364,8 +365,11 @@ export default function DevisFlow({ forcedProfil = null }) {
       (karaokeActive ? KARAOKE_PRICE : 0) + INSTALL_PRICE + techPrice
     : 0;
   const totalBrut     = materialTotal + djForFait + djXtraCost + kmFee;
-  const remiseDelai   = getRemise(date);
-  const totalNet      = remiseDelai ? Math.round(totalBrut * 0.85) : totalBrut;
+  const remiseDeadline = getRemiseDeadline(date);
+  const remiseDate    = remiseDeadline
+    ? remiseDeadline.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+    : null;
+  const totalNet      = remiseDeadline ? Math.round(totalBrut * 0.85) : totalBrut;
   const acompte60     = Math.round(totalNet * 0.6);
   const solde40       = totalNet - acompte60;
 
@@ -531,11 +535,11 @@ export default function DevisFlow({ forcedProfil = null }) {
       <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.22)', marginBottom: 14 }}>
         Les champs marqués <span style={{ color: '#ef4444' }}>*</span> sont obligatoires pour continuer.
       </p>
-      {remiseDelai && (
+      {remiseDeadline && (
         <div style={{ marginBottom: 20, padding: '11px 14px', background: 'rgba(184,239,11,0.06)', border: '1px solid rgba(184,239,11,0.2)', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 15, flexShrink: 0 }}>💸</span>
           <p style={{ margin: 0, fontSize: 12, color: 'rgba(255,255,255,0.55)', lineHeight: 1.7 }}>
-            <span style={{ color: 'var(--lime)', fontWeight: 700 }}>−15% de remise</span> appliqués automatiquement sur votre devis — signez sous {remiseDelai} pour en bénéficier.
+            <span style={{ color: 'var(--lime)', fontWeight: 700 }}>−15% de remise</span> appliqués automatiquement sur votre devis — signez avant le {remiseDate} pour en bénéficier.
           </p>
         </div>
       )}
@@ -919,10 +923,10 @@ export default function DevisFlow({ forcedProfil = null }) {
           <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 24 }}>
             Vérifiez votre boîte e-mail — le devis est signable en ligne.
           </p>
-          {remiseDelai && (
+          {remiseDeadline && (
             <div style={{ background: 'rgba(184,239,11,0.07)', border: '1px solid rgba(184,239,11,0.25)', borderRadius: 10, padding: '14px 18px', marginBottom: 24, textAlign: 'left' }}>
               <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 14, color: 'var(--lime)', marginBottom: 4 }}>
-                ⏰ Remise 15 % — signez sous {remiseDelai}
+                ⏰ Remise 15 % — signez avant le {remiseDate}
               </div>
               <div style={{ color: 'rgba(255,255,255,0.55)', fontSize: 13, lineHeight: 1.6 }}>
                 Total remisé : <strong style={{ color: 'var(--lime)' }}>{totalNet.toLocaleString('fr-FR')} € TTC</strong> au lieu de {totalBrut.toLocaleString('fr-FR')} €.
@@ -971,11 +975,11 @@ export default function DevisFlow({ forcedProfil = null }) {
         <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 22 }}>Étape 4 sur 5 · Vérifiez et envoyez</p>
 
         {/* Remise */}
-        {remiseDelai && (
+        {remiseDeadline && (
           <div style={{ background: 'rgba(184,239,11,0.07)', border: '1px solid rgba(184,239,11,0.22)', borderRadius: 10, padding: '14px 18px', marginBottom: 14 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
               <span style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 13, color: 'var(--lime)' }}>
-                ⏰ Remise 15 % si vous signez sous {remiseDelai}
+                ⏰ Remise 15 % si vous signez avant le {remiseDate}
               </span>
               <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 18, color: 'var(--lime)' }}>
                 {totalNet.toLocaleString('fr-FR')} €
@@ -1008,7 +1012,7 @@ export default function DevisFlow({ forcedProfil = null }) {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', fontSize: 17 }}>
             <span style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, color: 'rgba(255,255,255,0.6)' }}>TOTAL TTC</span>
             <div style={{ textAlign: 'right' }}>
-              {remiseDelai && (
+              {remiseDeadline && (
                 <div style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 13, color: 'rgba(255,255,255,0.3)', textDecoration: 'line-through' }}>
                   {totalBrut.toLocaleString('fr-FR')} €
                 </div>

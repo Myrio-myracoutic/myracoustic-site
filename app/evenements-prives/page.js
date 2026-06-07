@@ -118,8 +118,8 @@ const INCLUDES = [
 ];
 
 const TESTIMONIALS = [
-  { name: 'Sophie & Marc',  event: 'Mariage · 180 invités', stars: 5,
-    text: "Tout était parfait : son, lumières, DJ. Les invités en parlent encore. Un grand merci à toute l'équipe Myracoustic !" },
+  { name: 'Virginie.G',  event: 'Anniversaire · 90 personnes', stars: 5,
+    text: "J'ai fais appel à Myracoustic pour un anniversaire et nous avions été très satisfait de sa prestation. Personne a l'écoute, ambiance au top. Je recommande++++" },
   { name: 'Treecy et Jerry', event: 'Mariage', stars: 5,
     text: "C'est un dj très professionnel, compréhensif et qui s'adapte à toutes situations. Le rapport qualité prix est au top. Je recommande fortement. Amusement garantie." },
   { name: 'Sandra et Stéphanie', event: 'Mariage', stars: 5,

@@ -669,7 +669,15 @@ export default function DevisFlow({ forcedProfil = null }) {
       <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
         Vos prestations
       </h2>
-      <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 24 }}>Étape 2 sur 5 · Configurez votre événement</p>
+      <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 12 }}>Étape 2 sur 5 · Configurez votre événement</p>
+      {remiseDeadline && (
+        <div style={{ marginBottom: 20, padding: '11px 14px', background: 'rgba(184,239,11,0.06)', border: '1px solid rgba(184,239,11,0.2)', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 15, flexShrink: 0 }}>💸</span>
+          <p style={{ margin: 0, fontSize: 12, color: 'rgba(255,255,255,0.55)', lineHeight: 1.7 }}>
+            <span style={{ color: 'var(--lime)', fontWeight: 700 }}>−15% de remise</span> appliqués automatiquement sur votre devis — signez avant le {remiseDate} pour en bénéficier.
+          </p>
+        </div>
+      )}
 
       {/* DJ en premier — toujours affiché */}
       <PackBlock title="🎧 Animation DJ" badge="OBLIGATOIRE" badgeColor="#f87171">

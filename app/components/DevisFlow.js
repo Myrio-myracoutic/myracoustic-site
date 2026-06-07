@@ -488,12 +488,12 @@ export default function DevisFlow({ forcedProfil = null }) {
           Choisissez votre profil pour accéder au parcours adapté.
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-          <ProfileCard icon="🎉" title="Particulier"
-            sub={"Mariage, anniversaire\nsoirée privée"} badge="Devis en ligne immédiat"
-            onClick={() => router.push('/contact/devis-particulier')} />
           <ProfileCard icon="🏢" title="Professionnel"
             sub={"Séminaire, gala\nsoirée d'entreprise"} badge="Prise de contact"
             onClick={() => router.push('/contact/devis-entreprise')} />
+          <ProfileCard icon="🎉" title="Particulier"
+            sub={"Mariage, anniversaire\nsoirée privée"} badge="Devis en ligne immédiat"
+            onClick={() => router.push('/contact/devis-particulier')} />
         </div>
       </div>
     </div>

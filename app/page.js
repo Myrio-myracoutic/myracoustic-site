@@ -151,7 +151,7 @@ export default function Home() {
             </p>
 
             <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', ...anim(0.6) }}>
-              <Link href="/entreprises" style={{
+              <Link href="/evenement-entreprise" style={{
                 background: 'var(--lime)', color: '#0d1b2a',
                 padding: 'clamp(13px,1.5vw,16px) clamp(22px,2.5vw,32px)',
                 borderRadius: 8, fontSize: 'clamp(14px,1.2vw,16px)', fontWeight: 700,
@@ -164,7 +164,7 @@ export default function Home() {
               >
                 Entreprises <span>→</span>
               </Link>
-              <Link href="/particuliers" style={{
+              <Link href="/evenements-prives" style={{
                 background: 'transparent', color: 'white',
                 border: '2px solid rgba(255,255,255,0.35)',
                 padding: 'clamp(13px,1.5vw,16px) clamp(22px,2.5vw,32px)',
@@ -217,7 +217,7 @@ export default function Home() {
                 <span style={{ color: 'var(--lime)' }}>un événement parfait</span>
               </h2>
             </div>
-            <Link href="/particuliers" style={{
+            <Link href="/evenements-prives" style={{
               background: 'transparent', color: 'white',
               border: '1px solid rgba(255,255,255,0.25)',
               padding: '11px 22px', borderRadius: 6, fontSize: 14,
@@ -256,7 +256,7 @@ export default function Home() {
           </div>
 
           <div style={{ textAlign: 'center', marginTop: 52 }}>
-            <Link href="/particuliers/devis" style={{
+            <Link href="/evenements-prives/devis" style={{
               background: 'var(--lime)', color: '#0d1b2a',
               padding: '16px 42px', borderRadius: 8, fontSize: 17, fontWeight: 700,
               fontFamily: 'var(--font-display), sans-serif',
@@ -288,7 +288,7 @@ export default function Home() {
           Obtenez votre devis personnalisé en quelques minutes.
         </p>
         <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Link href="/particuliers/devis" style={{
+          <Link href="/evenements-prives/devis" style={{
             background: 'var(--lime)', color: '#0d1b2a',
             padding: '15px 34px', borderRadius: 8, fontSize: 16, fontWeight: 700,
             fontFamily: 'var(--font-display), sans-serif',
@@ -299,7 +299,7 @@ export default function Home() {
           >
             Calculer mon devis →
           </Link>
-          <Link href="/entreprises" style={{
+          <Link href="/evenement-entreprise" style={{
             background: 'transparent', color: 'white',
             border: '2px solid rgba(255,255,255,0.3)',
             padding: '15px 34px', borderRadius: 8, fontSize: 16, fontWeight: 600,

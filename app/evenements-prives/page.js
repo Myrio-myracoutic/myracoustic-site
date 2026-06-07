@@ -68,7 +68,7 @@ function ServiceDetailCard({ icon, tag, title, desc, items }) {
         padding: '16px 28px',
         borderTop: '1px solid rgba(255,255,255,0.06)',
       }}>
-        <Link href="/particuliers/devis" style={{
+        <Link href="/evenements-prives/devis" style={{
           background: 'var(--lime)', color: '#0d1b2a',
           padding: '8px 16px', borderRadius: 5, fontSize: 13, fontWeight: 700,
           fontFamily: 'var(--font-display), sans-serif',
@@ -169,7 +169,7 @@ export default function ParticuliersPage() {
           }}>
             Mariage, anniversaire, fête de famille — nous créons l'ambiance sonore et visuelle parfaite pour que votre événement soit inoubliable.
           </p>
-          <Link href="/particuliers/devis" style={{
+          <Link href="/evenements-prives/devis" style={{
             background: 'var(--lime)', color: '#0d1b2a',
             padding: '15px 32px', borderRadius: 8, fontSize: 16, fontWeight: 700,
             fontFamily: 'var(--font-display), sans-serif',
@@ -293,7 +293,7 @@ export default function ParticuliersPage() {
         <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 16, marginBottom: 32 }}>
           Calculez votre devis en ligne en moins de 3 minutes.
         </p>
-        <Link href="/particuliers/devis" style={{
+        <Link href="/evenements-prives/devis" style={{
           background: 'var(--lime)', color: '#0d1b2a',
           padding: '16px 40px', borderRadius: 8, fontSize: 17, fontWeight: 700,
           fontFamily: 'var(--font-display), sans-serif',

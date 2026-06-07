@@ -9,9 +9,9 @@ const SERVICES = ['Sonorisation', 'Éclairage', 'Vidéo & Mapping', 'Animation D
 
 const NAV_LINKS = [
   { href: '/',                    label: 'Accueil' },
-  { href: '/particuliers',        label: 'Particuliers' },
-  { href: '/entreprises',         label: 'Entreprises' },
-  { href: '/particuliers/devis',  label: 'Devis en ligne' },
+  { href: '/evenements-prives',        label: 'Particuliers' },
+  { href: '/evenement-entreprise',         label: 'Entreprises' },
+  { href: '/evenements-prives/devis',  label: 'Devis en ligne' },
 ];
 
 const LEGAL_LINKS = [
@@ -22,7 +22,7 @@ const LEGAL_LINKS = [
 
 export default function Footer() {
   const pathname = usePathname();
-  if (pathname.startsWith('/particuliers/devis')) return null;
+  if (pathname.startsWith('/evenements-prives/devis')) return null;
   return (
     <footer style={{
       background: '#060e16',

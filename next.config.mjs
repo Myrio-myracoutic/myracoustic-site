@@ -1,6 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  /* config options here */
+  async redirects() {
+    return [
+      { source: '/particuliers', destination: '/evenements-prives', permanent: true },
+      { source: '/particuliers/devis', destination: '/evenements-prives/devis', permanent: true },
+      { source: '/entreprises', destination: '/evenement-entreprise', permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

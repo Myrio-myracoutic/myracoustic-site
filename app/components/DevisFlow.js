@@ -873,6 +873,23 @@ export default function DevisFlow({ forcedProfil = null }) {
               />
             ))}
           </PackBlock>
+
+          {/* Installation / désinstallation — toujours incluse quand Myracoustic fournit le matériel */}
+          <PackBlock title="🔧 Installation & désinstallation" badge="INCLUS" badgeColor="rgba(255,255,255,0.22)">
+            <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14, color: 'var(--lime)', marginBottom: 3 }}>
+                  ✓ Montage et démontage du matériel sur place
+                </div>
+                <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>
+                  Inclus dès que Myracoustic fournit le matériel
+                </div>
+              </div>
+              <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 14, color: 'var(--lime)' }}>
+                {INSTALL_PRICE} €
+              </div>
+            </div>
+          </PackBlock>
         </>
       )}
 

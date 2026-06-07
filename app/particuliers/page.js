@@ -134,14 +134,15 @@ export default function ParticuliersPage() {
       {/* ── HERO ────────────────────────────────────────────────── */}
       <section style={{
         padding: 'clamp(64px,9vw,110px) 32px clamp(80px,10vw,120px)',
-        background: 'var(--bg)',
+        backgroundImage: 'url(/particuliers-hero.jpg)',
+        backgroundSize: 'cover', backgroundPosition: 'center',
         position: 'relative', overflow: 'hidden',
       }}>
         {/* Fond dégradé violet festif */}
         <div style={{
           position: 'absolute', inset: 0, zIndex: 0,
           background: 'linear-gradient(135deg,#1a0a3d 0%,#4a1a8e 40%,#2a0d5e 70%,#0d1b2a 100%)',
-          opacity: 0.28,
+          opacity: 0.55,
         }} />
         <div style={{
           position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',

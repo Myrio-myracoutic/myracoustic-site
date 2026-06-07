@@ -11,7 +11,7 @@ const NAV_LINKS = [
   { href: '/',                    label: 'Accueil' },
   { href: '/evenements-prives',        label: 'Particuliers' },
   { href: '/evenement-entreprise',         label: 'Entreprises' },
-  { href: '/evenements-prives/devis',  label: 'Devis en ligne' },
+  { href: '/contact',  label: 'Devis en ligne' },
 ];
 
 const LEGAL_LINKS = [
@@ -22,7 +22,7 @@ const LEGAL_LINKS = [
 
 export default function Footer() {
   const pathname = usePathname();
-  if (pathname.startsWith('/evenements-prives/devis')) return null;
+  if (pathname.startsWith('/contact')) return null;
   return (
     <footer style={{
       background: '#060e16',

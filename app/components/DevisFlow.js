@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { AnimatedWave } from '../../components/AnimatedWave';
+import { AnimatedWave } from './AnimatedWave';
 
 /* ════════════════════════════════════════════════════════════════════
    TARIFS — source : docs/grilles-tarifaires.md
@@ -293,12 +293,13 @@ const BtnPrimary = ({ children, onClick, disabled, style }) => (
    PAGE PRINCIPALE
 ══════════════════════════════════════════════════════════════════════ */
 
-export default function DevisPage() {
+/* forcedProfil : null → écran de choix de profil (gate) ; 'particulier' ou 'professionnel' → tunnel démarré directement, sans gate */
+export default function DevisFlow({ forcedProfil = null }) {
   const router = useRouter();
 
   /* ── Navigation tunnel ─────────────────────────────────────────── */
-  const [profil, setProfil] = useState('');
-  const [step,   setStep]   = useState(-1);
+  const [profil, setProfil] = useState(forcedProfil || '');
+  const [step,   setStep]   = useState(forcedProfil === 'particulier' ? 0 : forcedProfil === 'professionnel' ? 10 : -1);
   const [sent,   setSent]   = useState(false);
 
   /* ── Particulier — identité & événement ────────────────────────── */
@@ -371,7 +372,10 @@ export default function DevisPage() {
   /* ── Actions ────────────────────────────────────────────────────── */
   const goBack = () => {
     if (step === -1) { router.back(); return; }
-    if (step === 0 || step === 10) { setStep(-1); setProfil(''); return; }
+    if (step === 0 || step === 10) {
+      if (forcedProfil) { router.back(); return; }
+      setStep(-1); setProfil(''); return;
+    }
     setStep(s => s - 1);
   };
 
@@ -482,10 +486,10 @@ export default function DevisPage() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
           <ProfileCard icon="🎉" title="Particulier"
             sub={"Mariage, anniversaire\nsoirée privée"} badge="Devis en ligne immédiat"
-            onClick={() => { setProfil('particulier'); setStep(0); }} />
+            onClick={() => router.push('/contact/devis-particulier')} />
           <ProfileCard icon="🏢" title="Professionnel"
             sub={"Séminaire, gala\nsoirée d'entreprise"} badge="Prise de contact"
-            onClick={() => { setProfil('professionnel'); setStep(10); }} />
+            onClick={() => router.push('/contact/devis-entreprise')} />
         </div>
       </div>
     </div>

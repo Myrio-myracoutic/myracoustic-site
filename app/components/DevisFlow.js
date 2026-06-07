@@ -487,7 +487,7 @@ export default function DevisFlow({ forcedProfil = null }) {
         <p style={{ color: 'rgba(255,255,255,0.42)', fontSize: 14, marginBottom: 36, lineHeight: 1.7 }}>
           Choisissez votre profil.
         </p>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+        <div className="gate-profile-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
           <ProfileCard icon="🏢" title="Professionnel"
             sub={"Séminaire, gala\nsoirée d'entreprise"} badge="Prise de contact"
             onClick={() => router.push('/contact/devis-entreprise')} />
@@ -1207,6 +1207,7 @@ export default function DevisFlow({ forcedProfil = null }) {
         @keyframes spin{to{transform:rotate(360deg)}}
         @media (max-width: 768px) {
           .devis-tunnel-header { justify-content: center !important; }
+          .gate-profile-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
       <Header />

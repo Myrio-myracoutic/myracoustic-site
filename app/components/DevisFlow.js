@@ -686,7 +686,7 @@ export default function DevisFlow({ forcedProfil = null }) {
             </div>
           </div>
           <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 14, color: 'var(--lime)' }}>
-            {djCfg.forfait} €
+            {djCfg.forfait + djXtraCost} €
           </div>
         </div>
         <div style={{ padding: '14px 18px', background: 'rgba(184,239,11,0.04)' }}>

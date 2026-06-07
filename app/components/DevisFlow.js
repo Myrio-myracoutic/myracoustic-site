@@ -835,12 +835,12 @@ export default function DevisFlow({ forcedProfil = null }) {
           <PackBlock title="💡 Éclairage" badge="OBLIGATOIRE" badgeColor="#f87171">
             <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
               <div>
-                <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14, marginBottom: 3 }}>
-                  Ambiance piste de danse — machine à fumée incluse
+                <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14, color: 'var(--lime)', marginBottom: 3 }}>
+                  ✓ Ambiance piste de danse — machine à fumée incluse
                 </div>
                 <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>Inclus obligatoirement dans chaque prestation</div>
               </div>
-              <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 14, color: 'rgba(255,255,255,0.55)' }}>
+              <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 14, color: 'var(--lime)' }}>
                 {ECLAIR_BASE_PRICE} €
               </div>
             </div>

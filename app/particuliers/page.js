@@ -98,7 +98,7 @@ const SERVICES = [
   {
     icon: '🎬', tag: 'VIDÉO', title: 'Vidéo & Écrans',
     desc: 'Diffusion de vos photos, vidéos et diaporamas sur grands écrans LED pour des moments intenses et partagés.',
-    items: ['Vidéoprojecteur & support', 'Mur LED 2 m² ou 4 m²', 'Retransmission live HD', 'Contenu personnalisé'],
+    items: ['Vidéoprojecteur & support', 'Mur LED 2 m² ou 4 m²', 'Mapping & projection architecturale', 'Retransmission live HD', 'Contenu personnalisé'],
   },
   {
     icon: '🎧', tag: 'DJ', title: 'Animation DJ',

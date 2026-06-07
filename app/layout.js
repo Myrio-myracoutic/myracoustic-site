@@ -35,6 +35,7 @@ export default function RootLayout({ children }) {
     <html
       lang="fr"
       className={`${spaceGrotesk.variable} ${hankenGrotesk.variable} ${spaceMono.variable}`}
+      suppressHydrationWarning
     >
       <body style={{ fontFamily: "var(--font-body), sans-serif" }}>
         <Nav />

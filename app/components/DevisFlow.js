@@ -480,6 +480,12 @@ export default function DevisFlow({ forcedProfil = null }) {
   const renderGate = () => (
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
       <div style={{ width: '100%', maxWidth: 640, textAlign: 'center' }}>
+        <button onClick={goBack} className="hide-desktop" style={{
+          background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)',
+          cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, padding: 0,
+          fontSize: 13, fontFamily: 'var(--font-display), sans-serif', fontWeight: 500,
+          marginBottom: 16,
+        }}>← Retour</button>
         <AnimatedWave bars={36} height={60} style={{ maxWidth: 480, margin: '0 auto 28px' }} />
         <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(22px,4vw,34px)', fontWeight: 700, marginBottom: 8 }}>
           Demande de devis

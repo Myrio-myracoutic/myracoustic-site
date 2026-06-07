@@ -265,7 +265,7 @@ export default function Home() {
           display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 32,
         }}>
           <StatItem value="26" suffix="+" label="Années d'expérience" />
-          <StatItem value="500" suffix="+" label="Événements réalisés" />
+          <StatItem value="1000" suffix="+" label="Événements réalisés" />
           <StatItem value="4" suffix="" label="Prestations phare" />
         </div>
       </section>

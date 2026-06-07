@@ -884,7 +884,7 @@ export default function DevisFlow({ forcedProfil = null }) {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap',
       }}>
         <div>
-          <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, fontFamily: 'var(--font-display), sans-serif', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 2 }}>
+          <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 11, fontFamily: 'var(--font-display), sans-serif', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 2 }}>
             Total estimé TTC {kmFee > 0 && `· dont ${kmFee} € déplacement`} {remiseDeadline && '· remise -15 % appliquée'}
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>

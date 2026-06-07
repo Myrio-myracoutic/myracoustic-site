@@ -56,7 +56,7 @@ function getSonForfait(nb) {
 
 const ECLAIR_BASE_PRICE = 100; /* toujours inclus */
 const ECLAIR_OPTS = [
-  { id: 'archi',      label: 'Projecteurs architecturaux',         price: 50,  mariageOnly: false },
+  { id: 'archi',      label: 'Mise en lumière de la salle',         price: 50,  mariageOnly: false },
   { id: 'etincelles', label: 'Machines à étincelles froides (×2)', price: 100, mariageOnly: false },
   { id: 'fumee',      label: 'Machine à fumée lourde',             price: 50,  mariageOnly: true  },
 ];
@@ -490,8 +490,11 @@ export default function DevisFlow({ forcedProfil = null }) {
         <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(22px,4vw,34px)', fontWeight: 700, marginBottom: 8 }}>
           Demande de devis
         </h1>
-        <p style={{ color: 'rgba(255,255,255,0.42)', fontSize: 14, marginBottom: 36, lineHeight: 1.7 }}>
+        <p style={{ color: 'rgba(255,255,255,0.42)', fontSize: 14, marginBottom: 8, lineHeight: 1.7 }}>
           Choisissez votre profil.
+        </p>
+        <p style={{ color: 'var(--lime)', fontSize: 12, fontWeight: 600, marginBottom: 36 }}>
+          Devis gratuit, sans engagement
         </p>
         <div className="gate-profile-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
           <ProfileCard icon="🏢" title="Professionnel"
@@ -518,7 +521,7 @@ export default function DevisFlow({ forcedProfil = null }) {
           Votre adresse e-mail
         </p>
         <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, marginBottom: 14, lineHeight: 1.65 }}>
-          Nous l'utiliserons pour vous envoyer votre devis.
+          Nous l'utiliserons pour vous envoyer votre devis — gratuit et sans engagement.
         </p>
         <input type="email" placeholder="votre@email.com" value={email}
           onChange={e => { setEmail(e.target.value); setEmailErr(''); }}
@@ -837,11 +840,11 @@ export default function DevisFlow({ forcedProfil = null }) {
           </PackBlock>
 
           {/* Éclairage */}
-          <PackBlock title="💡 Éclairage" badge="OBLIGATOIRE" badgeColor="#f87171">
+          <PackBlock title="💡 Éclairage et effets" badge="OBLIGATOIRE" badgeColor="#f87171">
             <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
               <div>
                 <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14, color: 'var(--lime)', marginBottom: 3 }}>
-                  ✓ Ambiance piste de danse — machine à fumée incluse
+                  ✓ Mise en lumière piste de danse — machine à fumée incluse
                 </div>
                 <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>Inclus obligatoirement dans chaque prestation</div>
               </div>
@@ -921,7 +924,7 @@ export default function DevisFlow({ forcedProfil = null }) {
           </div>
         </div>
         <BtnPrimary onClick={() => goStep(3)} disabled={needsMaterial === null || (needsMaterial === true && (nb < 50 || !son))}>
-          Continuer →
+          Valider mon devis →
         </BtnPrimary>
       </div>
     </div>
@@ -1104,6 +1107,9 @@ export default function DevisFlow({ forcedProfil = null }) {
         </BtnPrimary>
         <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.28)', fontSize: 12, marginTop: 10 }}>
           Envoyé immédiatement par e-mail · Signature électronique sécurisée
+        </p>
+        <p style={{ textAlign: 'center', color: 'rgba(184,239,11,0.55)', fontSize: 12, marginTop: 4 }}>
+          Ce devis est gratuit et ne vous engage à rien
         </p>
       </div>
     );

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { AnimatedWave, WaveBullet, SectionLabel } from '../components/AnimatedWave';
 import TestimonialCard from '../components/TestimonialCard';
+import StatItem from '../components/StatItem';
 
 /* ─── Bullet point avec onde ────────────────────────────────────── */
 function BulletItem({ children }) {
@@ -183,6 +184,22 @@ export default function ParticuliersPage() {
         {/* Onde décorative en bas du hero */}
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 80, zIndex: 2 }}>
           <AnimatedWave bars={60} height={80} opacity={0.6} />
+        </div>
+      </section>
+
+      {/* ── STATS ───────────────────────────────────────────────── */}
+      <section style={{
+        padding: '72px 32px',
+        background: '#060e16',
+        borderBottom: '1px solid rgba(255,255,255,0.06)',
+      }}>
+        <div style={{
+          maxWidth: 1280, margin: '0 auto',
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 32,
+        }}>
+          <StatItem value="26" suffix="+" label="Années d'expérience" />
+          <StatItem value="1000" suffix="+" label="Événements réalisés" />
+          <StatItem value="10" suffix="+" label="Premières parties de concert" />
         </div>
       </section>
 

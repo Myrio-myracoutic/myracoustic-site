@@ -485,7 +485,7 @@ export default function DevisFlow({ forcedProfil = null }) {
           Demande de devis
         </h1>
         <p style={{ color: 'rgba(255,255,255,0.42)', fontSize: 14, marginBottom: 36, lineHeight: 1.7 }}>
-          Choisissez votre profil pour accéder au parcours adapté.
+          Choisissez votre profil.
         </p>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
           <ProfileCard icon="🏢" title="Professionnel"

@@ -866,10 +866,17 @@ export default function DevisFlow({ forcedProfil = null }) {
       }}>
         <div>
           <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, fontFamily: 'var(--font-display), sans-serif', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 2 }}>
-            Total estimé TTC {kmFee > 0 && `· dont ${kmFee} € déplacement`}
+            Total estimé TTC {kmFee > 0 && `· dont ${kmFee} € déplacement`} {remiseDeadline && '· remise -15 % appliquée'}
           </div>
-          <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 'clamp(18px,3vw,28px)', color: 'var(--lime)' }}>
-            <AnimatedPrice value={totalBrut} /> €
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+            <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 'clamp(18px,3vw,28px)', color: 'var(--lime)' }}>
+              <AnimatedPrice value={remiseDeadline ? totalNet : totalBrut} /> €
+            </div>
+            {remiseDeadline && (
+              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.35)', textDecoration: 'line-through' }}>
+                {totalBrut.toLocaleString('fr-FR')} €
+              </div>
+            )}
           </div>
         </div>
         <BtnPrimary onClick={() => goStep(3)} disabled={needsMaterial === null || (needsMaterial === true && (nb < 50 || !son))}>

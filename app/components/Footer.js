@@ -11,7 +11,6 @@ const NAV_LINKS = [
   { href: '/',                    label: 'Accueil' },
   { href: '/particuliers',        label: 'Particuliers' },
   { href: '/entreprises',         label: 'Entreprises' },
-  { href: '/galerie',             label: 'Galerie' },
   { href: '/particuliers/devis',  label: 'Devis en ligne' },
 ];
 

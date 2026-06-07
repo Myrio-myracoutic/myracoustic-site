@@ -9,7 +9,6 @@ const LINKS = [
   { href: '/',              label: 'Accueil' },
   { href: '/entreprises',   label: 'Entreprises' },
   { href: '/particuliers',  label: 'Particuliers' },
-  { href: '/galerie',       label: 'Galerie' },
 ];
 
 export default function Nav() {

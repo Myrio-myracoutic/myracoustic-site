@@ -61,30 +61,6 @@ function ServiceCard({ icon, tag, title, desc, index }) {
   );
 }
 
-/* ─── Placeholder image ────────────────────────────────────────── */
-function ImgPh({ label, style = {}, g = '135deg,#0d2a3d 0%,#343790 65%,#0d1b2a 100%' }) {
-  return (
-    <div style={{
-      background: `linear-gradient(${g})`,
-      position: 'relative', overflow: 'hidden',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      ...style,
-    }}>
-      <div style={{
-        position: 'absolute', inset: 0,
-        backgroundImage: 'repeating-linear-gradient(45deg,transparent,transparent 18px,rgba(255,255,255,0.018) 18px,rgba(255,255,255,0.018) 36px)',
-      }} />
-      <span style={{
-        fontFamily: 'var(--font-display), sans-serif', fontSize: 11,
-        color: 'rgba(255,255,255,0.22)', letterSpacing: '0.14em',
-        textTransform: 'uppercase', zIndex: 1, textAlign: 'center', padding: '0 12px',
-      }}>
-        {label}
-      </span>
-    </div>
-  );
-}
-
 /* ─── Page d'accueil ───────────────────────────────────────────── */
 const SERVICES = [
   { icon: '🔊', tag: 'SON',     title: 'Sonorisation',  index: 0,
@@ -256,51 +232,6 @@ export default function Home() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 2 }}>
             {SERVICES.map((s) => <ServiceCard key={s.tag} {...s} />)}
-          </div>
-        </div>
-      </section>
-
-      {/* ── GALERIE TEASER ────────────────────────────────────────── */}
-      <section style={{ padding: '0 32px clamp(64px,8vw,100px)' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-          <div style={{
-            marginBottom: 36,
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            gap: 16, flexWrap: 'wrap',
-          }}>
-            <div>
-              <SectionLabel>Galerie</SectionLabel>
-              <h2 style={{
-                fontFamily: 'var(--font-display), sans-serif',
-                fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 700,
-              }}>
-                Nos plus belles réalisations
-              </h2>
-            </div>
-            <Link href="/galerie" style={{
-              background: 'transparent', color: 'white',
-              border: '1px solid rgba(255,255,255,0.25)',
-              padding: '11px 22px', borderRadius: 6, fontSize: 14,
-              fontFamily: 'var(--font-display), sans-serif', fontWeight: 500,
-              textDecoration: 'none', transition: 'all 0.2s', whiteSpace: 'nowrap',
-            }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--lime)'; e.currentTarget.style.color = 'var(--lime)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)'; e.currentTarget.style.color = 'white'; }}
-            >
-              Voir la galerie →
-            </Link>
-          </div>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '2fr 1fr 1fr',
-            gridTemplateRows: '260px 260px',
-            gap: 5, borderRadius: 14, overflow: 'hidden',
-          }}>
-            <ImgPh label="Mariage · Salle de réception" style={{ gridRow: '1/3', borderRadius: '12px 0 0 12px' }} g="135deg,#1a0a3d 0%,#343790 55%,#0d2a3d 100%" />
-            <ImgPh label="Soirée d'entreprise · Gala" g="135deg,#0a2a1a 0%,#1a6330 60%,#0d1b2a 100%" />
-            <ImgPh label="Concert · Scène live" g="135deg,#2a0d0d 0%,#7c1919 60%,#0d1b2a 100%" />
-            <ImgPh label="Anniversaire · Déco LED" g="135deg,#0d1b2a 0%,#1a3050 50%,#343790 100%" />
-            <ImgPh label="Mapping vidéo" style={{ borderRadius: '0 0 12px 0' }} g="135deg,#1a0d3d 0%,#5b21b6 60%,#0d1b2a 100%" />
           </div>
         </div>
       </section>

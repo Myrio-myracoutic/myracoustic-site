@@ -714,6 +714,25 @@ export default function DevisFlow({ forcedProfil = null }) {
         </div>
       </PackBlock>
 
+      {/* Frais de déplacement — affichés dès qu'un trajet a été estimé à l'étape 1 */}
+      {kmFee > 0 && (
+        <PackBlock title="🚗 Frais de déplacement" badge="INCLUS" badgeColor="rgba(255,255,255,0.22)">
+          <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14, color: 'var(--lime)', marginBottom: 3 }}>
+                ✓ Trajet jusqu'au lieu de votre événement
+              </div>
+              <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>
+                Calculés selon la distance estimée — déjà inclus dans le tarif affiché ci-dessous
+              </div>
+            </div>
+            <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 14, color: 'var(--lime)' }}>
+              {kmFee} €
+            </div>
+          </div>
+        </PackBlock>
+      )}
+
       {/* Question matériel */}
       <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '18px 20px', marginBottom: 12 }}>
         <div style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 14 }}>

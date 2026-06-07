@@ -531,12 +531,14 @@ export default function DevisFlow({ forcedProfil = null }) {
       <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.22)', marginBottom: 14 }}>
         Les champs marqués <span style={{ color: '#ef4444' }}>*</span> sont obligatoires pour continuer.
       </p>
-      <div style={{ marginBottom: 20, padding: '11px 14px', background: 'rgba(184,239,11,0.06)', border: '1px solid rgba(184,239,11,0.2)', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span style={{ fontSize: 15, flexShrink: 0 }}>💸</span>
-        <p style={{ margin: 0, fontSize: 12, color: 'rgba(255,255,255,0.55)', lineHeight: 1.7 }}>
-          <span style={{ color: 'var(--lime)', fontWeight: 700 }}>−15% de remise</span> appliqués automatiquement sur votre devis dans le délai imparti.
-        </p>
-      </div>
+      {remiseDelai && (
+        <div style={{ marginBottom: 20, padding: '11px 14px', background: 'rgba(184,239,11,0.06)', border: '1px solid rgba(184,239,11,0.2)', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 15, flexShrink: 0 }}>💸</span>
+          <p style={{ margin: 0, fontSize: 12, color: 'rgba(255,255,255,0.55)', lineHeight: 1.7 }}>
+            <span style={{ color: 'var(--lime)', fontWeight: 700 }}>−15% de remise</span> appliqués automatiquement sur votre devis — signez sous {remiseDelai} pour en bénéficier.
+          </p>
+        </div>
+      )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {/* Identité */}

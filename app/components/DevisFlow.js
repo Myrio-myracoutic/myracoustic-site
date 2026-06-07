@@ -920,8 +920,11 @@ export default function DevisFlow({ forcedProfil = null }) {
           <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 15, lineHeight: 1.8, marginBottom: 8 }}>
             Votre devis a été envoyé immédiatement à <strong style={{ color: 'white' }}>{email}</strong>.
           </p>
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 24 }}>
+          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 8 }}>
             Vérifiez votre boîte e-mail — le devis est signable en ligne.
+          </p>
+          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 24 }}>
+            Un conseiller vous rappellera sous 24 heures pour faire le point sur votre événement.
           </p>
           {remiseDeadline && (
             <div style={{ background: 'rgba(184,239,11,0.07)', border: '1px solid rgba(184,239,11,0.25)', borderRadius: 10, padding: '14px 18px', marginBottom: 24, textAlign: 'left' }}>

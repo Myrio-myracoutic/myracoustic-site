@@ -504,22 +504,22 @@ export default function DevisFlow({ forcedProfil = null }) {
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
       <div style={{ width: '100%', maxWidth: 440, textAlign: 'center' }}>
         <MobileStepBar current={0} total={5} />
-        <AnimatedWave bars={28} height={48} style={{ maxWidth: 380, margin: '0 auto 24px' }} />
-        <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(16px,2.6vw,26px)', fontWeight: 700, marginBottom: 8, whiteSpace: 'nowrap' }}>
+        <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(16px,2.6vw,26px)', fontWeight: 700, marginBottom: 16, textAlign: 'center', whiteSpace: 'nowrap' }}>
           Réalisez votre devis en moins de 2 minutes
         </h2>
-        <p style={{ color: 'rgba(255,255,255,0.62)', fontSize: 16, fontWeight: 600, marginBottom: 14, lineHeight: 1.5 }}>
+        <AnimatedWave bars={28} height={48} style={{ maxWidth: 380, margin: '0 auto 24px' }} />
+        <p style={{ color: 'rgba(255,255,255,0.62)', fontSize: 16, fontWeight: 600, marginBottom: 8, lineHeight: 1.5 }}>
           Votre adresse e-mail
+        </p>
+        <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, marginBottom: 14, lineHeight: 1.65 }}>
+          Nous l'utiliserons pour vous envoyer votre devis.
         </p>
         <input type="email" placeholder="votre@email.com" value={email}
           onChange={e => { setEmail(e.target.value); setEmailErr(''); }}
           onFocus={fo} onBlur={bl}
           onKeyDown={e => e.key === 'Enter' && validateEmail()}
-          style={{ ...IS, textAlign: 'center', fontSize: 16, marginBottom: emailErr ? 6 : 12 }} />
+          style={{ ...IS, textAlign: 'center', fontSize: 16, marginBottom: emailErr ? 6 : 20 }} />
         {emailErr && <p style={{ color: '#ef4444', fontSize: 12, marginBottom: 14, textAlign: 'left' }}>{emailErr}</p>}
-        <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, marginBottom: 20, lineHeight: 1.65 }}>
-          Nous l'utiliserons pour vous envoyer votre devis.
-        </p>
         <BtnPrimary onClick={validateEmail} style={{ width: '100%' }}>
           Valider mon adresse →
         </BtnPrimary>

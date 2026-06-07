@@ -504,7 +504,7 @@ export default function DevisFlow({ forcedProfil = null }) {
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
       <div style={{ width: '100%', maxWidth: 440, textAlign: 'center' }}>
         <MobileStepBar current={0} total={5} />
-        <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(16px,2.6vw,26px)', fontWeight: 700, marginBottom: 16, textAlign: 'center', whiteSpace: 'nowrap' }}>
+        <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(14px,2vw,19px)', fontWeight: 700, marginBottom: 16, textAlign: 'center', whiteSpace: 'nowrap' }}>
           Réalisez votre devis en moins de 2 minutes
         </h2>
         <AnimatedWave bars={28} height={48} style={{ maxWidth: 380, margin: '0 auto 24px' }} />

@@ -390,14 +390,14 @@ export default function DevisPage() {
   const isPro  = profil === 'professionnel' && step >= 10;
 
   const Header = () => (
-    <div style={{
+    <div className="devis-tunnel-header" style={{
       background: 'rgba(6,14,22,0.97)', backdropFilter: 'blur(16px)',
       borderBottom: '1px solid rgba(255,255,255,0.07)',
       padding: '0 28px', height: 64,
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       position: 'sticky', top: 0, zIndex: 80,
     }}>
-      <button onClick={goBack} style={{
+      <button onClick={goBack} className="hide-mobile" style={{
         background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)',
         cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7,
         fontSize: 13, fontFamily: 'var(--font-display), sans-serif', fontWeight: 500,
@@ -406,7 +406,7 @@ export default function DevisPage() {
       <img src="/logo.png" alt="Myracoustic" style={{ height: 40 }} />
 
       {(isPart || isPro) ? (
-        <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
+        <div className="hide-mobile" style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
           {Array.from({ length: isPro ? 2 : 5 }).map((_, i) => {
             const done = isPro ? (step - 9) > i : (step) > i;
             return (
@@ -426,7 +426,38 @@ export default function DevisPage() {
             );
           })}
         </div>
-      ) : <div style={{ width: 80 }} />}
+      ) : <div className="hide-mobile" style={{ width: 80 }} />}
+    </div>
+  );
+
+  /* Barre étape mobile — affichée au-dessus du titre, masquée sur desktop */
+  const MobileStepBar = ({ current, total }) => (
+    <div className="hide-desktop" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+      <button onClick={goBack} style={{
+        background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)',
+        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, padding: 0,
+        fontSize: 13, fontFamily: 'var(--font-display), sans-serif', fontWeight: 500,
+      }}>← Retour</button>
+      <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
+        {Array.from({ length: total }).map((_, i) => {
+          const done = current > i;
+          return (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <div style={{
+                width: 22, height: 22, borderRadius: '50%',
+                background: done ? 'var(--lime)' : 'rgba(255,255,255,0.07)',
+                color: done ? '#0d1b2a' : 'rgba(255,255,255,0.3)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 10,
+                transition: 'all 0.3s',
+              }}>{i + 1}</div>
+              {i < total - 1 && (
+                <div style={{ width: 12, height: 1, background: done ? 'var(--lime)' : 'rgba(255,255,255,0.1)' }} />
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 
@@ -461,6 +492,7 @@ export default function DevisPage() {
   const renderStep0 = () => (
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
       <div style={{ width: '100%', maxWidth: 440, textAlign: 'center' }}>
+        <MobileStepBar current={0} total={5} />
         <AnimatedWave bars={28} height={48} style={{ maxWidth: 380, margin: '0 auto 24px' }} />
         <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(20px,3vw,30px)', fontWeight: 700, marginBottom: 8 }}>
           Votre adresse e-mail
@@ -484,6 +516,7 @@ export default function DevisPage() {
   /* Étape 1 — Infos + lieu */
   const renderStep1 = () => (
     <div style={{ flex: 1, padding: '28px 24px 60px', maxWidth: 900, margin: '0 auto', width: '100%' }}>
+      <MobileStepBar current={1} total={5} />
       <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
         Vos informations
       </h2>
@@ -619,6 +652,7 @@ export default function DevisPage() {
   /* Étape 2 — Prestations */
   const renderStep2 = () => (
     <div style={{ flex: 1, padding: '28px 24px 130px', maxWidth: 860, margin: '0 auto', width: '100%' }}>
+      <MobileStepBar current={2} total={5} />
       <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
         Vos prestations
       </h2>
@@ -832,6 +866,7 @@ export default function DevisPage() {
   /* Étape 3 — Facturation */
   const renderStep3 = () => (
     <div style={{ flex: 1, padding: '28px 24px 60px', maxWidth: 640, margin: '0 auto', width: '100%' }}>
+      <MobileStepBar current={3} total={5} />
       <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
         Adresse de facturation
       </h2>
@@ -920,6 +955,7 @@ export default function DevisPage() {
 
     return (
       <div style={{ flex: 1, padding: '28px 24px 60px', maxWidth: 720, margin: '0 auto', width: '100%' }}>
+        <MobileStepBar current={4} total={5} />
         <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
           Récapitulatif
         </h2>
@@ -1012,6 +1048,7 @@ export default function DevisPage() {
 
   const renderStep10 = () => (
     <div style={{ flex: 1, padding: '28px 24px 60px', maxWidth: 680, margin: '0 auto', width: '100%' }}>
+      <MobileStepBar current={1} total={2} />
       <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
         Vos coordonnées
       </h2>
@@ -1057,6 +1094,7 @@ export default function DevisPage() {
 
     return (
       <div style={{ flex: 1, padding: '28px 24px 60px', maxWidth: 680, margin: '0 auto', width: '100%' }}>
+        <MobileStepBar current={2} total={2} />
         <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
           Votre événement
         </h2>
@@ -1103,7 +1141,12 @@ export default function DevisPage() {
   /* ── Render ──────────────────────────────────────────────────────── */
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      <style>{`
+        @keyframes spin{to{transform:rotate(360deg)}}
+        @media (max-width: 768px) {
+          .devis-tunnel-header { justify-content: center !important; }
+        }
+      `}</style>
       <Header />
       {step === -1                           && renderGate()}
       {profil === 'particulier' && step === 0 && renderStep0()}

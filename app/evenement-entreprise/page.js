@@ -45,18 +45,106 @@ function OfferCard({ icon, title, desc, tags }) {
         fontFamily: 'var(--font-display), sans-serif',
         fontSize: 22, fontWeight: 700, marginBottom: 10,
       }}>{title}</h3>
-      <p style={{ color: 'rgba(255,255,255,0.52)', fontSize: 14, lineHeight: 1.75, marginBottom: 18 }}>{desc}</p>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        {tags.map((t) => (
-          <span key={t} style={{
-            fontFamily: 'var(--font-display), sans-serif',
-            fontSize: 11, letterSpacing: '0.12em',
-            color: 'rgba(255,255,255,0.4)',
-            border: '1px solid rgba(255,255,255,0.12)',
-            padding: '3px 9px', borderRadius: 4,
-          }}>{t}</span>
-        ))}
+      <p style={{ color: 'rgba(255,255,255,0.52)', fontSize: 14, lineHeight: 1.75, marginBottom: tags ? 18 : 0 }}>{desc}</p>
+      {tags && (
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {tags.map((t) => (
+            <span key={t} style={{
+              fontFamily: 'var(--font-display), sans-serif',
+              fontSize: 11, letterSpacing: '0.12em',
+              color: 'rgba(255,255,255,0.4)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              padding: '3px 9px', borderRadius: 4,
+            }}>{t}</span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Pilier technique ────────────────────────────────────────── */
+function PillarCard({ icon, title, desc }) {
+  return (
+    <div style={{
+      background: 'var(--card)', border: '1px solid rgba(255,255,255,0.07)',
+      borderRadius: 12, padding: '28px 24px',
+    }}>
+      <div style={{ fontSize: 30, marginBottom: 14 }}>{icon}</div>
+      <h3 style={{
+        fontFamily: 'var(--font-display), sans-serif',
+        fontSize: 18, fontWeight: 700, marginBottom: 8,
+      }}>{title}</h3>
+      <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, lineHeight: 1.7 }}>{desc}</p>
+    </div>
+  );
+}
+
+/* ─── Étape de méthode ────────────────────────────────────────── */
+function StepCard({ num, title, desc }) {
+  return (
+    <div style={{
+      background: 'var(--card)', border: '1px solid rgba(255,255,255,0.07)',
+      borderRadius: 12, padding: '26px 24px', position: 'relative',
+    }}>
+      <span style={{
+        fontFamily: 'var(--font-display), sans-serif', fontWeight: 700,
+        fontSize: 13, color: 'var(--lime)', letterSpacing: '0.1em',
+      }}>{num}</span>
+      <h3 style={{
+        fontFamily: 'var(--font-display), sans-serif',
+        fontSize: 17, fontWeight: 700, margin: '8px 0',
+      }}>{title}</h3>
+      <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13.5, lineHeight: 1.7 }}>{desc}</p>
+    </div>
+  );
+}
+
+/* ─── Garantie ────────────────────────────────────────────────── */
+function GuaranteeItem({ icon, title, desc }) {
+  return (
+    <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+      <div style={{
+        flexShrink: 0, width: 42, height: 42, borderRadius: 10,
+        background: 'rgba(184,239,11,0.08)', border: '1px solid rgba(184,239,11,0.2)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
+      }}>{icon}</div>
+      <div>
+        <h3 style={{
+          fontFamily: 'var(--font-display), sans-serif',
+          fontSize: 16, fontWeight: 700, marginBottom: 4,
+        }}>{title}</h3>
+        <p style={{ color: 'rgba(255,255,255,0.48)', fontSize: 13.5, lineHeight: 1.7 }}>{desc}</p>
       </div>
+    </div>
+  );
+}
+
+/* ─── FAQ accordéon ───────────────────────────────────────────── */
+function FaqItem({ q, a }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{
+      background: 'var(--card)', border: `1px solid ${open ? 'var(--lime)' : 'rgba(255,255,255,0.07)'}`,
+      borderRadius: 10, overflow: 'hidden', transition: 'border-color 0.2s',
+    }}>
+      <button onClick={() => setOpen((o) => !o)} style={{
+        width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+        background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left',
+        padding: '18px 22px', color: '#fff',
+        fontFamily: 'var(--font-display), sans-serif', fontSize: 15, fontWeight: 600,
+      }}>
+        {q}
+        <span style={{
+          flexShrink: 0, color: open ? 'var(--lime)' : 'rgba(255,255,255,0.35)',
+          fontSize: 18, transform: open ? 'rotate(45deg)' : 'none', transition: 'transform 0.2s',
+        }}>+</span>
+      </button>
+      {open && (
+        <p style={{ margin: 0, padding: '0 22px 20px', color: 'rgba(255,255,255,0.55)', fontSize: 14, lineHeight: 1.7 }}>
+          {a}
+        </p>
+      )}
     </div>
   );
 }
@@ -256,25 +344,56 @@ function RdvWidget() {
 }
 
 /* ─── Données ───────────────────────────────────────────────────── */
-const OFFERS = [
-  {
-    icon: '🎙️',
-    title: 'Séminaires & Conférences',
-    desc: 'Sonorisation et vidéo adaptées aux grandes salles de conférence, amphithéâtres et espaces corporate. Technique invisible, impact maximal.',
-    tags: ['Micro HF', 'Écrans LED', 'Retransmission', 'Visio'],
-  },
-  {
-    icon: '🥂',
-    title: 'Galas & Soirées de prestige',
-    desc: 'Ambiances lumineuses haut de gamme, animation DJ professionnelle et vidéo pour des soirées entreprise mémorables et racées.',
-    tags: ['Lumières show', 'DJ', 'Vidéo mapping', 'Animation'],
-  },
-  {
-    icon: '🏢',
-    title: 'Événements corporate',
-    desc: "Team building, lancement de produit, afterwork — nous gérons l'intégralité de la technique pour que vous vous consacriez à l'essentiel.",
-    tags: ['Son', 'Lumières', 'Vidéo', 'Clé en main'],
-  },
+const EVENT_TYPES = [
+  { icon: '🎤', title: 'Séminaires',
+    desc: "Une configuration pensée pour les présentations et ateliers : prises de parole multiples, diffusion homogène et intelligible dans toute la salle." },
+  { icon: '🏛️', title: 'Conventions',
+    desc: 'Un dispositif structuré pour enchaîner les interventions, gérer les transitions et afficher vos contenus en grand format.' },
+  { icon: '📊', title: 'Assemblées générales',
+    desc: 'Clarté sonore, lisibilité des supports projetés et organisation technique sécurisée pour vos temps forts institutionnels.' },
+  { icon: '✂️', title: 'Inaugurations',
+    desc: 'Mise en valeur des intervenants et structuration lumineuse adaptée au lieu, pour un moment à la hauteur de l’événement.' },
+  { icon: '🚀', title: 'Lancements de produit',
+    desc: 'Son, lumière et écran LED coordonnés pour une présentation claire, soignée et impactante.' },
+  { icon: '🥂', title: 'Réception corporate',
+    desc: 'Une ambiance maîtrisée et une exploitation technique cohérente, sans excès scénographique.' },
+  { icon: '🎶', title: "Soirées & galas d'entreprise",
+    desc: "Animation musicale par DJ expérimenté, sonorisation adaptée et éclairage scénique pour une soirée festive à l'image de votre structure." },
+];
+
+const PILLARS = [
+  { icon: '🔊', title: 'Sonorisation', desc: 'Une intelligibilité optimale des prises de parole et une couverture homogène, adaptée à la configuration du lieu.' },
+  { icon: '💡', title: 'Éclairage', desc: "Une mise en valeur des intervenants et une structuration visuelle professionnelle de l'espace." },
+  { icon: '🖥️', title: 'Écran LED', desc: "Un affichage grand format pour vos supports visuels et votre identité de marque." },
+  { icon: '🎚️', title: 'Régie technique', desc: 'Une supervision en temps réel, la gestion des transitions et l’anticipation des imprévus.' },
+];
+
+const STEPS = [
+  { num: '01', title: 'Analyse & préparation', desc: 'Étude du besoin, cadrage technique et définition du dispositif adapté au lieu et au format de votre événement.' },
+  { num: '02', title: 'Repérage technique', desc: 'Validation des accès, des implantations, des alimentations électriques et des contraintes propres au site.' },
+  { num: '03', title: 'Installation & contrôles', desc: "Montage sécurisé, tests complets et réglages, réalisés avant l'arrivée des participants." },
+  { num: '04', title: 'Exploitation', desc: 'Supervision en temps réel, gestion des transitions et coordination des différentes interventions.' },
+  { num: '05', title: 'Démontage', desc: 'Démontage organisé et restitution du site dans le respect des contraintes du lieu.' },
+];
+
+const GUARANTEES = [
+  { icon: '🤝', title: 'Interlocuteur unique', desc: "Un seul référent pour la préparation, l'exploitation et le suivi de votre événement, du premier échange au démontage." },
+  { icon: '📄', title: 'Devis structuré', desc: 'Une proposition détaillée, adaptée au lieu, au format et aux contraintes techniques de votre événement.' },
+  { icon: '🛡️', title: 'Assurance professionnelle', desc: 'Une responsabilité civile professionnelle couvrant les activités de sonorisation, éclairage et régie.' },
+  { icon: '📍', title: "Zone d'intervention", desc: 'Des interventions principalement en Pays de la Loire, avec une étude possible au national sur demande.' },
+];
+
+const FAQ_ITEMS = [
+  { q: 'Intervenez-vous pour des événements d’entreprise en Pays de la Loire ?',
+    a: 'Oui. Myracoustic intervient principalement en Pays de la Loire pour la mise en œuvre technique d’événements d’entreprise : séminaires, conventions, assemblées générales et plus encore.' },
+  { q: 'Proposez-vous la captation vidéo ou le streaming ?',
+    a: 'Non. La prestation reste exclusivement technique — sonorisation, éclairage, écran LED et régie. La diffusion vidéo se fait uniquement via écran LED sur site, sans captation ni diffusion en ligne.' },
+  { q: "Quel est le format d'événement adapté à votre prestation ?",
+    a: 'Nos dispositifs sont conçus pour des événements réunissant généralement entre 80 et 400 participants, dans des salles adaptées aux contraintes techniques et logistiques.' },
+  { q: 'Travaillez-vous avec nos équipes internes ?',
+    a: 'Oui. La préparation et l’exploitation se font en lien direct avec vos équipes communication, ressources humaines ou direction, pour une coordination fluide le jour J.' },
+  { q: 'Quel type de matériel utilisez-vous pour les événements corporate ?',
+    a: 'Le matériel est sélectionné selon le lieu, le nombre de participants et les exigences techniques, avec un objectif simple : intelligibilité, lisibilité visuelle et stabilité d’exploitation.' },
 ];
 
 /* ─── Formulaire de contact ─────────────────────────────────────── */
@@ -386,22 +505,22 @@ export default function EntreprisesPage() {
         }}>
           {/* Texte */}
           <div>
-            <SectionLabel>Entreprises</SectionLabel>
+            <SectionLabel>Entreprises · 80 à 400 participants</SectionLabel>
             <h1 style={{
               fontFamily: 'var(--font-display), sans-serif',
               fontSize: 'clamp(40px,7vw,90px)', fontWeight: 700,
               lineHeight: 0.93, letterSpacing: '-0.025em', marginBottom: 24,
             }}>
-              L'ÉVÉNEMENT<br />
-              <span style={{ color: 'var(--lime)' }}>À VOTRE</span><br />
-              IMAGE
+              UNE TECHNIQUE<br />
+              <span style={{ color: 'var(--lime)' }}>À LA HAUTEUR</span><br />
+              DE VOS ENJEUX
             </h1>
             <p style={{
               color: 'rgba(255,255,255,0.56)',
               fontSize: 'clamp(14px,1.5vw,17px)', lineHeight: 1.75,
               maxWidth: 460, marginBottom: 36,
             }}>
-              Séminaires, galas, soirées d'entreprise — notre équipe technique assure une exécution irréprochable pour que vous vous consacriez à l'essentiel.
+              Myracoustic conçoit et exploite des dispositifs techniques complets — sonorisation, éclairage, écran LED et régie — pour vos événements d'entreprise de 80 à 400 personnes en Pays de la Loire.
             </p>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
               <a href="#contact-form" style={{
@@ -433,7 +552,7 @@ export default function EntreprisesPage() {
           {/* Photos placeholder */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <ImgPh
-              label="Gala d'entreprise · Salle de prestige"
+              label="Convention · Régie technique"
               gradient="linear-gradient(135deg,#0d1845 0%,#343790 60%,#0d1b2a 100%)"
               style={{ height: 200 }}
             />
@@ -444,7 +563,7 @@ export default function EntreprisesPage() {
                 style={{ height: 120 }}
               />
               <ImgPh
-                label="Soirée corporate · DJ live"
+                label="Gala d'entreprise · Écran LED"
                 gradient="linear-gradient(135deg,#1a0a3d 0%,#5b21b6 60%,#0d2a3d 100%)"
                 style={{ height: 120 }}
               />
@@ -458,18 +577,102 @@ export default function EntreprisesPage() {
         </div>
       </section>
 
-      {/* ── OFFRES ──────────────────────────────────────────────── */}
+      {/* ── INTRO ───────────────────────────────────────────────── */}
+      <section style={{ padding: 'clamp(48px,6vw,72px) 32px 0' }}>
+        <div style={{ maxWidth: 760, margin: '0 auto', textAlign: 'center' }}>
+          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 16, lineHeight: 1.8 }}>
+            Un événement d'entreprise exige rigueur, anticipation et maîtrise opérationnelle. La qualité des prises de parole, la lisibilité des supports visuels et la coordination technique influencent directement l'image de votre organisation. Myracoustic conçoit et exploite des dispositifs adaptés aux formats de 80 à 400 personnes, en lien direct avec vos équipes internes.
+          </p>
+        </div>
+      </section>
+
+      {/* ── TYPES D'ÉVÉNEMENTS ──────────────────────────────────── */}
       <section style={{ padding: 'clamp(56px,7vw,88px) 32px', background: '#060e16' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-          <SectionLabel>Nos offres entreprises</SectionLabel>
+          <SectionLabel>Ce que nous accompagnons</SectionLabel>
           <h2 style={{
             fontFamily: 'var(--font-display), sans-serif',
             fontSize: 'clamp(24px,3.5vw,44px)', fontWeight: 700, marginBottom: 44,
           }}>
-            Une solution pour chaque <span style={{ color: 'var(--lime)' }}>occasion</span>
+            Des événements <span style={{ color: 'var(--lime)' }}>variés</span>, une exigence constante
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 18 }}>
-            {OFFERS.map((o) => <OfferCard key={o.title} {...o} />)}
+            {EVENT_TYPES.map((o) => <OfferCard key={o.title} {...o} />)}
+          </div>
+        </div>
+      </section>
+
+      {/* ── COORDINATION TECHNIQUE ──────────────────────────────── */}
+      <section style={{ padding: 'clamp(56px,7vw,88px) 32px' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+          <SectionLabel>Coordination technique</SectionLabel>
+          <h2 style={{
+            fontFamily: 'var(--font-display), sans-serif',
+            fontSize: 'clamp(24px,3.5vw,44px)', fontWeight: 700, marginBottom: 12,
+          }}>
+            Quatre piliers, un seul <span style={{ color: 'var(--lime)' }}>ensemble cohérent</span>
+          </h2>
+          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 15, lineHeight: 1.7, maxWidth: 640, marginBottom: 36 }}>
+            Pour chaque événement d'entreprise, chaque composante technique est pensée comme un tout, coordonné et supervisé en temps réel.
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 16, marginBottom: 24 }}>
+            {PILLARS.map((p) => <PillarCard key={p.title} {...p} />)}
+          </div>
+          <p style={{
+            color: 'rgba(255,255,255,0.4)', fontSize: 13, fontStyle: 'italic',
+          }}>
+            Vidéo uniquement via écran LED — pas de captation, pas de streaming.
+          </p>
+        </div>
+      </section>
+
+      {/* ── MÉTHODE ─────────────────────────────────────────────── */}
+      <section style={{ padding: 'clamp(56px,7vw,88px) 32px', background: '#060e16' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+          <SectionLabel>Notre méthode</SectionLabel>
+          <h2 style={{
+            fontFamily: 'var(--font-display), sans-serif',
+            fontSize: 'clamp(24px,3.5vw,44px)', fontWeight: 700, marginBottom: 12,
+          }}>
+            Un cadre <span style={{ color: 'var(--lime)' }}>rigoureux</span>, du premier échange au démontage
+          </h2>
+          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 15, lineHeight: 1.7, maxWidth: 640, marginBottom: 36 }}>
+            Une méthode simple et structurée pour préparer, exploiter et sécuriser la technique de votre événement.
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: 16, marginBottom: 28 }}>
+            {STEPS.map((s) => <StepCard key={s.num} {...s} />)}
+          </div>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            {['Anticipation', 'Coordination', 'Exploitation maîtrisée'].map((t) => (
+              <span key={t} style={{
+                fontFamily: 'var(--font-display), sans-serif',
+                fontSize: 12, letterSpacing: '0.1em', color: 'var(--lime)',
+                border: '1px solid rgba(184,239,11,0.25)', borderRadius: 20,
+                padding: '6px 16px',
+              }}>{t}</span>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CADRE PROFESSIONNEL ─────────────────────────────────── */}
+      <section style={{ padding: 'clamp(56px,7vw,88px) 32px' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+          <SectionLabel>Un cadre clair</SectionLabel>
+          <h2 style={{
+            fontFamily: 'var(--font-display), sans-serif',
+            fontSize: 'clamp(24px,3.5vw,44px)', fontWeight: 700, marginBottom: 12,
+          }}>
+            Une relation <span style={{ color: 'var(--lime)' }}>structurée</span> et transparente
+          </h2>
+          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 15, lineHeight: 1.7, maxWidth: 640, marginBottom: 36 }}>
+            Adaptée aux exigences propres aux événements d'entreprise — un cadre professionnel, sans surprise.
+          </p>
+          <div style={{
+            display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))',
+            gap: 28, maxWidth: 920,
+          }}>
+            {GUARANTEES.map((g) => <GuaranteeItem key={g.title} {...g} />)}
           </div>
         </div>
       </section>
@@ -556,6 +759,27 @@ export default function EntreprisesPage() {
         </div>
       </section>
 
+      {/* ── FAQ ─────────────────────────────────────────────────── */}
+      <section style={{ padding: 'clamp(56px,7vw,88px) 32px', background: '#060e16' }}>
+        <div style={{ maxWidth: 760, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 40 }}>
+            <SectionLabel style={{ justifyContent: 'center' }}>Questions fréquentes</SectionLabel>
+            <h2 style={{
+              fontFamily: 'var(--font-display), sans-serif',
+              fontSize: 'clamp(24px,3.5vw,42px)', fontWeight: 700, marginBottom: 12,
+            }}>
+              Vous avez des questions ?
+            </h2>
+            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 15 }}>
+              Les réponses aux interrogations les plus fréquentes sur nos prestations pour événements d'entreprise.
+            </p>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {FAQ_ITEMS.map((item, i) => <FaqItem key={i} {...item} />)}
+          </div>
+        </div>
+      </section>
+
       {/* ── CONTACT + RDV ───────────────────────────────────────── */}
       <section id="contact-form" style={{ padding: 'clamp(56px,7vw,88px) 32px', background: '#060e16' }}>
         <div style={{
@@ -572,6 +796,11 @@ export default function EntreprisesPage() {
             }}>
               Parlons de votre <span style={{ color: 'var(--lime)' }}>projet</span>
             </h2>
+            <p style={{
+              color: 'rgba(255,255,255,0.45)', fontSize: 14, lineHeight: 1.7, marginBottom: 20,
+            }}>
+              Partagez-nous la date, le lieu et le format de votre événement — nous vous proposons une solution technique adaptée et structurée. Réponse sous 24-48h ouvrées.
+            </p>
             <ContactForm />
           </div>
 

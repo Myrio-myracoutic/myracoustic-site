@@ -84,6 +84,35 @@ function ServiceDetailCard({ icon, tag, title, desc, items }) {
   );
 }
 
+/* ─── Question FAQ (accordéon) ──────────────────────────────────── */
+function FaqItem({ q, a }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{
+      background: 'var(--card)', border: `1px solid ${open ? 'var(--lime)' : 'rgba(255,255,255,0.07)'}`,
+      borderRadius: 10, overflow: 'hidden', transition: 'border-color 0.2s',
+    }}>
+      <button onClick={() => setOpen(o => !o)} style={{
+        width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+        background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left',
+        padding: '18px 22px', color: '#fff',
+        fontFamily: 'var(--font-display), sans-serif', fontSize: 15, fontWeight: 600,
+      }}>
+        {q}
+        <span style={{
+          flexShrink: 0, color: open ? 'var(--lime)' : 'rgba(255,255,255,0.35)',
+          fontSize: 18, transform: open ? 'rotate(45deg)' : 'none', transition: 'transform 0.2s',
+        }}>+</span>
+      </button>
+      {open && (
+        <p style={{ margin: 0, padding: '0 22px 20px', color: 'rgba(255,255,255,0.55)', fontSize: 14, lineHeight: 1.7 }}>
+          {a}
+        </p>
+      )}
+    </div>
+  );
+}
+
 /* ─── Données ───────────────────────────────────────────────────── */
 const SERVICES = [
   {
@@ -115,6 +144,29 @@ const INCLUDES = [
   'Devis personnalisé en ligne en moins de 2 minutes',
   'Contrat clair avec engagement de qualité',
   'Assurance responsabilité civile professionnelle',
+];
+
+const FAQ_ITEMS = [
+  { q: 'Intervenez-vous pour des mariages en Pays de la Loire ?',
+    a: "Oui. Myracoustic intervient principalement en Pays de la Loire pour l'animation musicale et la prestation technique de mariages, anniversaires et réceptions privées. Des interventions en dehors de la région peuvent être étudiées sur demande selon la nature du projet." },
+  { q: 'Peut-on choisir la playlist musicale ?',
+    a: "Absolument. Nous construisons ensemble la playlist en fonction de vos goûts musicaux, de vos souhaits et du profil de vos invités. Vous pouvez nous transmettre une liste de morceaux incontournables, des styles à privilégier ou à éviter. Le DJ s'adapte ensuite en temps réel selon l'ambiance et les réactions du public." },
+  { q: 'Proposez-vous une animation avec micro pour les discours et animations ?',
+    a: "Oui. Nous fournissons des micros pour les discours, les animations (lancer de bouquet, ouverture de bal, etc.) et les prises de parole. L'animation au micro reste discrète et élégante, centrée sur la musique et vos invités." },
+  { q: 'Faut-il prévoir un repas pour le DJ ?',
+    a: "Oui, il est d'usage de prévoir un repas pour le DJ (et le technicien selon la complexité de la prestation), idéalement au même moment que vos invités ou en décalé selon l'organisation de votre soirée. Cela permet de maintenir une présence technique tout au long de l'événement." },
+  { q: 'Combien de temps dure la prestation DJ ?',
+    a: "La durée est adaptable selon vos besoins. En général, pour un mariage, la prestation DJ couvre le vin d'honneur, le dîner et la soirée dansante (environ 6 à 8 heures). Pour un anniversaire ou une réception, la durée est définie selon votre programme." },
+  { q: 'Peut-on faire appel à vous uniquement pour la sonorisation, sans DJ ?',
+    a: "Oui. Nos prestations sont modulables. Vous pouvez faire appel à nous uniquement pour la sonorisation (cérémonie, dîner) ou l'éclairage, sans animation DJ, ou opter pour une solution complète." },
+  { q: "Travaillez-vous avec des wedding planners et d'autres prestataires ?",
+    a: "Oui. Nous avons l'habitude de travailler en coordination avec des wedding planners, traiteurs, photographes et autres prestataires événementiels. Une communication fluide est essentielle pour garantir un déroulement parfait." },
+  { q: 'Quel est le délai pour réserver votre prestation ?',
+    a: "Nous recommandons de nous contacter le plus tôt possible, idéalement 6 à 12 mois à l'avance pour un mariage, afin de garantir notre disponibilité. Pour d'autres événements privés, un délai de 2 à 3 mois est généralement suffisant." },
+  { q: 'Comment se passe le paiement ?',
+    a: "Un acompte est demandé à la réservation pour bloquer la date. Le solde est réglé avant ou le jour de l'événement selon les modalités définies dans le devis. Toutes les conditions de paiement sont précisées dans nos CGV." },
+  { q: "Que se passe-t-il en cas d'imprévu technique le jour J ?",
+    a: "Nous anticipons les imprévus en testant tout le matériel avant l'arrivée de vos invités et en ayant des solutions de secours (matériel de backup, câbles de rechange, etc.). Notre expérience nous permet de réagir rapidement et discrètement en cas de besoin." },
 ];
 
 const TESTIMONIALS = [
@@ -249,25 +301,11 @@ export default function ParticuliersPage() {
             </h2>
             {INCLUDES.map((item, i) => <BulletItem key={i}>{item}</BulletItem>)}
           </div>
-          {/* Placeholder photo événement */}
           <div style={{
             borderRadius: 16, minHeight: 380,
-            background: 'linear-gradient(135deg,#1a0a3d 0%,#3d1a8e 45%,#0a2a3d 80%,#0d1b2a 100%)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            position: 'relative', overflow: 'hidden',
-          }}>
-            <div style={{
-              position: 'absolute', inset: 0,
-              backgroundImage: 'repeating-linear-gradient(45deg,transparent,transparent 18px,rgba(255,255,255,0.018) 18px,rgba(255,255,255,0.018) 36px)',
-            }} />
-            <span style={{
-              fontFamily: 'var(--font-display), sans-serif', fontSize: 11,
-              color: 'rgba(255,255,255,0.22)', letterSpacing: '0.14em',
-              textTransform: 'uppercase', zIndex: 1, textAlign: 'center', padding: '0 24px',
-            }}>
-              Photo événement · Mariage &amp; réception
-            </span>
-          </div>
+            backgroundImage: 'url(/ban_fête_myr.jpg)',
+            backgroundSize: 'cover', backgroundPosition: 'center',
+          }} />
         </div>
       </section>
 
@@ -285,6 +323,27 @@ export default function ParticuliersPage() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 18 }}>
             {TESTIMONIALS.map((t, i) => <TestimonialCard key={i} {...t} />)}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAQ ─────────────────────────────────────────────────── */}
+      <section style={{ padding: 'clamp(56px,7vw,88px) 32px' }}>
+        <div style={{ maxWidth: 760, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 40 }}>
+            <SectionLabel style={{ justifyContent: 'center' }}>Questions fréquentes</SectionLabel>
+            <h2 style={{
+              fontFamily: 'var(--font-display), sans-serif',
+              fontSize: 'clamp(24px,3.5vw,42px)', fontWeight: 700, marginBottom: 12,
+            }}>
+              Vous avez des questions ?
+            </h2>
+            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 15 }}>
+              Voici les réponses aux interrogations les plus fréquentes sur nos prestations pour événements privés.
+            </p>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {FAQ_ITEMS.map((item, i) => <FaqItem key={i} {...item} />)}
           </div>
         </div>
       </section>

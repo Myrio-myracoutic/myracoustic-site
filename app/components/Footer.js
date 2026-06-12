@@ -121,6 +121,18 @@ export default function Footer() {
                 {l.label}
               </Link>
             ))}
+            <button
+              onClick={() => window.dispatchEvent(new Event('myra-cookie-prefs'))}
+              style={{
+                color: 'rgba(255,255,255,0.22)', fontSize: 12, background: 'none', border: 'none', padding: 0,
+                cursor: 'pointer', textDecoration: 'underline', textDecorationColor: 'rgba(255,255,255,0.12)',
+                transition: 'color 0.2s', whiteSpace: 'nowrap', fontFamily: 'inherit',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--lime)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.22)'; }}
+            >
+              Préférences cookies
+            </button>
           </div>
           <AnimatedWave bars={28} height={28} opacity={0.5} />
         </div>

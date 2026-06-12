@@ -2,6 +2,7 @@ import { Space_Grotesk, Hanken_Grotesk, Space_Mono } from "next/font/google";
 import "./globals.css";
 import Nav from "./components/Nav";
 import Footer from "./components/Footer";
+import GoogleAnalytics from "./components/GoogleAnalytics";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-display",
@@ -38,6 +39,7 @@ export default function RootLayout({ children }) {
       suppressHydrationWarning
     >
       <body style={{ fontFamily: "var(--font-body), sans-serif" }}>
+        <GoogleAnalytics />
         <Nav />
         <main style={{ flexGrow: 1 }}>{children}</main>
         <Footer />

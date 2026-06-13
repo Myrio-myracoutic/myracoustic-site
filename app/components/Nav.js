@@ -22,7 +22,6 @@ export default function Nav() {
     return () => window.removeEventListener('scroll', h);
   }, []);
 
-  if (pathname.startsWith('/contact')) return null;
 
   const isActive = (href) =>
     href === '/' ? pathname === '/' : pathname.startsWith(href);
@@ -64,7 +63,7 @@ export default function Nav() {
               )}
             </Link>
           ))}
-          <Link href="/contact" style={{
+          <a href="https://devis.myracoustic.com" style={{
             background: 'var(--lime)', color: '#0d1b2a',
             padding: '10px 20px', borderRadius: 6, fontSize: 14,
             fontWeight: 700, fontFamily: "var(--font-display), sans-serif",
@@ -76,7 +75,7 @@ export default function Nav() {
             onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; }}
           >
             Demander un devis
-          </Link>
+          </a>
         </div>
 
         {/* Hamburger mobile */}
@@ -107,7 +106,7 @@ export default function Nav() {
               {l.label}
             </Link>
           ))}
-          <Link href="/contact" onClick={() => setOpen(false)} style={{
+          <a href="https://devis.myracoustic.com" onClick={() => setOpen(false)} style={{
             display: 'block', marginTop: 16, width: '100%',
             background: 'var(--lime)', color: '#0d1b2a',
             padding: '13px 0', borderRadius: 6, fontSize: 15, fontWeight: 700,
@@ -115,7 +114,7 @@ export default function Nav() {
             fontFamily: "var(--font-display), sans-serif",
           }}>
             Demander un devis
-          </Link>
+          </a>
         </div>
       )}
     </nav>

@@ -577,15 +577,6 @@ export default function EntreprisesPage() {
         </div>
       </section>
 
-      {/* ── INTRO ───────────────────────────────────────────────── */}
-      <section style={{ padding: 'clamp(48px,6vw,72px) 32px 0' }}>
-        <div style={{ maxWidth: 760, margin: '0 auto', textAlign: 'center' }}>
-          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 16, lineHeight: 1.8 }}>
-            Un événement d'entreprise exige rigueur, anticipation et maîtrise opérationnelle. La qualité des prises de parole, la lisibilité des supports visuels et la coordination technique influencent directement l'image de votre organisation. Myracoustic conçoit et exploite des dispositifs adaptés aux formats de 80 à 400 personnes, en lien direct avec vos équipes internes.
-          </p>
-        </div>
-      </section>
-
       {/* ── TYPES D'ÉVÉNEMENTS ──────────────────────────────────── */}
       <section style={{ padding: 'clamp(56px,7vw,88px) 32px', background: '#060e16' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>

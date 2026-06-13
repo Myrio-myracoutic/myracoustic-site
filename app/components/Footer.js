@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
 import { AnimatedWave } from './AnimatedWave';
 
 const SERVICES = ['Sonorisation', 'Éclairage', 'Vidéo & Mapping', 'Animation DJ'];
@@ -11,7 +10,6 @@ const NAV_LINKS = [
   { href: '/',                    label: 'Accueil' },
   { href: '/evenements-prives',        label: 'Particuliers' },
   { href: '/evenement-entreprise',         label: 'Entreprises' },
-  { href: '/contact',  label: 'Devis en ligne' },
 ];
 
 const LEGAL_LINKS = [
@@ -21,8 +19,6 @@ const LEGAL_LINKS = [
 ];
 
 export default function Footer() {
-  const pathname = usePathname();
-  if (pathname.startsWith('/contact')) return null;
   return (
     <footer style={{
       background: '#060e16',
@@ -77,6 +73,15 @@ export default function Footer() {
                 {l.label}
               </Link>
             ))}
+            <a href="https://devis.myracoustic.com" style={{
+              display: 'block', color: 'rgba(255,255,255,0.45)', fontSize: 14, marginBottom: 9,
+              textDecoration: 'none', transition: 'color 0.2s',
+            }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--lime)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.45)'; }}
+            >
+              Devis en ligne
+            </a>
           </div>
 
           {/* Contact */}

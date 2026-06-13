@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { AnimatedWave, WaveBullet, SectionLabel } from '../components/AnimatedWave';
 import TestimonialCard from '../components/TestimonialCard';
 import StatItem from '../components/StatItem';
@@ -68,7 +67,7 @@ function ServiceDetailCard({ icon, tag, title, desc, items }) {
         padding: '16px 28px',
         borderTop: '1px solid rgba(255,255,255,0.06)',
       }}>
-        <Link href="/contact/devis-particulier" style={{
+        <a href="https://devis.myracoustic.com/particulier" style={{
           background: 'var(--lime)', color: '#0d1b2a',
           padding: '8px 16px', borderRadius: 5, fontSize: 13, fontWeight: 700,
           fontFamily: 'var(--font-display), sans-serif',
@@ -78,7 +77,7 @@ function ServiceDetailCard({ icon, tag, title, desc, items }) {
           onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; }}
         >
           Devis →
-        </Link>
+        </a>
       </div>
     </div>
   );
@@ -223,7 +222,7 @@ export default function ParticuliersPage() {
           }}>
             Mariage, anniversaire, fête de famille — nous créons l'ambiance sonore et visuelle parfaite pour que votre événement soit inoubliable.
           </p>
-          <Link href="/contact/devis-particulier" style={{
+          <a href="https://devis.myracoustic.com/particulier" style={{
             background: 'var(--lime)', color: '#0d1b2a',
             padding: '15px 32px', borderRadius: 8, fontSize: 16, fontWeight: 700,
             fontFamily: 'var(--font-display), sans-serif',
@@ -233,7 +232,7 @@ export default function ParticuliersPage() {
             onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(0)'; }}
           >
             Calculer mon devis en ligne →
-          </Link>
+          </a>
         </div>
 
         {/* Onde décorative en bas du hero */}
@@ -364,7 +363,7 @@ export default function ParticuliersPage() {
         <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 16, marginBottom: 32 }}>
           Calculez votre devis en ligne en moins de 3 minutes.
         </p>
-        <Link href="/contact/devis-particulier" style={{
+        <a href="https://devis.myracoustic.com/particulier" style={{
           background: 'var(--lime)', color: '#0d1b2a',
           padding: '16px 40px', borderRadius: 8, fontSize: 17, fontWeight: 700,
           fontFamily: 'var(--font-display), sans-serif',
@@ -374,7 +373,7 @@ export default function ParticuliersPage() {
           onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(0)'; }}
         >
           Calculer mon devis en ligne →
-        </Link>
+        </a>
       </section>
 
     </div>

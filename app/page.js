@@ -256,7 +256,7 @@ export default function Home() {
           </div>
 
           <div style={{ textAlign: 'center', marginTop: 52 }}>
-            <Link href="/contact" style={{
+            <a href="https://devis.myracoustic.com" style={{
               background: 'var(--lime)', color: '#0d1b2a',
               padding: '16px 42px', borderRadius: 8, fontSize: 17, fontWeight: 700,
               fontFamily: 'var(--font-display), sans-serif',
@@ -267,7 +267,7 @@ export default function Home() {
               onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
             >
               Calculer mon devis en ligne <span style={{ fontSize: 20 }}>→</span>
-            </Link>
+            </a>
           </div>
         </div>
       </section>
@@ -288,7 +288,7 @@ export default function Home() {
           Obtenez votre devis personnalisé en quelques minutes.
         </p>
         <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Link href="/contact" style={{
+          <a href="https://devis.myracoustic.com" style={{
             background: 'var(--lime)', color: '#0d1b2a',
             padding: '15px 34px', borderRadius: 8, fontSize: 16, fontWeight: 700,
             fontFamily: 'var(--font-display), sans-serif',
@@ -298,7 +298,7 @@ export default function Home() {
             onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(0)'; }}
           >
             Calculer mon devis →
-          </Link>
+          </a>
           <Link href="/evenement-entreprise" style={{
             background: 'transparent', color: 'white',
             border: '2px solid rgba(255,255,255,0.3)',

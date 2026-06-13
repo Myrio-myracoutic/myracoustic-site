@@ -23,4 +23,7 @@ export function setConsent(value) {
       analytics_storage: value === 'granted' ? 'granted' : 'denied',
     });
   }
+  if (typeof window !== 'undefined' && window.clarity) {
+    window.clarity('consent', value === 'granted');
+  }
 }

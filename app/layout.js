@@ -3,6 +3,7 @@ import "./globals.css";
 import Nav from "./components/Nav";
 import Footer from "./components/Footer";
 import GoogleAnalytics from "./components/GoogleAnalytics";
+import Clarity from "./components/Clarity";
 import CookieConsent from "./components/CookieConsent";
 
 const spaceGrotesk = Space_Grotesk({
@@ -41,6 +42,7 @@ export default function RootLayout({ children }) {
     >
       <body style={{ fontFamily: "var(--font-body), sans-serif" }}>
         <GoogleAnalytics />
+        <Clarity />
         <Nav />
         <main style={{ flexGrow: 1 }}>{children}</main>
         <Footer />

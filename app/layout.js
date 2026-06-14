@@ -25,11 +25,55 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata = {
-  title: "Myracoustic — Son, Lumière, Vidéo & DJ",
+  metadataBase: new URL("https://myracoustic.com"),
+  title: {
+    default: "Myracoustic — Son, Lumière, Vidéo & DJ",
+    template: "%s — Myracoustic",
+  },
   description:
-    "Myracoustic, prestataire événementiel : son, lumière, vidéo et DJ pour mariages, événements privés et professionnels.",
+    "Myracoustic, prestataire événementiel : son, lumière, vidéo et DJ pour mariages, événements privés et professionnels en Pays de la Loire.",
   icons: {
     icon: "/favicon.png",
+  },
+  openGraph: {
+    type: "website",
+    locale: "fr_FR",
+    siteName: "Myracoustic",
+    title: "Myracoustic — Son, Lumière, Vidéo & DJ",
+    description:
+      "Prestataire événementiel : son, lumière, vidéo et DJ pour mariages, événements privés et professionnels en Pays de la Loire.",
+    images: [{ url: "/hero.png", width: 1500, height: 780, alt: "Myracoustic — Son, Lumière, Vidéo & DJ" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Myracoustic — Son, Lumière, Vidéo & DJ",
+    description:
+      "Prestataire événementiel : son, lumière, vidéo et DJ pour mariages, événements privés et professionnels en Pays de la Loire.",
+    images: ["/hero.png"],
+  },
+};
+
+const JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  name: "Myracoustic",
+  image: "https://myracoustic.com/hero.png",
+  url: "https://myracoustic.com",
+  telephone: "+33768533308",
+  email: "contact@myracoustic.com",
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Nort-sur-Erdre",
+    addressRegion: "Loire-Atlantique",
+    addressCountry: "FR",
+  },
+  areaServed: "Pays de la Loire",
+  description:
+    "Prestataire événementiel : son, lumière, vidéo et DJ pour mariages, événements privés et professionnels.",
+  aggregateRating: {
+    "@type": "AggregateRating",
+    ratingValue: "5",
+    reviewCount: "4",
   },
 };
 
@@ -41,6 +85,10 @@ export default function RootLayout({ children }) {
       suppressHydrationWarning
     >
       <body style={{ fontFamily: "var(--font-body), sans-serif" }}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
+        />
         <GoogleAnalytics />
         <Clarity />
         <Nav />

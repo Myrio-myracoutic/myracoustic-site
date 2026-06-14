@@ -67,6 +67,13 @@ const JSON_LD = {
     addressRegion: "Loire-Atlantique",
     addressCountry: "FR",
   },
+  geo: {
+    "@type": "GeoCoordinates",
+    latitude: 47.4333,
+    longitude: -1.4889,
+  },
+  priceRange: "€€€",
+  openingHours: "Mo-Sa 10:00-18:00",
   areaServed: ["Pays de la Loire", "Bretagne", "Poitou-Charentes"],
   description:
     "Prestataire événementiel : son, lumière, vidéo et DJ pour mariages, événements privés et professionnels.",

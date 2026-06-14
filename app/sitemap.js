@@ -4,6 +4,7 @@ export default function sitemap() {
     { path: '/', priority: 1, changeFrequency: 'monthly' },
     { path: '/evenement-entreprise', priority: 0.9, changeFrequency: 'monthly' },
     { path: '/evenements-prives', priority: 0.9, changeFrequency: 'monthly' },
+    { path: '/sonorisation-nantes', priority: 0.9, changeFrequency: 'monthly' },
     { path: '/cgv', priority: 0.3, changeFrequency: 'yearly' },
     { path: '/mentions-legales', priority: 0.3, changeFrequency: 'yearly' },
     { path: '/politique-confidentialite', priority: 0.3, changeFrequency: 'yearly' },

@@ -10,6 +10,7 @@ const NAV_LINKS = [
   { href: '/',                    label: 'Accueil' },
   { href: '/evenements-prives',        label: 'Particuliers' },
   { href: '/evenement-entreprise',         label: 'Entreprises' },
+  { href: '/sonorisation-nantes',      label: 'Sonorisation Nantes' },
 ];
 
 const LEGAL_LINKS = [

@@ -4,6 +4,6 @@ export default function robots() {
       userAgent: '*',
       allow: '/',
     },
-    sitemap: 'https://www.myracoustic.com/sitemap.xml',
+    sitemap: 'https://myracoustic.com/sitemap.xml',
   };
 }

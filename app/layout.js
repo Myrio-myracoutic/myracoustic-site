@@ -25,7 +25,7 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata = {
-  metadataBase: new URL("https://myracoustic.com"),
+  metadataBase: new URL("https://www.myracoustic.com"),
   title: {
     default: "Myracoustic — Son, Lumière, Vidéo & DJ",
     template: "%s — Myracoustic",
@@ -57,8 +57,8 @@ const JSON_LD = {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
   name: "Myracoustic",
-  image: "https://myracoustic.com/hero.png",
-  url: "https://myracoustic.com",
+  image: "https://www.myracoustic.com/hero.png",
+  url: "https://www.myracoustic.com",
   telephone: "+33768533308",
   email: "contact@myracoustic.com",
   address: {

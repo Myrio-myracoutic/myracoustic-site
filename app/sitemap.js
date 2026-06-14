@@ -1,5 +1,5 @@
 export default function sitemap() {
-  const base = 'https://myracoustic.com';
+  const base = 'https://www.myracoustic.com';
   const routes = [
     { path: '/', priority: 1, changeFrequency: 'monthly' },
     { path: '/evenement-entreprise', priority: 0.9, changeFrequency: 'monthly' },

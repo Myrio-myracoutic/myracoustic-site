@@ -67,7 +67,7 @@ const JSON_LD = {
     addressRegion: "Loire-Atlantique",
     addressCountry: "FR",
   },
-  areaServed: "Pays de la Loire",
+  areaServed: ["Pays de la Loire", "Bretagne", "Poitou-Charentes"],
   description:
     "Prestataire événementiel : son, lumière, vidéo et DJ pour mariages, événements privés et professionnels.",
   aggregateRating: {

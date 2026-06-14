@@ -162,12 +162,12 @@ const GUARANTEES = [
   { icon: '🤝', title: 'Interlocuteur unique', desc: "Un seul référent pour la préparation, l'exploitation et le suivi de votre événement, du premier échange au démontage." },
   { icon: '📄', title: 'Devis structuré', desc: 'Une proposition détaillée, adaptée au lieu, au format et aux contraintes techniques de votre événement.' },
   { icon: '🛡️', title: 'Assurance professionnelle', desc: 'Une responsabilité civile professionnelle couvrant les activités de sonorisation, éclairage et régie.' },
-  { icon: '📍', title: "Zone d'intervention", desc: 'Des interventions principalement en Pays de la Loire, avec une étude possible au national sur demande.' },
+  { icon: '📍', title: "Zone d'intervention", desc: "Basé à Nort-sur-Erdre, Myracoustic intervient principalement en Pays de la Loire — Nantes, Angers, Rennes, Saint-Nazaire — avec une étude possible au national sur demande." },
 ];
 
 const FAQ_ITEMS = [
   { q: 'Intervenez-vous pour des événements d’entreprise en Pays de la Loire ?',
-    a: 'Oui. Myracoustic intervient principalement en Pays de la Loire pour la mise en œuvre technique d’événements d’entreprise : séminaires, conventions, assemblées générales et plus encore.' },
+    a: 'Oui. Basé à Nort-sur-Erdre, Myracoustic intervient principalement en Pays de la Loire — Nantes, Angers, Rennes, Saint-Nazaire et leurs environs — pour la mise en œuvre technique d’événements d’entreprise : séminaires, conventions, assemblées générales et plus encore.' },
   { q: 'Proposez-vous la captation vidéo ou le streaming ?',
     a: 'Non. La prestation reste exclusivement technique — sonorisation, éclairage, écran LED et régie. La diffusion vidéo se fait uniquement via écran LED sur site, sans captation ni diffusion en ligne.' },
   { q: "Quel est le format d'événement adapté à votre prestation ?",

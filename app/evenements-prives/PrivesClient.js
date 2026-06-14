@@ -147,7 +147,7 @@ const INCLUDES = [
 
 const FAQ_ITEMS = [
   { q: 'Intervenez-vous pour des mariages en Pays de la Loire ?',
-    a: "Oui. Myracoustic intervient principalement en Pays de la Loire pour l'animation musicale et la prestation technique de mariages, anniversaires et réceptions privées. Des interventions en dehors de la région peuvent être étudiées sur demande selon la nature du projet." },
+    a: "Oui. Basé à Nort-sur-Erdre, Myracoustic intervient principalement en Pays de la Loire — Nantes, Angers, Rennes, Saint-Nazaire et leurs environs — pour l'animation musicale et la prestation technique de mariages, anniversaires et réceptions privées. Des interventions en dehors de la région peuvent être étudiées sur demande selon la nature du projet." },
   { q: 'Peut-on choisir la playlist musicale ?',
     a: "Absolument. Nous construisons ensemble la playlist en fonction de vos goûts musicaux, de vos souhaits et du profil de vos invités. Vous pouvez nous transmettre une liste de morceaux incontournables, des styles à privilégier ou à éviter. Le DJ s'adapte ensuite en temps réel selon l'ambiance et les réactions du public." },
   { q: 'Proposez-vous une animation avec micro pour les discours et animations ?',

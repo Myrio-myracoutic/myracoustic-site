@@ -74,12 +74,14 @@ const SERVICES = [
 ];
 
 const TESTIMONIALS = [
-  { name: 'Sophie & Marc',  event: 'Mariage · Château de Vaux', stars: 5,
-    text: "La sono était parfaite, tout le monde a dansé jusqu'au bout de la nuit. Un événement magique grâce à toute l'équipe Myracoustic !" },
-  { name: 'Alexandre D.',   event: 'Séminaire · 200 personnes', stars: 5,
-    text: "Installation impeccable, équipe ultra-réactive. Un son d'une qualité remarquable. Nous faisons appel à eux pour tous nos événements d'entreprise." },
-  { name: 'Jennifer M.',    event: 'Anniversaire 30 ans', stars: 5,
-    text: "Les lumières et la vidéo ont transformé la salle. Une ambiance de folie, exactement ce qu'on voulait. Merci Myracoustic !" },
+  { name: 'Virginie.G',  event: 'Anniversaire · 90 personnes', stars: 5,
+    text: "J'ai fais appel à Myracoustic pour un anniversaire et nous avions été très satisfait de sa prestation. Personne a l'écoute, ambiance au top. Je recommande++++" },
+  { name: 'Treecy et Jerry', event: 'Mariage', stars: 5,
+    text: "C'est un dj très professionnel, compréhensif et qui s'adapte à toutes situations. Le rapport qualité prix est au top. Je recommande fortement. Amusement garantie." },
+  { name: 'Sandra et Stéphanie', event: 'Mariage', stars: 5,
+    text: "Myrio a été à l'écoute de nos envies, on a tout calé ensemble. Ces propositions ont été pertinentes. Nous l'avions déjà vu comme dj dans des soirées repas d'entreprise et comme nous l'avions apprécié nous l'avons contacté pour notre mariage. Il est en plus super bien équipé en matériel du coup ça facilite pour faire des animations tout au long de la soirée." },
+  { name: 'Patricia.A', event: 'Anniversaire intergénérationnel', stars: 5,
+    text: "Une soirée comme on en rêve pour réunir plusieurs générations : tout le monde a dansé, des plus jeunes aux plus grands. Merci à Myrio pour cette ambiance chaleureuse du début à la fin !" },
 ];
 
 export default function Home() {
@@ -195,7 +197,6 @@ export default function Home() {
         }}>
           <StatItem value="26" suffix="+" label="Années d'expérience" />
           <StatItem value="1000" suffix="+" label="Événements réalisés" />
-          <StatItem value="4" suffix="" label="Prestations phare" />
         </div>
       </section>
 

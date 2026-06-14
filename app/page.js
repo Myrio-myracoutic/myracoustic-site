@@ -203,33 +203,15 @@ export default function Home() {
       {/* ── SERVICES ──────────────────────────────────────────────── */}
       <section style={{ padding: 'clamp(64px,8vw,100px) 32px' }}>
         <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-          <div style={{
-            marginBottom: 52,
-            display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between',
-            gap: 20, flexWrap: 'wrap',
-          }}>
-            <div>
-              <SectionLabel>Nos Prestations</SectionLabel>
-              <h2 style={{
-                fontFamily: 'var(--font-display), sans-serif',
-                fontSize: 'clamp(28px,4vw,52px)', fontWeight: 700, lineHeight: 1.1,
-              }}>
-                Tout ce qu'il faut pour<br />
-                <span style={{ color: 'var(--lime)' }}>un événement parfait</span>
-              </h2>
-            </div>
-            <Link href="/evenements-prives" style={{
-              background: 'transparent', color: 'white',
-              border: '1px solid rgba(255,255,255,0.25)',
-              padding: '11px 22px', borderRadius: 6, fontSize: 14,
-              fontFamily: 'var(--font-display), sans-serif', fontWeight: 500,
-              textDecoration: 'none', transition: 'all 0.2s', whiteSpace: 'nowrap',
-            }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--lime)'; e.currentTarget.style.color = 'var(--lime)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)'; e.currentTarget.style.color = 'white'; }}
-            >
-              Voir toutes les offres →
-            </Link>
+          <div style={{ marginBottom: 52 }}>
+            <SectionLabel>Nos Prestations</SectionLabel>
+            <h2 style={{
+              fontFamily: 'var(--font-display), sans-serif',
+              fontSize: 'clamp(28px,4vw,52px)', fontWeight: 700, lineHeight: 1.1,
+            }}>
+              Tout ce qu'il faut pour<br />
+              <span style={{ color: 'var(--lime)' }}>un événement parfait</span>
+            </h2>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 2 }}>
             {SERVICES.map((s) => <ServiceCard key={s.tag} {...s} />)}
@@ -254,21 +236,6 @@ export default function Home() {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 18 }}>
             {TESTIMONIALS.map((t, i) => <TestimonialCard key={i} {...t} />)}
-          </div>
-
-          <div style={{ textAlign: 'center', marginTop: 52 }}>
-            <a href="https://devis.myracoustic.com" style={{
-              background: 'var(--lime)', color: '#0d1b2a',
-              padding: '16px 42px', borderRadius: 8, fontSize: 17, fontWeight: 700,
-              fontFamily: 'var(--font-display), sans-serif',
-              display: 'inline-flex', alignItems: 'center', gap: 10,
-              textDecoration: 'none', transition: 'all 0.22s',
-            }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = '#ceff2a'; e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(184,239,11,0.28)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
-            >
-              Calculer mon devis en ligne <span style={{ fontSize: 20 }}>→</span>
-            </a>
           </div>
         </div>
       </section>

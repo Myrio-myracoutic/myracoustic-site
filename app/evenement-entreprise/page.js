@@ -3,29 +3,6 @@
 import { useState } from 'react';
 import { AnimatedWave, SectionLabel } from '../components/AnimatedWave';
 
-/* ─── Placeholder image ───────────────────────────────────────── */
-function ImgPh({ label, gradient, style }) {
-  return (
-    <div style={{
-      background: gradient, borderRadius: 12, minHeight: 160,
-      display: 'flex', alignItems: 'flex-end',
-      position: 'relative', overflow: 'hidden', ...style,
-    }}>
-      <div style={{
-        position: 'absolute', inset: 0,
-        backgroundImage: 'repeating-linear-gradient(45deg,transparent,transparent 18px,rgba(255,255,255,0.018) 18px,rgba(255,255,255,0.018) 36px)',
-      }} />
-      <span style={{
-        fontFamily: 'var(--font-display), sans-serif', fontSize: 10,
-        color: 'rgba(255,255,255,0.25)', letterSpacing: '0.12em',
-        textTransform: 'uppercase', padding: '10px 14px', zIndex: 1,
-      }}>
-        {label}
-      </span>
-    </div>
-  );
-}
-
 /* ─── Carte offre ─────────────────────────────────────────────── */
 function OfferCard({ icon, title, desc, tags }) {
   const [hov, setHov] = useState(false);
@@ -209,72 +186,52 @@ export default function EntreprisesPage() {
       {/* ── HERO ────────────────────────────────────────────────── */}
       <section style={{
         padding: 'clamp(64px,9vw,110px) 32px clamp(80px,10vw,120px)',
-        background: 'linear-gradient(135deg,var(--bg) 0%,#0d1845 55%,var(--bg) 100%)',
+        backgroundImage: 'url(/seminaire_myracoustic_nantes.jpg)',
+        backgroundSize: 'cover', backgroundPosition: 'center',
         position: 'relative', overflow: 'hidden',
       }}>
         <div style={{
-          position: 'absolute', inset: 0, pointerEvents: 'none',
+          position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
+          background: 'linear-gradient(to right,rgba(13,27,42,0.92) 0%,rgba(13,27,42,0.6) 60%,rgba(13,27,42,0.25) 100%)',
+        }} />
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
           background: 'radial-gradient(ellipse 60% 50% at 85% 40%,rgba(52,55,144,0.35) 0%,transparent 60%)',
         }} />
 
         <div style={{
           maxWidth: 1280, margin: '0 auto',
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))',
-          gap: 48, alignItems: 'center', position: 'relative', zIndex: 1,
+          position: 'relative', zIndex: 1,
         }}>
-          {/* Texte */}
-          <div>
-            <SectionLabel>Entreprises · 80 à 400 participants</SectionLabel>
-            <h1 style={{
+          <SectionLabel>Entreprises · 80 à 400 participants</SectionLabel>
+          <h1 style={{
+            fontFamily: 'var(--font-display), sans-serif',
+            fontSize: 'clamp(40px,7vw,90px)', fontWeight: 700,
+            lineHeight: 0.93, letterSpacing: '-0.025em', marginBottom: 24,
+          }}>
+            UNE TECHNIQUE<br />
+            <span style={{ color: 'var(--lime)' }}>À LA HAUTEUR</span><br />
+            DE VOS ENJEUX
+          </h1>
+          <p style={{
+            color: 'rgba(255,255,255,0.56)',
+            fontSize: 'clamp(14px,1.5vw,17px)', lineHeight: 1.75,
+            maxWidth: 460, marginBottom: 36,
+          }}>
+            Myracoustic conçoit et exploite des dispositifs techniques complets — sonorisation, éclairage, écran LED et régie — pour vos événements d'entreprise de 80 à 400 personnes en Pays de la Loire.
+          </p>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <a href="https://devis.myracoustic.com/professionnel" style={{
+              background: 'var(--indigo-vif)', color: 'white',
+              padding: '14px 28px', borderRadius: 8, fontSize: 15, fontWeight: 700,
               fontFamily: 'var(--font-display), sans-serif',
-              fontSize: 'clamp(40px,7vw,90px)', fontWeight: 700,
-              lineHeight: 0.93, letterSpacing: '-0.025em', marginBottom: 24,
-            }}>
-              UNE TECHNIQUE<br />
-              <span style={{ color: 'var(--lime)' }}>À LA HAUTEUR</span><br />
-              DE VOS ENJEUX
-            </h1>
-            <p style={{
-              color: 'rgba(255,255,255,0.56)',
-              fontSize: 'clamp(14px,1.5vw,17px)', lineHeight: 1.75,
-              maxWidth: 460, marginBottom: 36,
-            }}>
-              Myracoustic conçoit et exploite des dispositifs techniques complets — sonorisation, éclairage, écran LED et régie — pour vos événements d'entreprise de 80 à 400 personnes en Pays de la Loire.
-            </p>
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <a href="https://devis.myracoustic.com/professionnel" style={{
-                background: 'var(--indigo-vif)', color: 'white',
-                padding: '14px 28px', borderRadius: 8, fontSize: 15, fontWeight: 700,
-                fontFamily: 'var(--font-display), sans-serif',
-                textDecoration: 'none', display: 'inline-block', transition: 'all 0.2s',
-              }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#5558d4'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--indigo-vif)'; e.currentTarget.style.transform = 'translateY(0)'; }}
-              >
-                Calculer mon devis →
-              </a>
-            </div>
-          </div>
-
-          {/* Photos placeholder */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <ImgPh
-              label="Convention · Régie technique"
-              gradient="linear-gradient(135deg,#0d1845 0%,#343790 60%,#0d1b2a 100%)"
-              style={{ height: 200 }}
-            />
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <ImgPh
-                label="Séminaire · Amphi 300 pers."
-                gradient="linear-gradient(135deg,#0a1520 0%,#1a3a6a 60%,#0d1b2a 100%)"
-                style={{ height: 120 }}
-              />
-              <ImgPh
-                label="Gala d'entreprise · Écran LED"
-                gradient="linear-gradient(135deg,#1a0a3d 0%,#5b21b6 60%,#0d2a3d 100%)"
-                style={{ height: 120 }}
-              />
-            </div>
+              textDecoration: 'none', display: 'inline-block', transition: 'all 0.2s',
+            }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = '#5558d4'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--indigo-vif)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+            >
+              Calculer mon devis →
+            </a>
           </div>
         </div>
 

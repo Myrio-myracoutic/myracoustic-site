@@ -1,17 +1,17 @@
 import HomeClient from './HomeClient';
 
 export const metadata = {
-  title: "Son, Lumière, Vidéo & DJ pour vos événements",
+  title: "Sonorisation, Lumière, Vidéo & DJ à Nantes",
   description:
-    "Myracoustic, prestataire événementiel en Pays de la Loire : son, lumière, vidéo et DJ pour mariages, anniversaires et événements d'entreprise.",
+    "Myracoustic, prestataire événementiel à Nantes et en Pays de la Loire : sonorisation, lumière, vidéo et DJ pour mariages, anniversaires et événements d'entreprise.",
   alternates: {
     canonical: '/',
   },
   openGraph: {
     url: '/',
-    title: "Myracoustic — Son, Lumière, Vidéo & DJ pour vos événements",
+    title: "Myracoustic — Sonorisation, Lumière, Vidéo & DJ à Nantes",
     description:
-      "Prestataire événementiel en Pays de la Loire : son, lumière, vidéo et DJ pour mariages, anniversaires et événements d'entreprise.",
+      "Prestataire événementiel à Nantes et en Pays de la Loire : sonorisation, lumière, vidéo et DJ pour mariages, anniversaires et événements d'entreprise.",
   },
 };
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { AnimatedWave, WaveBullet, SectionLabel } from '../components/AnimatedWave';
+import { FAQ_ITEMS } from './faq-data';
 import TestimonialCard from '../components/TestimonialCard';
 import StatItem from '../components/StatItem';
 
@@ -143,29 +144,6 @@ const INCLUDES = [
   'Devis personnalisé en ligne en moins de 2 minutes',
   'Contrat clair avec engagement de qualité',
   'Assurance responsabilité civile professionnelle',
-];
-
-const FAQ_ITEMS = [
-  { q: 'Intervenez-vous pour des mariages en Pays de la Loire ?',
-    a: "Oui. Basé à Nort-sur-Erdre, Myracoustic intervient principalement en Pays de la Loire — Nantes, Angers, Rennes, Saint-Nazaire et leurs environs — pour l'animation musicale et la prestation technique de mariages, anniversaires et réceptions privées. Des interventions en dehors de la région peuvent être étudiées sur demande selon la nature du projet." },
-  { q: 'Peut-on choisir la playlist musicale ?',
-    a: "Absolument. Nous construisons ensemble la playlist en fonction de vos goûts musicaux, de vos souhaits et du profil de vos invités. Vous pouvez nous transmettre une liste de morceaux incontournables, des styles à privilégier ou à éviter. Le DJ s'adapte ensuite en temps réel selon l'ambiance et les réactions du public." },
-  { q: 'Proposez-vous une animation avec micro pour les discours et animations ?',
-    a: "Oui. Nous fournissons des micros pour les discours, les animations (lancer de bouquet, ouverture de bal, etc.) et les prises de parole. L'animation au micro reste discrète et élégante, centrée sur la musique et vos invités." },
-  { q: 'Faut-il prévoir un repas pour le DJ ?',
-    a: "Oui, il est d'usage de prévoir un repas pour le DJ (et le technicien selon la complexité de la prestation), idéalement au même moment que vos invités ou en décalé selon l'organisation de votre soirée. Cela permet de maintenir une présence technique tout au long de l'événement." },
-  { q: 'Combien de temps dure la prestation DJ ?',
-    a: "La durée est adaptable selon vos besoins. En général, pour un mariage, la prestation DJ couvre le vin d'honneur, le dîner et la soirée dansante (environ 6 à 8 heures). Pour un anniversaire ou une réception, la durée est définie selon votre programme." },
-  { q: 'Peut-on faire appel à vous uniquement pour la sonorisation, sans DJ ?',
-    a: "Oui. Nos prestations sont modulables. Vous pouvez faire appel à nous uniquement pour la sonorisation (cérémonie, dîner) ou l'éclairage, sans animation DJ, ou opter pour une solution complète." },
-  { q: "Travaillez-vous avec des wedding planners et d'autres prestataires ?",
-    a: "Oui. Nous avons l'habitude de travailler en coordination avec des wedding planners, traiteurs, photographes et autres prestataires événementiels. Une communication fluide est essentielle pour garantir un déroulement parfait." },
-  { q: 'Quel est le délai pour réserver votre prestation ?',
-    a: "Nous recommandons de nous contacter le plus tôt possible, idéalement 6 à 12 mois à l'avance pour un mariage, afin de garantir notre disponibilité. Pour d'autres événements privés, un délai de 2 à 3 mois est généralement suffisant." },
-  { q: 'Comment se passe le paiement ?',
-    a: "Un acompte est demandé à la réservation pour bloquer la date. Le solde est réglé avant ou le jour de l'événement selon les modalités définies dans le devis. Toutes les conditions de paiement sont précisées dans nos CGV." },
-  { q: "Que se passe-t-il en cas d'imprévu technique le jour J ?",
-    a: "Nous anticipons les imprévus en testant tout le matériel avant l'arrivée de vos invités et en ayant des solutions de secours (matériel de backup, câbles de rechange, etc.). Notre expérience nous permet de réagir rapidement et discrètement en cas de besoin." },
 ];
 
 const TESTIMONIALS = [

@@ -13,7 +13,7 @@ const CITY = {
       a: "Oui. Myracoustic intervient à Saint-Nazaire, La Baule, Guérande, Pornichet et dans toute la presqu'île guérandaise pour mariages, anniversaires, séminaires et événements d'entreprise." },
     { q: 'Quelle est la distance entre votre base et Saint-Nazaire ?',
       a: "Environ 60 km depuis Nort-sur-Erdre, soit 40 à 45 minutes de trajet. Les frais de déplacement sont calculés automatiquement dans notre outil de devis selon la distance exacte de votre lieu." },
-    { q: 'Intervenez-vous pour des mariages en presqu'île guérandaise ?',
+    { q: "Intervenez-vous pour des mariages en presqu'île guérandaise ?",
       a: "Oui. La presqu'île guérandaise et la région de La Baule sont parmi les zones où nous intervenons régulièrement pour des mariages, dans des domaines, espaces événementiels en bord de mer ou à l'intérieur des terres." },
     { q: 'Proposez-vous aussi des prestations en extérieur ?',
       a: "Oui. Pour les événements en extérieur (jardins, terrasses, espaces naturels), nous adaptons le dispositif de sonorisation à la configuration du lieu pour garantir une couverture homogène et une bonne intelligibilité." },

@@ -8,7 +8,7 @@ const CITY = {
   temps: '20 min',
   intro: "À 25 km de Nantes, Myracoustic est votre DJ et prestataire technique de proximité pour l'animation de mariages dans l'agglomération nantaise et le vignoble du pays nantais.",
   faq: [
-    { q: 'Animez-vous des mariages à Nantes et dans l'agglomération ?',
+    { q: "Animez-vous des mariages à Nantes et dans l'agglomération ?",
       a: "Oui. Basé à Nort-sur-Erdre (20 minutes de Nantes), Myracoustic est un prestataire de proximité pour les mariages à Nantes et dans toute l'agglomération nantaise — centres de réception, châteaux, domaines viticoles du vignoble nantais." },
     { q: 'Gérez-vous aussi la cérémonie laïque à Nantes ?',
       a: "Oui. Nous pouvons sonoriser votre cérémonie laïque : micro pour l'officiant, musique d'entrée et de sortie personnalisée, fond sonore pendant les lectures. Un moment clé que nous préparons ensemble bien en amont." },

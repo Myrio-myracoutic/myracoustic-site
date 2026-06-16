@@ -12,7 +12,7 @@ const CITY = {
       a: "Oui. Myracoustic anime des mariages à Saint-Nazaire, La Baule, Guérande, Pornichet et dans toute la presqu'île guérandaise. Salles de réception, domaines bord de mer ou à la campagne — nous nous adaptons à tous les lieux." },
     { q: 'Gérez-vous la cérémonie laïque pour les mariages côtiers ?',
       a: "Oui. Pour les cérémonies en extérieur ou dans des espaces atypiques, nous adaptons notre sonorisation à la configuration du lieu pour garantir une qualité sonore irréprochable même sans acoustique de salle." },
-    { q: 'Dans quels lieux intervenez-vous pour les mariages en presqu'île guérandaise ?',
+    { q: "Dans quels lieux intervenez-vous pour les mariages en presqu'île guérandaise ?",
       a: "Nous intervenons dans tous types de lieux de la presqu'île : salles de réception, domaines, espaces événementiels bord de mer, chapiteaux et jardins. Une visite technique préalable est systématique." },
     { q: 'Quel délai pour réserver votre DJ pour un mariage sur la côte ?',
       a: "Idéalement 6 à 12 mois à l'avance, notamment pour les saisons de haute fréquentation en bord de mer. N'hésitez pas à nous contacter en dehors de ces créneaux — nous faisons notre possible." },

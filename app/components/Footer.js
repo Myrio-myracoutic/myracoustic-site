@@ -7,10 +7,19 @@ import { AnimatedWave } from './AnimatedWave';
 const SERVICES = ['Sonorisation', 'Éclairage', 'Vidéo & Mapping', 'Animation DJ'];
 
 const NAV_LINKS = [
-  { href: '/',                    label: 'Accueil' },
-  { href: '/evenements-prives',        label: 'Particuliers' },
-  { href: '/evenement-entreprise',         label: 'Entreprises' },
-  { href: '/sonorisation-nantes',      label: 'Sonorisation Nantes' },
+  { href: '/',                     label: 'Accueil' },
+  { href: '/evenements-prives',    label: 'Particuliers' },
+  { href: '/evenement-entreprise', label: 'Entreprises' },
+  { href: '/mariage',              label: 'Mariage' },
+];
+
+const CITY_LINKS = [
+  { href: '/sonorisation-nantes',      label: 'Nantes' },
+  { href: '/sonorisation-angers',      label: 'Angers' },
+  { href: '/sonorisation-saint-nazaire', label: 'Saint-Nazaire' },
+  { href: '/sonorisation-rennes',      label: 'Rennes' },
+  { href: '/dj-mariage-nantes',        label: 'DJ Mariage Nantes' },
+  { href: '/dj-mariage-angers',        label: 'DJ Mariage Angers' },
 ];
 
 const LEGAL_LINKS = [
@@ -84,6 +93,28 @@ export default function Footer() {
             >
               Devis en ligne
             </a>
+          </div>
+
+          {/* Zones */}
+          <div>
+            <h5 style={{
+              fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase',
+              color: 'var(--lime)', marginBottom: 16,
+              fontFamily: "var(--font-mono), monospace",
+            }}>
+              Zones
+            </h5>
+            {CITY_LINKS.map((l) => (
+              <Link key={l.href} href={l.href} style={{
+                display: 'block', color: 'rgba(255,255,255,0.45)', fontSize: 14, marginBottom: 9,
+                textDecoration: 'none', transition: 'color 0.2s',
+              }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--lime)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.45)'; }}
+              >
+                {l.label}
+              </Link>
+            ))}
           </div>
 
           {/* Contact */}

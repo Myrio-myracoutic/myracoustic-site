@@ -74,7 +74,17 @@ const JSON_LD = {
   },
   priceRange: "€€€",
   openingHours: "Mo-Sa 10:00-18:00",
-  areaServed: ["Pays de la Loire", "Bretagne", "Poitou-Charentes"],
+  areaServed: [
+    { "@type": "City", name: "Nantes" },
+    { "@type": "City", name: "Angers" },
+    { "@type": "City", name: "Saint-Nazaire" },
+    { "@type": "City", name: "Rennes" },
+    { "@type": "City", name: "La Baule" },
+    { "@type": "City", name: "Guérande" },
+    { "@type": "AdministrativeArea", name: "Pays de la Loire" },
+    { "@type": "AdministrativeArea", name: "Bretagne" },
+    { "@type": "AdministrativeArea", name: "Poitou-Charentes" },
+  ],
   description:
     "Prestataire événementiel : son, lumière, vidéo et DJ pour mariages, événements privés et professionnels.",
   aggregateRating: {

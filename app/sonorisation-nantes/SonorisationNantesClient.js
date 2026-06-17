@@ -98,13 +98,20 @@ export default function SonorisationNantesClient() {
       {/* ── HERO ────────────────────────────────────────────────── */}
       <section style={{
         padding: 'clamp(64px,9vw,110px) 32px clamp(80px,10vw,120px)',
+        backgroundImage: 'url(/particuliers-hero.jpg)',
+        backgroundSize: 'cover', backgroundPosition: 'center',
         position: 'relative', overflow: 'hidden',
       }}>
         <div style={{
-          position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
-          background: 'radial-gradient(ellipse 70% 60% at 80% 30%,rgba(184,239,11,0.06) 0%,transparent 55%)',
+          position: 'absolute', inset: 0, zIndex: 0,
+          background: 'linear-gradient(135deg,#0d1b2a 0%,#1a2e4a 40%,#0d1b2a 100%)',
+          opacity: 0.55,
         }} />
-        <div style={{ maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 1 }}>
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
+          background: 'linear-gradient(to right,rgba(13,27,42,0.85) 0%,rgba(13,27,42,0.45) 55%,rgba(13,27,42,0.1) 100%)',
+        }} />
+        <div style={{ maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 2 }}>
           <SectionLabel>Sonorisation événementielle</SectionLabel>
           <h1 style={{
             fontFamily: 'var(--font-display), sans-serif',

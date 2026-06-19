@@ -1033,8 +1033,6 @@ export default function DevisFlow({ forcedProfil = null }) {
         fontSize: 13, fontFamily: 'var(--font-display), sans-serif', fontWeight: 500,
       }}>← Retour</button>
 
-      <img src="/logo.png" alt="Myracoustic" style={{ height: 40 }} />
-
       {(isPart || isPro) ? (
         <div className="hide-mobile" style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
           {Array.from({ length: isPro ? 2 : 5 }).map((_, i) => {

@@ -1,4 +1,52 @@
 import { NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabase-admin';
+
+const SENDER_EMAIL = 'contact@myracoustic.com';
+
+async function sendInviteEmail(toEmail, firstName, inviteLink) {
+  const html = `
+<!DOCTYPE html><html lang="fr"><body style="margin:0;padding:0;background:#060e16;font-family:sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:40px 20px;">
+<table width="560" cellpadding="0" cellspacing="0" style="background:#0d1b2a;border-radius:12px;overflow:hidden;">
+  <tr><td style="padding:32px 40px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.07);">
+    <img src="https://myracoustic.com/logo.png" alt="Myracoustic" height="44" style="height:44px;" />
+  </td></tr>
+  <tr><td style="padding:40px 40px 32px;">
+    <p style="color:rgba(255,255,255,0.6);font-size:15px;margin:0 0 24px;">Bonjour ${firstName},</p>
+    <p style="color:rgba(255,255,255,0.85);font-size:15px;line-height:1.7;margin:0 0 16px;">
+      Votre devis a été envoyé ! Nous avons créé votre <strong style="color:#b8ef0b;">espace personnel</strong>
+      pour suivre et gérer votre événement : statut du devis, programme, liste de musiques et bien plus à venir.
+    </p>
+    <p style="color:rgba(255,255,255,0.85);font-size:15px;line-height:1.7;margin:0 0 32px;">
+      Cliquez sur le bouton ci-dessous pour accéder à votre espace et définir votre mot de passe.
+    </p>
+    <table cellpadding="0" cellspacing="0" style="margin:0 auto 32px;">
+      <tr><td style="background:#b8ef0b;border-radius:8px;padding:14px 32px;text-align:center;">
+        <a href="${inviteLink}" style="color:#060e16;font-size:15px;font-weight:700;text-decoration:none;">
+          Accéder à mon espace →
+        </a>
+      </td></tr>
+    </table>
+    <p style="color:rgba(255,255,255,0.35);font-size:12px;margin:0;">Ce lien est valable 24 h. Si vous ne souhaitez pas créer de compte, ignorez cet email.</p>
+  </td></tr>
+  <tr><td style="padding:20px 40px;border-top:1px solid rgba(255,255,255,0.07);text-align:center;">
+    <p style="color:rgba(255,255,255,0.25);font-size:12px;margin:0;">Myracoustic — Son, Lumière, Vidéo &amp; DJ · <a href="https://myracoustic.com" style="color:rgba(255,255,255,0.25);">myracoustic.com</a></p>
+  </td></tr>
+</table></td></tr></table>
+</body></html>`;
+
+  await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'api-key': process.env.BREVO_API_KEY },
+    body: JSON.stringify({
+      sender: { name: 'Myracoustic', email: SENDER_EMAIL },
+      to: [{ email: toEmail, name: firstName }],
+      replyTo: { email: SENDER_EMAIL, name: 'Myracoustic' },
+      subject: 'Votre espace client Myracoustic est prêt',
+      htmlContent: html,
+    }),
+  });
+}
 
 const QONTO_BASE = 'https://thirdparty.qonto.com/v2';
 
@@ -155,6 +203,71 @@ export async function POST(request) {
 
       if (sendRes.status !== 204 && !sendRes.ok) {
         console.error('Erreur envoi devis :', await sendRes.text().catch(() => ''));
+      }
+
+      // ── Création espace client Supabase ──────────────────────────
+      try {
+        const { data: existing } = await supabaseAdmin
+          .from('clients')
+          .select('id, auth_id')
+          .eq('email', client.email)
+          .maybeSingle();
+
+        let supabaseClientId = existing?.id;
+        const isNew = !existing;
+
+        if (isNew) {
+          // Créer l'utilisateur auth
+          const { data: authData, error: authErr } = await supabaseAdmin.auth.admin.createUser({
+            email: client.email,
+            email_confirm: false,
+            user_metadata: { first_name: client.firstName, last_name: client.lastName },
+          });
+          if (authErr) throw authErr;
+
+          const authId = authData.user.id;
+
+          // Insérer le client en base
+          const { data: newClient, error: dbErr } = await supabaseAdmin
+            .from('clients')
+            .insert({
+              auth_id: authId,
+              email: client.email,
+              first_name: client.firstName,
+              last_name: client.lastName,
+              phone: client.phone || null,
+              profil: client.type === 'company' ? 'professionnel' : 'particulier',
+            })
+            .select('id')
+            .single();
+          if (dbErr) throw dbErr;
+          supabaseClientId = newClient.id;
+
+          // Générer le lien d'invitation
+          const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
+            type: 'invite',
+            email: client.email,
+            options: { redirectTo: 'https://myracoustic.com/auth/callback' },
+          });
+
+          if (linkData?.properties?.action_link) {
+            await sendInviteEmail(client.email, client.firstName, linkData.properties.action_link);
+          }
+        }
+
+        // Enregistrer l'événement
+        if (supabaseClientId) {
+          await supabaseAdmin.from('events').insert({
+            client_id: supabaseClientId,
+            event_date: event?.date || null,
+            event_type: event?.type || null,
+            venue: event?.lieu || null,
+            qonto_quote_id: quoteId,
+            qonto_quote_url: quoteUrl,
+          });
+        }
+      } catch (sbErr) {
+        console.error('Supabase espace client error:', sbErr.message);
       }
     }
 

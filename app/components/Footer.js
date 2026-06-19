@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { AnimatedWave } from './AnimatedWave';
+import { usePathname } from 'next/navigation';
 
 const SERVICES = ['Sonorisation', 'Éclairage', 'Vidéo & Mapping', 'Animation DJ'];
 
@@ -29,6 +30,8 @@ const LEGAL_LINKS = [
 ];
 
 export default function Footer() {
+  const pathname = usePathname();
+  if (pathname?.startsWith('/mon-espace') || pathname?.startsWith('/auth')) return null;
   return (
     <footer style={{
       background: '#060e16',

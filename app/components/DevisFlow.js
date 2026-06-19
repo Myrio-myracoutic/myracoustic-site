@@ -311,6 +311,7 @@ function ProfileCard({ icon, title, sub, badge, onClick }) {
 function AddressAutocomplete({ value, onChange, onSelect, placeholder, onEnter, wrapperStyle }) {
   const [suggestions, setSuggestions] = useState([]);
   const [open, setOpen] = useState(false);
+  const [mobileActive, setMobileActive] = useState(false);
   const debounceRef = useRef(null);
 
   const handleChange = (e) => {
@@ -329,38 +330,61 @@ function AddressAutocomplete({ value, onChange, onSelect, placeholder, onEnter, 
     onSelect(s);
     setSuggestions([]);
     setOpen(false);
+    setMobileActive(false);
   };
 
+  const handleFocus = (e) => {
+    fo(e);
+    setOpen(true);
+    if (window.innerWidth <= 768) setMobileActive(true);
+  };
+
+  const handleBlur = (e) => {
+    bl(e);
+    setTimeout(() => { setOpen(false); setMobileActive(false); }, 150);
+  };
+
+  const fixedStyle = {
+    position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 200,
+    padding: '12px 16px', background: 'rgba(6,14,22,0.97)',
+    borderTop: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(16px)',
+  };
+  const defaultStyle = { position: 'relative', flex: '1 1 240px', ...wrapperStyle };
+
   return (
-    <div style={{ position: 'relative', flex: '1 1 240px', ...wrapperStyle }}>
-      <input
-        placeholder={placeholder}
-        value={value}
-        onChange={handleChange}
-        onFocus={(e) => { fo(e); setOpen(true); }}
-        onBlur={(e) => { bl(e); setTimeout(() => setOpen(false), 150); }}
-        onKeyDown={onEnter}
-        style={{ ...IS, width: '100%' }} />
-      {open && suggestions.length > 0 && (
-        <div style={{
-          position: 'absolute', bottom: '100%', left: 0, right: 0, zIndex: 110, marginBottom: 4,
-          background: '#16242f', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8,
-          overflow: 'hidden', boxShadow: '0 -8px 24px rgba(0,0,0,0.35)',
-        }}>
-          {suggestions.map((s, i) => (
-            <div key={i} onMouseDown={() => handleSelect(s)}
-              style={{
-                padding: '10px 14px', fontSize: 13, color: 'rgba(255,255,255,0.85)', cursor: 'pointer',
-                borderBottom: i < suggestions.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(184,239,11,0.08)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-              {s.label}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+    <>
+      {mobileActive && <div style={{ height: 56 }} />}
+      <div style={mobileActive ? fixedStyle : defaultStyle}>
+        <input
+          placeholder={placeholder}
+          value={value}
+          onChange={handleChange}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          onKeyDown={onEnter}
+          style={{ ...IS, width: '100%' }} />
+        {open && suggestions.length > 0 && (
+          <div style={{
+            position: 'absolute', bottom: '100%', left: mobileActive ? 16 : 0, right: mobileActive ? 16 : 0,
+            zIndex: 110, marginBottom: 4,
+            background: '#16242f', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8,
+            overflow: 'hidden', boxShadow: '0 -8px 24px rgba(0,0,0,0.35)',
+          }}>
+            {suggestions.map((s, i) => (
+              <div key={i} onMouseDown={() => handleSelect(s)}
+                style={{
+                  padding: '10px 14px', fontSize: 13, color: 'rgba(255,255,255,0.85)', cursor: 'pointer',
+                  borderBottom: i < suggestions.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(184,239,11,0.08)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                {s.label}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
   );
 }
 

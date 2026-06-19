@@ -311,7 +311,6 @@ function ProfileCard({ icon, title, sub, badge, onClick }) {
 function AddressAutocomplete({ value, onChange, onSelect, placeholder, onEnter, wrapperStyle }) {
   const [suggestions, setSuggestions] = useState([]);
   const [open, setOpen] = useState(false);
-  const [mobileActive, setMobileActive] = useState(false);
   const debounceRef = useRef(null);
 
   const handleChange = (e) => {
@@ -330,61 +329,44 @@ function AddressAutocomplete({ value, onChange, onSelect, placeholder, onEnter, 
     onSelect(s);
     setSuggestions([]);
     setOpen(false);
-    setMobileActive(false);
-  };
-
-  const handleFocus = (e) => {
-    fo(e);
-    setOpen(true);
-    if (window.innerWidth <= 768) setMobileActive(true);
   };
 
   const handleBlur = (e) => {
     bl(e);
-    setTimeout(() => { setOpen(false); setMobileActive(false); }, 150);
+    setTimeout(() => { setOpen(false); }, 150);
   };
-
-  const fixedStyle = {
-    position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 200,
-    padding: '12px 16px', background: 'rgba(6,14,22,0.97)',
-    borderTop: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(16px)',
-  };
-  const defaultStyle = { position: 'relative', flex: '1 1 240px', ...wrapperStyle };
 
   return (
-    <>
-      {mobileActive && <div style={{ height: 56 }} />}
-      <div style={mobileActive ? fixedStyle : defaultStyle}>
-        <input
-          placeholder={placeholder}
-          value={value}
-          onChange={handleChange}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          onKeyDown={onEnter}
-          style={{ ...IS, width: '100%' }} />
-        {open && suggestions.length > 0 && (
-          <div style={{
-            position: 'absolute', bottom: '100%', left: mobileActive ? 16 : 0, right: mobileActive ? 16 : 0,
-            zIndex: 110, marginBottom: 4,
-            background: '#16242f', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8,
-            overflow: 'hidden', boxShadow: '0 -8px 24px rgba(0,0,0,0.35)',
-          }}>
-            {suggestions.map((s, i) => (
-              <div key={i} onPointerDown={e => { e.preventDefault(); handleSelect(s); }}
-                style={{
-                  padding: '10px 14px', fontSize: 13, color: 'rgba(255,255,255,0.85)', cursor: 'pointer',
-                  borderBottom: i < suggestions.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(184,239,11,0.08)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                {s.label}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </>
+    <div style={{ position: 'relative', flex: '1 1 240px', ...wrapperStyle }}>
+      <input
+        placeholder={placeholder}
+        value={value}
+        onChange={handleChange}
+        onFocus={fo}
+        onBlur={handleBlur}
+        onKeyDown={onEnter}
+        style={{ ...IS, width: '100%' }} />
+      {open && suggestions.length > 0 && (
+        <div style={{
+          position: 'absolute', top: '100%', left: 0, right: 0,
+          zIndex: 110, marginTop: 4,
+          background: '#16242f', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8,
+          overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+        }}>
+          {suggestions.map((s, i) => (
+            <div key={i} onPointerDown={e => { e.preventDefault(); handleSelect(s); }}
+              style={{
+                padding: '10px 14px', fontSize: 13, color: 'rgba(255,255,255,0.85)', cursor: 'pointer',
+                borderBottom: i < suggestions.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(184,239,11,0.08)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+              {s.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -1043,42 +1025,40 @@ export default function DevisFlow({ forcedProfil = null }) {
   const isPart = profil === 'particulier' && step >= 0 && step <= 4;
   const isPro  = profil === 'professionnel' && step >= 9;
 
-  const Header = () => (
-    <div className="devis-tunnel-header" style={{
-      background: 'rgba(6,14,22,0.97)', backdropFilter: 'blur(16px)',
-      borderBottom: '1px solid rgba(255,255,255,0.07)',
-      padding: '0 28px', height: 64,
+  const Header = () => null;
+
+  /* Barre retour + avancement desktop — dans le flux du contenu, alignée avec les champs */
+  const DesktopStepBar = ({ current, total }) => (
+    <div className="hide-mobile" style={{
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      position: 'sticky', top: 70, zIndex: 80,
+      marginBottom: 20, paddingBottom: 16,
+      borderBottom: '1px solid rgba(255,255,255,0.07)',
     }}>
-      <button onClick={goBack} className="hide-mobile" style={{
+      <button onClick={goBack} style={{
         background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)',
-        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7,
+        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, padding: 0,
         fontSize: 13, fontFamily: 'var(--font-display), sans-serif', fontWeight: 500,
       }}>← Retour</button>
-
-      {(isPart || isPro) ? (
-        <div className="hide-mobile" style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
-          {Array.from({ length: isPro ? 2 : 5 }).map((_, i) => {
-            const done = isPro ? (step - 9) > i : (step) > i;
-            return (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                <div style={{
-                  width: 24, height: 24, borderRadius: '50%',
-                  background: done ? 'var(--lime)' : 'rgba(255,255,255,0.07)',
-                  color: done ? '#0d1b2a' : 'rgba(255,255,255,0.3)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 11,
-                  transition: 'all 0.3s',
-                }}>{i + 1}</div>
-                {i < (isPro ? 1 : 4) && (
-                  <div style={{ width: 14, height: 1, background: done ? 'var(--lime)' : 'rgba(255,255,255,0.1)' }} />
-                )}
-              </div>
-            );
-          })}
-        </div>
-      ) : <div className="hide-mobile" style={{ width: 80 }} />}
+      <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
+        {Array.from({ length: total }).map((_, i) => {
+          const done = current > i;
+          return (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <div style={{
+                width: 24, height: 24, borderRadius: '50%',
+                background: done ? 'var(--lime)' : 'rgba(255,255,255,0.07)',
+                color: done ? '#0d1b2a' : 'rgba(255,255,255,0.3)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 11,
+                transition: 'all 0.3s',
+              }}>{i + 1}</div>
+              {i < total - 1 && (
+                <div style={{ width: 14, height: 1, background: done ? 'var(--lime)' : 'rgba(255,255,255,0.1)' }} />
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 
@@ -1153,7 +1133,7 @@ export default function DevisFlow({ forcedProfil = null }) {
   /* Panneau flottant — détail par catégorie, masqué sur mobile/tablette (remplacé par DetailToggle + DetailModal) */
   const BreakdownPanel = ({ lines, total, totalLabel, unit, savings }) => lines.length > 0 && (
     <div className="detail-breakdown" style={{
-      position: 'fixed', top: 110, right: 24, width: 230, zIndex: 40,
+      position: 'fixed', top: 90, right: 24, width: 230, zIndex: 40,
       background: 'rgba(13,27,42,0.92)', backdropFilter: 'blur(16px)',
       border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12,
       padding: '14px 16px',
@@ -1239,7 +1219,8 @@ export default function DevisFlow({ forcedProfil = null }) {
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
       <div style={{ width: '100%', maxWidth: 480, textAlign: 'center' }}>
         <MobileStepBar current={0} total={6} />
-        <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 8 }}>
+        <DesktopStepBar current={0} total={6} />
+        <h2 className="devis-step-title" style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 8 }}>
           Quelle est la date de votre événement ?
         </h2>
         <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: 13, marginBottom: 24, lineHeight: 1.6 }}>
@@ -1352,7 +1333,8 @@ export default function DevisFlow({ forcedProfil = null }) {
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
       <div style={{ width: '100%', maxWidth: 440, textAlign: 'center' }}>
         <MobileStepBar current={1} total={6} />
-        <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(14px,2vw,19px)', fontWeight: 700, marginBottom: 16, textAlign: 'center', whiteSpace: 'nowrap' }}>
+        <DesktopStepBar current={1} total={6} />
+        <h2 className="devis-step-title" style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(14px,2vw,19px)', fontWeight: 700, marginBottom: 16, textAlign: 'center', whiteSpace: 'nowrap' }}>
           Réalisez votre devis en moins de 2 minutes
         </h2>
         <AnimatedWave bars={28} height={48} style={{ maxWidth: 380, margin: '0 auto 24px' }} />
@@ -1423,10 +1405,11 @@ export default function DevisFlow({ forcedProfil = null }) {
   const renderStep2 = () => (
     <div style={{ flex: 1, padding: '28px 24px 60px', maxWidth: 900, margin: '0 auto', width: '100%' }}>
       <MobileStepBar current={2} total={6} />
-      <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
+      <DesktopStepBar current={2} total={6} />
+      <h2 className="devis-step-title" style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
         Votre événement
       </h2>
-      <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 20 }}>Étape 2 sur 6 · Type d'événement & lieu</p>
+      <p className="devis-step-sub" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 20 }}>Étape 2 sur 6 · Type d'événement & lieu</p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {/* Événement */}
         <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: 20 }}>
@@ -1535,10 +1518,11 @@ export default function DevisFlow({ forcedProfil = null }) {
   const renderStep3 = () => (
     <div style={{ flex: 1, padding: '28px 24px 130px', maxWidth: 860, margin: '0 auto', width: '100%' }}>
       <MobileStepBar current={3} total={6} />
-      <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
+      <DesktopStepBar current={3} total={6} />
+      <h2 className="devis-step-title" style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
         Vos prestations
       </h2>
-      <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 12 }}>Étape 3 sur 6 · Configurez votre événement</p>
+      <p className="devis-step-sub" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 12 }}>Étape 3 sur 6 · Configurez votre événement</p>
       {remiseDeadline && (
         <div style={{ marginBottom: 20, padding: '11px 14px', background: 'rgba(184,239,11,0.06)', border: '1px solid rgba(184,239,11,0.2)', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 15, flexShrink: 0 }}>💸</span>
@@ -1835,10 +1819,11 @@ export default function DevisFlow({ forcedProfil = null }) {
   const renderStep4 = () => (
     <div style={{ flex: 1, padding: '28px 24px 60px', maxWidth: 640, margin: '0 auto', width: '100%' }}>
       <MobileStepBar current={4} total={6} />
-      <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
+      <DesktopStepBar current={4} total={6} />
+      <h2 className="devis-step-title" style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
         Adresse de facturation
       </h2>
-      <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 24 }}>Étape 4 sur 6 · Coordonnées de facturation</p>
+      <p className="devis-step-sub" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 24 }}>Étape 4 sur 6 · Coordonnées de facturation</p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <AddressAutocomplete placeholder="Numéro et rue *" value={adresse}
           onChange={v => setAdresse(v)}
@@ -1942,10 +1927,11 @@ export default function DevisFlow({ forcedProfil = null }) {
     return (
       <div className="step4-container" style={{ flex: 1, padding: '28px 24px 60px', maxWidth: 720, margin: '0 auto', width: '100%' }}>
         <MobileStepBar current={5} total={6} />
-        <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
+        <DesktopStepBar current={5} total={6} />
+        <h2 className="devis-step-title" style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
           Récapitulatif
         </h2>
-        <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 22 }}>Étape 5 sur 6 · Vérifiez et envoyez</p>
+        <p className="devis-step-sub" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 22 }}>Étape 5 sur 6 · Vérifiez et envoyez</p>
 
         {/* Remise */}
         {remiseDeadline && (
@@ -2050,6 +2036,7 @@ export default function DevisFlow({ forcedProfil = null }) {
         fontSize: 13, fontFamily: 'var(--font-display), sans-serif', fontWeight: 500,
       }}>← Retour</button>
       <div style={{ width: '100%', maxWidth: 640, textAlign: 'center' }}>
+        <DesktopStepBar current={0} total={3} />
         <AnimatedWave bars={36} height={60} style={{ maxWidth: 480, margin: '0 auto 28px' }} />
         <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(22px,4vw,34px)', fontWeight: 700, marginBottom: 8 }}>
           Quel est votre besoin ?
@@ -2073,10 +2060,11 @@ export default function DevisFlow({ forcedProfil = null }) {
   const renderStep19 = () => (
     <div style={{ flex: 1, padding: '28px 24px 60px', maxWidth: 680, margin: '0 auto', width: '100%' }}>
       <MobileStepBar current={1} total={3} />
-      <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
+      <DesktopStepBar current={1} total={3} />
+      <h2 className="devis-step-title" style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
         Vos informations
       </h2>
-      <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 12 }}>Étape 1 sur 3 · Identité, événement et lieu</p>
+      <p className="devis-step-sub" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 12 }}>Étape 1 sur 3 · Identité, événement et lieu</p>
       <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.22)', marginBottom: 14 }}>
         Les champs marqués <span style={{ color: '#ef4444' }}>*</span> sont obligatoires pour continuer.
       </p>
@@ -2229,10 +2217,11 @@ export default function DevisFlow({ forcedProfil = null }) {
   const renderStep20 = () => (
     <div style={{ flex: 1, padding: '28px 24px 130px', maxWidth: 860, margin: '0 auto', width: '100%' }}>
       <MobileStepBar current={2} total={3} />
-      <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
+      <DesktopStepBar current={2} total={3} />
+      <h2 className="devis-step-title" style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
         Vos prestations
       </h2>
-      <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 20 }}>Étape 2 sur 3 · Sélectionnez ce dont vous avez besoin — tarifs HT</p>
+      <p className="devis-step-sub" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 20 }}>Étape 2 sur 3 · Sélectionnez ce dont vous avez besoin — tarifs HT</p>
 
       {/* Détail par catégorie — flottant en haut à droite */}
       {(() => {
@@ -2530,10 +2519,11 @@ export default function DevisFlow({ forcedProfil = null }) {
     return (
       <div style={{ flex: 1, padding: '28px 24px 60px', maxWidth: 680, margin: '0 auto', width: '100%' }}>
         <MobileStepBar current={3} total={3} />
-        <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
+        <DesktopStepBar current={3} total={3} />
+        <h2 className="devis-step-title" style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
           Entreprise à facturer
         </h2>
-        <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 22 }}>Étape 3 sur 3 · Informations de l'entreprise qui règle la facture</p>
+        <p className="devis-step-sub" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 22 }}>Étape 3 sur 3 · Informations de l'entreprise qui règle la facture</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {/* Récap informations déjà saisies */}
           <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, overflow: 'hidden' }}>
@@ -2685,10 +2675,11 @@ export default function DevisFlow({ forcedProfil = null }) {
   const renderStep10 = () => (
     <div style={{ flex: 1, padding: '28px 24px 60px', maxWidth: 680, margin: '0 auto', width: '100%' }}>
       <MobileStepBar current={1} total={2} />
-      <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
+      <DesktopStepBar current={1} total={2} />
+      <h2 className="devis-step-title" style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
         Vos coordonnées
       </h2>
-      <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 22 }}>Étape 1 sur 2 · Informations de contact</p>
+      <p className="devis-step-sub" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 22 }}>Étape 1 sur 2 · Informations de contact</p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <input placeholder="Prénom *" value={proPrenom} onChange={e => setProPrenom(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
@@ -2744,10 +2735,11 @@ export default function DevisFlow({ forcedProfil = null }) {
     return (
       <div style={{ flex: 1, padding: '28px 24px 60px', maxWidth: 680, margin: '0 auto', width: '100%' }}>
         <MobileStepBar current={2} total={2} />
-        <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
+        <DesktopStepBar current={2} total={2} />
+        <h2 className="devis-step-title" style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
           Votre événement
         </h2>
-        <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 22 }}>Étape 2 sur 2 · Détails de la prestation souhaitée</p>
+        <p className="devis-step-sub" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 22 }}>Étape 2 sur 2 · Détails de la prestation souhaitée</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <select value={proType} onChange={e => setProType(e.target.value)}

@@ -1060,7 +1060,13 @@ export default function DevisFlow({ forcedProfil = null }) {
 
   /* Barre étape mobile — affichée au-dessus du titre, masquée sur desktop */
   const MobileStepBar = ({ current, total }) => (
-    <div className="hide-desktop" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+    <div className="hide-desktop" style={{
+      position: 'fixed', top: 70, left: 0, right: 0, zIndex: 75,
+      background: 'rgba(6,14,22,0.97)', backdropFilter: 'blur(16px)',
+      borderBottom: '1px solid rgba(255,255,255,0.07)',
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      height: 52, padding: '0 20px',
+    }}>
       <button onClick={goBack} style={{
         background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)',
         cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, padding: 0,
@@ -2760,11 +2766,12 @@ export default function DevisFlow({ forcedProfil = null }) {
 
   /* ── Render ──────────────────────────────────────────────────────── */
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column', paddingTop: 70 }}>
+    <div className="devis-outer" style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column', paddingTop: 70 }}>
       <style>{`
         @keyframes spin{to{transform:rotate(360deg)}}
         @media (max-width: 768px) {
           .devis-tunnel-header { display: none !important; }
+          .devis-outer { padding-top: 122px !important; }
           .gate-profile-grid { grid-template-columns: 1fr !important; }
           .step4-container { padding-bottom: 100px !important; }
           .submit-cta-bar {

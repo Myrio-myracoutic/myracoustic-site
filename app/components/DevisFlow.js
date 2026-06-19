@@ -1025,7 +1025,7 @@ export default function DevisFlow({ forcedProfil = null }) {
       borderBottom: '1px solid rgba(255,255,255,0.07)',
       padding: '0 28px', height: 64,
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      position: 'sticky', top: 0, zIndex: 80,
+      position: 'sticky', top: 70, zIndex: 80,
     }}>
       <button onClick={goBack} className="hide-mobile" style={{
         background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)',
@@ -2760,7 +2760,7 @@ export default function DevisFlow({ forcedProfil = null }) {
 
   /* ── Render ──────────────────────────────────────────────────────── */
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column', paddingTop: 70 }}>
       <style>{`
         @keyframes spin{to{transform:rotate(360deg)}}
         @media (max-width: 768px) {

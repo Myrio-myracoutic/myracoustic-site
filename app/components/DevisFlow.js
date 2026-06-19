@@ -2764,7 +2764,7 @@ export default function DevisFlow({ forcedProfil = null }) {
       <style>{`
         @keyframes spin{to{transform:rotate(360deg)}}
         @media (max-width: 768px) {
-          .devis-tunnel-header { justify-content: center !important; }
+          .devis-tunnel-header { display: none !important; }
           .gate-profile-grid { grid-template-columns: 1fr !important; }
           .step4-container { padding-bottom: 100px !important; }
           .submit-cta-bar {

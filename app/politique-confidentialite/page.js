@@ -1,3 +1,5 @@
+import CookiePrefsButtonInline from '../components/CookiePrefsButtonInline';
+
 export const metadata = {
   title: "Politique de confidentialité — Myracoustic",
   description: "Politique de confidentialité du site Myracoustic.",
@@ -137,11 +139,12 @@ const SECTIONS = [
           et modifier vos choix à tout moment. Vous pouvez également gérer les cookies directement depuis les
           paramètres de votre navigateur :
         </p>
-        <ul style={{ margin: 0, paddingLeft: 20 }}>
+        <ul style={{ margin: '0 0 16px', paddingLeft: 20 }}>
           <li style={{ marginBottom: 6 }}>Google Ads : paramètres de publicité Google</li>
           <li style={{ marginBottom: 6 }}>Meta : paramètres de publicité Facebook / Instagram</li>
           <li>TikTok : paramètres de confidentialité et de publicité TikTok</li>
         </ul>
+        <CookiePrefsButtonInline />
       </>
     ),
   },

@@ -1,7 +1,6 @@
 import GoogleAnalytics from '../components/GoogleAnalytics';
 import Clarity from '../components/Clarity';
 import CookieConsent from '../components/CookieConsent';
-import CookiePrefsLink from '../components/CookiePrefsLink';
 
 export const metadata = {
   title: 'Myracoustic — Demande de devis',
@@ -15,7 +14,6 @@ export default function DevisLayout({ children }) {
       <GoogleAnalytics />
       <Clarity />
       <main style={{ flexGrow: 1 }}>{children}</main>
-      <CookiePrefsLink />
       <CookieConsent />
     </>
   );

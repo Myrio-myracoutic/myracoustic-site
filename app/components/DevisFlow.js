@@ -343,7 +343,7 @@ function AddressAutocomplete({ value, onChange, onSelect, placeholder, onEnter, 
         style={{ ...IS, width: '100%' }} />
       {open && suggestions.length > 0 && (
         <div style={{
-          position: 'absolute', bottom: '100%', left: 0, right: 0, zIndex: 20, marginBottom: 4,
+          position: 'absolute', bottom: '100%', left: 0, right: 0, zIndex: 110, marginBottom: 4,
           background: '#16242f', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8,
           overflow: 'hidden', boxShadow: '0 -8px 24px rgba(0,0,0,0.35)',
         }}>

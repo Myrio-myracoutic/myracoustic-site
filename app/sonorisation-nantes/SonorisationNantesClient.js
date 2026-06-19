@@ -130,7 +130,7 @@ export default function SonorisationNantesClient() {
             Myracoustic est votre prestataire technique pour la sonorisation, l'éclairage, la vidéo et l'animation DJ de vos événements à Nantes et dans toute la région Pays de la Loire — mariages, soirées privées, séminaires et galas d'entreprise.
           </p>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <a href="https://devis.myracoustic.com" style={{
+            <a href="/devis/particulier" style={{
               background: 'var(--lime)', color: '#0d1b2a',
               padding: '14px 28px', borderRadius: 8, fontSize: 15, fontWeight: 700,
               fontFamily: 'var(--font-display), sans-serif',

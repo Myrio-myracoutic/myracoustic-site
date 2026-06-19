@@ -256,7 +256,7 @@ export default function Home() {
           Obtenez votre devis personnalisé en quelques minutes.
         </p>
         <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-          <a href="https://devis.myracoustic.com" style={{
+          <a href="/devis/particulier" style={{
             background: 'var(--lime)', color: '#0d1b2a',
             padding: '15px 34px', borderRadius: 8, fontSize: 16, fontWeight: 700,
             fontFamily: 'var(--font-display), sans-serif',

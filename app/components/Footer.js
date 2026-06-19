@@ -84,7 +84,7 @@ export default function Footer() {
                 {l.label}
               </Link>
             ))}
-            <a href="https://devis.myracoustic.com" style={{
+            <a href="/devis/particulier" style={{
               display: 'block', color: 'rgba(255,255,255,0.45)', fontSize: 14, marginBottom: 9,
               textDecoration: 'none', transition: 'color 0.2s',
             }}

@@ -49,7 +49,7 @@ function ServiceDetailCard({ icon, tag, title, desc, items }) {
         </div>
       </div>
       <div style={{ padding: '16px 28px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-        <a href="https://devis.myracoustic.com/particulier" style={{
+        <a href="/devis/particulier" style={{
           background: 'var(--lime)', color: '#0d1b2a',
           padding: '8px 16px', borderRadius: 5, fontSize: 13, fontWeight: 700,
           fontFamily: 'var(--font-display), sans-serif',
@@ -160,7 +160,7 @@ export default function MariageCityClient({ city }) {
           }}>
             {intro}
           </p>
-          <a href="https://devis.myracoustic.com/particulier" style={{
+          <a href="/devis/particulier" style={{
             background: 'var(--lime)', color: '#0d1b2a',
             padding: '15px 32px', borderRadius: 8, fontSize: 16, fontWeight: 700,
             fontFamily: 'var(--font-display), sans-serif',
@@ -265,7 +265,7 @@ export default function MariageCityClient({ city }) {
         <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 16, marginBottom: 32 }}>
           Calculez votre devis mariage en ligne en moins de 3 minutes.
         </p>
-        <a href="https://devis.myracoustic.com/particulier" style={{
+        <a href="/devis/particulier" style={{
           background: 'var(--lime)', color: '#0d1b2a',
           padding: '16px 40px', borderRadius: 8, fontSize: 17, fontWeight: 700,
           fontFamily: 'var(--font-display), sans-serif',

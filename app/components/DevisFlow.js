@@ -144,7 +144,7 @@ function AnimatedPrice({ value }) {
   return <span>{disp.toLocaleString('fr-FR')}</span>;
 }
 
-function MiniCal({ selected, onSelect, devisPending = {}, bookedDates = new Set(), yearsAhead = 1 }) {
+function MiniCal({ selected, onSelect, devisPending = {}, bookedDates = new Set(), yearsAhead = 1, loading = false }) {
   const startYr = TODAY.getFullYear();
   const YEARS   = Array.from({ length: yearsAhead + 1 }, (_, i) => startYr + i);
   const [year,  setYear]  = useState(startYr);
@@ -178,7 +178,26 @@ function MiniCal({ selected, onSelect, devisPending = {}, bookedDates = new Set(
   };
 
   return (
-    <div style={{ background: 'var(--card)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: 16 }}>
+    <div style={{ background: 'var(--card)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: 16, position: 'relative' }}>
+      {loading && (
+        <div style={{
+          position: 'absolute', inset: 0, borderRadius: 10, zIndex: 10,
+          background: 'rgba(6,14,22,0.75)', backdropFilter: 'blur(2px)',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10,
+        }}>
+          <style>{`@keyframes mra-spin { to { transform: rotate(360deg); } }`}</style>
+          <div style={{
+            width: 26, height: 26,
+            border: '2px solid rgba(255,255,255,0.12)',
+            borderTop: '2px solid var(--lime)',
+            borderRadius: '50%',
+            animation: 'mra-spin 0.75s linear infinite',
+          }} />
+          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', fontFamily: 'var(--font-display), sans-serif' }}>
+            Chargement des disponibilités…
+          </span>
+        </div>
+      )}
       {/* Sélecteur d'année */}
       <div style={{ display: 'flex', gap: 6, marginBottom: 10, justifyContent: 'center' }}>
         {YEARS.map(y => (
@@ -435,6 +454,7 @@ export default function DevisFlow({ forcedProfil = null }) {
   /* ── Google Calendar — dates déjà réservées ────────────────────── */
   const [bookedDates, setBookedDates] = useState(new Set());
   const [pendingDates, setPendingDates] = useState({});
+  const [availabilityLoading, setAvailabilityLoading] = useState(true);
   useEffect(() => {
     const now   = new Date();
     const start = now.toISOString().slice(0, 10);
@@ -445,7 +465,8 @@ export default function DevisFlow({ forcedProfil = null }) {
         if (data.bookedDates) setBookedDates(new Set(data.bookedDates));
         if (data.pendingDates) setPendingDates(data.pendingDates);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setAvailabilityLoading(false));
   }, []);
 
   /* ── Particulier — identité & événement ────────────────────────── */
@@ -1208,6 +1229,7 @@ export default function DevisFlow({ forcedProfil = null }) {
           }}
           devisPending={pendingDates}
           bookedDates={bookedDates}
+          loading={availabilityLoading}
         />
         {date && (pendingDates[date] ?? 0) > 0 && (
           <div style={{ margin: '8px 0 12px', padding: '10px 12px', background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.28)', borderRadius: 8, fontSize: 12, color: '#f97316', lineHeight: 1.6, textAlign: 'left' }}>
@@ -2079,7 +2101,7 @@ export default function DevisFlow({ forcedProfil = null }) {
             </div>
             <div>
               <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 10 }}>Date de l'événement <span style={{ color: '#ef4444' }}>*</span></div>
-              <MiniCal selected={cibleDate} onSelect={setCibleDate} devisPending={pendingDates} bookedDates={bookedDates} yearsAhead={2} />
+              <MiniCal selected={cibleDate} onSelect={setCibleDate} devisPending={pendingDates} bookedDates={bookedDates} yearsAhead={2} loading={availabilityLoading} />
               {cibleDate && (
                 <div style={{ marginTop: 8, fontSize: 12, color: 'var(--lime)', fontFamily: 'var(--font-display), sans-serif' }}>
                   ✓ {new Date(cibleDate + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}

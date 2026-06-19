@@ -371,7 +371,7 @@ function AddressAutocomplete({ value, onChange, onSelect, placeholder, onEnter, 
             overflow: 'hidden', boxShadow: '0 -8px 24px rgba(0,0,0,0.35)',
           }}>
             {suggestions.map((s, i) => (
-              <div key={i} onMouseDown={() => handleSelect(s)}
+              <div key={i} onPointerDown={e => { e.preventDefault(); handleSelect(s); }}
                 style={{
                   padding: '10px 14px', fontSize: 13, color: 'rgba(255,255,255,0.85)', cursor: 'pointer',
                   borderBottom: i < suggestions.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',

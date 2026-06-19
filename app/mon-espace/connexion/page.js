@@ -1,7 +1,7 @@
 'use client';
 import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/app/lib/supabase';
 import Image from 'next/image';
 
 function ConnexionForm() {
@@ -19,7 +19,7 @@ function ConnexionForm() {
     setLoading(true);
     const { error: err } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: 'https://myracoustic.com/auth/callback' },
+      options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://myracoustic.com'}/auth/callback` },
     });
     setLoading(false);
     if (err) { setError('Adresse introuvable ou erreur. Vérifiez votre email.'); return; }

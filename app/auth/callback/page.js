@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/app/lib/supabase';
 
 const Spinner = () => (
   <div style={{ minHeight: '100vh', background: '#060e16', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -18,11 +18,47 @@ function CallbackHandler() {
   const params = useSearchParams();
 
   useEffect(() => {
+    const hashParams = new URLSearchParams(window.location.hash.replace('#', ''));
+    const hashError = hashParams.get('error_code');
+
+    // Erreur dans le hash
+    if (hashError) {
+      router.replace('/mon-espace/connexion?error=lien_invalide');
+      return;
+    }
+
+    // Erreur dans les query params
+    const queryError = params.get('error');
+    if (queryError) {
+      router.replace('/mon-espace/connexion?error=lien_invalide');
+      return;
+    }
+
+    // Flow implicite : access_token dans le hash (liens d'invitation Supabase)
+    const hashAccessToken = hashParams.get('access_token');
+    if (hashAccessToken) {
+      supabase.auth.setSession({
+        access_token: hashAccessToken,
+        refresh_token: hashParams.get('refresh_token') || '',
+      }).then(({ error }) => {
+        if (error) {
+          router.replace('/mon-espace/connexion?error=lien_invalide');
+        } else {
+          router.replace('/mon-espace');
+        }
+      });
+      return;
+    }
+
+    // Flow PKCE : code dans les query params
     const code = params.get('code');
-    if (!code) { router.replace('/mon-espace/connexion'); return; }
+    if (!code) {
+      router.replace('/mon-espace/connexion');
+      return;
+    }
+
     supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
       if (error) {
-        console.error('Auth callback error:', error.message);
         router.replace('/mon-espace/connexion?error=lien_invalide');
       } else {
         router.replace('/mon-espace');

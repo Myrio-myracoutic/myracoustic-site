@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase-admin';
+import { supabaseAdmin } from '@/app/lib/supabase-admin';
 
 const SENDER_EMAIL = 'contact@myracoustic.com';
 
@@ -217,15 +217,14 @@ export async function POST(request) {
         const isNew = !existing;
 
         if (isNew) {
-          // Créer l'utilisateur auth
+          // Créer l'utilisateur auth (peut échouer si email déjà dans auth.users)
           const { data: authData, error: authErr } = await supabaseAdmin.auth.admin.createUser({
             email: client.email,
             email_confirm: false,
             user_metadata: { first_name: client.firstName, last_name: client.lastName },
           });
-          if (authErr) throw authErr;
 
-          const authId = authData.user.id;
+          const authId = authErr ? null : authData.user.id;
 
           // Insérer le client en base
           const { data: newClient, error: dbErr } = await supabaseAdmin
@@ -243,15 +242,16 @@ export async function POST(request) {
           if (dbErr) throw dbErr;
           supabaseClientId = newClient.id;
 
-          // Générer le lien d'invitation
-          const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
-            type: 'invite',
-            email: client.email,
-            options: { redirectTo: 'https://myracoustic.com/auth/callback' },
-          });
-
-          if (linkData?.properties?.action_link) {
-            await sendInviteEmail(client.email, client.firstName, linkData.properties.action_link);
+          // Envoyer l'invitation uniquement si l'auth user vient d'être créé
+          if (!authErr && authId) {
+            const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
+              type: 'invite',
+              email: client.email,
+              options: { redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://myracoustic.com'}/auth/callback` },
+            });
+            if (linkData?.properties?.action_link) {
+              await sendInviteEmail(client.email, client.firstName, linkData.properties.action_link);
+            }
           }
         }
 

@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import AdminPlaylistSection from './AdminPlaylistSection';
 
 const STATUSES = {
   devis_envoye: { label: 'Devis envoyé',  color: '#f59e0b' },
@@ -198,6 +199,8 @@ export default function AdminDevisDetail() {
           {saved && <span style={{ color: '#b8ef0b', fontSize: 13, fontWeight: 600 }}>✓ Enregistré</span>}
         </div>
       </Card>
+
+      <AdminPlaylistSection eventId={params.id} />
 
       {ev.qonto_quote_url && (
         <div style={{

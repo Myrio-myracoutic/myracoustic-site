@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/app/lib/supabase';
 import Image from 'next/image';
 import { ClipboardList, CheckCircle, CreditCard, PartyPopper, MessageCircle } from 'lucide-react';
+import PlaylistSection from './PlaylistSection';
 
 const STATUS_LABELS = {
   devis_envoye: { label: 'Devis envoyé',  color: '#f59e0b' },
@@ -249,10 +250,11 @@ function EventCard({ ev, token }) {
         </div>
       )}
 
-      {/* Mode actif : checklist + lien devis */}
+      {/* Mode actif : checklist + playlists + lien devis */}
       {active && (
         <>
           <ChecklistSection ev={ev} token={token} />
+          <PlaylistSection eventId={ev.id} token={token} />
           {ev.qonto_quote_url && (
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',

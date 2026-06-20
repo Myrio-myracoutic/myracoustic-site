@@ -9,7 +9,7 @@ async function sendInviteEmail(toEmail, firstName, inviteLink) {
 <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:40px 20px;">
 <table width="560" cellpadding="0" cellspacing="0" style="background:#0d1b2a;border-radius:12px;overflow:hidden;">
   <tr><td style="padding:32px 40px 24px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.07);">
-    <img src="https://myracoustic.com/logo.png" alt="Myracoustic" height="44" style="height:44px;display:block;margin:0 auto 10px;" />
+    <img src="https://myracoustic.com/logo.png" alt="Myracoustic" height="44" style="height:60px;display:block;margin:0 auto 10px;" />
     <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.25);letter-spacing:0.5px;font-style:italic;">De la vibration sonore à la magie lumineuse</p>
   </td></tr>
   <tr><td style="padding:40px 40px 32px;">

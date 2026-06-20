@@ -18,19 +18,22 @@ function fmtDate(d) {
 function InfoRow({ label, value }) {
   if (!value) return null;
   return (
-    <div style={{ display: 'flex', gap: 12, paddingBottom: 12, borderBottom: '1px solid #f3f4f6' }}>
-      <span style={{ color: '#9ca3af', fontSize: 13, width: 140, flexShrink: 0 }}>{label}</span>
-      <span style={{ color: '#374151', fontSize: 13 }}>{value}</span>
+    <div style={{ display: 'flex', gap: 12, paddingBottom: 12, borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+      <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, width: 140, flexShrink: 0 }}>{label}</span>
+      <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13 }}>{value}</span>
     </div>
   );
 }
 
 function Card({ title, children }) {
   return (
-    <div style={{ background: '#fff', borderRadius: 14, padding: '24px 28px', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' }}>
+    <div style={{
+      background: '#0d1b2a', borderRadius: 14, padding: '24px 28px',
+      border: '1px solid rgba(255,255,255,0.06)',
+    }}>
       {title && <h2 style={{
-        fontFamily: 'var(--font-display), sans-serif', fontSize: 12, fontWeight: 700,
-        color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 18px',
+        fontFamily: 'var(--font-display), sans-serif', fontSize: 11, fontWeight: 700,
+        color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 18px',
       }}>{title}</h2>}
       {children}
     </div>
@@ -76,7 +79,7 @@ export default function AdminDevisDetail() {
 
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-      <div style={{ width: 28, height: 28, border: '3px solid #e5e7eb', borderTop: '3px solid #b8ef0b', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      <div style={{ width: 28, height: 28, border: '3px solid rgba(255,255,255,0.08)', borderTop: '3px solid #b8ef0b', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
@@ -89,24 +92,24 @@ export default function AdminDevisDetail() {
 
       {/* Retour + titre */}
       <button onClick={() => router.push('/admin/devis')} style={{
-        background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer',
+        background: 'none', border: 'none', color: 'rgba(255,255,255,0.35)', cursor: 'pointer',
         fontSize: 13, padding: 0, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 6,
         fontFamily: 'inherit',
       }}>← Retour aux devis</button>
 
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 28 }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 24, fontWeight: 800, color: '#111827', margin: '0 0 4px' }}>
+          <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 24, fontWeight: 800, color: '#fff', margin: '0 0 4px' }}>
             {c?.first_name} {c?.last_name}
-            <span style={{ fontSize: 16, color: '#9ca3af', fontWeight: 400, marginLeft: 10 }}>{ev.event_type}</span>
+            <span style={{ fontSize: 16, color: 'rgba(255,255,255,0.4)', fontWeight: 400, marginLeft: 10 }}>{ev.event_type}</span>
           </h1>
-          <p style={{ color: '#9ca3af', fontSize: 13, margin: 0 }}>
+          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, margin: 0 }}>
             Soumis le {new Date(ev.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
           </p>
         </div>
         <span style={{
           background: `${st.color}18`, color: st.color,
-          border: `1px solid ${st.color}40`,
+          border: `1px solid ${st.color}50`,
           borderRadius: 20, padding: '5px 14px', fontSize: 13, fontWeight: 600,
           fontFamily: 'var(--font-display), sans-serif',
         }}>{st.label}</span>
@@ -134,13 +137,13 @@ export default function AdminDevisDetail() {
       <Card title="Suivi">
         {/* Statut */}
         <div style={{ marginBottom: 24 }}>
-          <label style={{ fontSize: 13, color: '#6b7280', display: 'block', marginBottom: 10 }}>Statut</label>
+          <label style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 10 }}>Statut</label>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {Object.entries(STATUSES).map(([key, s]) => (
               <button key={key} onClick={() => setStatus(key)} style={{
-                background: status === key ? `${s.color}18` : '#f9fafb',
-                border: `1.5px solid ${status === key ? s.color : '#e5e7eb'}`,
-                color: status === key ? s.color : '#6b7280',
+                background: status === key ? `${s.color}18` : 'rgba(255,255,255,0.04)',
+                border: `1.5px solid ${status === key ? s.color + '70' : 'rgba(255,255,255,0.1)'}`,
+                color: status === key ? s.color : 'rgba(255,255,255,0.4)',
                 borderRadius: 20, padding: '6px 14px', fontSize: 12, fontWeight: 600,
                 cursor: 'pointer', fontFamily: 'var(--font-display), sans-serif', transition: 'all 0.15s',
               }}>{s.label}</button>
@@ -150,9 +153,9 @@ export default function AdminDevisDetail() {
 
         {/* Message client */}
         <div style={{ marginBottom: 20 }}>
-          <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, color: '#6b7280', marginBottom: 8 }}>
+          <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, color: 'rgba(255,255,255,0.4)', marginBottom: 8 }}>
             Message au client
-            <span style={{ fontSize: 11, background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0', borderRadius: 4, padding: '1px 6px', fontWeight: 600 }}>
+            <span style={{ fontSize: 11, background: 'rgba(184,239,11,0.1)', color: '#b8ef0b', border: '1px solid rgba(184,239,11,0.25)', borderRadius: 4, padding: '1px 6px', fontWeight: 600 }}>
               Visible dans son espace
             </span>
           </label>
@@ -161,8 +164,8 @@ export default function AdminDevisDetail() {
             rows={3}
             style={{
               width: '100%', boxSizing: 'border-box',
-              background: '#f0fdf4', border: '1px solid #bbf7d0',
-              borderRadius: 8, padding: '11px 14px', color: '#111827', fontSize: 14,
+              background: 'rgba(184,239,11,0.05)', border: '1px solid rgba(184,239,11,0.2)',
+              borderRadius: 8, padding: '11px 14px', color: 'rgba(255,255,255,0.85)', fontSize: 14,
               fontFamily: 'inherit', outline: 'none', resize: 'vertical', lineHeight: 1.6,
             }}
           />
@@ -170,16 +173,16 @@ export default function AdminDevisDetail() {
 
         {/* Notes internes */}
         <div style={{ marginBottom: 22 }}>
-          <label style={{ fontSize: 13, color: '#6b7280', display: 'block', marginBottom: 8 }}>
-            Notes internes <span style={{ color: '#d1d5db' }}>· non visible par le client</span>
+          <label style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 8 }}>
+            Notes internes <span style={{ color: 'rgba(255,255,255,0.2)' }}>· non visible par le client</span>
           </label>
           <textarea value={notes} onChange={e => setNotes(e.target.value)}
             placeholder="Note interne sur ce dossier…"
             rows={3}
             style={{
               width: '100%', boxSizing: 'border-box',
-              background: '#f9fafb', border: '1px solid #e5e7eb',
-              borderRadius: 8, padding: '11px 14px', color: '#111827', fontSize: 14,
+              background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)',
+              borderRadius: 8, padding: '11px 14px', color: 'rgba(255,255,255,0.85)', fontSize: 14,
               fontFamily: 'inherit', outline: 'none', resize: 'vertical', lineHeight: 1.6,
             }}
           />
@@ -187,27 +190,27 @@ export default function AdminDevisDetail() {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <button onClick={handleSave} disabled={saving} style={{
-            background: '#060e16', color: '#b8ef0b',
+            background: '#b8ef0b', color: '#060e16',
             border: 'none', borderRadius: 9, padding: '10px 28px',
             fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 14,
             cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1,
           }}>{saving ? 'Enregistrement…' : 'Enregistrer'}</button>
-          {saved && <span style={{ color: '#22c55e', fontSize: 13, fontWeight: 600 }}>✓ Enregistré</span>}
+          {saved && <span style={{ color: '#b8ef0b', fontSize: 13, fontWeight: 600 }}>✓ Enregistré</span>}
         </div>
       </Card>
 
       {ev.qonto_quote_url && (
         <div style={{
-          marginTop: 20, background: '#fff', borderRadius: 14, padding: '18px 24px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.07)',
+          marginTop: 20, background: '#0d1b2a', borderRadius: 14, padding: '18px 24px',
+          border: '1px solid rgba(255,255,255,0.06)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12,
         }}>
           <div>
-            <p style={{ fontSize: 14, fontWeight: 600, color: '#111827', margin: '0 0 2px' }}>Devis Qonto</p>
-            <p style={{ fontSize: 12, color: '#9ca3af', margin: 0 }}>Réf. {ev.qonto_quote_id || '—'}</p>
+            <p style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.85)', margin: '0 0 2px' }}>Devis Qonto</p>
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', margin: 0 }}>Réf. {ev.qonto_quote_id || '—'}</p>
           </div>
           <a href={ev.qonto_quote_url} target="_blank" rel="noopener noreferrer" style={{
-            background: '#060e16', color: '#b8ef0b', borderRadius: 9, padding: '9px 20px',
+            background: '#b8ef0b', color: '#060e16', borderRadius: 9, padding: '9px 20px',
             fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 13,
             textDecoration: 'none',
           }}>Ouvrir dans Qonto →</a>

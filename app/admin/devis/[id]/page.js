@@ -33,6 +33,7 @@ export default function AdminDevisPage() {
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState('');
   const [notes, setNotes] = useState('');
+  const [clientMessage, setClientMessage] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -47,6 +48,7 @@ export default function AdminDevisPage() {
           setEv(data);
           setStatus(data.status);
           setNotes(data.admin_notes || '');
+          setClientMessage(data.client_message || '');
           setLoading(false);
         }
       });
@@ -58,7 +60,7 @@ export default function AdminDevisPage() {
     const res = await fetch(`/api/admin/events/${params.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status, admin_notes: notes }),
+      body: JSON.stringify({ status, admin_notes: notes, client_message: clientMessage }),
     });
     if (res.ok) {
       const updated = await res.json();
@@ -208,6 +210,26 @@ export default function AdminDevisPage() {
             </div>
           </div>
 
+          {/* Message client */}
+          <div style={{ marginBottom: 20 }}>
+            <label style={{ color: 'rgba(255,255,255,0.45)', fontSize: 13, display: 'block', marginBottom: 10 }}>
+              Message au client
+              <span style={{ color: '#b8ef0b', fontWeight: 400, marginLeft: 8, fontSize: 12 }}>visible dans son espace</span>
+            </label>
+            <textarea
+              value={clientMessage}
+              onChange={e => setClientMessage(e.target.value)}
+              placeholder="Ex : Votre devis a été préparé, pensez à le signer avant le 25 juin…"
+              rows={3}
+              style={{
+                width: '100%', boxSizing: 'border-box',
+                background: 'rgba(184,239,11,0.04)', border: '1px solid rgba(184,239,11,0.15)',
+                borderRadius: 8, padding: '12px 14px', color: '#fff', fontSize: 14,
+                fontFamily: 'inherit', outline: 'none', resize: 'vertical', lineHeight: 1.6,
+              }}
+            />
+          </div>
+
           {/* Notes internes */}
           <div style={{ marginBottom: 20 }}>
             <label style={{ color: 'rgba(255,255,255,0.45)', fontSize: 13, display: 'block', marginBottom: 10 }}>
@@ -218,13 +240,12 @@ export default function AdminDevisPage() {
               value={notes}
               onChange={e => setNotes(e.target.value)}
               placeholder="Ajouter une note sur ce dossier…"
-              rows={4}
+              rows={3}
               style={{
                 width: '100%', boxSizing: 'border-box',
                 background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
                 borderRadius: 8, padding: '12px 14px', color: '#fff', fontSize: 14,
-                fontFamily: 'inherit', outline: 'none', resize: 'vertical',
-                lineHeight: 1.6,
+                fontFamily: 'inherit', outline: 'none', resize: 'vertical', lineHeight: 1.6,
               }}
             />
           </div>

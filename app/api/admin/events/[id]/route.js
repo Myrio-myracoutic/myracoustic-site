@@ -22,6 +22,7 @@ export async function PATCH(req, { params }) {
   const updates = { updated_at: new Date().toISOString() };
   if (body.status !== undefined) updates.status = body.status;
   if (body.admin_notes !== undefined) updates.admin_notes = body.admin_notes;
+  if (body.client_message !== undefined) updates.client_message = body.client_message;
   const { data, error } = await supabaseAdmin
     .from('events')
     .update(updates)

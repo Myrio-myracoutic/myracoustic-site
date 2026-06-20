@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Headphones, Mic, Lightbulb, Video } from 'lucide-react';
 import { AnimatedWave, WaveBullet, SectionLabel } from '../components/AnimatedWave';
 import { FAQ_ITEMS } from './faq-data';
 import TestimonialCard from '../components/TestimonialCard';
@@ -17,7 +18,7 @@ function BulletItem({ children }) {
   );
 }
 
-function ServiceDetailCard({ icon, tag, title, desc, items }) {
+function ServiceDetailCard({ icon: Icon, tag, title, desc, items }) {
   const [hov, setHov] = useState(false);
   return (
     <div
@@ -42,7 +43,7 @@ function ServiceDetailCard({ icon, tag, title, desc, items }) {
           }}>
             {tag}
           </span>
-          <span style={{ fontSize: 28 }}>{icon}</span>
+          <span style={{ color: hov ? 'var(--lime)' : 'rgba(255,255,255,0.72)' }}><Icon size={28} strokeWidth={1.5} /></span>
         </div>
         <h3 style={{
           fontFamily: 'var(--font-display), sans-serif',
@@ -109,22 +110,22 @@ function FaqItem({ q, a }) {
 
 const SERVICES = [
   {
-    icon: '🎧', tag: 'DJ MARIAGE', title: 'Animation DJ',
+    icon: Headphones, tag: 'DJ MARIAGE', title: 'Animation DJ',
     desc: "Un DJ expérimenté en mariages qui lit son public, soigne chaque transition et maintient l'énergie de la piste du premier au dernier morceau.",
     items: ["Ouverture de bal préparée ensemble", "Playlist 100% personnalisée", "Set soirée dansante jusqu'au bout", "MC & animations (lancer de bouquet, etc.)"],
   },
   {
-    icon: '🎤', tag: 'CÉRÉMONIE', title: 'Son cérémonie & cocktail',
+    icon: Mic, tag: 'CÉRÉMONIE', title: 'Son cérémonie & cocktail',
     desc: "Sonorisation discrète et élégante pour vos vœux, lectures et moments clés — puis musique d'ambiance pour le vin d'honneur.",
     items: ["Micro sans fil pour l'officiant", "Musique d'entrée & sortie personnalisée", "Sono cocktail & vin d'honneur", "Discours amplifiés au micro"],
   },
   {
-    icon: '💡', tag: 'ÉCLAIRAGE', title: 'Ambiance lumineuse',
+    icon: Lightbulb, tag: 'ÉCLAIRAGE', title: 'Ambiance lumineuse',
     desc: "Des lumières qui métamorphosent votre salle et créent les atmosphères de chaque moment de votre soirée.",
     items: ["Moving heads & PAR LED", "Gobos à vos prénoms / initiales", "Machine à fumée & brouillard", "Éclairage dynamique piste de danse"],
   },
   {
-    icon: '🎬', tag: 'VIDÉO', title: 'Diaporama & écrans',
+    icon: Video, tag: 'VIDÉO', title: 'Diaporama & écrans',
     desc: "Projetez vos plus belles photos de couple, votre histoire ensemble — un écrin visuel qui émeut vos invités.",
     items: ["Projection photos/vidéos du couple", "Mur LED 2 m² ou 4 m²", "Contenu personnalisé & animé", "Intégration avec fond musical"],
   },

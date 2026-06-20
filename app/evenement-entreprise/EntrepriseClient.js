@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { Mic, Building2, BarChart3, Scissors, Rocket, Wine, Music, Volume2, Lightbulb, Monitor, SlidersHorizontal, Handshake, FileText, Shield, MapPin, ClipboardList } from 'lucide-react';
 import { AnimatedWave, SectionLabel } from '../components/AnimatedWave';
 import { FAQ_ITEMS } from './faq-data';
 
 /* ─── Carte offre ─────────────────────────────────────────────── */
-function OfferCard({ icon, title, desc, tags }) {
+function OfferCard({ icon: Icon, title, desc, tags }) {
   const [hov, setHov] = useState(false);
   return (
     <div
@@ -18,7 +19,7 @@ function OfferCard({ icon, title, desc, tags }) {
         transform: hov ? 'translateY(-4px)' : 'none',
       }}
     >
-      <div style={{ fontSize: 36, marginBottom: 16 }}>{icon}</div>
+      <div style={{ marginBottom: 16, color: 'rgba(255,255,255,0.72)' }}><Icon size={36} strokeWidth={1.5} /></div>
       <h3 style={{
         fontFamily: 'var(--font-display), sans-serif',
         fontSize: 22, fontWeight: 700, marginBottom: 10,
@@ -42,13 +43,13 @@ function OfferCard({ icon, title, desc, tags }) {
 }
 
 /* ─── Pilier technique ────────────────────────────────────────── */
-function PillarCard({ icon, title, desc }) {
+function PillarCard({ icon: Icon, title, desc }) {
   return (
     <div style={{
       background: 'var(--card)', border: '1px solid rgba(255,255,255,0.07)',
       borderRadius: 12, padding: '28px 24px',
     }}>
-      <div style={{ fontSize: 30, marginBottom: 14 }}>{icon}</div>
+      <div style={{ marginBottom: 14, color: 'rgba(255,255,255,0.72)' }}><Icon size={30} strokeWidth={1.5} /></div>
       <h3 style={{
         fontFamily: 'var(--font-display), sans-serif',
         fontSize: 18, fontWeight: 700, marginBottom: 8,
@@ -79,14 +80,15 @@ function StepCard({ num, title, desc }) {
 }
 
 /* ─── Garantie ────────────────────────────────────────────────── */
-function GuaranteeItem({ icon, title, desc }) {
+function GuaranteeItem({ icon: Icon, title, desc }) {
   return (
     <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
       <div style={{
         flexShrink: 0, width: 42, height: 42, borderRadius: 10,
         background: 'rgba(184,239,11,0.08)', border: '1px solid rgba(184,239,11,0.2)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18,
-      }}>{icon}</div>
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: 'rgba(184,239,11,0.8)',
+      }}><Icon size={20} strokeWidth={1.5} /></div>
       <div>
         <h3 style={{
           fontFamily: 'var(--font-display), sans-serif',
@@ -128,27 +130,27 @@ function FaqItem({ q, a }) {
 }
 
 const EVENT_TYPES = [
-  { icon: '🎤', title: 'Séminaires',
+  { icon: Mic, title: 'Séminaires',
     desc: "Une configuration pensée pour les présentations et ateliers : prises de parole multiples, diffusion homogène et intelligible dans toute la salle." },
-  { icon: '🏛️', title: 'Conventions',
+  { icon: Building2, title: 'Conventions',
     desc: 'Un dispositif structuré pour enchaîner les interventions, gérer les transitions et afficher vos contenus en grand format.' },
-  { icon: '📊', title: 'Assemblées générales',
+  { icon: BarChart3, title: 'Assemblées générales',
     desc: 'Clarté sonore, lisibilité des supports projetés et organisation technique sécurisée pour vos temps forts institutionnels.' },
-  { icon: '✂️', title: 'Inaugurations',
+  { icon: Scissors, title: 'Inaugurations',
     desc: 'Mise en valeur des intervenants et structuration lumineuse adaptée au lieu, pour un moment à la hauteur de l’événement.' },
-  { icon: '🚀', title: 'Lancements de produit',
+  { icon: Rocket, title: 'Lancements de produit',
     desc: 'Son, lumière et écran LED coordonnés pour une présentation claire, soignée et impactante.' },
-  { icon: '🥂', title: 'Réception corporate',
+  { icon: Wine, title: 'Réception corporate',
     desc: 'Une ambiance maîtrisée et une exploitation technique cohérente, sans excès scénographique.' },
-  { icon: '🎶', title: "Soirées & galas d'entreprise",
+  { icon: Music, title: "Soirées & galas d'entreprise",
     desc: "Animation musicale par DJ expérimenté, sonorisation adaptée et éclairage scénique pour une soirée festive à l'image de votre structure." },
 ];
 
 const PILLARS = [
-  { icon: '🔊', title: 'Sonorisation', desc: 'Une intelligibilité optimale des prises de parole et une couverture homogène, adaptée à la configuration du lieu.' },
-  { icon: '💡', title: 'Éclairage', desc: "Une mise en valeur des intervenants et une structuration visuelle professionnelle de l'espace." },
-  { icon: '🖥️', title: 'Écran LED', desc: "Un affichage grand format pour vos supports visuels et votre identité de marque." },
-  { icon: '🎚️', title: 'Régie technique', desc: 'Une supervision en temps réel, la gestion des transitions et l’anticipation des imprévus.' },
+  { icon: Volume2, title: "Sonorisation", desc: "Une intelligibilité optimale des prises de parole et une couverture homogène, adaptée à la configuration du lieu." },
+  { icon: Lightbulb, title: "Éclairage", desc: "Une mise en valeur des intervenants et une structuration visuelle professionnelle de l’espace." },
+  { icon: Monitor, title: "Écran LED", desc: "Un affichage grand format pour vos supports visuels et votre identité de marque." },
+  { icon: SlidersHorizontal, title: "Régie technique", desc: "Une supervision en temps réel, la gestion des transitions et l’anticipation des imprévus." },
 ];
 
 const STEPS = [
@@ -160,10 +162,10 @@ const STEPS = [
 ];
 
 const GUARANTEES = [
-  { icon: '🤝', title: 'Interlocuteur unique', desc: "Un seul référent pour la préparation, l'exploitation et le suivi de votre événement, du premier échange au démontage." },
-  { icon: '📄', title: 'Devis structuré', desc: 'Une proposition détaillée, adaptée au lieu, au format et aux contraintes techniques de votre événement.' },
-  { icon: '🛡️', title: 'Assurance professionnelle', desc: 'Une responsabilité civile professionnelle couvrant les activités de sonorisation, éclairage et régie.' },
-  { icon: '📍', title: "Zone d'intervention", desc: "Basé à Nort-sur-Erdre, Myracoustic intervient principalement en Pays de la Loire — Nantes, Angers, Rennes, Saint-Nazaire — avec une étude possible au national sur demande." },
+  { icon: Handshake, title: 'Interlocuteur unique', desc: "Un seul référent pour la préparation, l'exploitation et le suivi de votre événement, du premier échange au démontage." },
+  { icon: FileText, title: 'Devis structuré', desc: 'Une proposition détaillée, adaptée au lieu, au format et aux contraintes techniques de votre événement.' },
+  { icon: Shield, title: 'Assurance professionnelle', desc: 'Une responsabilité civile professionnelle couvrant les activités de sonorisation, éclairage et régie.' },
+  { icon: MapPin, title: "Zone d'intervention", desc: "Basé à Nort-sur-Erdre, Myracoustic intervient principalement en Pays de la Loire — Nantes, Angers, Rennes, Saint-Nazaire — avec une étude possible au national sur demande." },
 ];
 
 /* ─── Page ──────────────────────────────────────────────────────── */
@@ -381,7 +383,7 @@ export default function EntreprisesPage() {
               display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
               textAlign: 'center', gap: 12,
             }}>
-              <div style={{ fontSize: 32 }}>📋</div>
+              <div style={{ color: 'rgba(255,255,255,0.55)' }}><ClipboardList size={32} strokeWidth={1.5} /></div>
               <div style={{
                 fontFamily: 'var(--font-display), sans-serif',
                 fontWeight: 600, fontSize: 16, marginBottom: 4,

@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Volume2, Lightbulb, Video, Headphones } from 'lucide-react';
 import { AnimatedWave, WaveBullet, SectionLabel } from './components/AnimatedWave';
 import TestimonialCard from './components/TestimonialCard';
 import StatItem from './components/StatItem';
 
 /* ─── Carte service ────────────────────────────────────────────── */
-function ServiceCard({ icon, tag, title, desc, index }) {
+function ServiceCard({ icon: Icon, tag, title, desc, index }) {
   const [hov, setHov] = useState(false);
   const radii = ['12px 0 0 0', '0 12px 0 0', '0 0 0 12px', '0 0 12px 0'];
   return (
@@ -39,7 +40,9 @@ function ServiceCard({ icon, tag, title, desc, index }) {
           {tag}
         </span>
       </div>
-      <div style={{ fontSize: 36, marginBottom: 14 }}>{icon}</div>
+      <div style={{ marginBottom: 14, color: hov ? 'var(--lime)' : 'rgba(255,255,255,0.72)' }}>
+        <Icon size={36} strokeWidth={1.5} />
+      </div>
       <h3 style={{
         fontFamily: 'var(--font-display), sans-serif',
         fontSize: 26, fontWeight: 700, marginBottom: 10,
@@ -63,13 +66,13 @@ function ServiceCard({ icon, tag, title, desc, index }) {
 
 /* ─── Page d'accueil ───────────────────────────────────────────── */
 const SERVICES = [
-  { icon: '🔊', tag: 'SON',     title: 'Sonorisation',  index: 0,
+  { icon: Volume2,    tag: 'SON',     title: 'Sonorisation',  index: 0,
     desc: 'Systèmes audio de pointe, du cocktail intime aux grandes salles. Son clair, puissant, maîtrisé.' },
-  { icon: '💡', tag: 'LUMIÈRE', title: 'Éclairage',     index: 1,
+  { icon: Lightbulb,  tag: 'LUMIÈRE', title: 'Éclairage',     index: 1,
     desc: 'Moving heads, lasers, LED et gobos pour créer des ambiances spectaculaires et sur mesure.' },
-  { icon: '🎬', tag: 'VIDÉO',   title: 'Vidéo & Mapping', index: 2,
+  { icon: Video,      tag: 'VIDÉO',   title: 'Vidéo & Mapping', index: 2,
     desc: 'Écrans LED, projection architecturale et retransmission live en haute définition.' },
-  { icon: '🎧', tag: 'DJ',      title: 'Animation DJ',  index: 3,
+  { icon: Headphones, tag: 'DJ',      title: 'Animation DJ',  index: 3,
     desc: 'DJ professionnel qui lit son public et fait danser du premier au dernier morceau.' },
 ];
 

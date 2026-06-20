@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { Building2, Calendar, PartyPopper, Volume2, Headphones, Lightbulb, Mic, Video, Wrench, MapPin, Mail, Send, Search, AlertTriangle, Banknote, Car, SlidersHorizontal, Users, CreditCard, User, Heart } from 'lucide-react';
 import { AnimatedWave } from './AnimatedWave';
 import { gtagEvent, gtagBeacon } from '../lib/gtag';
 
@@ -278,7 +279,7 @@ function MiniCal({ selected, onSelect, devisPending = {}, bookedDates = new Set(
   );
 }
 
-function ProfileCard({ icon, title, sub, badge, onClick }) {
+function ProfileCard({ icon: Icon, title, sub, badge, onClick }) {
   const [hov, setHov] = useState(false);
   return (
     <button onClick={onClick} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
@@ -289,7 +290,7 @@ function ProfileCard({ icon, title, sub, badge, onClick }) {
         transition: 'all 0.25s', transform: hov ? 'translateY(-4px)' : 'none',
         textAlign: 'center', width: '100%',
       }}>
-      <div style={{ fontSize: 40, marginBottom: 14 }}>{icon}</div>
+      <div style={{ marginBottom: 14, color: hov ? 'var(--lime)' : 'rgba(255,255,255,0.72)' }}><Icon size={40} strokeWidth={1.5} /></div>
       <div style={{
         fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 22,
         marginBottom: 8, color: hov ? 'var(--lime)' : 'white',
@@ -1202,9 +1203,9 @@ export default function DevisFlow({ forcedProfil = null }) {
           Choisissez votre profil.
         </p>
         <div className="gate-profile-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-          <ProfileCard icon="🏢" title="Professionnel"
+          <ProfileCard icon={Building2} title="Professionnel"
             onClick={() => router.push('/professionnel')} />
-          <ProfileCard icon="🎉" title="Particulier"
+          <ProfileCard icon={PartyPopper} title="Particulier"
             onClick={() => router.push('/particulier')} />
         </div>
         <p style={{ color: 'var(--lime)', fontSize: 12, fontWeight: 600, marginTop: 20 }}>
@@ -1241,8 +1242,8 @@ export default function DevisFlow({ forcedProfil = null }) {
           loading={availabilityLoading}
         />
         {date && (pendingDates[date] ?? 0) > 0 && (
-          <div style={{ margin: '8px 0 12px', padding: '10px 12px', background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.28)', borderRadius: 8, fontSize: 12, color: '#f97316', lineHeight: 1.6, textAlign: 'left' }}>
-            ⚠️ <strong>{pendingDates[date]} devis déjà demandé{pendingDates[date] > 1 ? 's' : ''}</strong> pour cette date — répondez rapidement à notre appel pour être prioritaire.
+          <div style={{ margin: '8px 0 12px', padding: '10px 12px', background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.28)', borderRadius: 8, fontSize: 12, color: '#f97316', lineHeight: 1.6, textAlign: 'left', display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+            <AlertTriangle size={13} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} /> <span><strong>{pendingDates[date]} devis déjà demandé{pendingDates[date] > 1 ? 's' : ''}</strong> pour cette date — répondez rapidement à notre appel pour être prioritaire.</span>
           </div>
         )}
         {date && (
@@ -1278,7 +1279,7 @@ export default function DevisFlow({ forcedProfil = null }) {
           }}>
             {!blockedDateThankYou ? (
               <>
-                <div style={{ fontSize: 36, marginBottom: 12 }}>📅</div>
+                <div style={{ fontSize: 36, marginBottom: 12, color: 'rgba(255,255,255,0.72)' }}><Calendar size={36} strokeWidth={1.5} /></div>
                 <h3 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 18, fontWeight: 700, marginBottom: 10 }}>
                   Date non disponible
                 </h3>
@@ -1307,7 +1308,7 @@ export default function DevisFlow({ forcedProfil = null }) {
               </>
             ) : (
               <>
-                <div style={{ fontSize: 36, marginBottom: 12 }}>🙏</div>
+                <div style={{ fontSize: 36, marginBottom: 12, color: 'rgba(255,255,255,0.72)' }}><Heart size={36} strokeWidth={1.5} /></div>
                 <h3 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 18, fontWeight: 700, marginBottom: 10 }}>
                   Merci pour votre confiance
                 </h3>
@@ -1414,7 +1415,7 @@ export default function DevisFlow({ forcedProfil = null }) {
         {/* Événement */}
         <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: 20 }}>
           <div style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#fff', fontWeight: 700, marginBottom: 12 }}>
-            📅 Votre événement
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Calendar size={13} strokeWidth={2} /> Votre événement</span>
           </div>
           {/* Date — lecture seule, choisie à l'étape 0 */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'rgba(184,239,11,0.06)', border: '1px solid rgba(184,239,11,0.18)', borderRadius: 8, marginBottom: 16 }}>
@@ -1444,7 +1445,7 @@ export default function DevisFlow({ forcedProfil = null }) {
         {/* Lieu */}
         <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: 20 }}>
           <div style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#fff', fontWeight: 700, marginBottom: 12 }}>
-            📍 Lieu de l'événement
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><MapPin size={13} strokeWidth={2} /> Lieu de l'événement</span>
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: km ? 12 : 0 }}>
             <AddressAutocomplete placeholder="Adresse complète de la salle / lieu"
@@ -1459,8 +1460,9 @@ export default function DevisFlow({ forcedProfil = null }) {
                 background: lieu.trim() ? 'var(--lime)' : 'rgba(255,255,255,0.06)',
                 color: lieu.trim() ? '#0d1b2a' : 'rgba(255,255,255,0.22)',
                 fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 13, whiteSpace: 'nowrap',
+                display: 'inline-flex', alignItems: 'center', gap: 6,
               }}>
-              {kmLoading ? '⌛ Calcul…' : '📍 Estimer le trajet'}
+              {kmLoading ? 'Calcul…' : <><MapPin size={13} strokeWidth={2} /> Estimer le trajet</>}
             </button>
           </div>
           {km && getTransportFee(km) === null && (
@@ -1525,7 +1527,7 @@ export default function DevisFlow({ forcedProfil = null }) {
       <p className="devis-step-sub" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 12 }}>Étape 3 sur 6 · Configurez votre événement</p>
       {remiseDeadline && (
         <div style={{ marginBottom: 20, padding: '11px 14px', background: 'rgba(184,239,11,0.06)', border: '1px solid rgba(184,239,11,0.2)', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 15, flexShrink: 0 }}>💸</span>
+          <span style={{ flexShrink: 0, color: 'var(--lime)' }}><Banknote size={15} strokeWidth={1.5} /></span>
           <p style={{ margin: 0, fontSize: 12, color: 'rgba(255,255,255,0.55)', lineHeight: 1.7 }}>
             <span style={{ color: 'var(--lime)', fontWeight: 700 }}>−15% de remise</span> appliqués automatiquement sur votre devis — signez avant le {remiseDate} pour en bénéficier.
           </p>
@@ -1555,7 +1557,7 @@ export default function DevisFlow({ forcedProfil = null }) {
       })()}
 
       {/* DJ en premier — toujours affiché */}
-      <PackBlock title="🎧 Animation DJ" badge="OBLIGATOIRE" badgeColor="#f87171">
+      <PackBlock icon={Headphones} title="Animation DJ" badge="OBLIGATOIRE" badgeColor="#f87171">
         <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
           <div>
             <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14, color: 'var(--lime)', marginBottom: 3 }}>
@@ -1596,7 +1598,7 @@ export default function DevisFlow({ forcedProfil = null }) {
 
       {/* Frais de déplacement — affichés dès qu'un trajet a été estimé à l'étape 1 */}
       {kmFee > 0 && (
-        <PackBlock title="🚗 Frais de déplacement" badge="INCLUS" badgeColor="rgba(255,255,255,0.22)">
+        <PackBlock icon={Car} title="Frais de déplacement" badge="INCLUS" badgeColor="rgba(255,255,255,0.22)">
           <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14, color: 'var(--lime)', marginBottom: 3 }}>
@@ -1613,7 +1615,7 @@ export default function DevisFlow({ forcedProfil = null }) {
         </PackBlock>
       )}
       {km && getTransportFee(km) === null && (
-        <PackBlock title="🚗 Frais de déplacement" badge="À DÉTERMINER" badgeColor="#f97316">
+        <PackBlock icon={Car} title="Frais de déplacement" badge="À DÉTERMINER" badgeColor="#f97316">
           <div style={{ padding: '14px 18px' }}>
             <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14, color: '#f97316', marginBottom: 3 }}>
               ⚠ Distance hors zone ({km} km)
@@ -1628,7 +1630,7 @@ export default function DevisFlow({ forcedProfil = null }) {
       {/* Question matériel */}
       <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '18px 20px', marginBottom: 12 }}>
         <div style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#fff', fontWeight: 700, marginBottom: 14 }}>
-          🎛 Le DJ doit-il apporter son équipement ?
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><SlidersHorizontal size={13} strokeWidth={2} /> Le DJ doit-il apporter son équipement ?</span>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
           <button onClick={() => setNeedsMaterial(true)}
@@ -1670,7 +1672,7 @@ export default function DevisFlow({ forcedProfil = null }) {
             display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap',
           }}>
             <span style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#fff', fontWeight: 700, flexShrink: 0 }}>
-              👥 Nombre de personnes
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Users size={13} strokeWidth={2} /> Nombre de personnes</span>
             </span>
             <input type="number" min={50} max={2000} placeholder="Min. 50"
               value={nbPersons} onChange={e => setNbPersons(e.target.value)}
@@ -1690,12 +1692,12 @@ export default function DevisFlow({ forcedProfil = null }) {
           )}
           {nb > 100 && (
             <div style={{ fontSize: 12, color: '#f97316', background: 'rgba(249,115,22,0.07)', border: '1px solid rgba(249,115,22,0.2)', borderRadius: 8, padding: '10px 14px', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-              👨‍🔧 Événement de plus de 100 personnes — technicien journée inclus automatiquement · <strong>+{TECH_PRICE} €</strong>
+              <Wrench size={13} strokeWidth={2} style={{ flexShrink: 0 }} /> Événement de plus de 100 personnes — technicien journée inclus automatiquement · <strong>+{TECH_PRICE} €</strong>
             </div>
           )}
 
           {/* Son */}
-          <PackBlock title="🔊 Sonorisation" badge="OBLIGATOIRE" badgeColor="#f87171">
+          <PackBlock icon={Volume2} title="Sonorisation" badge="OBLIGATOIRE" badgeColor="#f87171">
             {nb > 0 ? (
               son ? (
                 <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1724,7 +1726,7 @@ export default function DevisFlow({ forcedProfil = null }) {
           </PackBlock>
 
           {/* Éclairage */}
-          <PackBlock title="💡 Éclairage et effets" badge="OBLIGATOIRE" badgeColor="#f87171">
+          <PackBlock icon={Lightbulb} title="Éclairage et effets" badge="OBLIGATOIRE" badgeColor="#f87171">
             <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
               <div>
                 <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14, color: 'var(--lime)', marginBottom: 3 }}>
@@ -1746,7 +1748,7 @@ export default function DevisFlow({ forcedProfil = null }) {
           </PackBlock>
 
           {/* Karaoké */}
-          <PackBlock title="🎤 Karaoké" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.22)">
+          <PackBlock icon={Mic} title="Karaoké" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.22)">
             <ToggleRow label="Ajouter un système karaoké" price={KARAOKE_PRICE}
               checked={karaokeActive}
               onChange={() => setKaraokeActive(v => !v)}
@@ -1754,7 +1756,7 @@ export default function DevisFlow({ forcedProfil = null }) {
           </PackBlock>
 
           {/* Vidéo */}
-          <PackBlock title="🎬 Vidéo & Écrans" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.22)">
+          <PackBlock icon={Video} title="Vidéo & Écrans" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.22)">
             {VIDEO_OPTS.map(o => (
               <RadioRow key={o.id}
                 label={o.id === 'none' && karaokeActive ? 'Je mets un écran à disposition du DJ' : o.label}
@@ -1767,7 +1769,7 @@ export default function DevisFlow({ forcedProfil = null }) {
           </PackBlock>
 
           {/* Installation / désinstallation — toujours incluse quand Myracoustic fournit le matériel */}
-          <PackBlock title="🔧 Installation & désinstallation" badge="OBLIGATOIRE" badgeColor="#f87171">
+          <PackBlock icon={Wrench} title="Installation & désinstallation" badge="OBLIGATOIRE" badgeColor="#f87171">
             <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14, color: 'var(--lime)', marginBottom: 3 }}>
@@ -1858,7 +1860,7 @@ export default function DevisFlow({ forcedProfil = null }) {
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
         <div style={{ textAlign: 'center', maxWidth: 520 }}>
           <AnimatedWave bars={32} height={56} style={{ maxWidth: 420, margin: '0 auto 24px' }} />
-          <div style={{ fontSize: 52, marginBottom: 16 }}>🎉</div>
+          <div style={{ fontSize: 52, marginBottom: 16, color: 'var(--lime)' }}><PartyPopper size={52} strokeWidth={1.5} /></div>
           <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(20px,3vw,32px)', fontWeight: 700, marginBottom: 10 }}>
             {isHorsZone ? 'Votre demande a bien été reçue !' : 'Votre devis a été envoyé !'}
           </h2>
@@ -1992,7 +1994,7 @@ export default function DevisFlow({ forcedProfil = null }) {
         {totalBrut > 0 && (
           <div style={{ background: 'rgba(52,55,144,0.12)', border: '1px solid rgba(52,55,144,0.35)', borderRadius: 12, padding: '18px 20px', marginBottom: 16 }}>
             <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 13, marginBottom: 14 }}>
-              💳 Conditions de paiement
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><CreditCard size={13} strokeWidth={2} /> Conditions de paiement</span>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 10, padding: '16px 18px', borderLeft: '3px solid var(--lime)' }}>
@@ -2012,7 +2014,7 @@ export default function DevisFlow({ forcedProfil = null }) {
         <div className="submit-cta-bar">
           {qontoError && <p style={{ textAlign: 'center', color: '#ef4444', fontSize: 12, marginBottom: 8 }}>⚠ {qontoError}</p>}
           <BtnPrimary onClick={submitDevisParticulier} disabled={qontoLoading} className="submit-devis-btn" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-            {qontoLoading ? '⏳ Envoi en cours…' : isHorsZone ? '📩 Recevoir mon devis sur-mesure' : '📩 Obtenir mon devis par e-mail'}
+            {qontoLoading ? 'Envoi en cours…' : <><Mail size={14} strokeWidth={2} /> {isHorsZone ? 'Recevoir mon devis sur-mesure' : 'Obtenir mon devis par e-mail'}</>}
           </BtnPrimary>
           <p style={{ textAlign: 'center', color: 'rgba(184,239,11,0.55)', fontSize: 12, marginTop: 10 }}>
             Gratuit et sans engagement
@@ -2045,10 +2047,10 @@ export default function DevisFlow({ forcedProfil = null }) {
           Pour vous orienter vers le bon parcours.
         </p>
         <div className="gate-profile-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-          <ProfileCard icon="🔊" title="Une prestation ciblée"
+          <ProfileCard icon={Volume2} title="Une prestation ciblée"
             sub={"Sonorisation, éclairage, DJ,\nkaraoké… pour un événement déjà cadré"} badge="Devis en ligne immédiat"
             onClick={() => { setProBesoin('cible'); goStep(19); }} />
-          <ProfileCard icon="🎪" title="Un événement à organiser"
+          <ProfileCard icon={Calendar} title="Un événement à organiser"
             sub={"Séminaire, gala, convention…\nplusieurs prestations à coordonner"} badge="Accompagnement conseiller"
             onClick={() => { setProBesoin('evenement'); goStep(10); }} />
         </div>
@@ -2072,7 +2074,7 @@ export default function DevisFlow({ forcedProfil = null }) {
         {/* Identité */}
         <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: 20 }}>
           <div style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#fff', fontWeight: 700, marginBottom: 12 }}>
-            👤 Identité <span style={{ color: '#ef4444' }}>*</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><User size={13} strokeWidth={2} /> Identité <span style={{ color: '#ef4444' }}>*</span></span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
             <input placeholder="Prénom *" value={ciblePrenom} onChange={e => setCiblePrenom(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
@@ -2097,7 +2099,7 @@ export default function DevisFlow({ forcedProfil = null }) {
         {/* Événement */}
         <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: 20 }}>
           <div style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#fff', fontWeight: 700, marginBottom: 12 }}>
-            📅 Votre événement <span style={{ color: '#ef4444' }}>*</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Calendar size={13} strokeWidth={2} /> Votre événement <span style={{ color: '#ef4444' }}>*</span></span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 20, marginBottom: 14 }}>
             <div>
@@ -2124,8 +2126,8 @@ export default function DevisFlow({ forcedProfil = null }) {
                 </div>
               )}
               {cibleDate && (pendingDates[cibleDate] ?? 0) > 0 && (
-                <div style={{ marginTop: 8, padding: '10px 12px', background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.28)', borderRadius: 8, fontSize: 12, color: '#f97316', lineHeight: 1.6 }}>
-                  ⚠️ <strong>{pendingDates[cibleDate]} devis déjà demandé{pendingDates[cibleDate] > 1 ? 's' : ''}</strong> pour cette date — pour être prioritaire, répondez rapidement à l'appel de notre conseiller afin de finaliser et signer votre devis au plus vite.
+                <div style={{ marginTop: 8, padding: '10px 12px', background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.28)', borderRadius: 8, fontSize: 12, color: '#f97316', lineHeight: 1.6, display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                  <AlertTriangle size={13} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} /> <span><strong>{pendingDates[cibleDate]} devis déjà demandé{pendingDates[cibleDate] > 1 ? 's' : ''}</strong> pour cette date — pour être prioritaire, répondez rapidement à l'appel de notre conseiller afin de finaliser et signer votre devis au plus vite.</span>
                 </div>
               )}
               {!cibleDate && (
@@ -2144,7 +2146,7 @@ export default function DevisFlow({ forcedProfil = null }) {
         {/* Lieu */}
         <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: 20 }}>
           <div style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#fff', fontWeight: 700, marginBottom: 12 }}>
-            📍 Lieu de l'événement <span style={{ color: '#ef4444' }}>*</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><MapPin size={13} strokeWidth={2} /> Lieu de l'événement <span style={{ color: '#ef4444' }}>*</span></span>
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: cibleKm ? 12 : 0 }}>
             <AddressAutocomplete placeholder="Adresse complète de la salle / lieu *"
@@ -2159,8 +2161,9 @@ export default function DevisFlow({ forcedProfil = null }) {
                 background: cibleLieu.trim() ? 'var(--lime)' : 'rgba(255,255,255,0.06)',
                 color: cibleLieu.trim() ? '#0d1b2a' : 'rgba(255,255,255,0.22)',
                 fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 13, whiteSpace: 'nowrap',
+                display: 'inline-flex', alignItems: 'center', gap: 6,
               }}>
-              {cibleKmLoading ? '⌛ Calcul…' : '📍 Estimer le trajet'}
+              {cibleKmLoading ? 'Calcul…' : <><MapPin size={13} strokeWidth={2} /> Estimer le trajet</>}
             </button>
           </div>
           {cibleKm && getTransportFee(cibleKm) === null && (
@@ -2244,7 +2247,7 @@ export default function DevisFlow({ forcedProfil = null }) {
       })()}
 
       {/* DJ */}
-      <PackBlock title="🎧 DJ / Animation" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.22)">
+      <PackBlock icon={Headphones} title="DJ / Animation" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.22)">
         <YesNoRow label="Avez-vous besoin d'un DJ ?"
           value={cibleDjActive}
           onChange={setCibleDjActive}
@@ -2277,7 +2280,7 @@ export default function DevisFlow({ forcedProfil = null }) {
       </PackBlock>
 
       {/* Sonorisation */}
-      <PackBlock title="🔊 Sonorisation" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.22)">
+      <PackBlock icon={Volume2} title="Sonorisation" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.22)">
         <YesNoRow label="Avez-vous besoin de sonorisation ?"
           value={cibleSonoActive}
           onChange={setCibleSonoActive}
@@ -2285,7 +2288,7 @@ export default function DevisFlow({ forcedProfil = null }) {
         {cibleSonoActive && (
           <div style={{ padding: '14px 18px', background: 'rgba(184,239,11,0.04)' }}>
             <div style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#fff', fontWeight: 700, marginBottom: 10 }}>
-              👥 Effectif estimé <span style={{ color: '#ef4444' }}>*</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Users size={13} strokeWidth={2} /> Effectif estimé <span style={{ color: '#ef4444' }}>*</span></span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
               <input type="number" min={1} placeholder="Nombre de personnes *"
@@ -2308,7 +2311,7 @@ export default function DevisFlow({ forcedProfil = null }) {
             )}
 
             <div style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#fff', fontWeight: 700, margin: '16px 0 10px' }}>
-              🎤 Micros — {MICRO_PRICE} € HT / micro
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Mic size={13} strokeWidth={2} /> Micros — {MICRO_PRICE} € HT / micro</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 8, overflow: 'hidden' }}>
@@ -2332,7 +2335,7 @@ export default function DevisFlow({ forcedProfil = null }) {
       </PackBlock>
 
       {/* Éclairage */}
-      <PackBlock title="💡 Éclairage" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.22)">
+      <PackBlock icon={Lightbulb} title="Éclairage" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.22)">
         <YesNoRow label="Avez-vous besoin d'éclairage ?"
           value={cibleEclairActive}
           onChange={setCibleEclairActive}
@@ -2356,7 +2359,7 @@ export default function DevisFlow({ forcedProfil = null }) {
       </PackBlock>
 
       {/* Karaoké */}
-      <PackBlock title="🎤 Karaoké" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.22)">
+      <PackBlock icon={Mic} title="Karaoké" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.22)">
         <YesNoRow label="Avez-vous besoin d'un karaoké ?"
           value={cibleKaraokeActive}
           onChange={(v) => {
@@ -2381,7 +2384,7 @@ export default function DevisFlow({ forcedProfil = null }) {
       </PackBlock>
 
       {/* Vidéo */}
-      <PackBlock title="🎬 Vidéo & Écrans" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.22)">
+      <PackBlock icon={Video} title="Vidéo & Écrans" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.22)">
         {cibleKaraokeActive ? (
           <div style={{ padding: '14px 18px 6px', color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>
             Un écran est nécessaire pour afficher les paroles du karaoké — « {CIBLE_VIDEO_OPTS.find(o => o.id === 'fourni')?.label} » est sélectionné par défaut, mais vous pouvez choisir une autre option ci-dessous.
@@ -2405,7 +2408,7 @@ export default function DevisFlow({ forcedProfil = null }) {
 
       {/* Installation — incluse dès qu'une prestation est sélectionnée (hors DJ seul) */}
       {cibleAnyEquip && !cibleOnlyDj && (
-        <PackBlock title="🔧 Installation & désinstallation" badge="INCLUS" badgeColor="rgba(255,255,255,0.22)">
+        <PackBlock icon={Wrench} title="Installation & désinstallation" badge="INCLUS" badgeColor="rgba(255,255,255,0.22)">
           <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14, color: 'var(--lime)', marginBottom: 3 }}>
@@ -2424,7 +2427,7 @@ export default function DevisFlow({ forcedProfil = null }) {
 
       {/* Frais de déplacement — affichés dès qu'au moins une prestation est sélectionnée et qu'un trajet a été estimé à l'étape 1 */}
       {cibleAnyEquip && cibleKmFee > 0 && (
-        <PackBlock title="🚗 Frais de déplacement" badge="INCLUS" badgeColor="rgba(255,255,255,0.22)">
+        <PackBlock icon={Car} title="Frais de déplacement" badge="INCLUS" badgeColor="rgba(255,255,255,0.22)">
           <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14, color: 'var(--lime)', marginBottom: 3 }}>
@@ -2442,7 +2445,7 @@ export default function DevisFlow({ forcedProfil = null }) {
       )}
 
       {cibleAnyEquip && cibleKm && getTransportFee(cibleKm) === null && (
-        <PackBlock title="🚗 Frais de déplacement" badge="À DÉTERMINER" badgeColor="#f97316">
+        <PackBlock icon={Car} title="Frais de déplacement" badge="À DÉTERMINER" badgeColor="#f97316">
           <div style={{ padding: '14px 18px' }}>
             <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14, color: '#f97316', marginBottom: 3 }}>
               ⚠ Distance hors zone ({cibleKm} km)
@@ -2543,7 +2546,7 @@ export default function DevisFlow({ forcedProfil = null }) {
           {/* Entreprise */}
           <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: 20 }}>
             <div style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#fff', fontWeight: 700, marginBottom: 12 }}>
-              🏢 Entreprise <span style={{ color: '#ef4444' }}>*</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Building2 size={13} strokeWidth={2} /> Entreprise <span style={{ color: '#ef4444' }}>*</span></span>
             </div>
 
             {entSelected ? (
@@ -2584,8 +2587,9 @@ export default function DevisFlow({ forcedProfil = null }) {
                       background: entSearch.trim() ? 'var(--lime)' : 'rgba(255,255,255,0.06)',
                       color: entSearch.trim() ? '#0d1b2a' : 'rgba(255,255,255,0.22)',
                       fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 13, whiteSpace: 'nowrap',
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
                     }}>
-                    {entLoading ? '⌛ Recherche…' : '🔍 Rechercher'}
+                    {entLoading ? 'Recherche…' : <><Search size={13} strokeWidth={2} /> Rechercher</>}
                   </button>
                 </div>
 
@@ -2643,7 +2647,7 @@ export default function DevisFlow({ forcedProfil = null }) {
             return (
               <div style={{ background: 'rgba(52,55,144,0.12)', border: '1px solid rgba(52,55,144,0.35)', borderRadius: 12, padding: '18px 20px', marginTop: 8 }}>
                 <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 13, marginBottom: 14 }}>
-                  💳 Conditions de paiement
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><CreditCard size={13} strokeWidth={2} /> Conditions de paiement</span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                   <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 10, padding: '16px 18px', borderLeft: '3px solid var(--lime)' }}>
@@ -2664,7 +2668,7 @@ export default function DevisFlow({ forcedProfil = null }) {
           <BtnPrimary onClick={submitDevisPro}
             disabled={!cibleSociete || !cibleSiret || qontoLoading}
             style={{ marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-            {qontoLoading ? '⏳ Envoi en cours…' : cibleIsHorsZone ? '📩 Recevoir mon devis sur-mesure' : '✉️ Recevoir mon devis →'}
+            {qontoLoading ? 'Envoi en cours…' : <><Mail size={14} strokeWidth={2} /> {cibleIsHorsZone ? 'Recevoir mon devis sur-mesure' : 'Recevoir mon devis →'}</>}
           </BtnPrimary>
           {qontoError && <p style={{ textAlign: 'center', color: '#ef4444', fontSize: 12, marginTop: 8 }}>⚠ {qontoError}</p>}
         </div>
@@ -2716,7 +2720,7 @@ export default function DevisFlow({ forcedProfil = null }) {
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
         <div style={{ textAlign: 'center', maxWidth: 480 }}>
           <AnimatedWave bars={32} height={56} style={{ maxWidth: 380, margin: '0 auto 24px' }} />
-          <div style={{ fontSize: 48, marginBottom: 14 }}>📅</div>
+          <div style={{ fontSize: 48, marginBottom: 14, color: 'rgba(255,255,255,0.72)' }}><Calendar size={48} strokeWidth={1.5} /></div>
           <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(20px,3vw,30px)', fontWeight: 700, marginBottom: 10 }}>
             Demande reçue !
           </h2>
@@ -2769,7 +2773,7 @@ export default function DevisFlow({ forcedProfil = null }) {
             style={{ ...IS, resize: 'vertical', lineHeight: 1.65 }}
             onFocus={fo} onBlur={bl} />
           <BtnPrimary onClick={submitContactPro} disabled={!proType || !proPersonnes || qontoLoading} style={{ marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-            {qontoLoading ? '⏳ Envoi en cours…' : '📨 Envoyer ma demande de contact →'}
+            {qontoLoading ? 'Envoi en cours…' : <><Send size={14} strokeWidth={2} /> Envoyer ma demande de contact →</>}
           </BtnPrimary>
           {qontoError && <p style={{ textAlign: 'center', color: '#ef4444', fontSize: 12, marginTop: 8 }}>⚠ {qontoError}</p>}
           <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.28)', fontSize: 12 }}>
@@ -2826,7 +2830,7 @@ export default function DevisFlow({ forcedProfil = null }) {
    SOUS-COMPOSANTS STEP 2
 ══════════════════════════════════════════════════════════════════════ */
 
-function PackBlock({ title, badge, badgeColor, children }) {
+function PackBlock({ icon: Icon, title, badge, badgeColor, children }) {
   return (
     <div style={{
       background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)',
@@ -2836,6 +2840,7 @@ function PackBlock({ title, badge, badgeColor, children }) {
         padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.06)',
         display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(255,255,255,0.02)',
       }}>
+        {Icon && <span style={{ color: 'rgba(255,255,255,0.55)', flexShrink: 0 }}><Icon size={15} strokeWidth={1.5} /></span>}
         <span style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 15 }}>{title}</span>
         <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 3, background: `${badgeColor}22`, color: badgeColor, fontFamily: 'var(--font-display), sans-serif', letterSpacing: '0.1em' }}>
           {badge}

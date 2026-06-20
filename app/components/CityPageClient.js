@@ -2,15 +2,16 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { Volume2, Lightbulb, Monitor, Music } from 'lucide-react';
 import { AnimatedWave, WaveBullet, SectionLabel } from './AnimatedWave';
 
-function PillarCard({ icon, title, desc }) {
+function PillarCard({ icon: Icon, title, desc }) {
   return (
     <div style={{
       background: 'var(--card)', border: '1px solid rgba(255,255,255,0.07)',
       borderRadius: 12, padding: '28px 24px',
     }}>
-      <div style={{ fontSize: 30, marginBottom: 14 }}>{icon}</div>
+      <div style={{ marginBottom: 14, color: 'rgba(255,255,255,0.72)' }}><Icon size={30} strokeWidth={1.5} /></div>
       <h3 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 18, fontWeight: 700, marginBottom: 8 }}>{title}</h3>
       <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, lineHeight: 1.7 }}>{desc}</p>
     </div>
@@ -69,10 +70,10 @@ function FaqItem({ q, a }) {
 }
 
 const PILLARS = [
-  { icon: '🔊', title: 'Sonorisation', desc: "Une intelligibilité optimale et une couverture homogène, adaptée à la configuration du lieu — salle, chapiteau, extérieur." },
-  { icon: '💡', title: 'Éclairage', desc: "Mise en valeur de l'espace, des intervenants et de l'ambiance, avec un éclairage scénique professionnel." },
-  { icon: '🖥️', title: 'Vidéo & écran LED', desc: "Affichage grand format pour vos supports visuels, votre identité de marque ou la mise en scène de votre soirée." },
-  { icon: '🎶', title: 'Animation DJ', desc: "Animation musicale sur mesure pour mariages, anniversaires et soirées privées, du cocktail à la piste de danse." },
+  { icon: Volume2, title: 'Sonorisation', desc: "Une intelligibilité optimale et une couverture homogène, adaptée à la configuration du lieu — salle, chapiteau, extérieur." },
+  { icon: Lightbulb, title: 'Éclairage', desc: "Mise en valeur de l'espace, des intervenants et de l'ambiance, avec un éclairage scénique professionnel." },
+  { icon: Monitor, title: 'Vidéo & écran LED', desc: "Affichage grand format pour vos supports visuels, votre identité de marque ou la mise en scène de votre soirée." },
+  { icon: Music, title: 'Animation DJ', desc: "Animation musicale sur mesure pour mariages, anniversaires et soirées privées, du cocktail à la piste de danse." },
 ];
 
 export default function CityPageClient({ city }) {

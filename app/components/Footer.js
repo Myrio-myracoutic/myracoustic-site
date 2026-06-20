@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { MapPin, Phone, Mail } from 'lucide-react';
 import { AnimatedWave } from './AnimatedWave';
 import { usePathname } from 'next/navigation';
 
@@ -129,14 +130,14 @@ export default function Footer() {
             }}>
               Contact
             </h5>
-            <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, marginBottom: 9 }}>
-              📍 Nort-sur-Erdre — Loire-Atlantique
+            <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, marginBottom: 9, display: 'flex', alignItems: 'center', gap: 7 }}>
+              <MapPin size={13} strokeWidth={1.8} /> Nort-sur-Erdre — Loire-Atlantique
             </p>
-            <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, marginBottom: 9 }}>
-              📞 07 68 53 33 08
+            <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, marginBottom: 9, display: 'flex', alignItems: 'center', gap: 7 }}>
+              <Phone size={13} strokeWidth={1.8} /> 07 68 53 33 08
             </p>
-            <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, marginBottom: 9 }}>
-              ✉️ contact@myracoustic.com
+            <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, marginBottom: 9, display: 'flex', alignItems: 'center', gap: 7 }}>
+              <Mail size={13} strokeWidth={1.8} /> contact@myracoustic.com
             </p>
           </div>
         </div>

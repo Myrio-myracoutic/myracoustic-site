@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/app/lib/supabase';
 import Image from 'next/image';
+import { ClipboardList, CheckCircle, CreditCard, PartyPopper, MessageCircle } from 'lucide-react';
 
 const STATUS_LABELS = {
   devis_envoye: { label: 'Devis envoyé',  color: '#f59e0b' },
@@ -13,10 +14,10 @@ const STATUS_LABELS = {
 };
 
 const TIMELINE_STEPS = [
-  { id: 'devis_envoye', label: 'Devis envoyé',         icon: '📋', statuses: ['devis_envoye', 'accepte', 'confirme', 'termine'] },
-  { id: 'accepte',      label: 'Réservation confirmée', icon: '✅', statuses: ['accepte', 'confirme', 'termine'] },
-  { id: 'confirme',     label: 'Contrat & acompte',     icon: '💳', statuses: ['confirme', 'termine'] },
-  { id: 'termine',      label: 'Événement réalisé',     icon: '🎉', statuses: ['termine'] },
+  { id: 'devis_envoye', label: 'Devis envoyé',         icon: ClipboardList, statuses: ['devis_envoye', 'accepte', 'confirme', 'termine'] },
+  { id: 'accepte',      label: 'Réservation confirmée', icon: CheckCircle,   statuses: ['accepte', 'confirme', 'termine'] },
+  { id: 'confirme',     label: 'Contrat & acompte',     icon: CreditCard,    statuses: ['confirme', 'termine'] },
+  { id: 'termine',      label: 'Événement réalisé',     icon: PartyPopper,   statuses: ['termine'] },
 ];
 
 const CHECKLISTS = {
@@ -86,8 +87,9 @@ function Timeline({ status }) {
                 background: done ? 'rgba(184,239,11,0.15)' : 'rgba(255,255,255,0.05)',
                 border: `2px solid ${done ? '#b8ef0b' : 'rgba(255,255,255,0.1)'}`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 18, marginBottom: 8, transition: 'all 0.3s',
-              }}>{step.icon}</div>
+                marginBottom: 8, transition: 'all 0.3s',
+                color: done ? '#b8ef0b' : 'rgba(255,255,255,0.25)',
+              }}><step.icon size={18} strokeWidth={1.5} /></div>
               <span style={{
                 fontSize: 11, color: done ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.25)',
                 textAlign: 'center', lineHeight: 1.4, fontFamily: 'var(--font-display), sans-serif',
@@ -214,7 +216,7 @@ function EventCard({ ev, token }) {
           borderRadius: 10, padding: '14px 18px', marginBottom: 16,
           display: 'flex', gap: 12, alignItems: 'flex-start',
         }}>
-          <span style={{ fontSize: 18, flexShrink: 0 }}>💬</span>
+          <span style={{ flexShrink: 0, color: '#b8ef0b' }}><MessageCircle size={18} strokeWidth={1.5} /></span>
           <div>
             <div style={{ fontSize: 11, color: '#b8ef0b', fontWeight: 700, marginBottom: 4, fontFamily: 'var(--font-display), sans-serif' }}>
               MESSAGE DE MYRACOUSTIC
@@ -341,7 +343,7 @@ export default function MonEspacePage() {
         <h1 style={{
           fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(20px,3vw,28px)',
           fontWeight: 700, color: '#fff', marginBottom: 6,
-        }}>Bonjour {client?.first_name} 👋</h1>
+        }}>Bonjour {client?.first_name}</h1>
         <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 14, marginBottom: 40 }}>
           Suivez l'avancement de votre événement Myracoustic.
         </p>

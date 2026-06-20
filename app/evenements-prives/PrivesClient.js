@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Volume2, Lightbulb, Video, Headphones } from 'lucide-react';
 import { AnimatedWave, WaveBullet, SectionLabel } from '../components/AnimatedWave';
 import { FAQ_ITEMS } from './faq-data';
 import TestimonialCard from '../components/TestimonialCard';
@@ -19,7 +20,7 @@ function BulletItem({ children }) {
 }
 
 /* ─── Carte prestation détaillée ────────────────────────────────── */
-function ServiceDetailCard({ icon, tag, title, desc, items }) {
+function ServiceDetailCard({ icon: Icon, tag, title, desc, items }) {
   const [hov, setHov] = useState(false);
   return (
     <div
@@ -44,7 +45,7 @@ function ServiceDetailCard({ icon, tag, title, desc, items }) {
           }}>
             {tag}
           </span>
-          <span style={{ fontSize: 28 }}>{icon}</span>
+          <span style={{ color: hov ? 'var(--lime)' : 'rgba(255,255,255,0.72)' }}><Icon size={28} strokeWidth={1.5} /></span>
         </div>
         <h3 style={{
           fontFamily: 'var(--font-display), sans-serif',
@@ -116,22 +117,22 @@ function FaqItem({ q, a }) {
 /* ─── Données ───────────────────────────────────────────────────── */
 const SERVICES = [
   {
-    icon: '🔊', tag: 'SON', title: 'Sonorisation',
+    icon: Volume2, tag: 'SON', title: 'Sonorisation',
     desc: "De la sono d'appoint au système de scène professionnel. Chaque espace acoustique est unique, chaque installation aussi.",
     items: ['Systèmes Line Array & point source', 'Technicien son inclus', 'Réglage acoustique sur mesure', 'Micro HF et retours de scène'],
   },
   {
-    icon: '💡', tag: 'LUMIÈRE', title: 'Éclairage',
+    icon: Lightbulb, tag: 'LUMIÈRE', title: 'Éclairage',
     desc: 'Des ambiances lumineuses qui subliment votre salle et créent des instants magiques tout au long de la soirée.',
     items: ['Moving heads & PAR LED', 'Lasers & machines à effets', "Éclairage d'ambiance piste de danse", 'Machine à fumée incluse'],
   },
   {
-    icon: '🎬', tag: 'VIDÉO', title: 'Vidéo & Écrans',
+    icon: Video, tag: 'VIDÉO', title: 'Vidéo & Écrans',
     desc: 'Diffusion de vos photos, vidéos et diaporamas sur grands écrans LED pour des moments intenses et partagés.',
     items: ['Vidéoprojecteur & support', 'Mur LED 2 m² ou 4 m²', 'Contenu personnalisé'],
   },
   {
-    icon: '🎧', tag: 'DJ', title: 'Animation DJ',
+    icon: Headphones, tag: 'DJ', title: 'Animation DJ',
     desc: 'DJ professionnel qui lit son public et adapte son set pour garantir une piste de danse pleine du début à la fin.',
     items: ['DJ professionnel avec références', 'Matériel haut de gamme inclus', 'Playlist 100% personnalisée', 'MC & animations sur demande'],
   },

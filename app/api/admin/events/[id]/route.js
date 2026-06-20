@@ -5,10 +5,11 @@ export async function GET(req, { params }) {
   if (!(await verifyAdminCookie())) {
     return Response.json({ error: 'Non autorisé' }, { status: 401 });
   }
+  const { id } = await params;
   const { data, error } = await supabaseAdmin
     .from('events')
     .select('*, clients(*)')
-    .eq('id', params.id)
+    .eq('id', id)
     .single();
   if (error) return Response.json({ error: error.message }, { status: 500 });
   return Response.json(data);
@@ -18,6 +19,7 @@ export async function PATCH(req, { params }) {
   if (!(await verifyAdminCookie())) {
     return Response.json({ error: 'Non autorisé' }, { status: 401 });
   }
+  const { id } = await params;
   const body = await req.json();
   const updates = { updated_at: new Date().toISOString() };
   if (body.status !== undefined) updates.status = body.status;
@@ -26,7 +28,7 @@ export async function PATCH(req, { params }) {
   const { data, error } = await supabaseAdmin
     .from('events')
     .update(updates)
-    .eq('id', params.id)
+    .eq('id', id)
     .select()
     .single();
   if (error) return Response.json({ error: error.message }, { status: 500 });

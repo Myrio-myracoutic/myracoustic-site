@@ -6,6 +6,8 @@ export async function PATCH(req, { params }) {
     return Response.json({ error: 'Paramètres manquants' }, { status: 400 });
   }
 
+  const { id } = await params;
+
   const { data: { user }, error: authErr } = await supabaseAdmin.auth.getUser(token);
   if (authErr || !user) {
     return Response.json({ error: 'Non autorisé' }, { status: 401 });
@@ -22,7 +24,7 @@ export async function PATCH(req, { params }) {
   const { data: ev } = await supabaseAdmin
     .from('events')
     .select('id, client_id')
-    .eq('id', params.id)
+    .eq('id', id)
     .eq('client_id', clientData.id)
     .single();
 
@@ -31,7 +33,7 @@ export async function PATCH(req, { params }) {
   const { data, error } = await supabaseAdmin
     .from('events')
     .update({ checklist_checked: checked, updated_at: new Date().toISOString() })
-    .eq('id', params.id)
+    .eq('id', id)
     .select()
     .single();
 

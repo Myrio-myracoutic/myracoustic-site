@@ -1,34 +1,68 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 
-const STATUSES = {
+const STATUS = {
   devis_envoye: { label: 'Devis envoyé',  color: '#f59e0b' },
-  accepte:      { label: 'Devis accepté', color: '#b8ef0b' },
-  confirme:     { label: 'Confirmé',      color: '#22c55e' },
-  termine:      { label: 'Terminé',       color: 'rgba(255,255,255,0.3)' },
-  annule:       { label: 'Annulé',        color: '#ef4444' },
+  accepte:      { label: 'Accepté',        color: '#b8ef0b' },
+  confirme:     { label: 'Confirmé',       color: '#22c55e' },
+  termine:      { label: 'Terminé',        color: '#9ca3af' },
+  annule:       { label: 'Annulé',         color: '#ef4444' },
 };
 
-const FILTERS = [
-  { key: 'all',          label: 'Tous' },
-  { key: 'devis_envoye', label: 'En attente' },
-  { key: 'accepte',      label: 'Acceptés' },
-  { key: 'confirme',     label: 'Confirmés' },
-  { key: 'termine',      label: 'Terminés' },
-  { key: 'annule',       label: 'Annulés' },
-];
-
-function StatusBadge({ status }) {
-  const st = STATUSES[status] || STATUSES.devis_envoye;
+function StatCard({ label, value, sub, accent }) {
   return (
-    <span style={{
-      background: `${st.color}18`, color: st.color,
-      border: `1px solid ${st.color}40`,
-      borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 600,
-      fontFamily: 'var(--font-display), sans-serif', whiteSpace: 'nowrap',
-    }}>{st.label}</span>
+    <div style={{
+      background: '#fff', borderRadius: 14, padding: '22px 24px',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.07)', flex: '1 1 180px',
+    }}>
+      <p style={{ fontSize: 12, color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 10px' }}>{label}</p>
+      <p style={{ fontSize: 36, fontWeight: 800, color: accent || '#111827', margin: '0 0 6px', fontFamily: 'var(--font-display), sans-serif', lineHeight: 1 }}>{value}</p>
+      {sub && <p style={{ fontSize: 13, color: '#9ca3af', margin: 0 }}>{sub}</p>}
+    </div>
+  );
+}
+
+function BarChart({ data }) {
+  const max = Math.max(...data.map(d => d.count), 1);
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {data.map(d => (
+        <div key={d.key} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span style={{ fontSize: 12, color: '#9ca3af', width: 28, textAlign: 'right', flexShrink: 0 }}>{d.label}</span>
+          <div style={{ flex: 1, background: '#f3f4f6', borderRadius: 6, height: 28, overflow: 'hidden', position: 'relative' }}>
+            <div style={{
+              width: `${(d.count / max) * 100}%`, minWidth: d.count > 0 ? 4 : 0,
+              height: '100%', background: 'linear-gradient(90deg, #b8ef0b, #a0d908)',
+              borderRadius: 6, transition: 'width 0.6s ease',
+            }} />
+          </div>
+          <span style={{ fontSize: 13, fontWeight: 700, color: '#374151', width: 16, textAlign: 'right', flexShrink: 0 }}>{d.count}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function StatusBreakdown({ byStatus, total }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {Object.entries(STATUS).map(([key, s]) => {
+        const count = byStatus[key] || 0;
+        const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+        return (
+          <div key={key}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+              <span style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>{s.label}</span>
+              <span style={{ fontSize: 13, color: '#9ca3af' }}>{count} <span style={{ color: '#d1d5db' }}>({pct}%)</span></span>
+            </div>
+            <div style={{ background: '#f3f4f6', borderRadius: 4, height: 6 }}>
+              <div style={{ width: `${pct}%`, height: '100%', background: s.color, borderRadius: 4, transition: 'width 0.6s ease' }} />
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -37,160 +71,140 @@ function fmtDate(d) {
   return new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-export default function AdminPage() {
+function daysUntil(d) {
+  if (!d) return null;
+  const diff = Math.round((new Date(d + 'T12:00:00') - new Date()) / (1000 * 60 * 60 * 24));
+  if (diff === 0) return "Aujourd'hui";
+  if (diff === 1) return 'Demain';
+  if (diff < 0) return 'Passé';
+  return `J-${diff}`;
+}
+
+export default function AdminDashboard() {
   const router = useRouter();
-  const [events, setEvents] = useState([]);
+  const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all');
 
   useEffect(() => {
-    fetch('/api/admin/events')
-      .then(r => {
-        if (r.status === 401) { router.replace('/admin/login'); return null; }
-        return r.json();
-      })
-      .then(data => { if (data) { setEvents(data); setLoading(false); } });
+    fetch('/api/admin/stats')
+      .then(r => { if (r.status === 401) { router.replace('/admin/login'); return null; } return r.json(); })
+      .then(d => { if (d) { setStats(d); setLoading(false); } });
   }, []);
 
-  const handleLogout = async () => {
-    await fetch('/api/admin/logout', { method: 'POST' });
-    router.replace('/admin/login');
-  };
-
-  const filtered = filter === 'all' ? events : events.filter(e => e.status === filter);
-
-  const counts = Object.keys(STATUSES).reduce((acc, k) => {
-    acc[k] = events.filter(e => e.status === k).length;
-    return acc;
-  }, {});
-
   if (loading) return (
-    <div style={{ minHeight: '100vh', background: '#060e16', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ width: 32, height: 32, border: '2px solid rgba(255,255,255,0.1)', borderTop: '2px solid #b8ef0b', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+      <div style={{ width: 28, height: 28, border: '3px solid #e5e7eb', borderTop: '3px solid #b8ef0b', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 
+  const ne = stats.nextEvent;
+  const nextDateStr = ne ? fmtDate(ne.event_date) : null;
+  const countdown = ne ? daysUntil(ne.event_date) : null;
+
   return (
-    <div style={{ minHeight: '100vh', background: '#060e16', fontFamily: 'var(--font-body), sans-serif' }}>
-      {/* Header */}
-      <header style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
-        background: 'rgba(6,14,22,0.97)', backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid rgba(255,255,255,0.07)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 28px', height: 70,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <Image src="/logo.png" alt="Myracoustic" width={180} height={60} style={{ height: 60, width: 'auto' }} />
-          <span style={{
-            background: 'rgba(184,239,11,0.1)', color: '#b8ef0b',
-            border: '1px solid rgba(184,239,11,0.2)', borderRadius: 6,
-            padding: '2px 8px', fontSize: 11, fontWeight: 700,
-            fontFamily: 'var(--font-display), sans-serif',
-          }}>ADMIN</span>
-        </div>
-        <button onClick={handleLogout} style={{
-          background: 'none', border: '1px solid rgba(255,255,255,0.12)',
-          borderRadius: 8, padding: '6px 14px', color: 'rgba(255,255,255,0.45)',
-          fontSize: 13, cursor: 'pointer', fontFamily: 'inherit',
-        }}>Déconnexion</button>
-      </header>
+    <div style={{ padding: '36px 36px 60px' }}>
 
-      <div style={{ paddingTop: 90, maxWidth: 1100, margin: '0 auto', padding: '90px 24px 80px' }}>
+      {/* En-tête */}
+      <div style={{ marginBottom: 32 }}>
+        <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 26, fontWeight: 800, color: '#111827', margin: '0 0 4px' }}>
+          Vue d'ensemble
+        </h1>
+        <p style={{ color: '#9ca3af', fontSize: 14, margin: 0 }}>
+          {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+        </p>
+      </div>
 
-        {/* Stats */}
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 36 }}>
-          {[
-            { label: 'Total', value: events.length, color: '#fff' },
-            { label: 'En attente', value: counts.devis_envoye, color: '#f59e0b' },
-            { label: 'Confirmés', value: counts.confirme, color: '#22c55e' },
-            { label: 'Terminés', value: counts.termine, color: 'rgba(255,255,255,0.3)' },
-          ].map(s => (
-            <div key={s.label} style={{
-              background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.07)',
-              borderRadius: 12, padding: '16px 24px', minWidth: 120,
-            }}>
-              <div style={{ fontSize: 28, fontWeight: 700, color: s.color, fontFamily: 'var(--font-display), sans-serif' }}>{s.value}</div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>{s.label}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Filtres */}
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
-          {FILTERS.map(f => (
-            <button key={f.key} onClick={() => setFilter(f.key)} style={{
-              background: filter === f.key ? 'rgba(184,239,11,0.12)' : 'rgba(255,255,255,0.04)',
-              border: `1px solid ${filter === f.key ? 'rgba(184,239,11,0.3)' : 'rgba(255,255,255,0.08)'}`,
-              color: filter === f.key ? '#b8ef0b' : 'rgba(255,255,255,0.45)',
-              borderRadius: 20, padding: '6px 14px', fontSize: 13,
-              cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s',
-            }}>
-              {f.label}{f.key !== 'all' && counts[f.key] ? ` (${counts[f.key]})` : ''}
-            </button>
-          ))}
-        </div>
-
-        {/* Liste */}
-        {filtered.length === 0 ? (
+      {/* Cartes stats */}
+      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 28 }}>
+        <StatCard label="Total devis" value={stats.total} sub={`${stats.thisMonthCount} ce mois`} />
+        <StatCard label="Taux de conversion" value={`${stats.conversionRate}%`} sub={`${stats.converted} acceptés ou confirmés`} accent="#22c55e" />
+        <StatCard label="Clients" value={stats.totalClients} sub="comptes actifs" />
+        {ne ? (
           <div style={{
-            background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.06)',
-            borderRadius: 12, padding: '40px 32px', textAlign: 'center',
-            color: 'rgba(255,255,255,0.3)', fontSize: 14,
-          }}>Aucun devis dans cette catégorie.</div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {filtered.map(ev => {
-              const c = ev.clients;
-              return (
-                <div
-                  key={ev.id}
-                  onClick={() => router.push(`/admin/devis/${ev.id}`)}
-                  style={{
-                    background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.07)',
-                    borderRadius: 12, padding: '18px 24px', cursor: 'pointer',
-                    display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap',
-                    transition: 'border-color 0.2s',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(184,239,11,0.2)'}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'}
-                >
-                  {/* Client */}
-                  <div style={{ minWidth: 180, flex: '1 1 180px' }}>
-                    <div style={{ fontWeight: 600, color: '#fff', fontSize: 15 }}>
-                      {c?.first_name} {c?.last_name}
-                    </div>
-                    <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, marginTop: 2 }}>
-                      {c?.email}
-                    </div>
-                  </div>
-
-                  {/* Événement */}
-                  <div style={{ flex: '1 1 160px' }}>
-                    <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: 14 }}>{ev.event_type || '—'}</div>
-                    <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, marginTop: 2 }}>
-                      {fmtDate(ev.event_date)}{ev.venue_city ? ` · ${ev.venue_city}` : ''}
-                      {ev.guests ? ` · ${ev.guests} pers.` : ''}
-                    </div>
-                  </div>
-
-                  {/* Statut */}
-                  <div style={{ flexShrink: 0 }}>
-                    <StatusBadge status={ev.status} />
-                  </div>
-
-                  {/* Date de soumission */}
-                  <div style={{ color: 'rgba(255,255,255,0.25)', fontSize: 11, flexShrink: 0 }}>
-                    {new Date(ev.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
-                  </div>
-
-                  <div style={{ color: 'rgba(255,255,255,0.2)', fontSize: 16, flexShrink: 0 }}>→</div>
-                </div>
-              );
-            })}
+            background: '#060e16', borderRadius: 14, padding: '22px 24px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.07)', flex: '1 1 180px',
+          }}>
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', margin: '0 0 10px' }}>Prochain événement</p>
+            <p style={{ fontSize: 28, fontWeight: 800, color: '#b8ef0b', margin: '0 0 4px', fontFamily: 'var(--font-display), sans-serif', lineHeight: 1 }}>{countdown}</p>
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', margin: 0 }}>
+              {ne.clients?.first_name} · {ne.event_type} · {nextDateStr}
+            </p>
           </div>
+        ) : (
+          <StatCard label="Prochain événement" value="—" sub="Aucun à venir" />
         )}
+      </div>
+
+      {/* Graphiques */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20, marginBottom: 28 }}>
+        <div style={{ background: '#fff', borderRadius: 14, padding: '24px 28px', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' }}>
+          <h2 style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: '0 0 20px', fontFamily: 'var(--font-display), sans-serif' }}>
+            Devis par mois
+          </h2>
+          <BarChart data={stats.byMonth} />
+        </div>
+        <div style={{ background: '#fff', borderRadius: 14, padding: '24px 28px', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' }}>
+          <h2 style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: '0 0 20px', fontFamily: 'var(--font-display), sans-serif' }}>
+            Répartition par statut
+          </h2>
+          <StatusBreakdown byStatus={stats.byStatus} total={stats.total} />
+        </div>
+      </div>
+
+      {/* Activité récente */}
+      <div style={{ background: '#fff', borderRadius: 14, padding: '24px 28px', boxShadow: '0 1px 3px rgba(0,0,0,0.07)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <h2 style={{ fontSize: 15, fontWeight: 700, color: '#111827', margin: 0, fontFamily: 'var(--font-display), sans-serif' }}>
+            Activité récente
+          </h2>
+          <a href="/admin/devis" style={{ fontSize: 13, color: '#b8ef0b', textDecoration: 'none', fontWeight: 600 }}>Voir tout →</a>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+          {stats.recentEvents.map((ev, i) => {
+            const st = STATUS[ev.status] || STATUS.devis_envoye;
+            return (
+              <div
+                key={ev.id}
+                onClick={() => router.push(`/admin/devis/${ev.id}`)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 16, padding: '13px 0', cursor: 'pointer',
+                  borderBottom: i < stats.recentEvents.length - 1 ? '1px solid #f3f4f6' : 'none',
+                  transition: 'background 0.15s',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = '#fafafa'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                {/* Avatar initiales */}
+                <div style={{
+                  width: 38, height: 38, borderRadius: '50%',
+                  background: `${st.color}18`, color: st.color,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 13, fontWeight: 700, flexShrink: 0,
+                }}>
+                  {ev.clients?.first_name?.[0]}{ev.clients?.last_name?.[0]}
+                </div>
+                {/* Infos */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: '#111827', margin: '0 0 2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {ev.clients?.first_name} {ev.clients?.last_name}
+                  </p>
+                  <p style={{ fontSize: 12, color: '#9ca3af', margin: 0 }}>
+                    {ev.event_type || '—'} · {fmtDate(ev.event_date)}
+                  </p>
+                </div>
+                {/* Statut */}
+                <span style={{
+                  background: `${st.color}15`, color: st.color,
+                  border: `1px solid ${st.color}30`,
+                  borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 600,
+                  whiteSpace: 'nowrap', flexShrink: 0,
+                }}>{st.label}</span>
+                <span style={{ color: '#d1d5db', fontSize: 14 }}>›</span>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

@@ -43,6 +43,8 @@ function CallbackHandler() {
       }).then(({ error }) => {
         if (error) {
           router.replace('/mon-espace/connexion?error=lien_invalide');
+        } else if (hashParams.get('type') === 'recovery') {
+          router.replace('/mon-espace/nouveau-mot-de-passe');
         } else {
           router.replace('/mon-espace');
         }
@@ -60,6 +62,8 @@ function CallbackHandler() {
     supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
       if (error) {
         router.replace('/mon-espace/connexion?error=lien_invalide');
+      } else if (params.get('type') === 'recovery') {
+        router.replace('/mon-espace/nouveau-mot-de-passe');
       } else {
         router.replace('/mon-espace');
       }

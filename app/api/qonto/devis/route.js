@@ -8,14 +8,15 @@ async function sendInviteEmail(toEmail, firstName, inviteLink) {
 <!DOCTYPE html><html lang="fr"><body style="margin:0;padding:0;background:#060e16;font-family:sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:40px 20px;">
 <table width="560" cellpadding="0" cellspacing="0" style="background:#0d1b2a;border-radius:12px;overflow:hidden;">
-  <tr><td style="padding:32px 40px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.07);">
-    <img src="https://myracoustic.com/logo.png" alt="Myracoustic" height="44" style="height:44px;" />
+  <tr><td style="padding:32px 40px 24px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.07);">
+    <img src="https://myracoustic.com/logo.png" alt="Myracoustic" height="44" style="height:44px;display:block;margin:0 auto 10px;" />
+    <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.25);letter-spacing:0.5px;font-style:italic;">De la vibration sonore à la magie lumineuse</p>
   </td></tr>
   <tr><td style="padding:40px 40px 32px;">
     <p style="color:rgba(255,255,255,0.6);font-size:15px;margin:0 0 24px;">Bonjour ${firstName},</p>
     <p style="color:rgba(255,255,255,0.85);font-size:15px;line-height:1.7;margin:0 0 16px;">
       Votre devis a été envoyé ! Nous avons créé votre <strong style="color:#b8ef0b;">espace personnel</strong>
-      pour suivre et gérer votre événement : statut du devis, programme, liste de musiques et bien plus à venir.
+      pour suivre et gérer votre événement, et bien plus encore.
     </p>
     <p style="color:rgba(255,255,255,0.85);font-size:15px;line-height:1.7;margin:0 0 32px;">
       Cliquez sur le bouton ci-dessous pour accéder à votre espace et définir votre mot de passe.
@@ -29,8 +30,10 @@ async function sendInviteEmail(toEmail, firstName, inviteLink) {
     </table>
     <p style="color:rgba(255,255,255,0.35);font-size:12px;margin:0;">Ce lien est valable 24 h. Si vous ne souhaitez pas créer de compte, ignorez cet email.</p>
   </td></tr>
-  <tr><td style="padding:20px 40px;border-top:1px solid rgba(255,255,255,0.07);text-align:center;">
-    <p style="color:rgba(255,255,255,0.25);font-size:12px;margin:0;">Myracoustic — Son, Lumière, Vidéo &amp; DJ · <a href="https://myracoustic.com" style="color:rgba(255,255,255,0.25);">myracoustic.com</a></p>
+  <tr><td style="padding:24px 40px;border-top:1px solid rgba(255,255,255,0.07);text-align:center;">
+    <p style="color:rgba(255,255,255,0.35);font-size:13px;font-weight:600;margin:0 0 6px;">Myracoustic — Son, Lumière, Vidéo &amp; DJ</p>
+    <p style="color:rgba(255,255,255,0.2);font-size:11px;margin:0 0 4px;line-height:1.7;">07 68 53 33 08 · <a href="mailto:contact@myracoustic.com" style="color:rgba(255,255,255,0.2);text-decoration:none;">contact@myracoustic.com</a> · <a href="https://myracoustic.com" style="color:rgba(255,255,255,0.2);text-decoration:none;">myracoustic.com</a></p>
+    <p style="color:rgba(255,255,255,0.12);font-size:10px;margin:0;line-height:1.7;">SASU au capital de 1 000 € · RCS Nantes 999 827 579 · 4 bis la haute cosnière, 44390 Nort-sur-Erdre</p>
   </td></tr>
 </table></td></tr></table>
 </body></html>`;

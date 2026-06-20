@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Confirmez votre adresse email — Myracoustic</title>
+</head>
+<body style="margin:0;padding:0;background:#060e16;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#060e16;">
+    <tr>
+      <td align="center" style="padding:48px 20px;">
+
+        <table width="560" cellpadding="0" cellspacing="0" border="0"
+          style="background:#0d1b2a;border-radius:14px;overflow:hidden;max-width:560px;width:100%;">
+
+          <!-- Header logo -->
+          <tr>
+            <td align="center" style="padding:36px 40px 24px;border-bottom:1px solid rgba(255,255,255,0.07);">
+              <img src="https://myracoustic.com/logo.png" alt="Myracoustic" height="40"
+                style="height:40px;display:block;margin:0 auto 10px;" />
+              <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.25);letter-spacing:0.5px;font-style:italic;">
+                De la vibration sonore à la magie lumineuse
+              </p>
+            </td>
+          </tr>
+
+          <!-- Bande accent lime -->
+          <tr>
+            <td style="height:3px;background:linear-gradient(90deg,#b8ef0b 0%,#6ee7b7 100%);"></td>
+          </tr>
+
+          <!-- Corps -->
+          <tr>
+            <td style="padding:40px 40px 32px;">
+
+              <h1 style="margin:0 0 12px;font-size:22px;font-weight:700;color:#ffffff;letter-spacing:-0.3px;">
+                Confirmez votre adresse email
+              </h1>
+
+              <p style="margin:0 0 10px;font-size:15px;line-height:1.7;color:rgba(255,255,255,0.65);">
+                Bonjour,
+              </p>
+              <p style="margin:0 0 32px;font-size:15px;line-height:1.7;color:rgba(255,255,255,0.65);">
+                Votre compte Myracoustic a bien été créé. Cliquez sur le bouton ci-dessous
+                pour confirmer votre adresse email et accéder à votre espace personnel.
+              </p>
+
+              <!-- CTA -->
+              <table cellpadding="0" cellspacing="0" border="0" style="margin-bottom:32px;">
+                <tr>
+                  <td style="background:#b8ef0b;border-radius:8px;">
+                    <a href="{{ .ConfirmationURL }}"
+                      style="display:inline-block;padding:14px 36px;color:#060e16;font-size:15px;font-weight:700;text-decoration:none;letter-spacing:0.2px;">
+                      Confirmer mon adresse email →
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Lien texte de secours -->
+              <p style="margin:0 0 8px;font-size:12px;color:rgba(255,255,255,0.3);">
+                Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :
+              </p>
+              <p style="margin:0 0 24px;font-size:11px;word-break:break-all;">
+                <a href="{{ .ConfirmationURL }}" style="color:rgba(184,239,11,0.5);text-decoration:none;">
+                  {{ .ConfirmationURL }}
+                </a>
+              </p>
+
+              <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.25);line-height:1.6;">
+                Ce lien est valable <strong style="color:rgba(255,255,255,0.4);">24 heures</strong>.
+                Si vous n'avez pas créé de compte, ignorez cet email.
+              </p>
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:24px 40px;border-top:1px solid rgba(255,255,255,0.06);text-align:center;">
+              <p style="margin:0 0 6px;font-size:13px;font-weight:600;color:rgba(255,255,255,0.35);">
+                Myracoustic — Son, Lumière, Vidéo &amp; DJ
+              </p>
+              <p style="margin:0 0 4px;font-size:11px;color:rgba(255,255,255,0.2);line-height:1.7;">
+                07 68 53 33 08 ·
+                <a href="mailto:contact@myracoustic.com" style="color:rgba(255,255,255,0.2);text-decoration:none;">contact@myracoustic.com</a> ·
+                <a href="https://myracoustic.com" style="color:rgba(255,255,255,0.2);text-decoration:none;">myracoustic.com</a>
+              </p>
+              <p style="margin:0;font-size:10px;color:rgba(255,255,255,0.12);line-height:1.7;">
+                SASU au capital de 1 000 € · RCS Nantes 999 827 579 · 4 bis la haute cosnière, 44390 Nort-sur-Erdre
+              </p>
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>

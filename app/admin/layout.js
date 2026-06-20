@@ -53,10 +53,10 @@ export default function AdminLayout({ children }) {
         position: 'fixed', top: 0, left: 0, bottom: 0, zIndex: 50, overflowY: 'auto',
       }}>
         {/* Logo */}
-        <div style={{ padding: '24px 20px 12px' }}>
+        <div style={{ padding: '24px 20px 12px', display: 'flex', justifyContent: 'center' }}>
           <a href="/"><Image src="/logo.png" alt="Myracoustic" width={140} height={48} style={{ height: 48, width: 'auto' }} /></a>
         </div>
-        <div style={{ padding: '0 20px 20px' }}>
+        <div style={{ padding: '0 20px 20px', display: 'flex', justifyContent: 'center' }}>
           <span style={{
             background: 'rgba(184,239,11,0.1)', color: '#b8ef0b',
             border: '1px solid rgba(184,239,11,0.18)', borderRadius: 5,

@@ -254,7 +254,7 @@ function EventCard({ ev, token }) {
       {active && (
         <>
           <ChecklistSection ev={ev} token={token} />
-          <PlaylistSection eventId={ev.id} token={token} />
+          {token && <PlaylistSection eventId={ev.id} token={token} />}
           {ev.qonto_quote_url && (
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',

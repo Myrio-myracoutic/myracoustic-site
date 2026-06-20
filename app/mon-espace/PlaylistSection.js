@@ -296,6 +296,7 @@ export default function PlaylistSection({ eventId, token }) {
   const [loading, setLoading]     = useState(true);
 
   const load = useCallback(async () => {
+    setLoading(true);
     const res  = await fetch(`/api/mon-espace/playlists/${eventId}`, {
       headers: { 'Authorization': `Bearer ${token}` },
     });

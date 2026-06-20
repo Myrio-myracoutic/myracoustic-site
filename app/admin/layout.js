@@ -2,14 +2,15 @@
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { LayoutDashboard, FileText, Users, LogOut } from 'lucide-react';
 
 const NAV = [
-  { href: '/admin',         icon: '▣',  label: "Vue d'ensemble", exact: true },
-  { href: '/admin/devis',   icon: '📋', label: 'Devis' },
-  { href: '/admin/clients', icon: '👤', label: 'Clients' },
+  { href: '/admin',         icon: LayoutDashboard, label: "Vue d'ensemble", exact: true },
+  { href: '/admin/devis',   icon: FileText,         label: 'Devis' },
+  { href: '/admin/clients', icon: Users,            label: 'Clients' },
 ];
 
-function NavItem({ href, icon, label, exact }) {
+function NavItem({ href, icon: Icon, label, exact }) {
   const pathname = usePathname();
   const active = exact ? pathname === href : pathname.startsWith(href);
   return (
@@ -25,7 +26,7 @@ function NavItem({ href, icon, label, exact }) {
     onMouseEnter={e => { if (!active) e.currentTarget.style.color = 'rgba(255,255,255,0.8)'; }}
     onMouseLeave={e => { if (!active) e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; }}
     >
-      <span style={{ fontSize: 15, width: 20, textAlign: 'center' }}>{icon}</span>
+      <Icon size={17} strokeWidth={active ? 2.2 : 1.8} />
       {label}
     </Link>
   );
@@ -78,7 +79,7 @@ export default function AdminLayout({ children }) {
             fontSize: 13, cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
             display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.15s',
           }}>
-            ⎋ Déconnexion
+            <LogOut size={15} strokeWidth={1.8} /> Déconnexion
           </button>
         </div>
       </aside>

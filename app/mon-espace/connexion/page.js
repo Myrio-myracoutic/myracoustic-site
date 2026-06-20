@@ -159,7 +159,7 @@ function ConnexionForm() {
       padding: '40px 24px',
     }}>
       <a href="/" style={{ marginBottom: 48 }}>
-        <Image src="/logo.png" alt="Myracoustic" width={140} height={48} style={{ height: 40, width: 'auto' }} />
+        <Image src="/logo.png" alt="Myracoustic" width={180} height={60} style={{ height: 60, width: 'auto' }} />
       </a>
 
       <div style={{

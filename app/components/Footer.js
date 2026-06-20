@@ -46,7 +46,7 @@ export default function Footer() {
         }}>
           {/* Colonne marque */}
           <div>
-            <Image src="/logo.png" alt="Myracoustic" width={160} height={44} style={{ height: 44, width: 'auto', marginBottom: 16 }} />
+            <Image src="/logo.png" alt="Myracoustic" width={180} height={60} style={{ height: 60, width: 'auto', marginBottom: 16 }} />
             <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, lineHeight: 1.8, maxWidth: 240 }}>
               Prestataire événementiel premium. Son, lumière, vidéo et DJ pour mariages et événements professionnels.
               Basé à Nort-sur-Erdre, intervient sur Nantes, Angers, Rennes, Saint-Nazaire et toute la région Pays de la Loire.

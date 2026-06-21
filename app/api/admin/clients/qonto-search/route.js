@@ -107,5 +107,6 @@ export async function GET(request) {
     clientName: client.name || `${client.first_name || ''} ${client.last_name || ''}`.trim(),
     firstName: client.first_name || '',
     lastName: client.last_name || client.name || '',
+    phone: client.phone ? `+${client.phone.country_code?.replace('+', '')}${client.phone.number}` : '',
   });
 }

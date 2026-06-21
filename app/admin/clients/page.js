@@ -38,6 +38,7 @@ function CreateAccountModal({ onClose, onCreated }) {
     // Pré-remplir prénom/nom si trouvés et champs encore vides
     if (data.firstName && !firstName) setFirstName(data.firstName);
     if (data.lastName  && !lastName)  setLastName(data.lastName);
+    if (data.phone     && !phone)     setPhone(data.phone);
     setSearching(false);
   };
 

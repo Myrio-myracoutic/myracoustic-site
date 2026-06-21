@@ -23,7 +23,7 @@ export async function GET(req, { params }) {
 
   const { data: playlists } = await supabaseAdmin
     .from('playlists')
-    .select('name, position, playlist_tracks(title, artist, note, position, tidal_id)')
+    .select('name, position, playlist_tracks(title, artist, album, note, position)')
     .eq('event_id', eventId)
     .order('position')
     .order('position', { referencedTable: 'playlist_tracks' });
@@ -51,14 +51,9 @@ export async function GET(req, { params }) {
       lines.push('# (aucun morceau)');
     } else {
       for (const t of tracks) {
-        const duration = -1;
-        lines.push(`#EXTINF:${duration},${t.artist} - ${t.title}`);
-        if (t.note) lines.push(`# Note : ${t.note}`);
-        if (t.tidal_id) {
-          lines.push(`tidal://track/${t.tidal_id}`);
-        } else {
-          lines.push(`# À rechercher manuellement dans Tidal : ${t.artist} - ${t.title}`);
-        }
+        lines.push(`#EXTINF:-1,${t.artist} - ${t.title}`);
+        if (t.album) lines.push(`# Album : ${t.album}`);
+        if (t.note)  lines.push(`# Note : ${t.note}`);
       }
     }
     lines.push('');

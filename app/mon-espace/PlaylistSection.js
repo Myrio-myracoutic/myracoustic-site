@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { Music2, Search, Plus, X, ChevronDown, ChevronUp, Loader2, Play, Pause } from 'lucide-react';
+import { Music2, Search, Plus, X, ChevronDown, ChevronUp, Loader2, Play, Pause, Check, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { SkeletonPlaylist } from './SkeletonLoader';
 
 function fmtDuration(s) {
@@ -296,8 +296,117 @@ function SearchBar({ playlistId, token, onAdded }) {
   );
 }
 
+function SuggestionsTab({ playlistId, token, onRefresh }) {
+  const [suggestions, setSuggestions] = useState([]);
+  const [loading, setLoading]         = useState(true);
+  const [acting, setActing]           = useState(null);
+
+  const load = useCallback(async () => {
+    const res  = await fetch(`/api/mon-espace/suggestions/${playlistId}`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    const data = await res.json();
+    setSuggestions(data.suggestions || []);
+    setLoading(false);
+  }, [playlistId, token]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const act = async (suggestionId, action) => {
+    setActing(suggestionId + action);
+    await fetch(`/api/mon-espace/suggestions/approve/${suggestionId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ action }),
+    });
+    await load();
+    onRefresh();
+    setActing(null);
+  };
+
+  const approveAll = async () => {
+    setActing('all');
+    await fetch(`/api/mon-espace/suggestions/${playlistId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ action: 'approve-all' }),
+    });
+    await load();
+    onRefresh();
+    setActing(null);
+  };
+
+  if (loading) return <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 13, margin: '12px 0' }}>Chargement…</p>;
+
+  const pending  = suggestions.filter(s => s.status === 'pending');
+  const approved = suggestions.filter(s => s.status === 'approved');
+  const rejected = suggestions.filter(s => s.status === 'rejected');
+
+  if (suggestions.length === 0) {
+    return <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 13, fontStyle: 'italic', margin: '12px 0' }}>Aucune proposition pour cette playlist.</p>;
+  }
+
+  return (
+    <div>
+      {pending.length > 0 && (
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              À valider ({pending.length})
+            </span>
+            <button onClick={approveAll} disabled={acting === 'all'} style={{
+              background: 'rgba(184,239,11,0.08)', border: '1px solid rgba(184,239,11,0.2)',
+              borderRadius: 6, padding: '4px 12px', cursor: 'pointer',
+              color: '#b8ef0b', fontSize: 11, fontWeight: 700,
+              fontFamily: 'var(--font-display), sans-serif',
+            }}>
+              <Check size={11} style={{ marginRight: 4, display: 'inline' }} />
+              Tout valider
+            </button>
+          </div>
+          {pending.map(s => (
+            <div key={s.id} style={{
+              display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0',
+              borderBottom: '1px solid rgba(255,255,255,0.04)',
+            }}>
+              {s.cover_url && <img src={s.cover_url} alt="" width={30} height={30} style={{ borderRadius: 6, flexShrink: 0 }} />}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.title}</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>
+                  {s.artist}{s.event_guests?.first_name ? ` · par ${s.event_guests.first_name}` : ''}
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                <button onClick={() => act(s.id, 'approve')} disabled={!!acting} style={{
+                  background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)',
+                  borderRadius: 6, padding: '5px 10px', cursor: 'pointer', color: '#22c55e',
+                }}>
+                  {acting === s.id + 'approve' ? <Loader2 size={12} style={{ animation: 'spin 0.8s linear infinite' }} /> : <ThumbsUp size={12} />}
+                </button>
+                <button onClick={() => act(s.id, 'reject')} disabled={!!acting} style={{
+                  background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)',
+                  borderRadius: 6, padding: '5px 10px', cursor: 'pointer', color: '#ef4444',
+                }}>
+                  {acting === s.id + 'reject' ? <Loader2 size={12} style={{ animation: 'spin 0.8s linear infinite' }} /> : <ThumbsDown size={12} />}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {approved.length > 0 && (
+        <p style={{ fontSize: 11, color: '#22c55e', margin: '6px 0 0' }}>{approved.length} chanson{approved.length > 1 ? 's' : ''} validée{approved.length > 1 ? 's' : ''}</p>
+      )}
+      {rejected.length > 0 && (
+        <p style={{ fontSize: 11, color: 'rgba(239,68,68,0.5)', margin: '4px 0 0' }}>{rejected.length} refusée{rejected.length > 1 ? 's' : ''}</p>
+      )}
+    </div>
+  );
+}
+
 function PlaylistCard({ playlist, token, onRefresh }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen]       = useState(false);
+  const [activeTab, setActiveTab] = useState('playlist');
 
   const deleteTrack = async (trackId) => {
     await fetch(`/api/mon-espace/playlists/tracks/${trackId}`, {
@@ -342,15 +451,39 @@ function PlaylistCard({ playlist, token, onRefresh }) {
 
       {open && (
         <div style={{ padding: '0 18px 18px' }}>
-          {tracks.length === 0 && (
-            <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: 13, margin: '0 0 12px', fontStyle: 'italic' }}>
-              Aucun titre pour l'instant — utilisez la recherche ci-dessous.
-            </p>
+          {/* Onglets */}
+          <div style={{ display: 'flex', gap: 4, marginBottom: 14, borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 0 }}>
+            {['playlist', 'propositions'].map(tab => (
+              <button key={tab} onClick={() => setActiveTab(tab)} style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                padding: '6px 14px', fontSize: 12, fontWeight: activeTab === tab ? 700 : 400,
+                color: activeTab === tab ? '#b8ef0b' : 'rgba(255,255,255,0.3)',
+                borderBottom: activeTab === tab ? '2px solid #b8ef0b' : '2px solid transparent',
+                fontFamily: 'var(--font-display), sans-serif',
+                textTransform: 'capitalize',
+              }}>
+                {tab === 'playlist' ? 'Playlist' : 'Propositions invités'}
+              </button>
+            ))}
+          </div>
+
+          {activeTab === 'playlist' && (
+            <>
+              {tracks.length === 0 && (
+                <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: 13, margin: '0 0 12px', fontStyle: 'italic' }}>
+                  Aucun titre pour l'instant — utilisez la recherche ci-dessous.
+                </p>
+              )}
+              {tracks.map(track => (
+                <TrackRow key={track.id} track={track} token={token} onDelete={deleteTrack} />
+              ))}
+              <SearchBar playlistId={playlist.id} token={token} onAdded={onRefresh} />
+            </>
           )}
-          {tracks.map(track => (
-            <TrackRow key={track.id} track={track} token={token} onDelete={deleteTrack} />
-          ))}
-          <SearchBar playlistId={playlist.id} token={token} onAdded={onRefresh} />
+
+          {activeTab === 'propositions' && (
+            <SuggestionsTab playlistId={playlist.id} token={token} onRefresh={onRefresh} />
+          )}
         </div>
       )}
     </div>

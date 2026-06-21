@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { supabase } from '@/app/lib/supabase';
 import {
   ClipboardList, Calendar, Music2, CheckSquare,
-  Phone, Camera, LogOut, ChevronDown,
+  Phone, Camera, LogOut, ChevronDown, Users, Heart,
 } from 'lucide-react';
 
 import SuiviSection      from './SuiviSection';
@@ -14,6 +14,8 @@ import PlaylistSection   from './PlaylistSection';
 import PreparationSection from './PreparationSection';
 import ContactSection, { FloatingContact } from './ContactSection';
 import GalerieSection from './GalerieSection';
+import InvitesSection from './InvitesSection';
+import FairepartSection from './FairepartSection';
 
 const STATUS_LABELS = {
   devis_envoye: { label: 'Devis envoyé',          color: '#f59e0b' },
@@ -41,6 +43,8 @@ function getSections(ev) {
     { id: 'suivi',       label: 'Suivi projet',  shortLabel: 'Suivi',    icon: ClipboardList,  locked: false },
     { id: 'programme',   label: 'Programme',     shortLabel: 'Prog.',    icon: Calendar,       locked: !active },
     { id: 'playlist',    label: 'Playlist',      shortLabel: 'Playlist', icon: Music2,         locked: !active },
+    { id: 'invites',     label: 'Invités',       shortLabel: 'Invités',  icon: Users,          locked: !active },
+    { id: 'fairepart',   label: 'Faire-part',    shortLabel: 'F.-part',  icon: Heart,          locked: !active },
     { id: 'preparation', label: 'Préparation',   shortLabel: 'Prép.',    icon: CheckSquare,    locked: !active },
     { id: 'contact',     label: 'Contact',       shortLabel: 'Contact',  icon: Phone,          locked: false },
     { id: 'galerie',     label: 'Galerie',       shortLabel: 'Photos',   icon: Camera,         locked: !termine },
@@ -211,6 +215,8 @@ function SectionTitle({ section }) {
     suivi:       'Suivi de votre événement',
     programme:   'Programme de votre événement',
     playlist:    'Vos playlists musicales',
+    invites:     'Vos invités',
+    fairepart:   'Faire-part en ligne',
     preparation: 'Checklist de préparation',
     documents:   'Vos documents',
     contact:     'Nous contacter',
@@ -341,6 +347,8 @@ export default function MonEspacePage() {
       case 'suivi':       return <SuiviSection ev={ev} />;
       case 'programme':   return <ProgrammeSection ev={ev} token={token} client={client} />;
       case 'playlist':    return <PlaylistSection eventId={ev.id} token={token} />;
+      case 'invites':     return <InvitesSection ev={ev} token={token} />;
+      case 'fairepart':   return <FairepartSection ev={ev} token={token} />;
       case 'preparation': return <PreparationSection ev={ev} token={token} />;
       case 'contact':     return <ContactSection />;
       case 'galerie':     return <GalerieSection ev={ev} />;

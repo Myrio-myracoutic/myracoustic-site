@@ -1,0 +1,333 @@
+'use client';
+import { useEffect, useState, useCallback } from 'react';
+import { Users, Plus, X, Mail, Trash2, RefreshCw, Check, ChevronDown, ChevronUp } from 'lucide-react';
+
+function fmtDate(d) {
+  if (!d) return null;
+  return new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+}
+
+function RSVPBadge({ attending, responded_at }) {
+  if (attending === null || attending === undefined) {
+    return <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontStyle: 'italic' }}>En attente</span>;
+  }
+  return (
+    <span style={{
+      fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10,
+      background: attending ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)',
+      color: attending ? '#22c55e' : '#ef4444',
+    }}>
+      {attending ? 'Présent(e)' : 'Absent(e)'}
+      {responded_at && <span style={{ fontWeight: 400, marginLeft: 4 }}>· {fmtDate(responded_at)}</span>}
+    </span>
+  );
+}
+
+function GuestRow({ guest, playlists, token, onDelete, onReinvite, onUpdate }) {
+  const [expanded, setExpanded] = useState(false);
+  const [maxSongs, setMaxSongs] = useState(guest.max_songs);
+  const [savingMax, setSavingMax] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [reinviting, setReinviting] = useState(false);
+
+  const handleMaxSongs = async (val) => {
+    const n = parseInt(val);
+    if (isNaN(n) || n < 1) return;
+    setMaxSongs(n);
+    setSavingMax(true);
+    await fetch(`/api/mon-espace/guests/${guest.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ maxSongs: n }),
+    });
+    setSavingMax(false);
+  };
+
+  const handleDelete = async () => {
+    if (!confirm(`Supprimer l'invitation de ${guest.first_name} ?`)) return;
+    setDeleting(true);
+    await fetch(`/api/mon-espace/guests/${guest.id}`, {
+      method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` },
+    });
+    onDelete(guest.id);
+  };
+
+  const handleReinvite = async () => {
+    setReinviting(true);
+    await onReinvite(guest);
+    setReinviting(false);
+  };
+
+  const guestPlaylists = playlists.filter(p => guest.playlist_ids?.includes(p.id));
+
+  return (
+    <div style={{
+      background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
+      borderRadius: 10, marginBottom: 8, overflow: 'hidden',
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px' }}>
+        <div style={{
+          width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
+          background: 'rgba(184,239,11,0.1)', color: '#b8ef0b',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 13, fontWeight: 700,
+        }}>{guest.first_name[0]}</div>
+
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>{guest.first_name}</div>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{guest.email}</div>
+        </div>
+
+        <RSVPBadge attending={guest.attending} responded_at={guest.responded_at} />
+
+        {guest.attending && (
+          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
+            {guest.adults_count > 0 && `${guest.adults_count} adulte${guest.adults_count > 1 ? 's' : ''}`}
+            {guest.children_count > 0 && ` · ${guest.children_count} enfant${guest.children_count > 1 ? 's' : ''}`}
+          </span>
+        )}
+
+        <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+          {guest.suggestions?.pending > 0 && (
+            <span style={{
+              fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10,
+              background: 'rgba(245,158,11,0.15)', color: '#f59e0b',
+            }}>{guest.suggestions.pending} prop.</span>
+          )}
+          <button onClick={handleReinvite} disabled={reinviting} title="Ré-envoyer l'invitation"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', padding: 4 }}>
+            <RefreshCw size={14} style={reinviting ? { animation: 'spin 0.8s linear infinite' } : {}} />
+          </button>
+          <button onClick={handleDelete} disabled={deleting}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', padding: 4 }}
+            onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
+            onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.2)'}>
+            <Trash2 size={14} />
+          </button>
+          <button onClick={() => setExpanded(v => !v)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', padding: 4 }}>
+            {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          </button>
+        </div>
+      </div>
+
+      {expanded && (
+        <div style={{ padding: '0 16px 14px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+          <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>Playlists :</span>
+            {guestPlaylists.length
+              ? guestPlaylists.map(p => (
+                  <span key={p.id} style={{
+                    fontSize: 12, padding: '2px 10px', borderRadius: 10,
+                    background: 'rgba(184,239,11,0.08)', color: '#b8ef0b', border: '1px solid rgba(184,239,11,0.2)',
+                  }}>{p.name}</span>
+                ))
+              : <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)', fontStyle: 'italic' }}>Aucune</span>
+            }
+          </div>
+          <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>Limite de chansons par playlist :</span>
+            <input
+              type="number" min={1} max={50} value={maxSongs}
+              onChange={e => handleMaxSongs(e.target.value)}
+              style={{
+                width: 60, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
+                borderRadius: 6, padding: '4px 8px', color: '#fff', fontSize: 13, textAlign: 'center',
+              }}
+            />
+            {savingMax && <span style={{ fontSize: 11, color: '#b8ef0b' }}>✓</span>}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function InviteForm({ playlists, token, eventId, onInvited }) {
+  const [open, setOpen]           = useState(false);
+  const [email, setEmail]         = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [selected, setSelected]   = useState([]);
+  const [maxSongs, setMaxSongs]   = useState(10);
+  const [sending, setSending]     = useState(false);
+  const [error, setError]         = useState('');
+
+  const toggle = (id) => setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
+
+  const send = async () => {
+    if (!email || !firstName) { setError('Email et prénom sont requis.'); return; }
+    setSending(true); setError('');
+    const res = await fetch('/api/mon-espace/guests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ eventId, email, firstName, playlistIds: selected, maxSongs }),
+    });
+    const data = await res.json();
+    setSending(false);
+    if (!res.ok) { setError(data.error || 'Erreur'); return; }
+    setOpen(false); setEmail(''); setFirstName(''); setSelected([]);
+    onInvited();
+  };
+
+  if (!open) return (
+    <button onClick={() => setOpen(true)} style={{
+      display: 'flex', alignItems: 'center', gap: 8,
+      background: 'rgba(184,239,11,0.08)', border: '1px dashed rgba(184,239,11,0.3)',
+      borderRadius: 10, padding: '10px 18px', cursor: 'pointer',
+      color: '#b8ef0b', fontSize: 13, fontWeight: 600,
+      fontFamily: 'var(--font-display), sans-serif', width: '100%', marginTop: 12,
+    }}>
+      <Plus size={15} /> Inviter quelqu'un
+    </button>
+  );
+
+  return (
+    <div style={{
+      background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(184,239,11,0.2)',
+      borderRadius: 10, padding: '16px', marginTop: 12,
+    }}>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+        <input type="text" value={firstName} onChange={e => setFirstName(e.target.value)}
+          placeholder="Prénom *"
+          style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 7, padding: '8px 12px', color: '#fff', fontSize: 13, fontFamily: 'inherit' }} />
+        <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+          placeholder="Email *"
+          style={{ flex: 2, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 7, padding: '8px 12px', color: '#fff', fontSize: 13, fontFamily: 'inherit' }} />
+      </div>
+
+      {playlists.length > 0 && (
+        <div style={{ marginBottom: 10 }}>
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', margin: '0 0 6px' }}>Playlists accessibles :</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {playlists.map(p => (
+              <button key={p.id} onClick={() => toggle(p.id)} style={{
+                fontSize: 12, padding: '4px 12px', borderRadius: 20, cursor: 'pointer', border: 'none',
+                background: selected.includes(p.id) ? 'rgba(184,239,11,0.15)' : 'rgba(255,255,255,0.05)',
+                color: selected.includes(p.id) ? '#b8ef0b' : 'rgba(255,255,255,0.4)',
+                outline: selected.includes(p.id) ? '1px solid rgba(184,239,11,0.3)' : '1px solid rgba(255,255,255,0.08)',
+              }}>{selected.includes(p.id) && '✓ '}{p.name}</button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>Limite de chansons par playlist :</span>
+        <input type="number" min={1} max={50} value={maxSongs} onChange={e => setMaxSongs(parseInt(e.target.value) || 10)}
+          style={{ width: 60, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, padding: '4px 8px', color: '#fff', fontSize: 13, textAlign: 'center' }} />
+      </div>
+
+      {error && <p style={{ color: '#ef4444', fontSize: 12, margin: '0 0 8px' }}>{error}</p>}
+
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button onClick={send} disabled={sending} style={{
+          background: '#b8ef0b', color: '#060e16', border: 'none', borderRadius: 8,
+          padding: '8px 18px', cursor: 'pointer', fontWeight: 700, fontSize: 13,
+          fontFamily: 'var(--font-display), sans-serif',
+          display: 'flex', alignItems: 'center', gap: 6,
+        }}>
+          <Mail size={14} /> {sending ? 'Envoi…' : 'Envoyer l\'invitation'}
+        </button>
+        <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', padding: '8px 10px' }}>
+          <X size={16} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default function InvitesSection({ ev, token }) {
+  const [guests,    setGuests]    = useState([]);
+  const [playlists, setPlaylists] = useState([]);
+  const [loading,   setLoading]   = useState(true);
+
+  const load = useCallback(async () => {
+    const [guestsRes, playlistsRes] = await Promise.all([
+      fetch(`/api/mon-espace/guests?eventId=${ev.id}`, { headers: { 'Authorization': `Bearer ${token}` } }),
+      fetch(`/api/mon-espace/playlists/${ev.id}`,      { headers: { 'Authorization': `Bearer ${token}` } }),
+    ]);
+    const guestsData    = await guestsRes.json();
+    const playlistsData = await playlistsRes.json();
+    setGuests(guestsData.guests || []);
+    setPlaylists(playlistsData.playlists || []);
+    setLoading(false);
+  }, [ev.id, token]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const handleReinvite = async (guest) => {
+    await fetch('/api/mon-espace/guests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({
+        eventId: ev.id, email: guest.email, firstName: guest.first_name,
+        playlistIds: guest.playlist_ids, maxSongs: guest.max_songs, reinvite: true,
+      }),
+    });
+  };
+
+  // Statistiques RSVP
+  const responded  = guests.filter(g => g.attending !== null && g.attending !== undefined);
+  const present    = guests.filter(g => g.attending === true);
+  const totalAdults   = present.reduce((s, g) => s + (g.adults_count || 1), 0);
+  const totalChildren = present.reduce((s, g) => s + (g.children_count || 0), 0);
+  const pendingSuggestions = guests.reduce((s, g) => s + (g.suggestions?.pending || 0), 0);
+
+  return (
+    <div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+
+      {/* Stats */}
+      {guests.length > 0 && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: 10, marginBottom: 16 }}>
+          {[
+            { label: 'Invités', value: guests.length, color: 'rgba(255,255,255,0.6)' },
+            { label: 'Ont répondu', value: `${responded.length}/${guests.length}`, color: '#b8ef0b' },
+            { label: 'Présents', value: present.length, color: '#22c55e' },
+            { label: 'Adultes', value: totalAdults, color: 'rgba(255,255,255,0.5)' },
+            { label: 'Enfants', value: totalChildren, color: 'rgba(255,255,255,0.5)' },
+            ...(pendingSuggestions > 0 ? [{ label: 'Chansons à valider', value: pendingSuggestions, color: '#f59e0b' }] : []),
+          ].map(s => (
+            <div key={s.label} style={{
+              background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.07)',
+              borderRadius: 10, padding: '12px 16px', textAlign: 'center',
+            }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: s.color, fontFamily: 'var(--font-display), sans-serif' }}>{s.value}</div>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Liste */}
+      <div style={{
+        background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.07)',
+        borderRadius: 14, padding: '20px 20px',
+      }}>
+        <h3 style={{
+          fontFamily: 'var(--font-display), sans-serif', fontSize: 13, fontWeight: 700,
+          color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 16px',
+        }}>Liste des invités</h3>
+
+        {loading ? (
+          <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 13 }}>Chargement…</p>
+        ) : guests.length === 0 ? (
+          <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 13, fontStyle: 'italic' }}>
+            Aucun invité pour l'instant.
+          </p>
+        ) : (
+          guests.map(g => (
+            <GuestRow
+              key={g.id} guest={g} playlists={playlists} token={token}
+              onDelete={id => setGuests(prev => prev.filter(x => x.id !== id))}
+              onReinvite={handleReinvite}
+              onUpdate={updated => setGuests(prev => prev.map(x => x.id === updated.id ? updated : x))}
+            />
+          ))
+        )}
+
+        <InviteForm playlists={playlists} token={token} eventId={ev.id} onInvited={load} />
+      </div>
+    </div>
+  );
+}

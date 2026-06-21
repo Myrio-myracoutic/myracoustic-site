@@ -2,7 +2,7 @@ import { verifyAdminCookie } from '@/app/lib/admin-auth';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
 import {
   resolveTrackId, createTidalPlaylist, addTracksToTidalPlaylist,
-  deleteTidalPlaylist, tidalPlaylistUrl,
+  removeTracksFromTidalPlaylist, getPlaylistItems, tidalPlaylistUrl,
 } from '@/app/lib/tidal';
 
 /**
@@ -12,7 +12,8 @@ import {
  * - pour chaque titre, retrouve l'ID Tidal (par tidal_id déjà connu, sinon
  *   recherche « artiste titre » dans le catalogue Tidal v2)
  * - crée une playlist Tidal par playlist de l'événement, y ajoute les titres
- * - re-sync : supprime l'ancienne playlist Tidal et en recrée une
+ * - re-sync : réconcilie EN PLACE la playlist existante (ajoute les nouveaux
+ *   titres, retire ceux supprimés) — même playlist, pas de doublon
  * - stocke tidal_playlist_id (playlist) et tidal_id (tracks résolus)
  */
 export async function POST(req, { params }) {
@@ -48,7 +49,7 @@ export async function POST(req, { params }) {
 
     try {
       // 1) Résout chaque titre en ID Tidal (réutilise tidal_id si déjà connu)
-      const resolved = [];   // { trackId, tidalId }
+      const desired = [];   // IDs Tidal voulus, dans l'ordre
       let missing = 0;
       for (const t of tracks) {
         let tidalId = t.tidal_id;
@@ -56,8 +57,8 @@ export async function POST(req, { params }) {
           try { tidalId = await resolveTrackId(`${t.artist} ${t.title}`.trim()); } catch { tidalId = null; }
         }
         if (tidalId) {
-          resolved.push({ trackId: t.id, tidalId });
-          if (tidalId !== t.tidal_id) {
+          desired.push(String(tidalId));
+          if (String(tidalId) !== t.tidal_id) {
             await supabaseAdmin.from('playlist_tracks').update({ tidal_id: String(tidalId) }).eq('id', t.id);
           }
         } else {
@@ -65,23 +66,37 @@ export async function POST(req, { params }) {
         }
       }
 
-      // 2) (Re)crée la playlist Tidal
-      if (playlist.tidal_playlist_id) {
-        await deleteTidalPlaylist(playlist.tidal_playlist_id).catch(() => {});
+      // 2) Récupère (ou crée) la playlist Tidal
+      let tidalUuid = playlist.tidal_playlist_id;
+      let current = [];   // [{ tidalId, itemId }]
+      if (tidalUuid) {
+        try {
+          current = await getPlaylistItems(tidalUuid);
+        } catch {
+          // playlist disparue côté Tidal → on en recrée une
+          tidalUuid = null;
+        }
       }
-      const tidalUuid = await createTidalPlaylist(playlistName);
-
-      // 3) Ajoute les titres résolus, dans l'ordre
-      if (resolved.length) {
-        await addTracksToTidalPlaylist(tidalUuid, resolved.map(r => r.tidalId));
+      if (!tidalUuid) {
+        tidalUuid = await createTidalPlaylist(playlistName);
+        await supabaseAdmin.from('playlists').update({ tidal_playlist_id: tidalUuid }).eq('id', playlist.id);
       }
 
-      await supabaseAdmin.from('playlists').update({ tidal_playlist_id: tidalUuid }).eq('id', playlist.id);
+      // 3) Réconcilie en place : ajoute les nouveaux, retire les supprimés
+      const currentIds = new Set(current.map(c => c.tidalId));
+      const desiredSet = new Set(desired);
+      const toAdd      = desired.filter(id => !currentIds.has(id));
+      const toRemove   = current.filter(c => !desiredSet.has(c.tidalId));
+
+      if (toRemove.length) await removeTracksFromTidalPlaylist(tidalUuid, toRemove);
+      if (toAdd.length)    await addTracksToTidalPlaylist(tidalUuid, toAdd);
 
       results.push({
         playlist:      playlist.name,
         status:        'synced',
-        tracksAdded:   resolved.length,
+        total:         desired.length,
+        added:         toAdd.length,
+        removed:       toRemove.length,
         tracksMissing: missing,
         url:           tidalPlaylistUrl(tidalUuid),
       });

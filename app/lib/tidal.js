@@ -94,18 +94,58 @@ export async function createTidalPlaylist(name, description = '') {
 }
 
 /**
- * Ajoute des titres (IDs Tidal) à une playlist, dans l'ordre fourni.
+ * Lit les titres d'une playlist Tidal (suit la pagination).
+ * @returns {Array} [{ tidalId, itemId }] dans l'ordre de la playlist.
+ */
+export async function getPlaylistItems(playlistId) {
+  const headers = await authHeaders();
+  const items = [];
+  let url = `${V2}/playlists/${playlistId}/relationships/items?countryCode=${COUNTRY}`;
+  while (url) {
+    const res = await fetch(url, { headers, signal: AbortSignal.timeout(15000) });
+    if (!res.ok) throw new Error(`Tidal getItems error: ${res.status}`);
+    const data = await res.json();
+    for (const d of (data.data || [])) {
+      items.push({ tidalId: d.id, itemId: d.meta?.itemId });
+    }
+    url = data.links?.next ? `https://openapi.tidal.com/v2${data.links.next}` : null;
+  }
+  return items;
+}
+
+/**
+ * Ajoute des titres (IDs Tidal) à une playlist, dans l'ordre fourni (par lots de 20).
  */
 export async function addTracksToTidalPlaylist(playlistId, trackIds) {
   if (!trackIds.length) return;
   const headers = await authHeaders(true);
-  const body = JSON.stringify({
-    data: trackIds.map(id => ({ id: String(id), type: 'tracks' })),
-  });
-  const res = await fetch(`${V2}/playlists/${playlistId}/relationships/items?countryCode=${COUNTRY}`, {
-    method: 'POST', headers, body, signal: AbortSignal.timeout(20000),
-  });
-  if (!res.ok) throw new Error(`Tidal addTracks error: ${res.status} ${await res.text()}`);
+  for (let i = 0; i < trackIds.length; i += 20) {
+    const chunk = trackIds.slice(i, i + 20);
+    const body = JSON.stringify({ data: chunk.map(id => ({ id: String(id), type: 'tracks' })) });
+    const res = await fetch(`${V2}/playlists/${playlistId}/relationships/items?countryCode=${COUNTRY}`, {
+      method: 'POST', headers, body, signal: AbortSignal.timeout(20000),
+    });
+    if (!res.ok) throw new Error(`Tidal addTracks error: ${res.status} ${await res.text()}`);
+  }
+}
+
+/**
+ * Retire des titres d'une playlist Tidal.
+ * @param {Array} items [{ tidalId, itemId }]
+ */
+export async function removeTracksFromTidalPlaylist(playlistId, items) {
+  if (!items.length) return;
+  const headers = await authHeaders(true);
+  for (let i = 0; i < items.length; i += 20) {
+    const chunk = items.slice(i, i + 20);
+    const body = JSON.stringify({
+      data: chunk.map(it => ({ id: String(it.tidalId), type: 'tracks', meta: { itemId: it.itemId } })),
+    });
+    const res = await fetch(`${V2}/playlists/${playlistId}/relationships/items?countryCode=${COUNTRY}`, {
+      method: 'DELETE', headers, body, signal: AbortSignal.timeout(20000),
+    });
+    if (!res.ok) throw new Error(`Tidal removeTracks error: ${res.status} ${await res.text()}`);
+  }
 }
 
 /**

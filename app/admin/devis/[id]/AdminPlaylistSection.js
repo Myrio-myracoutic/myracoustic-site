@@ -349,7 +349,7 @@ export default function AdminPlaylistSection({ eventId }) {
                 {r.status === 'synced' ? '✓' : '✗'}
               </span>
               {r.playlist} {r.status === 'synced'
-                ? `— ${r.tracksAdded} titre${r.tracksAdded !== 1 ? 's' : ''} ajouté${r.tracksAdded !== 1 ? 's' : ''}${r.tracksMissing ? `, ${r.tracksMissing} introuvable${r.tracksMissing !== 1 ? 's' : ''} sur Tidal` : ''}`
+                ? `— ${r.total} titre${r.total !== 1 ? 's' : ''} sur Tidal${r.added ? `, +${r.added}` : ''}${r.removed ? `, −${r.removed}` : ''}${r.tracksMissing ? `, ${r.tracksMissing} introuvable${r.tracksMissing !== 1 ? 's' : ''}` : ''}`
                 : `— ${r.error || 'erreur'}`}
             </div>
           ))}

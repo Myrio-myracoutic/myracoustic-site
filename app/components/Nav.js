@@ -16,7 +16,7 @@ export default function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
-  if (pathname?.startsWith('/mon-espace') || pathname?.startsWith('/auth') || pathname?.startsWith('/devis') || pathname?.startsWith('/admin')) return null;
+  if (pathname?.startsWith('/mon-espace') || pathname?.startsWith('/auth') || pathname?.startsWith('/devis') || pathname?.startsWith('/admin') || pathname?.startsWith('/invitation')) return null;
 
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 40);

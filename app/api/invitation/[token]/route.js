@@ -27,13 +27,14 @@ export async function GET(request, { params }) {
     playlists = data || [];
   }
 
-  // Faire-part si publié
-  const { data: page } = await supabaseAdmin
+  // Event page : titre toujours visible, contenu complet seulement si publié
+  const { data: eventPage } = await supabaseAdmin
     .from('event_page')
     .select('*')
     .eq('event_id', guest.event_id)
-    .eq('is_published', true)
     .maybeSingle();
+
+  const page = eventPage?.is_published ? eventPage : null;
 
   return NextResponse.json({
     guest: {
@@ -45,6 +46,7 @@ export async function GET(request, { params }) {
       max_songs: guest.max_songs,
     },
     event: guest.events,
+    eventTitle: eventPage?.title || null,
     playlists,
     page: page || null,
   });

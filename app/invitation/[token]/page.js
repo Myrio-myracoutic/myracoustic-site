@@ -339,7 +339,12 @@ export default function InvitationPage({ params }) {
     </div>
   );
 
-  const { guest, event, playlists, page } = data;
+  const { guest, event, eventTitle, playlists, page } = data;
+
+  // Titre affiché : faire-part title > event_type + date
+  const displayTitle = eventTitle || (event
+    ? `${event.event_type}${event.event_date ? ` · ${fmtDate(event.event_date)}` : ''}`
+    : 'Votre invitation');
 
   return (
     <div style={{ minHeight: '100vh', background: '#060e16', color: '#fff', fontFamily: 'var(--font-body), sans-serif' }}>
@@ -348,44 +353,50 @@ export default function InvitationPage({ params }) {
         * { box-sizing: border-box; }
       `}</style>
 
-      {/* Header */}
-      <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '16px 20px', display: 'flex', justifyContent: 'center' }}>
-        <a href="/"><Image src="/logo.png" alt="Myracoustic" width={120} height={40} style={{ height: 40, width: 'auto' }} /></a>
+      {/* Header minimaliste */}
+      <div style={{
+        borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '14px 20px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      }}>
+        <Image src="/logo.png" alt="Myracoustic" width={100} height={34} style={{ height: 34, width: 'auto' }} />
+        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)', fontFamily: 'var(--font-display), sans-serif' }}>
+          Invitation personnelle
+        </span>
       </div>
 
-      <div style={{ maxWidth: 560, margin: '0 auto', padding: '32px 20px 60px' }}>
+      {/* Titre de l'événement */}
+      <div style={{
+        borderBottom: '1px solid rgba(255,255,255,0.05)',
+        padding: '28px 20px 24px',
+        textAlign: 'center',
+      }}>
+        <h1 style={{
+          fontFamily: 'var(--font-display), sans-serif',
+          fontSize: 'clamp(18px, 5vw, 26px)', fontWeight: 800,
+          color: '#fff', margin: '0 0 6px', lineHeight: 1.2,
+        }}>{displayTitle}</h1>
+        {event?.event_date && eventTitle && (
+          <p style={{ fontSize: 13, color: '#b8ef0b', margin: 0, fontWeight: 600 }}>
+            {fmtDate(event.event_date)}
+            {event.venue_city && ` · ${event.venue_city}`}
+          </p>
+        )}
+        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', margin: eventTitle ? '8px 0 0' : '6px 0 0' }}>
+          Bonjour {guest.first_name}, cette invitation vous est réservée.
+        </p>
+      </div>
 
-        {/* Faire-part si publié */}
-        {page && (
+      <div style={{ maxWidth: 560, margin: '0 auto', padding: '28px 20px 60px' }}>
+
+        {/* Faire-part si publié (message + sous-titre) */}
+        {page && (page.subtitle || page.message) && (
           <div style={{
             background: 'linear-gradient(135deg, rgba(184,239,11,0.06), rgba(184,239,11,0.02))',
-            border: '1px solid rgba(184,239,11,0.15)', borderRadius: 16, padding: '28px 28px', marginBottom: 24,
+            border: '1px solid rgba(184,239,11,0.15)', borderRadius: 16, padding: '24px', marginBottom: 24,
           }}>
-            {page.title && <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 22, fontWeight: 800, color: '#fff', margin: '0 0 8px' }}>{page.title}</h1>}
-            {page.subtitle && <p style={{ fontSize: 13, color: '#b8ef0b', margin: '0 0 16px', fontWeight: 600 }}>{page.subtitle}</p>}
+            {page.subtitle && <p style={{ fontSize: 13, color: '#b8ef0b', margin: '0 0 12px', fontWeight: 600 }}>{page.subtitle}</p>}
             {page.message && <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)', lineHeight: 1.8, margin: 0 }}>{page.message}</p>}
           </div>
-        )}
-
-        {/* Bonjour */}
-        {!page && (
-          <div style={{ marginBottom: 24 }}>
-            <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 22, fontWeight: 800, margin: '0 0 6px' }}>
-              Bonjour {guest.first_name} 👋
-            </h1>
-            {event && (
-              <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, margin: 0 }}>
-                Vous êtes invité(e) à {event.event_type?.toLowerCase?.() || "cet événement"}
-                {event.event_date && ` · ${fmtDate(event.event_date)}`}
-                {event.venue_city && ` · ${event.venue_city}`}
-              </p>
-            )}
-          </div>
-        )}
-        {page && (
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, margin: '0 0 24px' }}>
-            Bonjour {guest.first_name} — bienvenue sur votre page d'invitation.
-          </p>
         )}
 
         {/* RSVP */}

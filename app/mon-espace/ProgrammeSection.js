@@ -185,35 +185,161 @@ function AddRow({ eventId, token, onAdded }) {
   );
 }
 
-function printProgramme(ev, items) {
-  const date = fmtDate(ev.event_date);
-  const rows = items
-    .map(it => `<tr><td class="time">${it.time}</td><td class="label">${it.label}</td></tr>`)
-    .join('');
+function printProgramme(ev, items, client) {
+  const date        = fmtDate(ev.event_date);
+  const clientName  = client ? `${client.first_name || ''} ${client.last_name || ''}`.trim() : '';
+  const eventType   = ev.event_type || 'Événement';
+  const venue       = ev.venue_city || '';
+  const guests      = ev.guests ? `${ev.guests} personnes` : '';
+
+  const timelineRows = items.map((it, i) => `
+    <div class="row">
+      <div class="time-col">
+        <span class="time-label">${it.time}</span>
+      </div>
+      <div class="dot-col">
+        <div class="dot"></div>
+        ${i < items.length - 1 ? '<div class="line"></div>' : ''}
+      </div>
+      <div class="label-col">
+        <span class="label-text">${it.label}</span>
+      </div>
+    </div>
+  `).join('');
 
   const html = `<!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Programme — ${ev.event_type || 'Événement'}</title>
+<title>Programme — ${eventType}</title>
 <style>
-  @page { margin: 30mm 20mm; }
-  body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #111; }
-  h1 { font-size: 22px; margin: 0 0 4px; }
-  .subtitle { font-size: 13px; color: #555; margin: 0 0 32px; }
-  table { width: 100%; border-collapse: collapse; }
-  tr { border-bottom: 1px solid #eee; }
-  td { padding: 12px 8px; font-size: 14px; }
-  .time { width: 80px; font-weight: 700; color: #1a1a1a; white-space: nowrap; }
-  .label { color: #333; }
-  .footer { margin-top: 40px; font-size: 11px; color: #aaa; text-align: center; }
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background: #fff; color: #1a1a2e;
+    min-height: 297mm; display: flex; flex-direction: column;
+  }
+
+  /* ── En-tête ── */
+  .header {
+    background: #060e16;
+    padding: 28px 36px 24px;
+    display: flex; align-items: flex-start; justify-content: space-between;
+  }
+  .brand { color: #fff; }
+  .brand-name {
+    font-size: 18px; font-weight: 900; letter-spacing: 0.15em;
+    text-transform: uppercase; color: #b8ef0b;
+  }
+  .brand-tag {
+    font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 0.08em;
+    margin-top: 3px; text-transform: uppercase;
+  }
+  .header-contact { text-align: right; }
+  .header-contact p { font-size: 11px; color: rgba(255,255,255,0.45); line-height: 1.8; }
+
+  /* ── Bande accent ── */
+  .accent-bar { height: 4px; background: #b8ef0b; }
+
+  /* ── Info événement ── */
+  .event-block {
+    padding: 32px 36px 28px;
+    border-bottom: 1px solid #e8e8f0;
+  }
+  .event-type {
+    font-size: 28px; font-weight: 800; color: #060e16;
+    letter-spacing: -0.02em; margin-bottom: 6px; text-transform: uppercase;
+  }
+  .client-name {
+    font-size: 16px; color: #444; font-weight: 500; margin-bottom: 10px;
+  }
+  .meta-pills { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+  .pill {
+    font-size: 11px; font-weight: 600; color: #060e16;
+    background: #f0f0f5; border-radius: 20px;
+    padding: 4px 12px; letter-spacing: 0.04em;
+  }
+  .pill-accent { background: #b8ef0b; }
+
+  /* ── Titre programme ── */
+  .section-title {
+    padding: 24px 36px 12px;
+    font-size: 10px; font-weight: 800; color: #999;
+    letter-spacing: 0.15em; text-transform: uppercase;
+  }
+
+  /* ── Timeline ── */
+  .timeline { padding: 0 36px 32px; flex: 1; }
+  .row { display: flex; align-items: flex-start; min-height: 52px; }
+  .time-col {
+    width: 72px; padding-top: 2px; flex-shrink: 0;
+    text-align: right; padding-right: 16px;
+  }
+  .time-label {
+    font-size: 14px; font-weight: 700; color: #060e16;
+    font-variant-numeric: tabular-nums; letter-spacing: 0.02em;
+  }
+  .dot-col {
+    width: 24px; flex-shrink: 0;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #b8ef0b; border: 2px solid #060e16;
+    flex-shrink: 0; margin-top: 4px;
+  }
+  .line {
+    width: 2px; flex: 1; background: #e0e0ea; min-height: 32px; margin-top: 4px;
+  }
+  .label-col { padding-left: 14px; padding-top: 2px; flex: 1; }
+  .label-text { font-size: 15px; color: #1a1a2e; line-height: 1.5; }
+
+  /* ── Footer ── */
+  .footer {
+    background: #f7f7fa; border-top: 1px solid #e8e8f0;
+    padding: 16px 36px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .footer-brand { font-size: 11px; font-weight: 700; color: #060e16; letter-spacing: 0.08em; text-transform: uppercase; }
+  .footer-info { font-size: 10px; color: #999; text-align: right; line-height: 1.7; }
 </style>
 </head>
 <body>
-  <h1>${ev.event_type || 'Événement'}</h1>
-  <p class="subtitle">${date}${ev.venue_city ? ' · ' + ev.venue_city : ''}${ev.guests ? ' · ' + ev.guests + ' personnes' : ''}</p>
-  <table>${rows}</table>
-  <div class="footer">Myracoustic · contact@myracoustic.com · 07 68 53 33 08</div>
+  <div class="header">
+    <div class="brand">
+      <div class="brand-name">Myracoustic</div>
+      <div class="brand-tag">De la vibration sonore à la magie lumineuse</div>
+    </div>
+    <div class="header-contact">
+      <p>07 68 53 33 08</p>
+      <p>contact@myracoustic.com</p>
+      <p>myracoustic.com</p>
+    </div>
+  </div>
+  <div class="accent-bar"></div>
+
+  <div class="event-block">
+    <div class="event-type">${eventType}</div>
+    ${clientName ? `<div class="client-name">${clientName}</div>` : ''}
+    <div class="meta-pills">
+      ${date ? `<span class="pill pill-accent">${date}</span>` : ''}
+      ${venue  ? `<span class="pill">${venue}</span>` : ''}
+      ${guests ? `<span class="pill">${guests}</span>` : ''}
+    </div>
+  </div>
+
+  <div class="section-title">Programme de la journée</div>
+  <div class="timeline">${timelineRows}</div>
+
+  <div class="footer">
+    <div class="footer-brand">Myracoustic</div>
+    <div class="footer-info">
+      Document confidentiel — à distribuer aux prestataires<br>
+      Généré le ${new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+    </div>
+  </div>
+
   <script>window.onload = () => { window.print(); window.onafterprint = () => window.close(); }<\/script>
 </body>
 </html>`;
@@ -223,7 +349,7 @@ function printProgramme(ev, items) {
   w.document.close();
 }
 
-export default function ProgrammeSection({ ev, token }) {
+export default function ProgrammeSection({ ev, token, client }) {
   const [items, setItems]   = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -269,7 +395,7 @@ export default function ProgrammeSection({ ev, token }) {
         }}>Programme de l'événement</h3>
         {items.length > 0 && (
           <button
-            onClick={() => printProgramme(ev, items)}
+            onClick={() => printProgramme(ev, items, client)}
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
               background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',

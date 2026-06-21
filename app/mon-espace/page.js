@@ -341,7 +341,7 @@ export default function MonEspacePage() {
 
     switch (section) {
       case 'suivi':       return <SuiviSection ev={ev} />;
-      case 'programme':   return <ProgrammeSection ev={ev} token={token} />;
+      case 'programme':   return <ProgrammeSection ev={ev} token={token} client={client} />;
       case 'playlist':    return <PlaylistSection eventId={ev.id} token={token} />;
       case 'preparation': return <PreparationSection ev={ev} token={token} />;
       case 'documents':   return <DocumentsSection ev={ev} />;

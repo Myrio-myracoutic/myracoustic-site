@@ -531,12 +531,74 @@ function PlaylistCard({ playlist, token, onRefresh }) {
   );
 }
 
+function CreatePlaylistForm({ eventId, token, onCreated }) {
+  const [open,   setOpen]   = useState(false);
+  const [name,   setName]   = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const save = async () => {
+    if (!name.trim()) return;
+    setSaving(true);
+    const res  = await fetch('/api/mon-espace/playlists', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ eventId, name: name.trim() }),
+    });
+    const data = await res.json();
+    setSaving(false);
+    if (data.playlist) { setName(''); setOpen(false); onCreated(); }
+  };
+
+  if (!open) return (
+    <button
+      onClick={() => setOpen(true)}
+      style={{
+        display: 'flex', alignItems: 'center', gap: 6, marginTop: 10,
+        background: 'none', border: '1px dashed rgba(255,255,255,0.15)',
+        borderRadius: 8, padding: '8px 14px', cursor: 'pointer',
+        color: 'rgba(255,255,255,0.4)', fontSize: 12,
+        fontFamily: 'var(--font-display), sans-serif',
+      }}
+    >
+      <Plus size={13} /> Créer une playlist personnalisée
+    </button>
+  );
+
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 8, marginTop: 10,
+      background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(184,239,11,0.25)',
+      borderRadius: 8, padding: '8px 12px',
+    }}>
+      <input
+        type="text" value={name} onChange={e => setName(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') setOpen(false); }}
+        autoFocus placeholder="Nom de la playlist (ex : Groupe de danse, Entrée des mariés…)"
+        style={{
+          flex: 1, background: 'none', border: 'none', outline: 'none',
+          color: '#fff', fontSize: 13, fontFamily: 'inherit',
+        }}
+      />
+      <button
+        onClick={save} disabled={saving || !name.trim()}
+        style={{
+          background: '#b8ef0b', color: '#060e16', border: 'none', borderRadius: 6,
+          padding: '5px 12px', cursor: 'pointer', fontWeight: 700, fontSize: 12,
+          fontFamily: 'var(--font-display), sans-serif', flexShrink: 0,
+          opacity: !name.trim() ? 0.4 : 1,
+        }}
+      >Créer</button>
+      <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', padding: 4 }}>
+        <X size={14} />
+      </button>
+    </div>
+  );
+}
+
 export default function PlaylistSection({ eventId, token }) {
   const [playlists, setPlaylists] = useState([]);
   const [loading, setLoading]     = useState(true);
 
-  // Rafraîchit les données sans toucher à l'état de chargement :
-  // les cartes restent montées, donc leur état « ouvert » est préservé.
   const refresh = useCallback(async () => {
     const res  = await fetch(`/api/mon-espace/playlists/${eventId}`, {
       headers: { 'Authorization': `Bearer ${token}` },
@@ -551,8 +613,6 @@ export default function PlaylistSection({ eventId, token }) {
   }, [refresh]);
 
   if (loading) return <SkeletonPlaylist count={3} />;
-
-  if (playlists.length === 0) return null;
 
   const totalTracks = playlists.reduce((s, p) => s + (p.playlist_tracks?.length || 0), 0);
 
@@ -572,11 +632,17 @@ export default function PlaylistSection({ eventId, token }) {
           </span>
         </div>
         <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, marginBottom: 20, lineHeight: 1.6, marginTop: 0 }}>
-          Ajoutez vos titres préférés dans chaque playlist. Recherchez un titre, écoutez un extrait, puis ajoutez-le — ou saisissez-le manuellement.
+          Ajoutez vos titres dans chaque playlist. Vous pouvez aussi créer des playlists personnalisées et les associer à votre programme.
         </p>
+        {playlists.length === 0 && (
+          <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 13, fontStyle: 'italic', marginBottom: 12 }}>
+            Aucune playlist pour l'instant.
+          </p>
+        )}
         {playlists.map(pl => (
           <PlaylistCard key={pl.id} playlist={pl} token={token} onRefresh={refresh} />
         ))}
+        <CreatePlaylistForm eventId={eventId} token={token} onCreated={refresh} />
       </div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>

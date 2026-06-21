@@ -1,6 +1,6 @@
 'use client';
-import { useEffect, useState, useCallback } from 'react';
-import { Plus, Trash2, Printer, GripVertical, Check, X } from 'lucide-react';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { Plus, Trash2, Printer, GripVertical, Check, X, Music2, ChevronDown } from 'lucide-react';
 import { SkeletonCard } from './SkeletonLoader';
 
 function fmtDate(d) {
@@ -10,7 +10,110 @@ function fmtDate(d) {
   });
 }
 
-function ItemRow({ item, token, onDelete, onUpdate }) {
+/* Sélecteur de playlists pour une ligne du programme */
+function PlaylistPicker({ item, allPlaylists, token, onChange }) {
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const wrapRef = useRef(null);
+
+  const linked = (item.playlist_ids || []);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => { if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const toggle = async (playlistId) => {
+    const current = item.playlist_ids || [];
+    const next = current.includes(playlistId)
+      ? current.filter(id => id !== playlistId)
+      : [...current, playlistId];
+    setSaving(true);
+    await fetch(`/api/mon-espace/programme/items/${item.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ playlist_ids: next }),
+    });
+    setSaving(false);
+    onChange({ ...item, playlist_ids: next });
+  };
+
+  const linkedPlaylists = allPlaylists.filter(p => linked.includes(p.id));
+
+  return (
+    <div ref={wrapRef} style={{ position: 'relative' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 4 }}>
+        {linkedPlaylists.map(p => (
+          <span key={p.id} style={{
+            display: 'inline-flex', alignItems: 'center', gap: 4,
+            background: 'rgba(184,239,11,0.1)', border: '1px solid rgba(184,239,11,0.25)',
+            borderRadius: 6, padding: '2px 8px', fontSize: 11, color: '#b8ef0b', fontWeight: 600,
+          }}>
+            <Music2 size={10} />
+            {p.name}
+            <button
+              onClick={(e) => { e.stopPropagation(); toggle(p.id); }}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: 'rgba(184,239,11,0.5)', lineHeight: 1 }}
+            >×</button>
+          </span>
+        ))}
+        <button
+          onClick={(e) => { e.stopPropagation(); setOpen(o => !o); }}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 3,
+            background: 'none', border: '1px dashed rgba(255,255,255,0.15)',
+            borderRadius: 6, padding: '2px 8px', cursor: 'pointer',
+            fontSize: 11, color: 'rgba(255,255,255,0.35)',
+          }}
+        >
+          <Music2 size={10} /> {linkedPlaylists.length === 0 ? 'Lier une playlist' : '+'} <ChevronDown size={9} />
+        </button>
+        {saving && <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)' }}>…</span>}
+      </div>
+
+      {open && allPlaylists.length > 0 && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 4px)', left: 0, zIndex: 50,
+          background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.12)',
+          borderRadius: 10, overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+          minWidth: 200,
+        }}>
+          {allPlaylists.map(p => {
+            const isLinked = linked.includes(p.id);
+            return (
+              <button
+                key={p.id}
+                onClick={() => { toggle(p.id); }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10, width: '100%',
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  padding: '10px 14px', textAlign: 'left',
+                  borderBottom: '1px solid rgba(255,255,255,0.04)',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'none'}
+              >
+                <div style={{
+                  width: 16, height: 16, borderRadius: 4, flexShrink: 0,
+                  border: isLinked ? '1.5px solid #b8ef0b' : '1.5px solid rgba(255,255,255,0.2)',
+                  background: isLinked ? 'rgba(184,239,11,0.15)' : 'none',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {isLinked && <Check size={10} color="#b8ef0b" />}
+                </div>
+                <span style={{ fontSize: 13, color: isLinked ? '#b8ef0b' : 'rgba(255,255,255,0.7)' }}>{p.name}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ItemRow({ item, allPlaylists, token, onDelete, onUpdate }) {
   const [editing, setEditing] = useState(false);
   const [time,  setTime]  = useState(item.time);
   const [label, setLabel] = useState(item.label);
@@ -38,65 +141,65 @@ function ItemRow({ item, token, onDelete, onUpdate }) {
   if (editing) {
     return (
       <div style={{
-        display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0',
-        borderBottom: '1px solid rgba(255,255,255,0.05)',
+        padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.05)',
       }}>
-        <GripVertical size={14} color="rgba(255,255,255,0.15)" style={{ flexShrink: 0 }} />
-        <input
-          type="time"
-          value={time}
-          onChange={e => setTime(e.target.value)}
-          style={{
-            background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(184,239,11,0.4)',
-            borderRadius: 6, padding: '6px 10px', color: '#b8ef0b',
-            fontSize: 13, fontFamily: 'var(--font-mono), monospace', width: 100, flexShrink: 0,
-          }}
-        />
-        <input
-          type="text"
-          value={label}
-          onChange={e => setLabel(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') cancel(); }}
-          autoFocus
-          style={{
-            flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)',
-            borderRadius: 6, padding: '6px 10px', color: '#fff', fontSize: 14, fontFamily: 'inherit',
-          }}
-        />
-        <button onClick={save} disabled={saving} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b8ef0b', padding: 4 }}>
-          <Check size={16} />
-        </button>
-        <button onClick={cancel} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', padding: 4 }}>
-          <X size={16} />
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <GripVertical size={14} color="rgba(255,255,255,0.15)" style={{ flexShrink: 0 }} />
+          <input
+            type="time" value={time} onChange={e => setTime(e.target.value)}
+            style={{
+              background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(184,239,11,0.4)',
+              borderRadius: 6, padding: '6px 10px', color: '#b8ef0b',
+              fontSize: 13, fontFamily: 'var(--font-mono), monospace', width: 100, flexShrink: 0,
+            }}
+          />
+          <input
+            type="text" value={label} onChange={e => setLabel(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') cancel(); }}
+            autoFocus
+            style={{
+              flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)',
+              borderRadius: 6, padding: '6px 10px', color: '#fff', fontSize: 14, fontFamily: 'inherit',
+            }}
+          />
+          <button onClick={save} disabled={saving} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#b8ef0b', padding: 4 }}>
+            <Check size={16} />
+          </button>
+          <button onClick={cancel} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', padding: 4 }}>
+            <X size={16} />
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div
-      onClick={() => setEditing(true)}
-      style={{
-        display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0',
-        borderBottom: '1px solid rgba(255,255,255,0.05)', cursor: 'pointer',
-      }}
-      onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
-      onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-    >
-      <GripVertical size={14} color="rgba(255,255,255,0.15)" style={{ flexShrink: 0 }} />
-      <span style={{
-        fontFamily: 'var(--font-mono), monospace', fontSize: 13, fontWeight: 600,
-        color: '#b8ef0b', width: 52, flexShrink: 0,
-      }}>{item.time}</span>
-      <span style={{ flex: 1, color: 'rgba(255,255,255,0.8)', fontSize: 14 }}>{item.label}</span>
-      <button
-        onClick={e => { e.stopPropagation(); onDelete(item.id); }}
-        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'rgba(255,255,255,0.2)', flexShrink: 0 }}
-        onMouseEnter={e => { e.stopPropagation(); e.currentTarget.style.color = '#ef4444'; }}
-        onMouseLeave={e => { e.stopPropagation(); e.currentTarget.style.color = 'rgba(255,255,255,0.2)'; }}
+    <div style={{ padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+      <div
+        onClick={() => setEditing(true)}
+        style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}
+        onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
+        onMouseLeave={e => e.currentTarget.style.opacity = '1'}
       >
-        <Trash2 size={14} />
-      </button>
+        <GripVertical size={14} color="rgba(255,255,255,0.15)" style={{ flexShrink: 0 }} />
+        <span style={{
+          fontFamily: 'var(--font-mono), monospace', fontSize: 13, fontWeight: 600,
+          color: '#b8ef0b', width: 52, flexShrink: 0,
+        }}>{item.time}</span>
+        <span style={{ flex: 1, color: 'rgba(255,255,255,0.8)', fontSize: 14 }}>{item.label}</span>
+        <button
+          onClick={e => { e.stopPropagation(); onDelete(item.id); }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'rgba(255,255,255,0.2)', flexShrink: 0 }}
+          onMouseEnter={e => { e.stopPropagation(); e.currentTarget.style.color = '#ef4444'; }}
+          onMouseLeave={e => { e.stopPropagation(); e.currentTarget.style.color = 'rgba(255,255,255,0.2)'; }}
+        >
+          <Trash2 size={14} />
+        </button>
+      </div>
+      {/* Sélecteur de playlists liées */}
+      <div style={{ paddingLeft: 26 }}>
+        <PlaylistPicker item={item} allPlaylists={allPlaylists} token={token} onChange={onUpdate} />
+      </div>
     </div>
   );
 }
@@ -147,9 +250,7 @@ function AddRow({ eventId, token, onAdded }) {
       borderRadius: 8, padding: '10px 14px',
     }}>
       <input
-        type="time"
-        value={time}
-        onChange={e => setTime(e.target.value)}
+        type="time" value={time} onChange={e => setTime(e.target.value)}
         style={{
           background: 'transparent', border: '1px solid rgba(184,239,11,0.4)',
           borderRadius: 6, padding: '6px 10px', color: '#b8ef0b',
@@ -157,9 +258,7 @@ function AddRow({ eventId, token, onAdded }) {
         }}
       />
       <input
-        type="text"
-        value={label}
-        onChange={e => setLabel(e.target.value)}
+        type="text" value={label} onChange={e => setLabel(e.target.value)}
         onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') setOpen(false); }}
         autoFocus
         placeholder="Ex : Cérémonie laïque, Cocktail, Dîner…"
@@ -185,14 +284,21 @@ function AddRow({ eventId, token, onAdded }) {
   );
 }
 
-function printProgramme(ev, items, client) {
+function printProgramme(ev, items, allPlaylists, client) {
   const date        = fmtDate(ev.event_date);
   const clientName  = client ? `${client.first_name || ''} ${client.last_name || ''}`.trim() : '';
   const eventType   = ev.event_type || 'Événement';
   const venue       = ev.venue_city || '';
   const guests      = ev.guests ? `${ev.guests} personnes` : '';
 
-  const timelineRows = items.map((it, i) => `
+  const playlistMap = Object.fromEntries(allPlaylists.map(p => [p.id, p.name]));
+
+  const timelineRows = items.map((it, i) => {
+    const linkedNames = (it.playlist_ids || []).map(id => playlistMap[id]).filter(Boolean);
+    const playlistTag = linkedNames.length > 0
+      ? `<div class="playlist-tag">${linkedNames.map(n => `<span class="ptag">♪ ${n}</span>`).join('')}</div>`
+      : '';
+    return `
     <div class="row">
       <div class="time-col">
         <span class="time-label">${it.time}</span>
@@ -203,9 +309,11 @@ function printProgramme(ev, items, client) {
       </div>
       <div class="label-col">
         <span class="label-text">${it.label}</span>
+        ${playlistTag}
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 
   const html = `<!DOCTYPE html>
 <html lang="fr">
@@ -220,8 +328,6 @@ function printProgramme(ev, items, client) {
     background: #fff; color: #1a1a2e;
     min-height: 297mm; display: flex; flex-direction: column;
   }
-
-  /* ── En-tête ── */
   .header {
     background: #060e16;
     padding: 28px 36px 24px;
@@ -238,11 +344,7 @@ function printProgramme(ev, items, client) {
   }
   .header-contact { text-align: right; }
   .header-contact p { font-size: 11px; color: rgba(255,255,255,0.45); line-height: 1.8; }
-
-  /* ── Bande accent ── */
   .accent-bar { height: 4px; background: #b8ef0b; }
-
-  /* ── Info événement ── */
   .event-block {
     padding: 32px 36px 28px;
     border-bottom: 1px solid #e8e8f0;
@@ -251,25 +353,18 @@ function printProgramme(ev, items, client) {
     font-size: 28px; font-weight: 800; color: #060e16;
     letter-spacing: -0.02em; margin-bottom: 6px; text-transform: uppercase;
   }
-  .client-name {
-    font-size: 16px; color: #444; font-weight: 500; margin-bottom: 10px;
-  }
+  .client-name { font-size: 16px; color: #444; font-weight: 500; margin-bottom: 10px; }
   .meta-pills { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
   .pill {
     font-size: 11px; font-weight: 600; color: #060e16;
-    background: #f0f0f5; border-radius: 20px;
-    padding: 4px 12px; letter-spacing: 0.04em;
+    background: #f0f0f5; border-radius: 20px; padding: 4px 12px; letter-spacing: 0.04em;
   }
   .pill-accent { background: #b8ef0b; }
-
-  /* ── Titre programme ── */
   .section-title {
     padding: 24px 36px 12px;
     font-size: 10px; font-weight: 800; color: #999;
     letter-spacing: 0.15em; text-transform: uppercase;
   }
-
-  /* ── Timeline ── */
   .timeline { padding: 0 36px 32px; flex: 1; }
   .row { display: flex; align-items: flex-start; min-height: 52px; }
   .time-col {
@@ -289,13 +384,15 @@ function printProgramme(ev, items, client) {
     background: #b8ef0b; border: 2px solid #060e16;
     flex-shrink: 0; margin-top: 4px;
   }
-  .line {
-    width: 2px; flex: 1; background: #e0e0ea; min-height: 32px; margin-top: 4px;
-  }
+  .line { width: 2px; flex: 1; background: #e0e0ea; min-height: 32px; margin-top: 4px; }
   .label-col { padding-left: 14px; padding-top: 2px; flex: 1; }
   .label-text { font-size: 15px; color: #1a1a2e; line-height: 1.5; }
-
-  /* ── Footer ── */
+  .playlist-tag { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  .ptag {
+    font-size: 10px; font-weight: 600; color: #4a6c0a;
+    background: #eefac8; border-radius: 4px; padding: 2px 7px;
+    letter-spacing: 0.02em;
+  }
   .footer {
     background: #f7f7fa; border-top: 1px solid #e8e8f0;
     padding: 16px 36px;
@@ -350,15 +447,18 @@ function printProgramme(ev, items, client) {
 }
 
 export default function ProgrammeSection({ ev, token, client }) {
-  const [items, setItems]   = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [items,      setItems]      = useState([]);
+  const [playlists,  setPlaylists]  = useState([]);
+  const [loading,    setLoading]    = useState(true);
 
   const load = useCallback(async () => {
-    const res  = await fetch(`/api/mon-espace/programme/${ev.id}`, {
-      headers: { 'Authorization': `Bearer ${token}` },
-    });
-    const data = await res.json();
-    setItems(data.items || []);
+    const [progRes, playRes] = await Promise.all([
+      fetch(`/api/mon-espace/programme/${ev.id}`, { headers: { 'Authorization': `Bearer ${token}` } }),
+      fetch(`/api/mon-espace/playlists/${ev.id}`, { headers: { 'Authorization': `Bearer ${token}` } }),
+    ]);
+    const [progData, playData] = await Promise.all([progRes.json(), playRes.json()]);
+    setItems(progData.items || []);
+    setPlaylists(playData.playlists || []);
     setLoading(false);
   }, [ev.id, token]);
 
@@ -395,7 +495,7 @@ export default function ProgrammeSection({ ev, token, client }) {
         }}>Programme de l'événement</h3>
         {items.length > 0 && (
           <button
-            onClick={() => printProgramme(ev, items, client)}
+            onClick={() => printProgramme(ev, items, playlists, client)}
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
               background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
@@ -410,24 +510,25 @@ export default function ProgrammeSection({ ev, token, client }) {
       </div>
 
       <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, marginBottom: 20, marginTop: 4, lineHeight: 1.6 }}>
-        Créez le déroulé de votre événement. Vous pourrez le télécharger en PDF pour le distribuer à chaque prestataire.
+        Créez le déroulé de votre événement et associez une ou plusieurs playlists à chaque moment. Le PDF peut être distribué à chaque prestataire.
       </p>
 
-      {loading ? (
-        <SkeletonCard lines={4} />
-      ) : (
-        <>
-          {items.length === 0 && (
-            <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 13, fontStyle: 'italic', marginBottom: 4 }}>
-              Aucune étape pour l'instant — commencez par ajouter la première.
-            </p>
-          )}
-          {items.map(item => (
-            <ItemRow key={item.id} item={item} token={token} onDelete={handleDelete} onUpdate={handleUpdate} />
-          ))}
-          <AddRow eventId={ev.id} token={token} onAdded={handleAdded} />
-        </>
+      {items.length === 0 && (
+        <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 13, fontStyle: 'italic', marginBottom: 4 }}>
+          Aucune étape pour l'instant — commencez par ajouter la première.
+        </p>
       )}
+      {items.map(item => (
+        <ItemRow
+          key={item.id}
+          item={item}
+          allPlaylists={playlists}
+          token={token}
+          onDelete={handleDelete}
+          onUpdate={handleUpdate}
+        />
+      ))}
+      <AddRow eventId={ev.id} token={token} onAdded={handleAdded} />
     </div>
   );
 }

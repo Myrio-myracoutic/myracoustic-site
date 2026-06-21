@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { Music2, RefreshCw, Download, Wifi, WifiOff, ChevronDown, ChevronUp, Loader2, ExternalLink, Play, Pause } from 'lucide-react';
+import { Music2, RefreshCw, Download, Wifi, WifiOff, ChevronDown, ChevronUp, Loader2, ExternalLink, Play, Pause, Trash2 } from 'lucide-react';
 
 function fmtExpiry(expiresIn) {
   if (!expiresIn) return '';
@@ -47,10 +47,19 @@ function TidalStatus({ status, onConnect }) {
   );
 }
 
-function PlaylistRow({ playlist, playingId, loadingId, onPlay }) {
+function PlaylistRow({ playlist, playingId, loadingId, onPlay, onDeleteTidal }) {
   const [open, setOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const tracks = playlist.playlist_tracks || [];
   const tidalCount = tracks.filter(t => t.tidal_id).length;
+
+  const handleDeleteTidal = async () => {
+    if (!confirm(`Supprimer la playlist Tidal "${playlist.name}" ? Cette action est irréversible.`)) return;
+    setDeleting(true);
+    await fetch(`/api/admin/playlists/${playlist.id}/tidal`, { method: 'DELETE' });
+    setDeleting(false);
+    onDeleteTidal();
+  };
 
   return (
     <div style={{
@@ -82,19 +91,38 @@ function PlaylistRow({ playlist, playingId, loadingId, onPlay }) {
       {open && (
         <div style={{ padding: '0 16px 14px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
           {playlist.tidal_playlist_id && (
-            <a
-              href={`https://tidal.com/playlist/${playlist.tidal_playlist_id}`}
-              target="_blank" rel="noopener noreferrer"
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6, margin: '12px 0 4px',
-                background: 'rgba(184,239,11,0.1)', border: '1px solid rgba(184,239,11,0.25)',
-                color: '#b8ef0b', borderRadius: 7, padding: '5px 12px',
-                fontSize: 12, fontWeight: 600, textDecoration: 'none',
-                fontFamily: 'var(--font-display), sans-serif',
-              }}
-            >
-              <ExternalLink size={12} /> Ouvrir la playlist Tidal
-            </a>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '12px 0 4px', flexWrap: 'wrap' }}>
+              <a
+                href={`https://tidal.com/playlist/${playlist.tidal_playlist_id}`}
+                target="_blank" rel="noopener noreferrer"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 6,
+                  background: 'rgba(184,239,11,0.1)', border: '1px solid rgba(184,239,11,0.25)',
+                  color: '#b8ef0b', borderRadius: 7, padding: '5px 12px',
+                  fontSize: 12, fontWeight: 600, textDecoration: 'none',
+                  fontFamily: 'var(--font-display), sans-serif',
+                }}
+              >
+                <ExternalLink size={12} /> Ouvrir la playlist Tidal
+              </a>
+              <button
+                onClick={handleDeleteTidal}
+                disabled={deleting}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 5,
+                  background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)',
+                  color: '#ef4444', borderRadius: 7, padding: '5px 12px',
+                  fontSize: 12, fontWeight: 600, cursor: deleting ? 'not-allowed' : 'pointer',
+                  fontFamily: 'var(--font-display), sans-serif',
+                }}
+              >
+                {deleting
+                  ? <Loader2 size={12} style={{ animation: 'spin 0.8s linear infinite' }} />
+                  : <Trash2 size={12} />
+                }
+                {deleting ? 'Suppression…' : 'Supprimer de Tidal'}
+              </button>
+            </div>
           )}
           {tracks.length === 0 ? (
             <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 12, margin: '12px 0 0', fontStyle: 'italic' }}>
@@ -358,7 +386,7 @@ export default function AdminPlaylistSection({ eventId }) {
 
       {/* Liste des playlists */}
       {playlists.map(pl => (
-        <PlaylistRow key={pl.id} playlist={pl} playingId={playingId} loadingId={loadingId} onPlay={playTrack} />
+        <PlaylistRow key={pl.id} playlist={pl} playingId={playingId} loadingId={loadingId} onPlay={playTrack} onDeleteTidal={load} />
       ))}
     </div>
   );

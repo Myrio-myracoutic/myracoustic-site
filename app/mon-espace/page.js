@@ -5,16 +5,15 @@ import Image from 'next/image';
 import { supabase } from '@/app/lib/supabase';
 import {
   ClipboardList, Calendar, Music2, CheckSquare,
-  FileText, Phone, Camera, LogOut, ChevronDown,
+  Phone, Camera, LogOut, ChevronDown,
 } from 'lucide-react';
 
 import SuiviSection      from './SuiviSection';
 import ProgrammeSection  from './ProgrammeSection';
 import PlaylistSection   from './PlaylistSection';
 import PreparationSection from './PreparationSection';
-import DocumentsSection  from './DocumentsSection';
 import ContactSection, { FloatingContact } from './ContactSection';
-import GalerieSection    from './GalerieSection';
+import GalerieSection from './GalerieSection';
 
 const STATUS_LABELS = {
   devis_envoye: { label: 'Devis envoyé',          color: '#f59e0b' },
@@ -43,7 +42,6 @@ function getSections(ev) {
     { id: 'programme',   label: 'Programme',     shortLabel: 'Prog.',    icon: Calendar,       locked: !active },
     { id: 'playlist',    label: 'Playlist',      shortLabel: 'Playlist', icon: Music2,         locked: !active },
     { id: 'preparation', label: 'Préparation',   shortLabel: 'Prép.',    icon: CheckSquare,    locked: !active },
-    { id: 'documents',   label: 'Documents',     shortLabel: 'Docs',     icon: FileText,       locked: false },
     { id: 'contact',     label: 'Contact',       shortLabel: 'Contact',  icon: Phone,          locked: false },
     { id: 'galerie',     label: 'Galerie',       shortLabel: 'Photos',   icon: Camera,         locked: !termine },
   ];
@@ -344,7 +342,6 @@ export default function MonEspacePage() {
       case 'programme':   return <ProgrammeSection ev={ev} token={token} client={client} />;
       case 'playlist':    return <PlaylistSection eventId={ev.id} token={token} />;
       case 'preparation': return <PreparationSection ev={ev} token={token} />;
-      case 'documents':   return <DocumentsSection ev={ev} />;
       case 'contact':     return <ContactSection />;
       case 'galerie':     return <GalerieSection ev={ev} />;
       default:            return null;

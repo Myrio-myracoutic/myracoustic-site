@@ -284,12 +284,31 @@ function PlaylistBlock({ playlist, token, maxSongs, onRefresh }) {
               display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0',
               borderBottom: '1px solid rgba(255,255,255,0.04)',
             }}>
-              {s.cover_url && <img src={s.cover_url} alt="" width={28} height={28} style={{ borderRadius: 6 }} />}
+              {s.cover_url && <img src={s.cover_url} alt="" width={28} height={28} style={{ borderRadius: 6, flexShrink: 0 }} />}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.title}</div>
                 <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>{s.artist}</div>
               </div>
-              <Check size={13} color="#b8ef0b" />
+              <Check size={13} color="#b8ef0b" style={{ flexShrink: 0 }} />
+              <button
+                onClick={async () => {
+                  await fetch(`/api/invitation/${token}/suggest`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ suggestionId: s.id }),
+                  });
+                  loadSuggestions();
+                }}
+                title="Retirer cette proposition"
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer', padding: 4, flexShrink: 0,
+                  color: 'rgba(255,255,255,0.2)', lineHeight: 1,
+                }}
+                onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
+                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.2)'}
+              >
+                <X size={13} />
+              </button>
             </div>
           ))}
         </div>

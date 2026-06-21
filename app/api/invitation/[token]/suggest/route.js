@@ -91,3 +91,26 @@ export async function POST(request, { params }) {
 
   return NextResponse.json({ ok: true, status });
 }
+
+/* DELETE — retirer sa propre proposition */
+export async function DELETE(request, { params }) {
+  const { token } = await params;
+  const { data: g } = await supabaseAdmin
+    .from('event_guests').select('id').eq('token', token).single();
+  if (!g) return NextResponse.json({ error: 'Invitation invalide' }, { status: 404 });
+
+  const { suggestionId } = await request.json();
+
+  // Vérifier que la suggestion appartient bien à cet invité
+  const { data: suggestion } = await supabaseAdmin
+    .from('guest_song_suggestions')
+    .select('id, status')
+    .eq('id', suggestionId)
+    .eq('guest_id', g.id)
+    .single();
+
+  if (!suggestion) return NextResponse.json({ error: 'Proposition introuvable' }, { status: 404 });
+
+  await supabaseAdmin.from('guest_song_suggestions').delete().eq('id', suggestionId);
+  return NextResponse.json({ ok: true });
+}

@@ -260,7 +260,14 @@ function SearchBar({ playlistId, token, onAdded }) {
                 {track.duration ? <span style={{ color: 'rgba(255,255,255,0.25)', fontSize: 11, flexShrink: 0 }}>{fmtDuration(track.duration)}</span> : null}
                 {adding === track.id
                   ? <Loader2 size={14} color="#b8ef0b" style={{ animation: 'spin 0.8s linear infinite', flexShrink: 0 }} />
-                  : <Plus size={14} color="rgba(255,255,255,0.3)" style={{ flexShrink: 0 }} />
+                  : <span style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0,
+                      background: 'rgba(184,239,11,0.12)', border: '1px solid rgba(184,239,11,0.25)',
+                      color: '#b8ef0b', borderRadius: 6, padding: '4px 10px',
+                      fontSize: 12, fontWeight: 600, fontFamily: 'var(--font-display), sans-serif',
+                    }}>
+                      <Plus size={12} /> Ajouter
+                    </span>
                 }
               </button>
             </div>
@@ -336,17 +343,20 @@ export default function PlaylistSection({ eventId, token }) {
   const [playlists, setPlaylists] = useState([]);
   const [loading, setLoading]     = useState(true);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  // Rafraîchit les données sans toucher à l'état de chargement :
+  // les cartes restent montées, donc leur état « ouvert » est préservé.
+  const refresh = useCallback(async () => {
     const res  = await fetch(`/api/mon-espace/playlists/${eventId}`, {
       headers: { 'Authorization': `Bearer ${token}` },
     });
     const data = await res.json();
     setPlaylists(data.playlists || []);
-    setLoading(false);
   }, [eventId, token]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    setLoading(true);
+    refresh().finally(() => setLoading(false));
+  }, [refresh]);
 
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '20px 0', color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>
@@ -378,7 +388,7 @@ export default function PlaylistSection({ eventId, token }) {
           Ajoutez vos titres préférés dans chaque playlist. Recherchez un titre, écoutez un extrait, puis ajoutez-le — ou saisissez-le manuellement.
         </p>
         {playlists.map(pl => (
-          <PlaylistCard key={pl.id} playlist={pl} token={token} onRefresh={load} />
+          <PlaylistCard key={pl.id} playlist={pl} token={token} onRefresh={refresh} />
         ))}
       </div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>

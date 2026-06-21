@@ -287,7 +287,8 @@ function PlaylistCard({ playlist, token, onRefresh }) {
   return (
     <div style={{
       background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
-      borderRadius: 12, overflow: 'hidden', marginBottom: 10,
+      borderRadius: 12, marginBottom: 10, position: 'relative',
+      zIndex: open ? 10 : 1,
     }}>
       <button
         onClick={() => setOpen(o => !o)}
@@ -374,7 +375,7 @@ export default function PlaylistSection({ eventId, token }) {
           </span>
         </div>
         <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, marginBottom: 20, lineHeight: 1.6, marginTop: 0 }}>
-          Ajoutez vos titres préférés dans chaque playlist. Vous pouvez rechercher directement sur Tidal ou ajouter manuellement.
+          Ajoutez vos titres préférés dans chaque playlist. Recherchez un titre, écoutez un extrait, puis ajoutez-le — ou saisissez-le manuellement.
         </p>
         {playlists.map(pl => (
           <PlaylistCard key={pl.id} playlist={pl} token={token} onRefresh={load} />

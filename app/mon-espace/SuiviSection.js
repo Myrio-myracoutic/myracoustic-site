@@ -3,8 +3,8 @@ import { ClipboardList, CheckCircle, CreditCard, PartyPopper, MessageCircle } fr
 
 const TIMELINE_STEPS = [
   { id: 'devis_envoye', label: 'Devis envoyé',          icon: ClipboardList, statuses: ['devis_envoye', 'accepte', 'confirme', 'termine'] },
-  { id: 'accepte',      label: 'Réservation confirmée', icon: CheckCircle,   statuses: ['accepte', 'confirme', 'termine'] },
-  { id: 'confirme',     label: 'Contrat & acompte',     icon: CreditCard,    statuses: ['confirme', 'termine'] },
+  { id: 'accepte',      label: 'Devis signé & acompte', icon: CreditCard,    statuses: ['accepte', 'confirme', 'termine'] },
+  { id: 'confirme',     label: 'Réservation confirmée', icon: CheckCircle,   statuses: ['confirme', 'termine'] },
   { id: 'termine',      label: 'Événement réalisé',     icon: PartyPopper,   statuses: ['termine'] },
 ];
 

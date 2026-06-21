@@ -18,8 +18,8 @@ import GalerieSection    from './GalerieSection';
 
 const STATUS_LABELS = {
   devis_envoye: { label: 'Devis envoyé',          color: '#f59e0b' },
-  accepte:      { label: 'Réservation confirmée', color: '#b8ef0b' },
-  confirme:     { label: 'Confirmé',              color: '#22c55e' },
+  accepte:      { label: 'Devis signé & acompte', color: '#b8ef0b' },
+  confirme:     { label: 'Réservation confirmée', color: '#22c55e' },
   termine:      { label: 'Terminé',               color: 'rgba(255,255,255,0.3)' },
   annule:       { label: 'Annulé',                color: '#ef4444' },
 };
@@ -56,7 +56,7 @@ function Sidebar({ sections, active, onSelect, client, ev, events, onEventChange
   return (
     <aside className="espace-sidebar">
       {/* Logo */}
-      <div style={{ padding: '24px 20px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+      <div style={{ padding: '24px 20px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)', display: 'flex', justifyContent: 'center' }}>
         <a href="/"><Image src="/logo.png" alt="Myracoustic" width={140} height={47} style={{ height: 47, width: 'auto' }} /></a>
       </div>
 

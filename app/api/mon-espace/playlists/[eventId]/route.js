@@ -29,5 +29,25 @@ export async function GET(request, { params }) {
     .order('position', { referencedTable: 'playlist_tracks' });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ playlists });
+
+  // Comptage des suggestions en attente par playlist
+  const playlistIds = (playlists || []).map(p => p.id);
+  let pendingByPlaylist = {};
+  if (playlistIds.length > 0) {
+    const { data: suggestions } = await supabase
+      .from('guest_song_suggestions')
+      .select('playlist_id, status')
+      .in('playlist_id', playlistIds)
+      .eq('status', 'pending');
+    for (const s of (suggestions || [])) {
+      pendingByPlaylist[s.playlist_id] = (pendingByPlaylist[s.playlist_id] || 0) + 1;
+    }
+  }
+
+  return NextResponse.json({
+    playlists: (playlists || []).map(p => ({
+      ...p,
+      pending_suggestions: pendingByPlaylist[p.id] || 0,
+    })),
+  });
 }

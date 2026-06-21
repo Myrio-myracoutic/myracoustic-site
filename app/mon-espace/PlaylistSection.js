@@ -337,7 +337,7 @@ function SearchBar({ playlistId, token, onAdded }) {
   );
 }
 
-function SuggestionsTab({ playlistId, token, onRefresh }) {
+function SuggestionsTab({ playlistId, token, onRefresh, onApproved }) {
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading]         = useState(true);
   const [acting, setActing]           = useState(null);
@@ -361,7 +361,8 @@ function SuggestionsTab({ playlistId, token, onRefresh }) {
       body: JSON.stringify({ action }),
     });
     await load();
-    onRefresh();
+    await onRefresh();
+    if (action === 'approve') onApproved?.();
     setActing(null);
   };
 
@@ -373,7 +374,8 @@ function SuggestionsTab({ playlistId, token, onRefresh }) {
       body: JSON.stringify({ action: 'approve-all' }),
     });
     await load();
-    onRefresh();
+    await onRefresh();
+    onApproved?.();
     setActing(null);
   };
 
@@ -483,6 +485,16 @@ function PlaylistCard({ playlist, token, onRefresh }) {
             background: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: '2px 8px',
             flexShrink: 0,
           }}>{tracks.length} titre{tracks.length !== 1 ? 's' : ''}</span>
+          {playlist.pending_suggestions > 0 && (
+            <span style={{
+              background: 'rgba(245,158,11,0.15)', color: '#f59e0b',
+              border: '1px solid rgba(245,158,11,0.3)',
+              borderRadius: 10, padding: '2px 8px', fontSize: 10, fontWeight: 700,
+              flexShrink: 0, fontFamily: 'var(--font-display), sans-serif',
+            }}>
+              {playlist.pending_suggestions} à valider
+            </span>
+          )}
         </div>
         {open
           ? <ChevronUp size={16} color="rgba(255,255,255,0.3)" style={{ flexShrink: 0 }} />
@@ -523,7 +535,12 @@ function PlaylistCard({ playlist, token, onRefresh }) {
           )}
 
           {activeTab === 'propositions' && (
-            <SuggestionsTab playlistId={playlist.id} token={token} onRefresh={onRefresh} />
+            <SuggestionsTab
+              playlistId={playlist.id}
+              token={token}
+              onRefresh={onRefresh}
+              onApproved={() => setActiveTab('playlist')}
+            />
           )}
         </div>
       )}

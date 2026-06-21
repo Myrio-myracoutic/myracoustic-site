@@ -8,6 +8,7 @@ import {
   Phone, Camera, LogOut, ChevronDown, Users, Heart,
 } from 'lucide-react';
 
+import NotificationBell  from './NotificationBell';
 import SuiviSection      from './SuiviSection';
 import ProgrammeSection  from './ProgrammeSection';
 import PlaylistSection   from './PlaylistSection';
@@ -52,7 +53,7 @@ function getSections(ev) {
 }
 
 /* ── Sidebar desktop ───────────────────────────────────────────── */
-function Sidebar({ sections, active, onSelect, client, ev, events, onEventChange, onLogout }) {
+function Sidebar({ sections, active, onSelect, client, ev, events, onEventChange, onLogout, token, onNavigate }) {
   const st = ev ? (STATUS_LABELS[ev.status] || STATUS_LABELS.devis_envoye) : null;
 
   return (
@@ -64,8 +65,11 @@ function Sidebar({ sections, active, onSelect, client, ev, events, onEventChange
 
       {/* Info client + événement */}
       <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.7)', marginBottom: 4 }}>
-          {client?.first_name} {client?.last_name}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>
+            {client?.first_name} {client?.last_name}
+          </div>
+          {ev && <NotificationBell eventId={ev.id} token={token} onNavigate={onNavigate} />}
         </div>
         {events.length > 1 ? (
           <select
@@ -180,12 +184,12 @@ function BottomNav({ sections, active, onSelect }) {
 }
 
 /* ── Header mobile ─────────────────────────────────────────────── */
-function MobileHeader({ client, ev, events, onEventChange, onLogout }) {
+function MobileHeader({ client, ev, events, onEventChange, onLogout, token, onNavigate }) {
   const st = ev ? (STATUS_LABELS[ev.status] || STATUS_LABELS.devis_envoye) : null;
   return (
     <header className="espace-mobile-header">
       <a href="/"><Image src="/logo.png" alt="Myracoustic" width={120} height={40} style={{ height: 40, width: 'auto' }} /></a>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         {ev && st && (
           <span style={{
             fontSize: 11, fontWeight: 600, color: st.color,
@@ -194,6 +198,7 @@ function MobileHeader({ client, ev, events, onEventChange, onLogout }) {
             fontFamily: 'var(--font-display), sans-serif',
           }}>{st.label}</span>
         )}
+        {ev && <NotificationBell eventId={ev.id} token={token} onNavigate={onNavigate} />}
         <button
           onClick={onLogout}
           style={{
@@ -393,10 +398,15 @@ export default function MonEspacePage() {
         sections={sections} active={section} onSelect={handleSectionSelect}
         client={client} ev={ev} events={events}
         onEventChange={handleEventChange} onLogout={handleLogout}
+        token={token} onNavigate={handleSectionSelect}
       />
 
       {/* Header mobile */}
-      <MobileHeader client={client} ev={ev} events={events} onEventChange={handleEventChange} onLogout={handleLogout} />
+      <MobileHeader
+        client={client} ev={ev} events={events}
+        onEventChange={handleEventChange} onLogout={handleLogout}
+        token={token} onNavigate={handleSectionSelect}
+      />
 
       {/* Contenu principal */}
       <main className="espace-main">

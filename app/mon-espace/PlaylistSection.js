@@ -341,6 +341,26 @@ function SuggestionsTab({ playlistId, token, onRefresh, onApproved }) {
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading]         = useState(true);
   const [acting, setActing]           = useState(null);
+  const [playingId, setPlayingId]     = useState(null);
+  const audioRef = useRef(null);
+
+  const stopPreview = useCallback(() => {
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    setPlayingId(null);
+  }, []);
+
+  useEffect(() => () => stopPreview(), [stopPreview]);
+
+  const togglePreview = (s) => {
+    if (!s.preview_url) return;
+    if (playingId === s.id) { stopPreview(); return; }
+    stopPreview();
+    const audio = new Audio(s.preview_url);
+    audio.onended = () => setPlayingId(null);
+    audio.play().catch(() => setPlayingId(null));
+    audioRef.current = audio;
+    setPlayingId(s.id);
+  };
 
   const load = useCallback(async () => {
     const res  = await fetch(`/api/mon-espace/suggestions/${playlistId}`, {
@@ -409,24 +429,45 @@ function SuggestionsTab({ playlistId, token, onRefresh, onApproved }) {
           </div>
           {pending.map(s => (
             <div key={s.id} style={{
-              display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0',
+              display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0',
               borderBottom: '1px solid rgba(255,255,255,0.04)',
             }}>
-              {s.cover_url && <img src={s.cover_url} alt="" width={30} height={30} style={{ borderRadius: 6, flexShrink: 0 }} />}
+              {/* Bouton preview */}
+              <button
+                onClick={() => togglePreview(s)}
+                disabled={!s.preview_url}
+                title={s.preview_url ? 'Écouter un extrait (30s)' : 'Extrait indisponible'}
+                style={{
+                  width: 30, height: 30, borderRadius: '50%', flexShrink: 0, border: 'none',
+                  cursor: s.preview_url ? 'pointer' : 'not-allowed',
+                  background: playingId === s.id ? '#b8ef0b' : 'rgba(184,239,11,0.1)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'background 0.15s',
+                }}
+              >
+                {playingId === s.id
+                  ? <Pause size={11} color="#060e16" fill="#060e16" />
+                  : <Play size={11} color="#b8ef0b" fill="#b8ef0b" style={{ marginLeft: 1 }} />
+                }
+              </button>
+
+              {s.cover_url && <img src={s.cover_url} alt="" width={30} height={30} style={{ borderRadius: 6, flexShrink: 0, objectFit: 'cover' }} />}
+
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.title}</div>
+                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.title}</div>
                 <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>
                   {s.artist}{s.event_guests?.first_name ? ` · par ${s.event_guests.first_name}` : ''}
                 </div>
               </div>
+
               <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                <button onClick={() => act(s.id, 'approve')} disabled={!!acting} style={{
+                <button onClick={() => { stopPreview(); act(s.id, 'approve'); }} disabled={!!acting} style={{
                   background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)',
                   borderRadius: 6, padding: '5px 10px', cursor: 'pointer', color: '#22c55e',
                 }}>
                   {acting === s.id + 'approve' ? <Loader2 size={12} style={{ animation: 'spin 0.8s linear infinite' }} /> : <ThumbsUp size={12} />}
                 </button>
-                <button onClick={() => act(s.id, 'reject')} disabled={!!acting} style={{
+                <button onClick={() => { stopPreview(); act(s.id, 'reject'); }} disabled={!!acting} style={{
                   background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.15)',
                   borderRadius: 6, padding: '5px 10px', cursor: 'pointer', color: '#ef4444',
                 }}>

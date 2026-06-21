@@ -164,19 +164,19 @@ export default function AdminPlaylistSection({ eventId }) {
     if (playingId === track.id) { stopAudio(); return; }
     stopAudio();
 
-    // Extrait exact stocké à l'ajout ; sinon (anciens titres / ajout manuel)
-    // on relance une recherche Deezer du titre.
-    let preview = track.preview_url;
-    if (!preview) {
-      setLoadingId(track.id);
-      try {
-        const q   = `${track.title} ${track.artist}`.trim();
-        const res = await fetch(`/api/music/search?q=${encodeURIComponent(q)}&limit=1`);
-        const data = await res.json();
-        preview = data.tracks?.[0]?.preview;
-      } catch {}
-      setLoadingId(null);
-    }
+    // Résout un extrait frais (les URLs Deezer expirent) : par id exact
+    // si connu, sinon par recherche du titre.
+    setLoadingId(track.id);
+    let preview = '';
+    try {
+      const params = track.deezer_id
+        ? `deezer_id=${encodeURIComponent(track.deezer_id)}`
+        : `q=${encodeURIComponent(`${track.title} ${track.artist}`.trim())}`;
+      const res  = await fetch(`/api/music/preview?${params}`);
+      const data = await res.json();
+      preview = data.preview;
+    } catch {}
+    setLoadingId(null);
 
     if (!preview) return;
     const audio = new Audio(preview);

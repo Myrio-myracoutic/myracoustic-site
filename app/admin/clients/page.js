@@ -35,6 +35,9 @@ function CreateAccountModal({ onClose, onCreated }) {
     const res  = await fetch(`/api/admin/clients/qonto-search?email=${encodeURIComponent(val)}`);
     const data = await res.json();
     setQuotes(data.quotes || []);
+    // Pré-remplir prénom/nom si trouvés et champs encore vides
+    if (data.firstName && !firstName) setFirstName(data.firstName);
+    if (data.lastName  && !lastName)  setLastName(data.lastName);
     setSearching(false);
   };
 

@@ -43,7 +43,9 @@ export async function POST(req, { params }) {
 
   const results = [];
 
-  for (const playlist of playlists) {
+  for (let pi = 0; pi < playlists.length; pi++) {
+    if (pi > 0) await new Promise(r => setTimeout(r, 500));
+    const playlist = playlists[pi];
     const tracks = (playlist.playlist_tracks || []).sort((a, b) => a.position - b.position);
     const playlistName = `${clientName} — ${eventLabel} — ${playlist.name}`;
 

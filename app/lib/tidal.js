@@ -85,12 +85,17 @@ export async function createTidalPlaylist(name, description = '') {
   const body = JSON.stringify({
     data: { type: 'playlists', attributes: { name, description, accessType: 'UNLISTED' } },
   });
-  const res = await fetch(`${V2}/playlists?countryCode=${COUNTRY}`, {
-    method: 'POST', headers, body, signal: AbortSignal.timeout(15000),
-  });
-  if (!res.ok) throw new Error(`Tidal createPlaylist error: ${res.status} ${await res.text()}`);
-  const data = await res.json();
-  return data.data?.id;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt > 0) await new Promise(r => setTimeout(r, attempt * 2000));
+    const res = await fetch(`${V2}/playlists?countryCode=${COUNTRY}`, {
+      method: 'POST', headers, body, signal: AbortSignal.timeout(15000),
+    });
+    if (res.status === 429) continue;
+    if (!res.ok) throw new Error(`Tidal createPlaylist error: ${res.status} ${await res.text()}`);
+    const data = await res.json();
+    return data.data?.id;
+  }
+  throw new Error('Tidal createPlaylist error: 429 (rate limit)');
 }
 
 /**

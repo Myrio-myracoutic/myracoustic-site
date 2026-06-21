@@ -1,6 +1,6 @@
 'use client';
-import { useEffect, useState, useCallback } from 'react';
-import { Music2, RefreshCw, Download, Wifi, WifiOff, ChevronDown, ChevronUp, Loader2, ExternalLink } from 'lucide-react';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { Music2, RefreshCw, Download, Wifi, WifiOff, ChevronDown, ChevronUp, Loader2, ExternalLink, Play, Pause } from 'lucide-react';
 
 function fmtExpiry(expiresIn) {
   if (!expiresIn) return '';
@@ -47,7 +47,7 @@ function TidalStatus({ status, onConnect }) {
   );
 }
 
-function PlaylistRow({ playlist }) {
+function PlaylistRow({ playlist, playingId, loadingId, onPlay }) {
   const [open, setOpen] = useState(false);
   const tracks = playlist.playlist_tracks || [];
   const tidalCount = tracks.filter(t => t.tidal_id).length;
@@ -91,10 +91,23 @@ function PlaylistRow({ playlist }) {
                 display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0',
                 borderBottom: '1px solid rgba(255,255,255,0.04)',
               }}>
-                <div style={{
-                  width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
-                  background: track.tidal_id ? '#22c55e' : 'rgba(255,255,255,0.2)',
-                }} />
+                <button
+                  onClick={() => onPlay(track)}
+                  title="Écouter un extrait"
+                  style={{
+                    width: 26, height: 26, borderRadius: '50%', flexShrink: 0, border: 'none',
+                    cursor: 'pointer',
+                    background: playingId === track.id ? '#b8ef0b' : 'rgba(184,239,11,0.12)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}
+                >
+                  {loadingId === track.id
+                    ? <Loader2 size={12} color="#b8ef0b" style={{ animation: 'spin 0.8s linear infinite' }} />
+                    : playingId === track.id
+                      ? <Pause size={11} color="#060e16" fill="#060e16" />
+                      : <Play size={11} color="#b8ef0b" fill="#b8ef0b" style={{ marginLeft: 1 }} />
+                  }
+                </button>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 13 }}>{track.title}</span>
                   <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, marginLeft: 8 }}>{track.artist}</span>
@@ -130,6 +143,39 @@ export default function AdminPlaylistSection({ eventId }) {
   const [syncing, setSyncing]       = useState(false);
   const [syncResult, setSyncResult] = useState(null);
   const [exporting, setExporting]   = useState(false);
+  const [playingId, setPlayingId]   = useState(null);
+  const [loadingId, setLoadingId]   = useState(null);
+  const audioRef = useRef(null);
+
+  const stopAudio = useCallback(() => {
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    setPlayingId(null);
+  }, []);
+
+  // Joue un extrait 30s en relançant une recherche Deezer du titre
+  // (les titres ne stockent pas l'URL d'extrait).
+  const playTrack = useCallback(async (track) => {
+    if (playingId === track.id) { stopAudio(); return; }
+    stopAudio();
+    setLoadingId(track.id);
+    try {
+      const q   = `${track.title} ${track.artist}`.trim();
+      const res = await fetch(`/api/music/search?q=${encodeURIComponent(q)}&limit=1`);
+      const data = await res.json();
+      const preview = data.tracks?.[0]?.preview;
+      setLoadingId(null);
+      if (!preview) return;
+      const audio = new Audio(preview);
+      audio.onended = () => setPlayingId(null);
+      audio.play().catch(() => setPlayingId(null));
+      audioRef.current = audio;
+      setPlayingId(track.id);
+    } catch {
+      setLoadingId(null);
+    }
+  }, [playingId, stopAudio]);
+
+  useEffect(() => () => stopAudio(), [stopAudio]);
 
   const load = useCallback(async () => {
     const [plRes, stRes] = await Promise.all([
@@ -283,7 +329,9 @@ export default function AdminPlaylistSection({ eventId }) {
       )}
 
       {/* Liste des playlists */}
-      {playlists.map(pl => <PlaylistRow key={pl.id} playlist={pl} />)}
+      {playlists.map(pl => (
+        <PlaylistRow key={pl.id} playlist={pl} playingId={playingId} loadingId={loadingId} onPlay={playTrack} />
+      ))}
     </div>
   );
 }

@@ -1,8 +1,10 @@
 import { verifyAdminCookie } from '@/app/lib/admin-auth';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
 
-const APP_URL    = process.env.NEXT_PUBLIC_APP_URL || 'https://myracoustic.com';
-const SENDER     = 'contact@myracoustic.com';
+const APP_URL          = process.env.NEXT_PUBLIC_APP_URL || 'https://myracoustic.com';
+const SENDER           = 'contact@myracoustic.com';
+const GOOGLE_REVIEW    = 'https://g.page/r/CUctseR4YPrxEAE/review';
+const MARIAGENET_URL   = 'https://www.mariages.net/shared/rate/421755';
 
 /* ── Templates email par statut ─────────────────────────────────── */
 const EMAIL_CONFIGS = {
@@ -36,7 +38,7 @@ const EMAIL_CONFIGS = {
     body:    (eventType) => `C'était un plaisir de sublimer votre <strong style="color:#b8ef0b;">${eventType || 'événement'}</strong>.<br/>Nous espérons que cette journée a été inoubliable. Votre galerie photos est maintenant disponible dans votre espace.`,
     cta:     'Voir ma galerie →',
     ctaUrl:  `${APP_URL}/mon-espace`,
-    note:    "Un avis Google nous aiderait énormément — merci d'avance !",
+    note:    null,
   },
   annule: {
     subject: 'Annulation de votre réservation Myracoustic',
@@ -47,6 +49,36 @@ const EMAIL_CONFIGS = {
     note:    null,
   },
 };
+
+function buildReviewBlock(eventType) {
+  const isWedding = eventType?.toLowerCase().includes('mariage');
+  return `
+    <table cellpadding="0" cellspacing="0" style="width:100%;margin:24px 0 0;border-top:1px solid rgba(255,255,255,0.07);padding-top:28px;">
+      <tr><td>
+        <p style="color:rgba(255,255,255,0.5);font-size:13px;font-weight:700;margin:0 0 16px;text-transform:uppercase;letter-spacing:0.06em;">
+          Votre avis nous aide à grandir
+        </p>
+        <p style="color:rgba(255,255,255,0.6);font-size:14px;margin:0 0 20px;line-height:1.6;">
+          Si vous avez été satisfait(e) de notre prestation, un avis en ligne nous aide énormément à nous faire connaître. Cela ne prend qu'une minute !
+        </p>
+        <table cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="padding-right:10px;">
+              <a href="${GOOGLE_REVIEW}" style="display:inline-block;background:#b8ef0b;border-radius:8px;padding:11px 22px;color:#060e16;font-size:14px;font-weight:700;text-decoration:none;">
+                ⭐ Laisser un avis Google
+              </a>
+            </td>
+            ${isWedding ? `
+            <td>
+              <a href="${MARIAGENET_URL}" style="display:inline-block;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:11px 22px;color:rgba(255,255,255,0.8);font-size:14px;font-weight:600;text-decoration:none;">
+                💍 Avis Mariages.net
+              </a>
+            </td>` : ''}
+          </tr>
+        </table>
+      </td></tr>
+    </table>`;
+}
 
 function buildStatusEmail(firstName, status, eventType) {
   const cfg = EMAIL_CONFIGS[status];
@@ -76,6 +108,7 @@ function buildStatusEmail(firstName, status, eventType) {
     </table>` : ''}
 
     ${cfg.note ? `<p style="color:rgba(255,255,255,0.3);font-size:12px;margin:0;line-height:1.6;">${cfg.note}</p>` : ''}
+    ${status === 'termine' ? buildReviewBlock(eventType) : ''}
   </td></tr>
 
   <tr><td style="padding:24px 40px;border-top:1px solid rgba(255,255,255,0.07);text-align:center;">

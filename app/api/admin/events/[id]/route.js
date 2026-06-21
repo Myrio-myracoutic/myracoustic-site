@@ -214,9 +214,9 @@ export async function PATCH(req, { params }) {
     );
   }
 
-  // Envoie l'email si le statut a changé
+  // Envoie l'email si le statut a changé (await : Vercel tue la fonction après la réponse)
   if (body.status && body.status !== previousStatus && current?.clients?.email) {
-    sendStatusEmail(
+    await sendStatusEmail(
       current.clients.email,
       current.clients.first_name || 'Client',
       body.status,

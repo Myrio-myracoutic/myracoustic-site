@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { Music2, Search, Plus, X, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { Music2, Search, Plus, X, ChevronDown, ChevronUp, Loader2, Play, Pause } from 'lucide-react';
 
 function fmtDuration(s) {
   if (!s) return '';
@@ -93,16 +93,34 @@ function SearchBar({ playlistId, token, onAdded }) {
   const [loading, setLoading] = useState(false);
   const [open, setOpen]       = useState(false);
   const [adding, setAdding]   = useState(null);
+  const [playingId, setPlayingId] = useState(null);
   const searchTimer = useRef(null);
   const wrapRef = useRef(null);
+  const audioRef = useRef(null);
+
+  const stopPreview = useCallback(() => {
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    setPlayingId(null);
+  }, []);
+
+  const togglePreview = (track) => {
+    if (playingId === track.id) { stopPreview(); return; }
+    stopPreview();
+    if (!track.preview) return;
+    const audio = new Audio(track.preview);
+    audio.onended = () => setPlayingId(null);
+    audio.play().catch(() => setPlayingId(null));
+    audioRef.current = audio;
+    setPlayingId(track.id);
+  };
 
   useEffect(() => {
     const handler = (e) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false);
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) { setOpen(false); stopPreview(); }
     };
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
+    return () => { document.removeEventListener('mousedown', handler); stopPreview(); };
+  }, [stopPreview]);
 
   const handleChange = (e) => {
     const val = e.target.value;
@@ -122,6 +140,7 @@ function SearchBar({ playlistId, token, onAdded }) {
   };
 
   const addTrack = async (track) => {
+    stopPreview();
     setAdding(track.id);
     await fetch('/api/mon-espace/playlists/tracks', {
       method: 'POST',
@@ -200,29 +219,51 @@ function SearchBar({ playlistId, token, onAdded }) {
           boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
         }}>
           {results.map(track => (
-            <button
+            <div
               key={track.id}
-              onClick={() => addTrack(track)}
-              disabled={adding === track.id}
               style={{
-                width: '100%', background: 'none', border: 'none', cursor: 'pointer',
-                padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12,
-                textAlign: 'left', transition: 'background 0.15s',
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.04)',
               }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'none'}
             >
-              <Music2 size={14} color="#b8ef0b" strokeWidth={1.5} style={{ flexShrink: 0 }} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.title}</div>
-                <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.artist}</div>
-              </div>
-              {track.duration && <span style={{ color: 'rgba(255,255,255,0.25)', fontSize: 11, flexShrink: 0 }}>{fmtDuration(track.duration)}</span>}
-              {adding === track.id
-                ? <Loader2 size={14} color="#b8ef0b" style={{ animation: 'spin 0.8s linear infinite', flexShrink: 0 }} />
-                : <Plus size={14} color="rgba(255,255,255,0.3)" style={{ flexShrink: 0 }} />
-              }
-            </button>
+              <button
+                onClick={() => togglePreview(track)}
+                disabled={!track.preview}
+                title={track.preview ? 'Écouter un extrait (30s)' : 'Extrait indisponible'}
+                style={{
+                  width: 30, height: 30, borderRadius: '50%', flexShrink: 0, border: 'none',
+                  cursor: track.preview ? 'pointer' : 'not-allowed',
+                  background: playingId === track.id ? '#b8ef0b' : 'rgba(184,239,11,0.12)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}
+              >
+                {playingId === track.id
+                  ? <Pause size={13} color="#060e16" fill="#060e16" />
+                  : <Play size={13} color="#b8ef0b" fill="#b8ef0b" style={{ marginLeft: 1 }} />
+                }
+              </button>
+
+              <button
+                onClick={() => addTrack(track)}
+                disabled={adding === track.id}
+                style={{
+                  flex: 1, minWidth: 0, background: 'none', border: 'none', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left', padding: 0,
+                }}
+                onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
+                onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+              >
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.title}</div>
+                  <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.artist}</div>
+                </div>
+                {track.duration ? <span style={{ color: 'rgba(255,255,255,0.25)', fontSize: 11, flexShrink: 0 }}>{fmtDuration(track.duration)}</span> : null}
+                {adding === track.id
+                  ? <Loader2 size={14} color="#b8ef0b" style={{ animation: 'spin 0.8s linear infinite', flexShrink: 0 }} />
+                  : <Plus size={14} color="rgba(255,255,255,0.3)" style={{ flexShrink: 0 }} />
+                }
+              </button>
+            </div>
           ))}
         </div>
       )}

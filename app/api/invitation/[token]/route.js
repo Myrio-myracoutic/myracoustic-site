@@ -12,7 +12,8 @@ async function getGuest(token) {
 
 /* GET — infos invité + événement + playlists accessibles */
 export async function GET(request, { params }) {
-  const guest = await getGuest(params.token);
+  const { token } = await params;
+  const guest = await getGuest(token);
   if (!guest) return NextResponse.json({ error: 'Invitation invalide' }, { status: 404 });
 
   // Playlists accessibles
@@ -51,7 +52,8 @@ export async function GET(request, { params }) {
 
 /* PATCH — mettre à jour le RSVP */
 export async function PATCH(request, { params }) {
-  const guest = await getGuest(params.token);
+  const { token } = await params;
+  const guest = await getGuest(token);
   if (!guest) return NextResponse.json({ error: 'Invitation invalide' }, { status: 404 });
 
   const { attending, adultsCount, childrenCount } = await request.json();

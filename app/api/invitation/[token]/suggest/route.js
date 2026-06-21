@@ -2,10 +2,11 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
 
 export async function POST(request, { params }) {
+  const { token } = await params;
   const guest = await supabaseAdmin
     .from('event_guests')
     .select('id, event_id, playlist_ids, max_songs')
-    .eq('token', params.token)
+    .eq('token', token)
     .single();
 
   if (!guest.data) return NextResponse.json({ error: 'Invitation invalide' }, { status: 404 });

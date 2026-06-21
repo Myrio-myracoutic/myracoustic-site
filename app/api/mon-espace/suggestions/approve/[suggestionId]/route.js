@@ -11,6 +11,7 @@ async function getClient(token) {
 
 /* PATCH — approuver ou rejeter une suggestion */
 export async function PATCH(request, { params }) {
+  const { suggestionId } = await params;
   const auth = request.headers.get('authorization')?.replace('Bearer ', '');
   const client = await getClient(auth);
   if (!client) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
@@ -20,7 +21,7 @@ export async function PATCH(request, { params }) {
   const { data: suggestion } = await supabaseAdmin
     .from('guest_song_suggestions')
     .select('*, playlists(event_id, events(client_id))')
-    .eq('id', params.suggestionId)
+    .eq('id', suggestionId)
     .single();
 
   if (!suggestion || suggestion.playlists?.events?.client_id !== client.id) {
@@ -28,7 +29,6 @@ export async function PATCH(request, { params }) {
   }
 
   if (action === 'approve') {
-    // Ajouter dans playlist_tracks
     const { data: maxPos } = await supabaseAdmin
       .from('playlist_tracks')
       .select('position')
@@ -46,10 +46,10 @@ export async function PATCH(request, { params }) {
     }, { onConflict: 'playlist_id,deezer_id', ignoreDuplicates: true });
 
     await supabaseAdmin.from('guest_song_suggestions')
-      .update({ status: 'approved' }).eq('id', params.suggestionId);
+      .update({ status: 'approved' }).eq('id', suggestionId);
   } else {
     await supabaseAdmin.from('guest_song_suggestions')
-      .update({ status: 'rejected' }).eq('id', params.suggestionId);
+      .update({ status: 'rejected' }).eq('id', suggestionId);
   }
 
   return NextResponse.json({ ok: true });

@@ -20,11 +20,12 @@ async function ownsGuest(clientId, guestId) {
 
 /* PATCH — modifier playlists ou max_songs */
 export async function PATCH(request, { params }) {
+  const { guestId } = await params;
   const auth = request.headers.get('authorization')?.replace('Bearer ', '');
   const client = await getClient(auth);
   if (!client) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
 
-  const guest = await ownsGuest(client.id, params.guestId);
+  const guest = await ownsGuest(client.id, guestId);
   if (!guest) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
 
   const body = await request.json();
@@ -33,20 +34,21 @@ export async function PATCH(request, { params }) {
   if (body.maxSongs    !== undefined) updates.max_songs    = body.maxSongs;
 
   const { data, error } = await supabaseAdmin
-    .from('event_guests').update(updates).eq('id', params.guestId).select().single();
+    .from('event_guests').update(updates).eq('id', guestId).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true, guest: data });
 }
 
 /* DELETE — supprimer un invité */
 export async function DELETE(request, { params }) {
+  const { guestId } = await params;
   const auth = request.headers.get('authorization')?.replace('Bearer ', '');
   const client = await getClient(auth);
   if (!client) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
 
-  const guest = await ownsGuest(client.id, params.guestId);
+  const guest = await ownsGuest(client.id, guestId);
   if (!guest) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
 
-  await supabaseAdmin.from('event_guests').delete().eq('id', params.guestId);
+  await supabaseAdmin.from('event_guests').delete().eq('id', guestId);
   return NextResponse.json({ ok: true });
 }

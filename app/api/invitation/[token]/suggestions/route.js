@@ -3,8 +3,9 @@ import { supabaseAdmin } from '@/app/lib/supabase-admin';
 
 /* GET — suggestions de l'invité (pour qu'il voie ses propres propositions) */
 export async function GET(request, { params }) {
+  const { token } = await params;
   const { data: guest } = await supabaseAdmin
-    .from('event_guests').select('id').eq('token', params.token).single();
+    .from('event_guests').select('id').eq('token', token).single();
   if (!guest) return NextResponse.json({ error: 'Invitation invalide' }, { status: 404 });
 
   const { data } = await supabaseAdmin

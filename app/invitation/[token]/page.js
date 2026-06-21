@@ -234,7 +234,7 @@ function SongSearch({ playlistId, token, onAdded }) {
                       color: '#b8ef0b', borderRadius: 6, padding: '4px 10px',
                       fontSize: 12, fontWeight: 600, fontFamily: 'var(--font-display), sans-serif',
                     }}>
-                      <Plus size={12} /> Proposer
+                      <Plus size={12} /> Ajouter
                     </span>
                 }
               </button>

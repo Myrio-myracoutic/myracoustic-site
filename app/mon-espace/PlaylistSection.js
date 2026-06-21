@@ -112,7 +112,7 @@ function SearchBar({ playlistId, token, onAdded }) {
     searchTimer.current = setTimeout(async () => {
       setLoading(true);
       try {
-        const res  = await fetch(`/api/tidal/search?q=${encodeURIComponent(val)}&limit=6`);
+        const res  = await fetch(`/api/music/search?q=${encodeURIComponent(val)}&limit=6`);
         const data = await res.json();
         setResults(data.tracks || []);
         setOpen(true);
@@ -130,7 +130,6 @@ function SearchBar({ playlistId, token, onAdded }) {
         playlist_id: playlistId,
         title:    track.title,
         artist:   track.artist,
-        tidal_id: track.id,
       }),
     });
     setAdding(null);
@@ -173,7 +172,7 @@ function SearchBar({ playlistId, token, onAdded }) {
           type="text"
           value={query}
           onChange={handleChange}
-          placeholder="Rechercher un titre ou artiste sur Tidal…"
+          placeholder="Rechercher un titre ou un artiste…"
           style={{
             flex: 1, background: 'none', border: 'none', outline: 'none',
             color: '#fff', fontSize: 14, fontFamily: 'inherit',

@@ -214,7 +214,7 @@ function printProgramme(ev, items, client) {
 <title>Programme — ${eventType}</title>
 <style>
   @page { size: A4; margin: 0; }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   body {
     font-family: 'Helvetica Neue', Arial, sans-serif;
     background: #fff; color: #1a1a2e;

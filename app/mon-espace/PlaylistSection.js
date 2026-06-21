@@ -101,8 +101,10 @@ function SearchBar({ playlistId, token, onAdded }) {
   const [open, setOpen]       = useState(false);
   const [adding, setAdding]   = useState(null);
   const [playingId, setPlayingId] = useState(null);
+  const [dropUp, setDropUp]   = useState(false);
   const searchTimer = useRef(null);
-  const wrapRef = useRef(null);
+  const wrapRef  = useRef(null);
+  const inputRef = useRef(null);
   const audioRef = useRef(null);
 
   const stopPreview = useCallback(() => {
@@ -129,6 +131,23 @@ function SearchBar({ playlistId, token, onAdded }) {
     return () => { document.removeEventListener('mousedown', handler); stopPreview(); };
   }, [stopPreview]);
 
+  const handleFocus = () => {
+    // Sur mobile, attendre que le clavier soit ouvert avant de scroller
+    setTimeout(() => {
+      inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 350);
+  };
+
+  const openDropdown = (tracks) => {
+    setResults(tracks);
+    if (tracks.length > 0 && wrapRef.current) {
+      const rect = wrapRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      setDropUp(spaceBelow < 300);
+    }
+    setOpen(tracks.length > 0);
+  };
+
   const handleChange = (e) => {
     const val = e.target.value;
     setQuery(val);
@@ -139,8 +158,7 @@ function SearchBar({ playlistId, token, onAdded }) {
       try {
         const res  = await fetch(`/api/music/search?q=${encodeURIComponent(val)}&limit=6`);
         const data = await res.json();
-        setResults(data.tracks || []);
-        setOpen(true);
+        openDropdown(data.tracks || []);
       } catch {}
       setLoading(false);
     }, 400);
@@ -199,9 +217,11 @@ function SearchBar({ playlistId, token, onAdded }) {
           : <Search size={15} color="rgba(255,255,255,0.3)" style={{ flexShrink: 0 }} />
         }
         <input
+          ref={inputRef}
           type="text"
           value={query}
           onChange={handleChange}
+          onFocus={handleFocus}
           placeholder="Rechercher un titre ou un artiste…"
           style={{
             flex: 1, background: 'none', border: 'none', outline: 'none',
@@ -224,10 +244,12 @@ function SearchBar({ playlistId, token, onAdded }) {
 
       {open && results.length > 0 && (
         <div style={{
-          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50,
+          position: 'absolute', left: 0, right: 0, zIndex: 50,
+          ...(dropUp
+            ? { bottom: 'calc(100% + 4px)', top: 'auto', boxShadow: '0 -8px 32px rgba(0,0,0,0.5)' }
+            : { top: '100%', marginTop: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }),
           background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.12)',
-          borderRadius: 10, marginTop: 4, overflow: 'hidden',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+          borderRadius: 10, overflow: 'hidden',
         }}>
           {results.map(track => (
             <div

@@ -167,36 +167,83 @@ function CreateAccountModal({ onClose, onCreated }) {
                     {quotes.map(q => {
                       const st = STATUS_QONTO[q.status] || { label: q.status, color: 'rgba(255,255,255,0.3)' };
                       const isSelected = selectedQuote?.id === q.id;
+                      const fmt = v => v > 0 ? v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €' : null;
                       return (
                         <div
                           key={q.id}
                           onClick={() => setSelectedQuote(isSelected ? null : q)}
                           style={{
-                            display: 'flex', alignItems: 'center', gap: 12,
-                            background: isSelected ? 'rgba(184,239,11,0.08)' : 'rgba(255,255,255,0.03)',
+                            background: isSelected ? 'rgba(184,239,11,0.06)' : 'rgba(255,255,255,0.03)',
                             border: `1px solid ${isSelected ? 'rgba(184,239,11,0.35)' : 'rgba(255,255,255,0.08)'}`,
-                            borderRadius: 8, padding: '10px 14px', cursor: 'pointer',
+                            borderRadius: 8, padding: '12px 14px', cursor: 'pointer',
                             transition: 'all 0.15s',
                           }}
                         >
-                          <FileText size={16} color={isSelected ? '#b8ef0b' : 'rgba(255,255,255,0.3)'} />
-                          <div style={{ flex: 1 }}>
-                            <span style={{ fontSize: 14, fontWeight: 600, color: isSelected ? '#b8ef0b' : 'rgba(255,255,255,0.8)' }}>
-                              {q.number}
-                            </span>
-                            {q.header && (
-                              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginLeft: 8 }}>
-                                {q.header.slice(0, 60)}
+                          {/* Ligne principale */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: q.invoices?.length ? 10 : 0 }}>
+                            <FileText size={15} color={isSelected ? '#b8ef0b' : 'rgba(255,255,255,0.3)'} style={{ flexShrink: 0 }} />
+                            <div style={{ flex: 1 }}>
+                              <span style={{ fontSize: 14, fontWeight: 700, color: isSelected ? '#b8ef0b' : 'rgba(255,255,255,0.85)' }}>
+                                {q.number}
                               </span>
-                            )}
-                          </div>
-                          <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                            <div style={{ fontSize: 12, color: st.color, fontWeight: 600 }}>{st.label}</div>
-                            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>
-                              {q.amount ? `${parseFloat(q.amount).toLocaleString('fr-FR')} €` : ''}
+                              {q.header && (
+                                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginLeft: 8 }}>
+                                  {q.header.slice(0, 55)}
+                                </span>
+                              )}
                             </div>
+                            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                              <div style={{ fontSize: 12, color: st.color, fontWeight: 600 }}>{st.label}</div>
+                              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', fontWeight: 600 }}>
+                                {fmt(q.total)}
+                              </div>
+                            </div>
+                            {isSelected && <CheckCircle size={15} color="#b8ef0b" style={{ flexShrink: 0 }} />}
                           </div>
-                          {isSelected && <CheckCircle size={16} color="#b8ef0b" style={{ flexShrink: 0 }} />}
+
+                          {/* Détail paiements */}
+                          {q.invoices?.length > 0 && (
+                            <div style={{
+                              borderTop: '1px solid rgba(255,255,255,0.06)',
+                              paddingTop: 8, display: 'flex', flexDirection: 'column', gap: 4,
+                            }}>
+                              {q.invoices.map((inv, idx) => {
+                                const isPaid = inv.status === 'paid';
+                                return (
+                                  <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <div style={{
+                                      width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
+                                      background: isPaid ? '#22c55e' : '#f59e0b',
+                                    }} />
+                                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', flex: 1 }}>
+                                      {inv.number} — {inv.type === 'deposit' ? 'Acompte' : 'Facture'}
+                                    </span>
+                                    <span style={{ fontSize: 12, fontWeight: 600, color: isPaid ? '#22c55e' : '#f59e0b' }}>
+                                      {isPaid ? '✓ Payé' : 'En attente'} · {fmt(inv.amount)}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                              {q.remaining > 0 && (
+                                <div style={{
+                                  display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+                                  borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 6, marginTop: 2,
+                                }}>
+                                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>
+                                    Reste à régler :
+                                  </span>
+                                  <span style={{ fontSize: 12, fontWeight: 700, color: '#f59e0b', marginLeft: 6 }}>
+                                    {fmt(q.remaining)}
+                                  </span>
+                                </div>
+                              )}
+                              {q.remaining === 0 && q.paidAmount > 0 && (
+                                <div style={{ textAlign: 'right', paddingTop: 4 }}>
+                                  <span style={{ fontSize: 12, fontWeight: 700, color: '#22c55e' }}>✓ Soldé</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       );
                     })}

@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { Bell } from 'lucide-react';
 
-export default function NotificationBell({ eventId, token, onNavigate }) {
+export default function NotificationBell({ eventId, token, onNavigate, refreshTrigger }) {
   const [notifs, setNotifs] = useState([]);
   const [open, setOpen]     = useState(false);
   const [dropStyle, setDropStyle] = useState({});
@@ -24,6 +24,11 @@ export default function NotificationBell({ eventId, token, onNavigate }) {
     const interval = setInterval(load, 30000);
     return () => clearInterval(interval);
   }, [load]);
+
+  // Refresh immédiat sur action externe (validation/rejet suggestion)
+  useEffect(() => {
+    if (refreshTrigger > 0) load();
+  }, [refreshTrigger, load]);
 
   // Fermer au clic extérieur
   useEffect(() => {

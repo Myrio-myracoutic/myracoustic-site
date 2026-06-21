@@ -41,7 +41,7 @@ function getSections(ev) {
   const active  = ev ? isActive(ev.status) : false;
   const termine = ev?.status === 'termine';
   return [
-    { id: 'suivi',       label: 'Suivi projet',  shortLabel: 'Suivi',    icon: ClipboardList,  locked: false },
+    { id: 'suivi',       label: 'Vue d\'ensemble', shortLabel: 'Accueil',  icon: ClipboardList,  locked: false },
     { id: 'programme',   label: 'Programme',     shortLabel: 'Prog.',    icon: Calendar,       locked: !active },
     { id: 'playlist',    label: 'Playlist',      shortLabel: 'Playlist', icon: Music2,         locked: !active },
     { id: 'invites',     label: 'Invités',       shortLabel: 'Invités',  icon: Users,          locked: !active },
@@ -53,7 +53,7 @@ function getSections(ev) {
 }
 
 /* ── Sidebar desktop ───────────────────────────────────────────── */
-function Sidebar({ sections, active, onSelect, client, ev, events, onEventChange, onLogout, token, onNavigate }) {
+function Sidebar({ sections, active, onSelect, client, ev, events, onEventChange, onLogout, token, onNavigate, refreshTrigger }) {
   const st = ev ? (STATUS_LABELS[ev.status] || STATUS_LABELS.devis_envoye) : null;
 
   return (
@@ -69,7 +69,7 @@ function Sidebar({ sections, active, onSelect, client, ev, events, onEventChange
           <div style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.7)' }}>
             {client?.first_name} {client?.last_name}
           </div>
-          {ev && <NotificationBell eventId={ev.id} token={token} onNavigate={onNavigate} />}
+          {ev && <NotificationBell eventId={ev.id} token={token} onNavigate={onNavigate} refreshTrigger={refreshTrigger} />}
         </div>
         {events.length > 1 ? (
           <select
@@ -184,7 +184,7 @@ function BottomNav({ sections, active, onSelect }) {
 }
 
 /* ── Header mobile ─────────────────────────────────────────────── */
-function MobileHeader({ client, ev, events, onEventChange, onLogout, token, onNavigate }) {
+function MobileHeader({ client, ev, events, onEventChange, onLogout, token, onNavigate, refreshTrigger }) {
   const st = ev ? (STATUS_LABELS[ev.status] || STATUS_LABELS.devis_envoye) : null;
   return (
     <header className="espace-mobile-header">
@@ -198,7 +198,7 @@ function MobileHeader({ client, ev, events, onEventChange, onLogout, token, onNa
             fontFamily: 'var(--font-display), sans-serif',
           }}>{st.label}</span>
         )}
-        {ev && <NotificationBell eventId={ev.id} token={token} onNavigate={onNavigate} />}
+        {ev && <NotificationBell eventId={ev.id} token={token} onNavigate={onNavigate} refreshTrigger={refreshTrigger} />}
         <button
           onClick={onLogout}
           style={{
@@ -217,7 +217,7 @@ function MobileHeader({ client, ev, events, onEventChange, onLogout, token, onNa
 /* ── Section title ─────────────────────────────────────────────── */
 function SectionTitle({ section }) {
   const TITLES = {
-    suivi:       'Suivi de votre événement',
+    suivi:       'Vue d\'ensemble',
     programme:   'Programme de votre événement',
     playlist:    'Vos playlists musicales',
     invites:     'Vos invités',
@@ -239,13 +239,14 @@ function SectionTitle({ section }) {
 /* ── Page principale ───────────────────────────────────────────── */
 export default function MonEspacePage() {
   const router = useRouter();
-  const [user,    setUser]    = useState(null);
-  const [client,  setClient]  = useState(null);
-  const [events,  setEvents]  = useState([]);
-  const [eventId, setEventId] = useState(null);
-  const [token,   setToken]   = useState('');
-  const [loading, setLoading] = useState(true);
-  const [section, setSection] = useState('suivi');
+  const [user,      setUser]      = useState(null);
+  const [client,    setClient]    = useState(null);
+  const [events,    setEvents]    = useState([]);
+  const [eventId,   setEventId]   = useState(null);
+  const [token,     setToken]     = useState('');
+  const [loading,   setLoading]   = useState(true);
+  const [section,   setSection]   = useState('suivi');
+  const [notifTick, setNotifTick] = useState(0);
 
   const ev = events.find(e => e.id === eventId) || events[0] || null;
   const sections = getSections(ev);
@@ -349,9 +350,9 @@ export default function MonEspacePage() {
     );
 
     switch (section) {
-      case 'suivi':       return <SuiviSection ev={ev} />;
+      case 'suivi':       return <SuiviSection ev={ev} token={token} />;
       case 'programme':   return <ProgrammeSection ev={ev} token={token} client={client} />;
-      case 'playlist':    return <PlaylistSection eventId={ev.id} token={token} />;
+      case 'playlist':    return <PlaylistSection eventId={ev.id} token={token} onSuggestionActed={() => setNotifTick(n => n + 1)} />;
       case 'invites':     return <InvitesSection ev={ev} token={token} />;
       case 'fairepart':   return <FairepartSection ev={ev} token={token} />;
       case 'preparation': return <PreparationSection ev={ev} token={token} />;
@@ -398,14 +399,14 @@ export default function MonEspacePage() {
         sections={sections} active={section} onSelect={handleSectionSelect}
         client={client} ev={ev} events={events}
         onEventChange={handleEventChange} onLogout={handleLogout}
-        token={token} onNavigate={handleSectionSelect}
+        token={token} onNavigate={handleSectionSelect} refreshTrigger={notifTick}
       />
 
       {/* Header mobile */}
       <MobileHeader
         client={client} ev={ev} events={events}
         onEventChange={handleEventChange} onLogout={handleLogout}
-        token={token} onNavigate={handleSectionSelect}
+        token={token} onNavigate={handleSectionSelect} refreshTrigger={notifTick}
       />
 
       {/* Contenu principal */}

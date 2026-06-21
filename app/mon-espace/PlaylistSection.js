@@ -653,9 +653,11 @@ function CreatePlaylistForm({ eventId, token, onCreated }) {
   );
 }
 
-export default function PlaylistSection({ eventId, token }) {
+export default function PlaylistSection({ eventId, token, onSuggestionActed }) {
   const [playlists, setPlaylists] = useState([]);
   const [loading, setLoading]     = useState(true);
+  const onActedRef = useRef(onSuggestionActed);
+  useEffect(() => { onActedRef.current = onSuggestionActed; }, [onSuggestionActed]);
 
   const refresh = useCallback(async () => {
     const res  = await fetch(`/api/mon-espace/playlists/${eventId}`, {
@@ -663,6 +665,7 @@ export default function PlaylistSection({ eventId, token }) {
     });
     const data = await res.json();
     setPlaylists(data.playlists || []);
+    onActedRef.current?.();
   }, [eventId, token]);
 
   useEffect(() => {

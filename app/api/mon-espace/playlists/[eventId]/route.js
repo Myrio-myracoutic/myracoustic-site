@@ -22,7 +22,7 @@ export async function GET(request, { params }) {
     .from('playlists')
     .select(`
       id, name, position,
-      playlist_tracks ( id, title, artist, note, position, tidal_id )
+      playlist_tracks ( id, title, artist, note, position, tidal_id, album, deezer_id, preview_url, cover_url )
     `)
     .eq('event_id', eventId)
     .order('position')

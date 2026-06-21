@@ -36,19 +36,25 @@ function TrackRow({ track, token, onDelete }) {
       display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 0',
       borderBottom: '1px solid rgba(255,255,255,0.05)',
     }}>
-      <div style={{
-        width: 34, height: 34, borderRadius: 8, flexShrink: 0, marginTop: 2,
-        background: track.tidal_id ? 'rgba(184,239,11,0.1)' : 'rgba(255,255,255,0.05)',
-        border: `1px solid ${track.tidal_id ? 'rgba(184,239,11,0.25)' : 'rgba(255,255,255,0.08)'}`,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}>
-        <Music2 size={14} color={track.tidal_id ? '#b8ef0b' : 'rgba(255,255,255,0.3)'} strokeWidth={1.5} />
-      </div>
+      {track.cover_url ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={track.cover_url} alt="" width={34} height={34}
+          style={{ borderRadius: 8, flexShrink: 0, marginTop: 2, objectFit: 'cover' }} />
+      ) : (
+        <div style={{
+          width: 34, height: 34, borderRadius: 8, flexShrink: 0, marginTop: 2,
+          background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <Music2 size={14} color="rgba(255,255,255,0.3)" strokeWidth={1.5} />
+        </div>
+      )}
 
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
           <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: 14, fontWeight: 500 }}>{track.title}</span>
           <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>{track.artist}</span>
+          {track.album && <span style={{ color: 'rgba(255,255,255,0.25)', fontSize: 11 }}>· {track.album}</span>}
           {track.tidal_id && (
             <span style={{
               fontSize: 10, color: '#b8ef0b', background: 'rgba(184,239,11,0.08)',
@@ -147,8 +153,12 @@ function SearchBar({ playlistId, token, onAdded }) {
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({
         playlist_id: playlistId,
-        title:    track.title,
-        artist:   track.artist,
+        title:       track.title,
+        artist:      track.artist,
+        album:       track.album,
+        deezer_id:   track.id,
+        preview_url: track.preview,
+        cover_url:   track.cover,
       }),
     });
     setAdding(null);
@@ -253,9 +263,16 @@ function SearchBar({ playlistId, token, onAdded }) {
                 onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
                 onMouseLeave={e => e.currentTarget.style.opacity = '1'}
               >
+                {track.cover && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={track.cover} alt="" width={34} height={34}
+                    style={{ borderRadius: 6, flexShrink: 0, objectFit: 'cover' }} />
+                )}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.title}</div>
-                  <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{track.artist}</div>
+                  <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {track.artist}{track.album ? ` · ${track.album}` : ''}
+                  </div>
                 </div>
                 {track.duration ? <span style={{ color: 'rgba(255,255,255,0.25)', fontSize: 11, flexShrink: 0 }}>{fmtDuration(track.duration)}</span> : null}
                 {adding === track.id

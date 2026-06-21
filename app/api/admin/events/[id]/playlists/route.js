@@ -12,7 +12,7 @@ export async function GET(req, { params }) {
     .from('playlists')
     .select(`
       id, name, position, tidal_playlist_id,
-      playlist_tracks ( id, title, artist, note, position, tidal_id )
+      playlist_tracks ( id, title, artist, note, position, tidal_id, album, deezer_id, preview_url, cover_url )
     `)
     .eq('event_id', id)
     .order('position')

@@ -111,6 +111,7 @@ function PlaylistRow({ playlist, playingId, loadingId, onPlay }) {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 13 }}>{track.title}</span>
                   <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, marginLeft: 8 }}>{track.artist}</span>
+                  {track.album && <span style={{ color: 'rgba(255,255,255,0.25)', fontSize: 11, marginLeft: 8 }}>· {track.album}</span>}
                   {track.note && (
                     <span style={{ display: 'block', color: 'rgba(255,255,255,0.25)', fontSize: 11, marginTop: 2, fontStyle: 'italic' }}>
                       {track.note}
@@ -157,22 +158,27 @@ export default function AdminPlaylistSection({ eventId }) {
   const playTrack = useCallback(async (track) => {
     if (playingId === track.id) { stopAudio(); return; }
     stopAudio();
-    setLoadingId(track.id);
-    try {
-      const q   = `${track.title} ${track.artist}`.trim();
-      const res = await fetch(`/api/music/search?q=${encodeURIComponent(q)}&limit=1`);
-      const data = await res.json();
-      const preview = data.tracks?.[0]?.preview;
-      setLoadingId(null);
-      if (!preview) return;
-      const audio = new Audio(preview);
-      audio.onended = () => setPlayingId(null);
-      audio.play().catch(() => setPlayingId(null));
-      audioRef.current = audio;
-      setPlayingId(track.id);
-    } catch {
+
+    // Extrait exact stocké à l'ajout ; sinon (anciens titres / ajout manuel)
+    // on relance une recherche Deezer du titre.
+    let preview = track.preview_url;
+    if (!preview) {
+      setLoadingId(track.id);
+      try {
+        const q   = `${track.title} ${track.artist}`.trim();
+        const res = await fetch(`/api/music/search?q=${encodeURIComponent(q)}&limit=1`);
+        const data = await res.json();
+        preview = data.tracks?.[0]?.preview;
+      } catch {}
       setLoadingId(null);
     }
+
+    if (!preview) return;
+    const audio = new Audio(preview);
+    audio.onended = () => setPlayingId(null);
+    audio.play().catch(() => setPlayingId(null));
+    audioRef.current = audio;
+    setPlayingId(track.id);
   }, [playingId, stopAudio]);
 
   useEffect(() => () => stopAudio(), [stopAudio]);

@@ -16,7 +16,8 @@ export async function POST(request) {
   if (!token) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
 
   const body = await request.json();
-  const { playlist_id, title, artist, note, tidal_id, position } = body;
+  const { playlist_id, title, artist, note, tidal_id, position,
+          album, deezer_id, preview_url, cover_url } = body;
 
   if (!playlist_id || !title?.trim() || !artist?.trim()) {
     return NextResponse.json({ error: 'playlist_id, title et artist requis' }, { status: 400 });
@@ -38,11 +39,15 @@ export async function POST(request) {
     .from('playlist_tracks')
     .insert({
       playlist_id,
-      title:    title.trim(),
-      artist:   artist.trim(),
-      note:     note?.trim() || null,
-      tidal_id: tidal_id || null,
-      position: pos,
+      title:       title.trim(),
+      artist:      artist.trim(),
+      note:        note?.trim() || null,
+      tidal_id:    tidal_id || null,
+      album:       album?.trim() || null,
+      deezer_id:   deezer_id || null,
+      preview_url: preview_url || null,
+      cover_url:   cover_url || null,
+      position:    pos,
     })
     .select()
     .single();

@@ -108,6 +108,11 @@ function PlaylistRow({ playlist, playingId, loadingId, onPlay }) {
                       : <Play size={11} color="#b8ef0b" fill="#b8ef0b" style={{ marginLeft: 1 }} />
                   }
                 </button>
+                {track.cover_url && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={track.cover_url} alt="" width={30} height={30}
+                    style={{ borderRadius: 5, flexShrink: 0, objectFit: 'cover' }} />
+                )}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 13 }}>{track.title}</span>
                   <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, marginLeft: 8 }}>{track.artist}</span>

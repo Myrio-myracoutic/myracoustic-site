@@ -49,11 +49,16 @@ export async function GET(req) {
     process.env.SUPABASE_SERVICE_ROLE_KEY
   );
 
-  await supabase.from('settings').upsert([
+  const { error: upsertError } = await supabase.from('settings').upsert([
     { key: 'tidal_access_token',    value: tokenData.access_token, updated_at: new Date().toISOString() },
     { key: 'tidal_token_expires_at', value: String(expiresAt),      updated_at: new Date().toISOString() },
     { key: 'tidal_user_id',          value: String(tokenData.user_id || process.env.TIDAL_USER_ID), updated_at: new Date().toISOString() },
   ]);
+
+  if (upsertError) {
+    console.error('Tidal callback settings upsert error:', upsertError.message);
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/admin?tidal=error&reason=storage`);
+  }
 
   cookieStore.delete('tidal_pkce_verifier');
   cookieStore.delete('tidal_pkce_state');

@@ -107,9 +107,36 @@ function SongSearch({ playlistId, token, onAdded }) {
   const [open,      setOpen]      = useState(false);
   const [adding,    setAdding]    = useState(null);
   const [playingId, setPlayingId] = useState(null);
+  const [dropStyle, setDropStyle] = useState({});
   const searchTimer = useRef(null);
   const wrapRef     = useRef(null);
+  const inputRef    = useRef(null);
   const audioRef    = useRef(null);
+
+  const computeDropStyle = useCallback(() => {
+    if (!wrapRef.current) return {};
+    const rect = wrapRef.current.getBoundingClientRect();
+    const viewH = window.visualViewport?.height ?? window.innerHeight;
+    const spaceBelow = viewH - rect.bottom;
+    return {
+      position: 'fixed',
+      left: rect.left, width: rect.width, zIndex: 9999,
+      ...(spaceBelow < 300
+        ? { bottom: viewH - rect.top + 4 }
+        : { top: rect.bottom + 4 }),
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const update = () => setDropStyle(computeDropStyle());
+    window.visualViewport?.addEventListener('resize', update);
+    window.addEventListener('scroll', update, true);
+    return () => {
+      window.visualViewport?.removeEventListener('resize', update);
+      window.removeEventListener('scroll', update, true);
+    };
+  }, [open, computeDropStyle]);
 
   const stopPreview = useCallback(() => {
     if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
@@ -143,10 +170,12 @@ function SongSearch({ playlistId, token, onAdded }) {
     searchTimer.current = setTimeout(async () => {
       setLoading(true);
       try {
-        const res  = await fetch(`/api/music/search?q=${encodeURIComponent(val)}&limit=6`);
-        const data = await res.json();
-        setResults(data.tracks || []);
-        setOpen(true);
+        const res   = await fetch(`/api/music/search?q=${encodeURIComponent(val)}&limit=6`);
+        const data  = await res.json();
+        const tracks = data.tracks || [];
+        setResults(tracks);
+        if (tracks.length) { setDropStyle(computeDropStyle()); setOpen(true); }
+        else setOpen(false);
       } catch {}
       setLoading(false);
     }, 400);
@@ -188,7 +217,9 @@ function SongSearch({ playlistId, token, onAdded }) {
           : <Search size={15} color="rgba(255,255,255,0.3)" style={{ flexShrink: 0 }} />
         }
         <input
+          ref={inputRef}
           type="text" value={query} onChange={handleChange}
+          onFocus={() => setTimeout(() => inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 350)}
           placeholder="Rechercher un titre ou un artiste…"
           style={{ flex: 1, background: 'none', border: 'none', outline: 'none', color: '#fff', fontSize: 14, fontFamily: 'inherit' }}
         />
@@ -196,10 +227,10 @@ function SongSearch({ playlistId, token, onAdded }) {
 
       {open && results.length > 0 && (
         <div style={{
-          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 50,
+          ...dropStyle,
           background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.12)',
-          borderRadius: 10, marginTop: 4, overflow: 'hidden',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+          borderRadius: 10, overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+          maxHeight: '60vh', overflowY: 'auto',
         }}>
           {results.map(track => (
             <div key={track.id} style={{

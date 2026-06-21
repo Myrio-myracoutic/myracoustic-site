@@ -101,7 +101,7 @@ function SearchBar({ playlistId, token, onAdded }) {
   const [open, setOpen]       = useState(false);
   const [adding, setAdding]   = useState(null);
   const [playingId, setPlayingId] = useState(null);
-  const [dropUp, setDropUp]   = useState(false);
+  const [dropStyle, setDropStyle] = useState({});
   const searchTimer = useRef(null);
   const wrapRef  = useRef(null);
   const inputRef = useRef(null);
@@ -123,6 +123,20 @@ function SearchBar({ playlistId, token, onAdded }) {
     setPlayingId(track.id);
   };
 
+  const computeDropStyle = useCallback(() => {
+    if (!wrapRef.current) return {};
+    const rect = wrapRef.current.getBoundingClientRect();
+    const viewH = window.visualViewport?.height ?? window.innerHeight;
+    const spaceBelow = viewH - rect.bottom;
+    return {
+      position: 'fixed',
+      left: rect.left, width: rect.width, zIndex: 9999,
+      ...(spaceBelow < 300
+        ? { bottom: viewH - rect.top + 4 }
+        : { top: rect.bottom + 4 }),
+    };
+  }, []);
+
   useEffect(() => {
     const handler = (e) => {
       if (wrapRef.current && !wrapRef.current.contains(e.target)) { setOpen(false); stopPreview(); }
@@ -131,8 +145,19 @@ function SearchBar({ playlistId, token, onAdded }) {
     return () => { document.removeEventListener('mousedown', handler); stopPreview(); };
   }, [stopPreview]);
 
+  // Repositionner le dropdown si clavier mobile ou scroll
+  useEffect(() => {
+    if (!open) return;
+    const update = () => setDropStyle(computeDropStyle());
+    window.visualViewport?.addEventListener('resize', update);
+    window.addEventListener('scroll', update, true);
+    return () => {
+      window.visualViewport?.removeEventListener('resize', update);
+      window.removeEventListener('scroll', update, true);
+    };
+  }, [open, computeDropStyle]);
+
   const handleFocus = () => {
-    // Sur mobile, attendre que le clavier soit ouvert avant de scroller
     setTimeout(() => {
       inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 350);
@@ -140,12 +165,9 @@ function SearchBar({ playlistId, token, onAdded }) {
 
   const openDropdown = (tracks) => {
     setResults(tracks);
-    if (tracks.length > 0 && wrapRef.current) {
-      const rect = wrapRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      setDropUp(spaceBelow < 300);
-    }
-    setOpen(tracks.length > 0);
+    if (!tracks.length) { setOpen(false); return; }
+    setDropStyle(computeDropStyle());
+    setOpen(true);
   };
 
   const handleChange = (e) => {
@@ -244,12 +266,9 @@ function SearchBar({ playlistId, token, onAdded }) {
 
       {open && results.length > 0 && (
         <div style={{
-          position: 'absolute', left: 0, right: 0, zIndex: 50,
-          ...(dropUp
-            ? { bottom: 'calc(100% + 4px)', top: 'auto', boxShadow: '0 -8px 32px rgba(0,0,0,0.5)' }
-            : { top: '100%', marginTop: 4, boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }),
+          ...dropStyle,
           background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.12)',
-          borderRadius: 10, overflow: 'hidden',
+          borderRadius: 10, overflow: 'hidden', maxHeight: '60vh', overflowY: 'auto',
         }}>
           {results.map(track => (
             <div

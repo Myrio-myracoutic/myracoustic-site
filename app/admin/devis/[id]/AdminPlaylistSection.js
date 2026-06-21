@@ -81,6 +81,21 @@ function PlaylistRow({ playlist, playingId, loadingId, onPlay }) {
 
       {open && (
         <div style={{ padding: '0 16px 14px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+          {playlist.tidal_playlist_id && (
+            <a
+              href={`https://tidal.com/playlist/${playlist.tidal_playlist_id}`}
+              target="_blank" rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6, margin: '12px 0 4px',
+                background: 'rgba(184,239,11,0.1)', border: '1px solid rgba(184,239,11,0.25)',
+                color: '#b8ef0b', borderRadius: 7, padding: '5px 12px',
+                fontSize: 12, fontWeight: 600, textDecoration: 'none',
+                fontFamily: 'var(--font-display), sans-serif',
+              }}
+            >
+              <ExternalLink size={12} /> Ouvrir la playlist Tidal
+            </a>
+          )}
           {tracks.length === 0 ? (
             <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 12, margin: '12px 0 0', fontStyle: 'italic' }}>
               Aucun titre ajouté par le client.
@@ -333,7 +348,9 @@ export default function AdminPlaylistSection({ eventId }) {
               <span style={{ color: r.status === 'synced' ? '#22c55e' : '#ef4444' }}>
                 {r.status === 'synced' ? '✓' : '✗'}
               </span>
-              {r.playlist} {r.status === 'synced' ? `— ${r.tracksAdded} titre${r.tracksAdded !== 1 ? 's' : ''} ajouté${r.tracksAdded !== 1 ? 's' : ''}` : `— ${r.error || 'erreur'}`}
+              {r.playlist} {r.status === 'synced'
+                ? `— ${r.tracksAdded} titre${r.tracksAdded !== 1 ? 's' : ''} ajouté${r.tracksAdded !== 1 ? 's' : ''}${r.tracksMissing ? `, ${r.tracksMissing} introuvable${r.tracksMissing !== 1 ? 's' : ''} sur Tidal` : ''}`
+                : `— ${r.error || 'erreur'}`}
             </div>
           ))}
         </div>

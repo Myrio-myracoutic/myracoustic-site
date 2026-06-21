@@ -1,205 +1,124 @@
 /**
- * Tidal API client
+ * Client API Tidal — API officielle v2 (openapi.tidal.com/v2), format JSON:API.
  *
- * Search  → API officielle (Client Credentials, stable)
- * Playlist → API interne non-officielle (token OAuth de Myrio stocké en env)
+ * Toutes les opérations (recherche catalogue, création de playlist, ajout de
+ * titres) utilisent le token UTILISATEUR de Myrio, obtenu via le bouton
+ * « Connecter Tidal » (flux Authorization Code) et stocké dans la table
+ * `settings`. Tidal ne fournit pas de refresh_token aux apps tierces : le token
+ * dure 4h, l'admin le renouvelle via le bouton.
  *
- * Variables d'environnement requises :
- *   TIDAL_CLIENT_ID        → ID de l'app developer.tidal.com
- *   TIDAL_CLIENT_SECRET    → Secret de l'app developer.tidal.com
- *   TIDAL_USER_ID          → ID du compte Tidal de Myrio
- *   TIDAL_ACCESS_TOKEN     → Token OAuth actuel (mis à jour par le script de refresh)
- *   TIDAL_REFRESH_TOKEN    → Refresh token OAuth (obtenu via Device Code Flow)
- *   TIDAL_COUNTRY_CODE     → Pays (ex: FR)
+ * Variables d'env : TIDAL_COUNTRY_CODE (def. FR), SUPABASE_URL/SERVICE_ROLE_KEY.
+ * Fallback dev : TIDAL_ACCESS_TOKEN dans .env.local.
  */
-
-const TIDAL_AUTH_URL    = 'https://auth.tidal.com/v1/oauth2';
-const TIDAL_OFFICIAL    = 'https://openapi.tidal.com/v2';
-const TIDAL_INTERNAL    = 'https://api.tidal.com/v1';
-const COUNTRY           = process.env.TIDAL_COUNTRY_CODE || 'FR';
-
-// ─── Token Client Credentials (pour la recherche officielle) ──────────────
-
-let _ccToken = null;
-let _ccExpires = 0;
-
-async function getClientCredentialsToken() {
-  if (_ccToken && Date.now() < _ccExpires - 30_000) return _ccToken;
-
-  const creds = Buffer.from(
-    `${process.env.TIDAL_CLIENT_ID}:${process.env.TIDAL_CLIENT_SECRET}`
-  ).toString('base64');
-
-  const res = await fetch(`${TIDAL_AUTH_URL}/token`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Basic ${creds}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: 'grant_type=client_credentials&scope=playlists.read+collection.read',
-  });
-
-  if (!res.ok) throw new Error(`Tidal CC token error: ${res.status}`);
-  const data = await res.json();
-  _ccToken   = data.access_token;
-  _ccExpires = Date.now() + data.expires_in * 1000;
-  return _ccToken;
-}
-
-// ─── Token utilisateur (pour les playlists) ───────────────────────────────
-// Tidal ne fournit pas de refresh_token pour les apps tierces.
-// Le token (4h) est stocké dans la table `settings` (clé: tidal_access_token + tidal_token_expires_at).
-// L'admin le renouvelle via le bouton "Connecter Tidal" dans l'interface.
-// En dev, on peut aussi le passer via TIDAL_ACCESS_TOKEN dans .env.local.
 
 import { createClient } from '@supabase/supabase-js';
 
-let _userToken   = null;
+const V2      = 'https://openapi.tidal.com/v2';
+const COUNTRY = process.env.TIDAL_COUNTRY_CODE || 'FR';
+const JSONAPI = 'application/vnd.api+json';
+
+// ─── Token utilisateur ─────────────────────────────────────────────────────
+
+let _userToken = null;
 let _userExpires = 0;
 
 async function getUserToken() {
   if (_userToken && Date.now() < _userExpires - 30_000) return _userToken;
 
-  // 1. Essaye la variable d'env (dev / premier démarrage)
   if (process.env.TIDAL_ACCESS_TOKEN) {
     _userToken   = process.env.TIDAL_ACCESS_TOKEN;
     _userExpires = Date.now() + 14400 * 1000;
     return _userToken;
   }
 
-  // 2. Lit depuis Supabase settings
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY
   );
   const { data } = await supabase
     .from('settings')
-    .select('value')
-    .eq('key', 'tidal_access_token')
-    .single();
+    .select('key, value')
+    .in('key', ['tidal_access_token', 'tidal_token_expires_at']);
 
-  if (!data?.value) throw new Error('TOKEN_EXPIRED');
+  const token     = data?.find(d => d.key === 'tidal_access_token')?.value;
+  const expiresAt = Number(data?.find(d => d.key === 'tidal_token_expires_at')?.value || 0);
 
-  const { data: exp } = await supabase
-    .from('settings')
-    .select('value')
-    .eq('key', 'tidal_token_expires_at')
-    .single();
-
-  const expiresAt = exp?.value ? Number(exp.value) : 0;
+  if (!token) throw new Error('TOKEN_EXPIRED');
   if (Date.now() > expiresAt - 30_000) throw new Error('TOKEN_EXPIRED');
 
-  _userToken   = data.value;
+  _userToken   = token;
   _userExpires = expiresAt;
   return _userToken;
 }
 
-// ─── Recherche officielle ──────────────────────────────────────────────────
-
-/**
- * Recherche des titres dans le catalogue Tidal.
- * @param {string} query  ex: "Perfect Ed Sheeran"
- * @param {number} limit  nombre de résultats (max 50)
- * @returns {Array} liste de tracks { id, title, artist, album, duration, url }
- */
-export async function searchTracks(query, limit = 10) {
-  const token = await getClientCredentialsToken();
-
-  const url = new URL(`${TIDAL_OFFICIAL}/searchresults/${encodeURIComponent(query)}/relationships/tracks`);
-  url.searchParams.set('countryCode', COUNTRY);
-  url.searchParams.set('limit', String(limit));
-  url.searchParams.set('offset', '0');
-
-  const res = await fetch(url.toString(), {
-    headers: { 'Authorization': `Bearer ${token}` },
-  });
-
-  if (!res.ok) throw new Error(`Tidal search error: ${res.status}`);
-  const data = await res.json();
-
-  // Normalise la réponse (format JSON:API)
-  return (data.data || []).map(item => {
-    const attrs = item.attributes || {};
-    const artistRel = item.relationships?.artists?.data?.[0];
-    const artistIncluded = (data.included || []).find(
-      i => i.type === 'artists' && i.id === artistRel?.id
-    );
-    return {
-      id:       item.id,
-      title:    attrs.title || '',
-      artist:   artistIncluded?.attributes?.name || '',
-      album:    attrs.album?.title || '',
-      duration: attrs.duration || 0,
-      url:      `https://tidal.com/browse/track/${item.id}`,
-    };
-  });
+function authHeaders(write = false) {
+  return getUserToken().then(token => ({
+    'Authorization': `Bearer ${token}`,
+    'Accept':        JSONAPI,
+    ...(write ? { 'Content-Type': JSONAPI } : {}),
+  }));
 }
 
-// ─── Gestion des playlists (API interne) ──────────────────────────────────
+// ─── Recherche catalogue ───────────────────────────────────────────────────
+
+/**
+ * Cherche le 1er titre Tidal correspondant à la requête.
+ * @returns {string|null} ID de track Tidal, ou null si rien trouvé.
+ */
+export async function resolveTrackId(query) {
+  const headers = await authHeaders();
+  const url = `${V2}/searchResults/${encodeURIComponent(query)}/relationships/tracks?countryCode=${COUNTRY}`;
+  const res = await fetch(url, { headers, signal: AbortSignal.timeout(15000) });
+  if (!res.ok) throw new Error(`Tidal search error: ${res.status}`);
+  const data = await res.json();
+  return data.data?.[0]?.id || null;
+}
+
+// ─── Playlists ─────────────────────────────────────────────────────────────
 
 /**
  * Crée une playlist dans le compte Tidal de Myrio.
- * @param {string} name        Nom de la playlist
- * @param {string} description Description (optionnelle)
- * @returns {string} UUID de la playlist créée
+ * @returns {string} UUID de la playlist créée.
  */
 export async function createTidalPlaylist(name, description = '') {
-  const token  = await getUserToken();
-  const userId = process.env.TIDAL_USER_ID;
-
-  const res = await fetch(`${TIDAL_INTERNAL}/users/${userId}/playlists`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type':  'application/json',
-      'X-Tidal-Token': process.env.TIDAL_CLIENT_ID,
-    },
-    body: JSON.stringify({ title: name, description }),
+  const headers = await authHeaders(true);
+  const body = JSON.stringify({
+    data: { type: 'playlists', attributes: { name, description, accessType: 'UNLISTED' } },
   });
-
-  if (!res.ok) throw new Error(`Tidal createPlaylist error: ${res.status}`);
+  const res = await fetch(`${V2}/playlists?countryCode=${COUNTRY}`, {
+    method: 'POST', headers, body, signal: AbortSignal.timeout(15000),
+  });
+  if (!res.ok) throw new Error(`Tidal createPlaylist error: ${res.status} ${await res.text()}`);
   const data = await res.json();
-  return data.uuid;
+  return data.data?.id;
 }
 
 /**
- * Ajoute des titres à une playlist Tidal existante.
- * @param {string}   playlistUuid UUID de la playlist
- * @param {string[]} trackIds     IDs Tidal des titres à ajouter
+ * Ajoute des titres (IDs Tidal) à une playlist, dans l'ordre fourni.
  */
-export async function addTracksToTidalPlaylist(playlistUuid, trackIds) {
+export async function addTracksToTidalPlaylist(playlistId, trackIds) {
   if (!trackIds.length) return;
-  const token = await getUserToken();
-
-  const res = await fetch(`${TIDAL_INTERNAL}/playlists/${playlistUuid}/tracks`, {
-    method: 'POST',
-    headers: {
-      'Authorization':    `Bearer ${token}`,
-      'Content-Type':     'application/json',
-      'X-Tidal-Token':    process.env.TIDAL_CLIENT_ID,
-      'If-None-Match':    '*',
-    },
-    body: JSON.stringify({
-      trackIds,
-      toIndex: 0,
-    }),
+  const headers = await authHeaders(true);
+  const body = JSON.stringify({
+    data: trackIds.map(id => ({ id: String(id), type: 'tracks' })),
   });
-
-  if (!res.ok) throw new Error(`Tidal addTracks error: ${res.status}`);
+  const res = await fetch(`${V2}/playlists/${playlistId}/relationships/items?countryCode=${COUNTRY}`, {
+    method: 'POST', headers, body, signal: AbortSignal.timeout(20000),
+  });
+  if (!res.ok) throw new Error(`Tidal addTracks error: ${res.status} ${await res.text()}`);
 }
 
 /**
  * Supprime une playlist Tidal.
- * @param {string} playlistUuid UUID de la playlist à supprimer
  */
-export async function deleteTidalPlaylist(playlistUuid) {
-  const token = await getUserToken();
-
-  await fetch(`${TIDAL_INTERNAL}/playlists/${playlistUuid}`, {
-    method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'X-Tidal-Token': process.env.TIDAL_CLIENT_ID,
-    },
+export async function deleteTidalPlaylist(playlistId) {
+  const headers = await authHeaders();
+  await fetch(`${V2}/playlists/${playlistId}?countryCode=${COUNTRY}`, {
+    method: 'DELETE', headers, signal: AbortSignal.timeout(15000),
   });
+}
+
+/** URL publique d'une playlist Tidal (pour ouvrir dans Serato / le navigateur). */
+export function tidalPlaylistUrl(playlistId) {
+  return `https://tidal.com/playlist/${playlistId}`;
 }

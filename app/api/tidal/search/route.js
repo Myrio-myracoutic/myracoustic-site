@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
-import { searchTracks } from '@/app/lib/tidal';
+// Route héritée, conservée pour compatibilité : la recherche client passe
+// désormais par /api/music/search (Deezer).
+import { searchTracks } from '@/app/lib/deezer';
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);

@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { Music2, Search, Plus, X, ChevronDown, ChevronUp, Loader2, Play, Pause } from 'lucide-react';
+import { SkeletonPlaylist } from './SkeletonLoader';
 
 function fmtDuration(s) {
   if (!s) return '';
@@ -375,12 +376,7 @@ export default function PlaylistSection({ eventId, token }) {
     refresh().finally(() => setLoading(false));
   }, [refresh]);
 
-  if (loading) return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '20px 0', color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>
-      <Loader2 size={14} style={{ animation: 'spin 0.8s linear infinite' }} />
-      Chargement des playlists…
-    </div>
-  );
+  if (loading) return <SkeletonPlaylist count={3} />;
 
   if (playlists.length === 0) return null;
 

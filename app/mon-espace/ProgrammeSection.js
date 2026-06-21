@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import { Plus, Trash2, Printer, GripVertical, Check, X } from 'lucide-react';
+import { SkeletonCard } from './SkeletonLoader';
 
 function fmtDate(d) {
   if (!d) return '';
@@ -254,6 +255,8 @@ export default function ProgrammeSection({ ev, token }) {
     setItems(prev => [...prev, item].sort((a, b) => a.time.localeCompare(b.time)));
   };
 
+  if (loading) return <SkeletonCard lines={4} />;
+
   return (
     <div style={{
       background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.07)',
@@ -285,7 +288,7 @@ export default function ProgrammeSection({ ev, token }) {
       </p>
 
       {loading ? (
-        <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: 13 }}>Chargement…</p>
+        <SkeletonCard lines={4} />
       ) : (
         <>
           {items.length === 0 && (

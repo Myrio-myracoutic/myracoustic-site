@@ -281,9 +281,37 @@ export default function MonEspacePage() {
   };
 
   if (loading) return (
-    <div style={{ minHeight: '100vh', background: '#060e16', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ width: 32, height: 32, border: '2px solid rgba(255,255,255,0.1)', borderTop: '2px solid #b8ef0b', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    <div style={{ minHeight: '100vh', background: '#060e16', display: 'flex' }}>
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes shimmer {
+          0%   { background-position: -600px 0; }
+          100% { background-position:  600px 0; }
+        }
+        .sk { background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%); background-size: 600px 100%; animation: shimmer 1.4s infinite linear; border-radius: 6px; }
+      `}</style>
+      {/* Skeleton sidebar desktop */}
+      <div style={{ width: 240, background: '#07111c', borderRight: '1px solid rgba(255,255,255,0.07)', padding: '28px 20px', flexShrink: 0 }} className="espace-sidebar">
+        <div className="sk" style={{ width: 130, height: 40, marginBottom: 32 }} />
+        <div className="sk" style={{ width: '70%', height: 12, marginBottom: 10 }} />
+        <div className="sk" style={{ width: '50%', height: 10, marginBottom: 32 }} />
+        {[1,2,3,4,5,6,7].map(i => (
+          <div key={i} className="sk" style={{ width: '85%', height: 12, marginBottom: 14, borderRadius: 8 }} />
+        ))}
+      </div>
+      {/* Skeleton main */}
+      <div style={{ flex: 1, padding: '40px 40px', maxWidth: 900 }}>
+        <div className="sk" style={{ width: 200, height: 22, marginBottom: 28 }} />
+        <div style={{ background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '28px' }}>
+          <div className="sk" style={{ width: 120, height: 11, marginBottom: 24 }} />
+          {[1,2,3,4].map(i => (
+            <div key={i} style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+              <div className="sk" style={{ width: 40, height: 40, borderRadius: '50%' }} />
+              <div className="sk" style={{ flex: 1, height: 40 }} />
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 

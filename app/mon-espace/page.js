@@ -20,8 +20,8 @@ import FairepartSection from './FairepartSection';
 
 const STATUS_LABELS = {
   devis_envoye: { label: 'Devis envoyé',          color: '#f59e0b' },
-  accepte:      { label: 'Devis signé & acompte', color: '#b8ef0b' },
-  confirme:     { label: 'Réservation confirmée', color: '#22c55e' },
+  accepte:      { label: 'Devis signé',   color: '#b8ef0b' },
+  confirme:     { label: 'Acompte reçu', color: '#22c55e' },
   termine:      { label: 'Terminé',               color: 'rgba(255,255,255,0.3)' },
   annule:       { label: 'Annulé',                color: '#ef4444' },
 };

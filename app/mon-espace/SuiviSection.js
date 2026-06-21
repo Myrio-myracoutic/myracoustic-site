@@ -22,10 +22,10 @@ function fmtDate(d) {
 }
 
 const TIMELINE_STEPS = [
-  { id: 'devis_envoye', label: 'Devis envoyé',          icon: ClipboardList, statuses: ['devis_envoye', 'accepte', 'confirme', 'termine'] },
-  { id: 'accepte',      label: 'Devis signé & acompte', icon: CreditCard,    statuses: ['accepte', 'confirme', 'termine'] },
-  { id: 'confirme',     label: 'Réservation confirmée', icon: CheckCircle,   statuses: ['confirme', 'termine'] },
-  { id: 'termine',      label: 'Événement réalisé',     icon: PartyPopper,   statuses: ['termine'] },
+  { id: 'devis_envoye', label: 'Devis envoyé',   icon: ClipboardList, statuses: ['devis_envoye', 'accepte', 'confirme', 'termine'] },
+  { id: 'accepte',      label: 'Devis signé',     icon: CreditCard,    statuses: ['accepte', 'confirme', 'termine'] },
+  { id: 'confirme',     label: 'Acompte reçu',    icon: CheckCircle,   statuses: ['confirme', 'termine'] },
+  { id: 'termine',      label: 'Événement réalisé', icon: PartyPopper, statuses: ['termine'] },
 ];
 
 function Timeline({ status }) {

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import {
   ClipboardList, CheckCircle, CreditCard, PartyPopper,
   MessageCircle, FileText, ExternalLink,
-  Users, Music2, Calendar, AlertCircle,
+  Users, Music2, Calendar, AlertCircle, Clock,
 } from 'lucide-react';
 
 function daysUntil(dateStr) {
@@ -22,47 +22,75 @@ function fmtDate(d) {
 }
 
 const TIMELINE_STEPS = [
-  { id: 'devis_envoye', label: 'Devis envoyé',   icon: ClipboardList, statuses: ['devis_envoye', 'accepte', 'confirme', 'termine'] },
-  { id: 'accepte',      label: 'Devis signé',     icon: CreditCard,    statuses: ['accepte', 'confirme', 'termine'] },
-  { id: 'confirme',     label: 'Acompte reçu',    icon: CheckCircle,   statuses: ['confirme', 'termine'] },
-  { id: 'termine',      label: 'Événement réalisé', icon: PartyPopper, statuses: ['termine'] },
+  { id: 'devis_envoye', label: 'Devis\nenvoyé',        icon: ClipboardList, statuses: ['devis_envoye', 'accepte', 'confirme', 'termine'] },
+  { id: 'accepte',      label: 'Devis\nsigné',          icon: CreditCard,    statuses: ['accepte', 'confirme', 'termine'] },
+  { id: 'confirme',     label: 'Réservation\nconfirmée', icon: CheckCircle,  statuses: ['confirme', 'termine'] },
+  { id: 'preparation',  label: 'Préparation\nen cours', icon: Clock,         statuses: ['confirme', 'termine'] },
+  { id: 'termine',      label: 'Terminé',               icon: PartyPopper,   statuses: ['termine'] },
 ];
+
+// État d'une étape : 'done' | 'current' | 'pending'
+function getStepState(step, idx, steps, status) {
+  if (!step.statuses.includes(status)) return 'pending';
+  // Y a-t-il une étape SUIVANTE qui inclut aussi le statut actuel ?
+  const hasLaterActive = steps.slice(idx + 1).some(s => s.statuses.includes(status));
+  return hasLaterActive ? 'done' : 'current';
+}
 
 function Timeline({ status }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 0, overflowX: 'auto', paddingBottom: 4 }}>
-      {TIMELINE_STEPS.map((step, i) => {
-        const done     = step.statuses.includes(status);
-        const isLast   = i === TIMELINE_STEPS.length - 1;
-        const nextDone = !isLast && TIMELINE_STEPS[i + 1].statuses.includes(status);
-        return (
-          <div key={step.id} style={{ display: 'flex', alignItems: 'center', flex: isLast ? '0 0 auto' : '1 1 0' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 72 }}>
-              <div style={{
-                width: 36, height: 36, borderRadius: '50%',
-                background: done ? 'rgba(184,239,11,0.15)' : 'rgba(255,255,255,0.05)',
-                border: `2px solid ${done ? '#b8ef0b' : 'rgba(255,255,255,0.1)'}`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                marginBottom: 7, color: done ? '#b8ef0b' : 'rgba(255,255,255,0.2)',
-              }}>
-                <step.icon size={16} strokeWidth={1.5} />
+    <>
+      <style>{`
+        @keyframes pulse-ring {
+          0%   { box-shadow: 0 0 0 0 rgba(184,239,11,0.4); }
+          70%  { box-shadow: 0 0 0 7px rgba(184,239,11,0); }
+          100% { box-shadow: 0 0 0 0 rgba(184,239,11,0); }
+        }
+      `}</style>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 0, overflowX: 'auto', paddingBottom: 4 }}>
+        {TIMELINE_STEPS.map((step, i) => {
+          const state  = getStepState(step, i, TIMELINE_STEPS, status);
+          const isLast = i === TIMELINE_STEPS.length - 1;
+          const nextState = !isLast ? getStepState(TIMELINE_STEPS[i + 1], i + 1, TIMELINE_STEPS, status) : null;
+          const lineActive = nextState === 'done' || nextState === 'current';
+
+          return (
+            <div key={step.id} style={{ display: 'flex', alignItems: 'center', flex: isLast ? '0 0 auto' : '1 1 0' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 68 }}>
+                <div style={{
+                  width: 36, height: 36, borderRadius: '50%',
+                  background: state !== 'pending' ? 'rgba(184,239,11,0.15)' : 'rgba(255,255,255,0.05)',
+                  border: `2px solid ${state !== 'pending' ? '#b8ef0b' : 'rgba(255,255,255,0.1)'}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  marginBottom: 7,
+                  color: state !== 'pending' ? '#b8ef0b' : 'rgba(255,255,255,0.2)',
+                  animation: state === 'current' ? 'pulse-ring 2s ease-out infinite' : 'none',
+                  transition: 'all 0.3s',
+                }}>
+                  <step.icon size={16} strokeWidth={1.5} />
+                </div>
+                <span style={{
+                  fontSize: 10,
+                  color: state === 'done' ? 'rgba(255,255,255,0.65)'
+                    : state === 'current' ? '#b8ef0b'
+                    : 'rgba(255,255,255,0.2)',
+                  textAlign: 'center', lineHeight: 1.4, whiteSpace: 'pre-line',
+                  fontFamily: 'var(--font-display), sans-serif',
+                  fontWeight: state !== 'pending' ? 600 : 400,
+                }}>{step.label}</span>
               </div>
-              <span style={{
-                fontSize: 10, color: done ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.2)',
-                textAlign: 'center', lineHeight: 1.4,
-                fontFamily: 'var(--font-display), sans-serif', fontWeight: done ? 600 : 400,
-              }}>{step.label}</span>
+              {!isLast && (
+                <div style={{
+                  flex: 1, height: 2, margin: '0 3px', marginBottom: 30,
+                  background: lineActive ? '#b8ef0b' : 'rgba(255,255,255,0.07)',
+                  transition: 'background 0.3s',
+                }} />
+              )}
             </div>
-            {!isLast && (
-              <div style={{
-                flex: 1, height: 2, margin: '0 3px', marginBottom: 26,
-                background: nextDone ? '#b8ef0b' : 'rgba(255,255,255,0.07)',
-              }} />
-            )}
-          </div>
-        );
-      })}
-    </div>
+          );
+        })}
+      </div>
+    </>
   );
 }
 

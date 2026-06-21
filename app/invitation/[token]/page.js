@@ -452,8 +452,8 @@ export default function InvitationPage({ params }) {
         {/* RSVP */}
         <RSVPCard guest={guest} token={token} onUpdated={(upd) => setData(d => ({ ...d, guest: { ...d.guest, ...upd } }))} />
 
-        {/* Propositions de chansons */}
-        {playlists.length > 0 && (
+        {/* Propositions de chansons — masquées si l'invité ne vient pas */}
+        {playlists.length > 0 && guest.attending !== false && (
           <div>
             <h2 style={{
               fontFamily: 'var(--font-display), sans-serif', fontSize: 18, fontWeight: 800,

@@ -47,12 +47,18 @@ async function sendReminderEmail(toEmail, firstName, eventType, eventDate, amoun
   <tr><td style="padding:40px 40px 32px;">
     <p style="color:rgba(255,255,255,0.6);font-size:15px;margin:0 0 8px;">Bonjour ${firstName},</p>
     <h2 style="color:#ffffff;font-size:20px;font-weight:700;margin:0 0 24px;line-height:1.3;">
-      Votre ${eventType || 'événement'} c'est demain !
+      Votre ${eventType || 'événement'}, c'est demain — nous sommes prêts !
     </h2>
-    <p style="color:rgba(255,255,255,0.8);font-size:15px;line-height:1.8;margin:0 0 24px;">
-      Nous sommes ravis de vous accompagner <strong style="color:#b8ef0b;">${fmtDate(eventDate)}</strong>.<br/>
-      Un dernier détail avant de profiter pleinement de votre journée :
-      votre <strong>facture de solde</strong> est à régler.
+    <p style="color:rgba(255,255,255,0.8);font-size:15px;line-height:1.8;margin:0 0 16px;">
+      Tout est préparé pour faire de votre <strong style="color:#b8ef0b;">${fmtDate(eventDate)}</strong> un moment inoubliable. Nous avons hâte d'être là.
+    </p>
+    <p style="color:rgba(255,255,255,0.8);font-size:15px;line-height:1.8;margin:0 0 16px;">
+      Avant de vous retrouver, une dernière formalité : votre <strong>facture de solde</strong> reste à régler.
+      Vous avez jusqu'au jour J pour effectuer ce paiement — en avance ou sur place, comme vous le souhaitez.
+    </p>
+    <p style="color:rgba(255,255,255,0.6);font-size:14px;line-height:1.8;margin:0 0 24px;font-style:italic;">
+      Nous comprenons que certains préfèrent attendre de voir la prestation avant de solder. C'est tout à fait normal !
+      Sachez simplement que le règlement peut s'effectuer à tout moment jusqu'à la fin de la soirée.
     </p>
 
     <!-- Montant -->
@@ -65,7 +71,7 @@ async function sendReminderEmail(toEmail, firstName, eventType, eventDate, amoun
     <table cellpadding="0" cellspacing="0" style="margin:0 auto 28px;">
       <tr><td style="background:#b8ef0b;border-radius:8px;padding:14px 36px;text-align:center;">
         <a href="${payUrl}" style="color:#060e16;font-size:15px;font-weight:700;text-decoration:none;">
-          Payer ma facture →
+          Régler ma facture →
         </a>
       </td></tr>
     </table>

@@ -100,11 +100,13 @@ function CreateAccountModal({ onClose, onCreated }) {
     const res  = await fetch(`/api/admin/clients/qonto-search?email=${encodeURIComponent(val)}`);
     const data = await res.json();
     setQuotes(data.quotes || []);
-    if (data.firstName   && !firstName)   setFirstName(data.firstName);
-    if (data.lastName    && !lastName)    setLastName(data.lastName);
-    if (data.phone       && !phone)       setPhone(data.phone);
-    if (data.companyName && !companyName) setCompanyName(data.companyName);
-    if (data.clientType === 'company')    setProfil('professionnel');
+    if (data.clientFound) {
+      if (data.firstName)   setFirstName(data.firstName);
+      if (data.lastName)    setLastName(data.lastName);
+      if (data.phone)       setPhone(data.phone);
+      if (data.companyName) setCompanyName(data.companyName);
+      if (data.clientType === 'company') setProfil('professionnel');
+    }
     setSearching(false);
   };
 

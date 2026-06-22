@@ -65,7 +65,7 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
   }
 
-  const { email, firstName, lastName, phone, qontoQuoteId } = await request.json();
+  const { email, firstName, lastName, phone, companyName, profil, qontoQuoteId } = await request.json();
   if (!email || !firstName || !lastName) {
     return NextResponse.json({ error: 'Email, prénom et nom sont requis' }, { status: 400 });
   }
@@ -99,6 +99,8 @@ export async function POST(request) {
       first_name: firstName,
       last_name: lastName,
       phone: phone || null,
+      company_name: companyName || null,
+      profil: profil === 'professionnel' ? 'professionnel' : 'particulier',
     })
     .select('id')
     .single();

@@ -80,10 +80,12 @@ function AccountStatus({ client, onReinvite, reinviting }) {
 
 /* ── Modal création compte ─────────────────────────────────────── */
 function CreateAccountModal({ onClose, onCreated }) {
+  const [profil,      setProfil]     = useState('particulier'); // 'particulier' | 'professionnel'
   const [email,      setEmail]      = useState('');
   const [firstName,  setFirstName]  = useState('');
   const [lastName,   setLastName]   = useState('');
   const [phone,      setPhone]      = useState('');
+  const [companyName, setCompanyName] = useState('');
   const [quotes,     setQuotes]     = useState(null);
   const [searching,  setSearching]  = useState(false);
   const [selectedQuote, setSelectedQuote] = useState(null);
@@ -114,12 +116,13 @@ function CreateAccountModal({ onClose, onCreated }) {
 
   const handleSubmit = async () => {
     if (!email || !firstName || !lastName) { setError('Email, prénom et nom sont requis.'); return; }
+    if (profil === 'professionnel' && !companyName.trim()) { setError("Le nom de l'entreprise est requis."); return; }
     setSubmitting(true);
     setError('');
     const res = await fetch('/api/admin/clients/invite', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, firstName, lastName, phone: phone || null, qontoQuoteId: selectedQuote?.id || null }),
+      body: JSON.stringify({ email, firstName, lastName, phone: phone || null, companyName: companyName || null, profil, qontoQuoteId: selectedQuote?.id || null }),
     });
     const data = await res.json();
     setSubmitting(false);
@@ -166,6 +169,42 @@ function CreateAccountModal({ onClose, onCreated }) {
                 </div>
               </div>
             </div>
+
+            {/* Toggle Particulier / Entreprise */}
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 8, fontWeight: 600 }}>TYPE DE CLIENT</label>
+              <div style={{ display: 'flex', gap: 6, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 8, padding: 3 }}>
+                {['particulier', 'professionnel'].map(p => (
+                  <button key={p} onClick={() => setProfil(p)} style={{
+                    flex: 1, padding: '7px 0', border: 'none', borderRadius: 6, cursor: 'pointer',
+                    background: profil === p ? '#b8ef0b' : 'transparent',
+                    color: profil === p ? '#060e16' : 'rgba(255,255,255,0.45)',
+                    fontSize: 12, fontWeight: profil === p ? 700 : 400,
+                    fontFamily: 'var(--font-display), sans-serif', transition: 'all 0.15s',
+                  }}>
+                    {p === 'particulier' ? 'Particulier' : 'Entreprise'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Nom de l'entreprise — seulement si professionnel */}
+            {profil === 'professionnel' && (
+              <div style={{ marginBottom: 16 }}>
+                <label style={{ display: 'block', fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 6, fontWeight: 600 }}>NOM DE L'ENTREPRISE *</label>
+                <input
+                  type="text"
+                  value={companyName}
+                  onChange={e => setCompanyName(e.target.value)}
+                  placeholder="Société, SARL, SASU…"
+                  autoFocus
+                  style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '10px 14px', color: '#fff', fontSize: 14, fontFamily: 'inherit', boxSizing: 'border-box' }}
+                />
+                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', margin: '6px 0 0' }}>
+                  Renseignez ensuite le prénom et nom du contact dans l'entreprise.
+                </p>
+              </div>
+            )}
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
               {[
@@ -342,6 +381,9 @@ export default function AdminClientsPage() {
                     {c.first_name?.[0]}{c.last_name?.[0]}
                   </div>
                   <div>
+                    {c.company_name && (
+                      <p style={{ fontSize: 12, fontWeight: 700, color: '#b8ef0b', margin: '0 0 1px', fontFamily: 'var(--font-display)' }}>{c.company_name}</p>
+                    )}
                     <p style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.85)', margin: '0 0 1px' }}>{c.first_name} {c.last_name}</p>
                     <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', margin: 0 }}>Créé le {fmtDate(c.created_at)}</p>
                   </div>

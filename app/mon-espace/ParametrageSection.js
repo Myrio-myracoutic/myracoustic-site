@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { UserCircle, CreditCard, Users, Plus, Trash2, CheckCircle, Clock, RefreshCw } from 'lucide-react';
+import { UserCircle, CreditCard, Users, Plus, Trash2, CheckCircle, Clock, RefreshCw, Receipt } from 'lucide-react';
 
 const TABS = [
   { id: 'compte',    label: 'Mon compte',      icon: UserCircle },
@@ -152,6 +152,7 @@ function TabAcces({ token, eventId, isOwner }) {
   const [form,      setForm]      = useState({ firstName: '', lastName: '', email: '' });
   const [inviting,  setInviting]  = useState(false);
   const [deleting,  setDeleting]  = useState(null);
+  const [toggling,  setToggling]  = useState(null);
   const [error,     setError]     = useState('');
 
   const load = useCallback(async () => {
@@ -188,6 +189,17 @@ function TabAcces({ token, eventId, isOwner }) {
       method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
     });
     setDeleting(null);
+    load();
+  };
+
+  const toggleBilling = async (c) => {
+    setToggling(c.id);
+    await fetch(`/api/mon-espace/collaborateurs/${c.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ canSeeBilling: !c.can_see_billing }),
+    });
+    setToggling(null);
     load();
   };
 
@@ -229,7 +241,25 @@ function TabAcces({ token, eventId, isOwner }) {
                   </div>
                 </div>
                 {isOwner && (
-                  <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                    {/* Toggle accès facturation */}
+                    <button
+                      onClick={() => toggleBilling(c)}
+                      disabled={toggling === c.id}
+                      title={c.can_see_billing ? 'Révoquer l\'accès facturation' : 'Autoriser la facturation'}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 5,
+                        background: c.can_see_billing ? 'rgba(184,239,11,0.1)' : 'rgba(255,255,255,0.04)',
+                        border: `1px solid ${c.can_see_billing ? 'rgba(184,239,11,0.3)' : 'rgba(255,255,255,0.1)'}`,
+                        borderRadius: 7, padding: '5px 9px', cursor: 'pointer',
+                        color: c.can_see_billing ? '#b8ef0b' : 'rgba(255,255,255,0.3)',
+                        fontSize: 10, fontWeight: 600, fontFamily: 'var(--font-display)',
+                        opacity: toggling === c.id ? 0.5 : 1, transition: 'all 0.15s',
+                      }}
+                    >
+                      <Receipt size={11} />
+                      {c.can_see_billing ? 'Fact.' : 'Fact.'}
+                    </button>
                     <button
                       onClick={() => invite_resend(c)}
                       title="Ré-envoyer l'invitation"

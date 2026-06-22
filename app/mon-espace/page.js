@@ -250,7 +250,8 @@ export default function MonEspacePage() {
   const [loading,        setLoading]        = useState(true);
   const [section,        setSection]        = useState('suivi');
   const [notifTick,      setNotifTick]      = useState(0);
-  const [isCollaborator, setIsCollaborator] = useState(false);
+  const [isCollaborator,  setIsCollaborator]  = useState(false);
+  const [canSeeBilling,   setCanSeeBilling]   = useState(false);
 
   const ev = events.find(e => e.id === eventId) || events[0] || null;
   const sections = getSections(ev);
@@ -277,7 +278,7 @@ export default function MonEspacePage() {
         const { supabaseAdmin } = await import('@/app/lib/supabase-admin');
         let collab = (await supabaseAdmin
           .from('event_collaborators')
-          .select('id, event_id, auth_id, email, events(*, clients(*))')
+          .select('id, event_id, auth_id, email, can_see_billing, events(*, clients(*))')
           .eq('auth_id', session.user.id)
           .single()).data;
 
@@ -285,7 +286,7 @@ export default function MonEspacePage() {
           // Première connexion : trouver par email et mettre à jour auth_id
           collab = (await supabaseAdmin
             .from('event_collaborators')
-            .select('id, event_id, email, events(*, clients(*))')
+            .select('id, event_id, email, can_see_billing, events(*, clients(*))')
             .eq('email', session.user.email?.toLowerCase())
             .single()).data;
           if (collab) {
@@ -298,6 +299,7 @@ export default function MonEspacePage() {
         if (collab?.events) {
           const ev = collab.events;
           setIsCollaborator(true);
+          setCanSeeBilling(!!collab.can_see_billing);
           setClient(ev.clients || { first_name: '', last_name: '', email: session.user.email });
           setEvents([ev]);
           setEventId(ev.id);
@@ -395,7 +397,7 @@ export default function MonEspacePage() {
       case 'preparation': return <PreparationSection ev={ev} token={token} />;
       case 'contact':     return <ContactSection />;
       case 'galerie':     return <GalerieSection ev={ev} />;
-      case 'parametrage': return <ParametrageSection ev={ev} token={token} isOwner={!isCollaborator} isPro={client?.profil === 'professionnel'} />;
+      case 'parametrage': return <ParametrageSection ev={ev} token={token} isOwner={!isCollaborator} isPro={client?.profil === 'professionnel' && (!isCollaborator || canSeeBilling)} />;
       default:            return null;
     }
   };

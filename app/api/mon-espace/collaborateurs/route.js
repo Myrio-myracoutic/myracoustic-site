@@ -85,7 +85,7 @@ export async function GET(request) {
 
   const { data: collabs } = await supabaseAdmin
     .from('event_collaborators')
-    .select('id, email, first_name, last_name, role, invited_at, accepted_at, auth_id')
+    .select('id, email, first_name, last_name, role, invited_at, accepted_at, auth_id, can_see_billing')
     .eq('event_id', eventId)
     .order('invited_at');
 

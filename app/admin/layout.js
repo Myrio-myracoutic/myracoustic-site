@@ -2,12 +2,14 @@
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { LayoutDashboard, FileText, Users, LogOut } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, LogOut, CalendarDays, UserSearch } from 'lucide-react';
 
 const NAV = [
-  { href: '/admin',         icon: LayoutDashboard, label: "Vue d'ensemble", exact: true },
-  { href: '/admin/devis',   icon: FileText,         label: 'Devis' },
-  { href: '/admin/clients', icon: Users,            label: 'Clients' },
+  { href: '/admin',              icon: LayoutDashboard, label: "Vue d'ensemble",  exact: true },
+  { href: '/admin/devis',        icon: FileText,        label: 'Devis' },
+  { href: '/admin/evenements',   icon: CalendarDays,    label: 'Événements' },
+  { href: '/admin/prospects',    icon: UserSearch,      label: 'Prospects' },
+  { href: '/admin/clients',      icon: Users,           label: 'Clients' },
 ];
 
 function NavItem({ href, icon: Icon, label, exact }) {

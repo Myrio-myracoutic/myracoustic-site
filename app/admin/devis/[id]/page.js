@@ -3,7 +3,153 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import AdminPlaylistSection from './AdminPlaylistSection';
 import AdminGuestSection from './AdminGuestSection';
-import { Eye } from 'lucide-react';
+import { Eye, Link2, X, FileText, CheckCircle, Loader } from 'lucide-react';
+
+const STATUS_QONTO = {
+  approved:         { label: 'Signé',      color: '#22c55e' },
+  pending_approval: { label: 'En attente', color: '#f59e0b' },
+  sent:             { label: 'Envoyé',     color: '#60a5fa' },
+  draft:            { label: 'Brouillon',  color: 'rgba(255,255,255,0.3)' },
+};
+
+function LinkQuoteModal({ clientEmail, eventId, currentQuoteId, onClose, onLinked }) {
+  const [quotes,        setQuotes]        = useState(null);
+  const [searching,     setSearching]     = useState(false);
+  const [selectedQuote, setSelectedQuote] = useState(null);
+  const [linking,       setLinking]       = useState(false);
+  const [success,       setSuccess]       = useState(false);
+
+  useEffect(() => {
+    if (!clientEmail) return;
+    setSearching(true);
+    fetch(`/api/admin/clients/qonto-search?email=${encodeURIComponent(clientEmail)}`)
+      .then(r => r.json())
+      .then(data => { setQuotes(data.quotes || []); setSearching(false); });
+  }, [clientEmail]);
+
+  const handleLink = async () => {
+    if (!selectedQuote) return;
+    setLinking(true);
+    const res = await fetch(`/api/admin/events/${eventId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        qonto_quote_id:  selectedQuote.id,
+        qonto_quote_url: selectedQuote.quote_url,
+      }),
+    });
+    if (res.ok) {
+      setSuccess(true);
+      setTimeout(() => { onLinked(selectedQuote); onClose(); }, 1200);
+    }
+    setLinking(false);
+  };
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 300,
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+    }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.1)',
+        borderRadius: 16, padding: '28px 28px 24px', width: '100%', maxWidth: 540,
+        maxHeight: '80vh', overflowY: 'auto',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+          <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 16, fontWeight: 800, color: '#fff', margin: 0 }}>
+            Lier un devis Qonto
+          </h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.4)', padding: 4 }}>
+            <X size={18} />
+          </button>
+        </div>
+
+        {success ? (
+          <div style={{ textAlign: 'center', padding: '20px 0' }}>
+            <CheckCircle size={36} color="#22c55e" style={{ marginBottom: 10 }} />
+            <p style={{ color: '#fff', fontSize: 14, margin: 0 }}>Devis lié avec succès !</p>
+          </div>
+        ) : searching ? (
+          <div style={{ textAlign: 'center', padding: '24px 0', color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>
+            <Loader size={20} style={{ animation: 'spin 0.8s linear infinite', marginBottom: 8 }} />
+            <p style={{ margin: 0 }}>Recherche des devis Qonto…</p>
+          </div>
+        ) : !quotes?.length ? (
+          <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13, fontStyle: 'italic', margin: 0 }}>
+            Aucun devis trouvé pour {clientEmail}
+          </p>
+        ) : (
+          <>
+            <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, margin: '0 0 14px' }}>
+              {quotes.length} devis trouvé{quotes.length > 1 ? 's' : ''} pour {clientEmail}
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 18 }}>
+              {quotes.map(q => {
+                const st = STATUS_QONTO[q.status] || { label: q.status, color: 'rgba(255,255,255,0.3)' };
+                const isSel = selectedQuote?.id === q.id;
+                const isCurrent = q.id === currentQuoteId;
+                const fmt = v => v > 0 ? v.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) + ' €' : null;
+                return (
+                  <div
+                    key={q.id}
+                    onClick={() => !isCurrent && setSelectedQuote(isSel ? null : q)}
+                    style={{
+                      background: isSel ? 'rgba(184,239,11,0.06)' : 'rgba(255,255,255,0.03)',
+                      border: `1px solid ${isSel ? 'rgba(184,239,11,0.35)' : 'rgba(255,255,255,0.08)'}`,
+                      borderRadius: 8, padding: '12px 14px',
+                      cursor: isCurrent ? 'default' : 'pointer',
+                      opacity: isCurrent ? 0.4 : 1, transition: 'all 0.15s',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <FileText size={14} color={isSel ? '#b8ef0b' : 'rgba(255,255,255,0.3)'} style={{ flexShrink: 0 }} />
+                      <div style={{ flex: 1 }}>
+                        <span style={{ fontSize: 14, fontWeight: 700, color: isSel ? '#b8ef0b' : 'rgba(255,255,255,0.85)' }}>
+                          {q.number}
+                        </span>
+                        {q.header && (
+                          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginLeft: 8 }}>
+                            {q.header.slice(0, 50)}
+                          </span>
+                        )}
+                        {isCurrent && (
+                          <span style={{ fontSize: 11, color: '#b8ef0b', marginLeft: 8 }}>· déjà lié</span>
+                        )}
+                      </div>
+                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                        <div style={{ fontSize: 12, color: st.color, fontWeight: 600 }}>{st.label}</div>
+                        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)', fontWeight: 600 }}>{fmt(q.total)}</div>
+                      </div>
+                      {isSel && <CheckCircle size={14} color="#b8ef0b" />}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <button
+              onClick={handleLink}
+              disabled={!selectedQuote || linking}
+              style={{
+                width: '100%', background: selectedQuote ? '#b8ef0b' : 'rgba(255,255,255,0.08)',
+                color: selectedQuote ? '#060e16' : 'rgba(255,255,255,0.3)',
+                border: 'none', borderRadius: 9, padding: '11px 24px',
+                fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 14,
+                cursor: selectedQuote ? 'pointer' : 'not-allowed',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}
+            >
+              {linking
+                ? <><Loader size={14} style={{ animation: 'spin 0.8s linear infinite' }} /> Liaison…</>
+                : selectedQuote ? `Lier ${selectedQuote.number}` : 'Sélectionnez un devis'
+              }
+            </button>
+          </>
+        )}
+      </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
+  );
+}
 
 const STATUSES = {
   devis_envoye: { label: 'Devis envoyé',  color: '#f59e0b' },
@@ -51,23 +197,28 @@ export default function AdminDevisDetail() {
   const [status, setStatus] = useState('');
   const [notes, setNotes] = useState('');
   const [clientMessage, setClientMessage] = useState('');
+  const [eventType, setEventType] = useState('');
+  const [eventDate, setEventDate] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [previewing, setPreviewing] = useState(false);
+  const [showLinkModal, setShowLinkModal] = useState(false);
 
-  useEffect(() => {
-    fetch(`/api/admin/events/${params.id}`)
-      .then(r => { if (r.status === 401) { router.replace('/admin/login'); return null; } return r.json(); })
-      .then(data => {
-        if (data) {
-          setEv(data);
-          setStatus(data.status);
-          setNotes(data.admin_notes || '');
-          setClientMessage(data.client_message || '');
-          setLoading(false);
-        }
-      });
-  }, [params.id]);
+  const reload = () => fetch(`/api/admin/events/${params.id}`)
+    .then(r => { if (r.status === 401) { router.replace('/admin/login'); return null; } return r.json(); })
+    .then(data => {
+      if (data) {
+        setEv(data);
+        setStatus(data.status);
+        setNotes(data.admin_notes || '');
+        setClientMessage(data.client_message || '');
+        setEventType(data.event_type || '');
+        setEventDate(data.event_date || '');
+        setLoading(false);
+      }
+    });
+
+  useEffect(() => { reload(); }, [params.id]);
 
   const handlePreview = async () => {
     setPreviewing(true);
@@ -84,7 +235,7 @@ export default function AdminDevisDetail() {
     const res = await fetch(`/api/admin/events/${params.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status, admin_notes: notes, client_message: clientMessage }),
+      body: JSON.stringify({ status, admin_notes: notes, client_message: clientMessage, event_type: eventType || null, event_date: eventDate || null }),
     });
     if (res.ok) { setEv(await res.json()); setSaved(true); setTimeout(() => setSaved(false), 3000); }
     setSaving(false);
@@ -159,10 +310,60 @@ export default function AdminDevisDetail() {
         </Card>
         <Card title="Événement">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <InfoRow label="Type" value={ev.event_type} />
-            <InfoRow label="Date" value={fmtDate(ev.event_date)} />
+            {/* Type — éditable */}
+            <div>
+              <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', display: 'block', marginBottom: 5 }}>TYPE</label>
+              <input
+                value={eventType}
+                onChange={e => setEventType(e.target.value)}
+                placeholder="Mariage, Soirée privée, Anniversaire…"
+                style={{
+                  width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 7, padding: '8px 12px', color: '#fff', fontSize: 13,
+                  fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box',
+                }}
+              />
+            </div>
+            {/* Date — éditable */}
+            <div>
+              <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', display: 'block', marginBottom: 5 }}>DATE</label>
+              <input
+                type="date"
+                value={eventDate}
+                onChange={e => setEventDate(e.target.value)}
+                style={{
+                  background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 7, padding: '8px 12px', color: eventDate ? '#fff' : 'rgba(255,255,255,0.3)',
+                  fontSize: 13, fontFamily: 'inherit', outline: 'none', colorScheme: 'dark',
+                }}
+              />
+            </div>
             <InfoRow label="Lieu" value={[ev.venue, ev.venue_cp, ev.venue_city].filter(Boolean).join(', ')} />
             <InfoRow label="Invités" value={ev.guests ? `${ev.guests} personnes` : null} />
+            {/* Lier devis Qonto */}
+            <div style={{ paddingTop: 6, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginBottom: 2 }}>DEVIS QONTO</div>
+                  <div style={{ fontSize: 13, color: ev.qonto_quote_id ? '#b8ef0b' : 'rgba(255,255,255,0.25)' }}>
+                    {ev.qonto_quote_id ? `DEV lié · ${ev.qonto_quote_id.slice(0, 8)}…` : 'Aucun devis lié'}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowLinkModal(true)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
+                    borderRadius: 7, padding: '6px 12px', cursor: 'pointer',
+                    color: 'rgba(255,255,255,0.55)', fontSize: 12, fontWeight: 600,
+                    fontFamily: 'var(--font-display), sans-serif',
+                  }}
+                >
+                  <Link2 size={13} />
+                  {ev.qonto_quote_id ? 'Changer' : 'Lier un devis'}
+                </button>
+              </div>
+            </div>
           </div>
         </Card>
       </div>
@@ -231,6 +432,16 @@ export default function AdminDevisDetail() {
           {saved && <span style={{ color: '#b8ef0b', fontSize: 13, fontWeight: 600 }}>✓ Enregistré</span>}
         </div>
       </Card>
+
+      {showLinkModal && (
+        <LinkQuoteModal
+          clientEmail={c?.email}
+          eventId={params.id}
+          currentQuoteId={ev.qonto_quote_id}
+          onClose={() => setShowLinkModal(false)}
+          onLinked={() => { setShowLinkModal(false); reload(); }}
+        />
+      )}
 
       <AdminGuestSection eventId={params.id} />
 

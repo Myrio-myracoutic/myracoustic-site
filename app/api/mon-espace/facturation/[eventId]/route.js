@@ -82,6 +82,7 @@ export async function GET(request, { params }) {
     currency:   i.total_amount?.currency || 'EUR',
     paid_at:    i.paid_at || null,
     issued_at:  i.issue_date || null,
+    due_date:   i.due_date || i.payment_due_date || i.due_at || null,
     url:        i.invoice_url || i.public_url || i.file_url || null,
   }));
 

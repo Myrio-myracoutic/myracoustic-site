@@ -226,21 +226,27 @@ function FacturationTab({ ev, token }) {
 
       {/* Factures */}
       {(data.invoices || []).map(inv => {
-        const isPaid = inv.status === 'paid';
-        const label  = TYPE_LABELS[inv.type] || `Facture ${inv.number}`;
-        const badge  = isPaid ? 'Payée' : 'En attente';
-        const badgeColor = isPaid ? '#22c55e' : '#f59e0b';
+        const isPaid    = inv.status === 'paid';
+        const isOverdue = !isPaid && inv.due_date && new Date(inv.due_date) < new Date();
+        const label     = TYPE_LABELS[inv.type] || `Facture ${inv.number}`;
+        const badge     = isPaid ? 'Payée' : isOverdue ? 'En retard' : 'En attente';
+        const badgeColor = isPaid ? '#22c55e' : isOverdue ? '#ef4444' : '#f59e0b';
         const sub    = [
           inv.amount > 0 ? fmtEur(inv.amount) : null,
-          isPaid && inv.paid_at ? `Payée le ${fmtDate(inv.paid_at)}` : null,
-          !isPaid && inv.issued_at ? `Émise le ${fmtDate(inv.issued_at)}` : null,
+          isPaid && inv.paid_at
+            ? `Payée le ${fmtDate(inv.paid_at)}`
+            : inv.due_date
+            ? `À régler avant le ${fmtDate(inv.due_date)}`
+            : inv.issued_at
+            ? `Émise le ${fmtDate(inv.issued_at)}`
+            : null,
         ].filter(Boolean).join(' · ');
 
         return (
           <DocRow
             key={inv.id}
             icon={CreditCard}
-            iconColor={isPaid ? '#22c55e' : '#f59e0b'}
+            iconColor={isPaid ? '#22c55e' : isOverdue ? '#ef4444' : '#f59e0b'}
             title={label}
             subtitle={sub || null}
             url={inv.url}

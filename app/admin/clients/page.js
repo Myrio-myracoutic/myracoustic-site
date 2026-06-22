@@ -49,9 +49,7 @@ function AccountStatus({ client, onReinvite, reinviting }) {
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
         <Clock size={12} color="#f59e0b" strokeWidth={2} />
-        <span style={{ fontSize: 12, color: '#f59e0b', fontWeight: 600 }}>
-          {invitation_sent_at ? `Invitation envoyée` : 'Non invité'}
-        </span>
+        <span style={{ fontSize: 12, color: '#f59e0b', fontWeight: 600 }}>Invitation envoyée</span>
         {invitation_sent_at && (
           <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>
             · {fmtDate(invitation_sent_at)}

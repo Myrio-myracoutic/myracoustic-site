@@ -163,7 +163,36 @@ function FacturationTab({ ev, token }) {
       .catch(() => setLoading(false));
   }, [ev?.id, token]);
 
-  if (loading) return <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: 13 }}>Chargement…</p>;
+  if (loading) return (
+    <div>
+      <style>{`
+        @keyframes shimmer-fact {
+          0%   { background-position: -600px 0; }
+          100% { background-position:  600px 0; }
+        }
+        .sk-fact {
+          background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.09) 50%, rgba(255,255,255,0.04) 75%);
+          background-size: 600px 100%;
+          animation: shimmer-fact 1.4s infinite linear;
+          border-radius: 6px;
+        }
+      `}</style>
+      {[0, 1, 2].map(i => (
+        <div key={i} style={{
+          display: 'flex', alignItems: 'center', gap: 14,
+          background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
+          borderRadius: 10, padding: '14px 18px', marginBottom: 10,
+        }}>
+          <div className="sk-fact" style={{ width: 40, height: 40, borderRadius: 10, flexShrink: 0 }} />
+          <div style={{ flex: 1 }}>
+            <div className="sk-fact" style={{ width: '55%', height: 13, marginBottom: 8 }} />
+            <div className="sk-fact" style={{ width: '35%', height: 10 }} />
+          </div>
+          <div className="sk-fact" style={{ width: 60, height: 22, borderRadius: 10, flexShrink: 0 }} />
+        </div>
+      ))}
+    </div>
+  );
 
   const hasDocuments = data?.quote || data?.invoices?.length > 0;
 

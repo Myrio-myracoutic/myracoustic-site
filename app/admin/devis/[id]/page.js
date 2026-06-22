@@ -159,6 +159,13 @@ const STATUSES = {
   annule:       { label: 'Annulé',         color: '#ef4444' },
 };
 
+const EVENT_TYPES = [
+  'Mariage', 'PACS', 'Anniversaire', 'EVJF/EVG',
+  'Bat/Bar-Mitzvah', 'Communion', 'Fête familiale',
+  'Soirée privée', 'Soirée d\'entreprise', 'Séminaire', 'Gala',
+  'Autre',
+];
+
 function fmtDate(d) {
   if (!d) return '—';
   return new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
@@ -310,19 +317,41 @@ export default function AdminDevisDetail() {
         </Card>
         <Card title="Événement">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {/* Type — éditable */}
+            {/* Type — sélecteur */}
             <div>
-              <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', display: 'block', marginBottom: 5 }}>TYPE</label>
-              <input
-                value={eventType}
-                onChange={e => setEventType(e.target.value)}
-                placeholder="Mariage, Soirée privée, Anniversaire…"
-                style={{
-                  width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-                  borderRadius: 7, padding: '8px 12px', color: '#fff', fontSize: 13,
-                  fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box',
+              <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', display: 'block', marginBottom: 5 }}>TYPE D'ÉVÉNEMENT</label>
+              <select
+                value={EVENT_TYPES.includes(eventType) ? eventType : eventType ? 'Autre' : ''}
+                onChange={e => {
+                  if (e.target.value === 'Autre') setEventType('Autre');
+                  else setEventType(e.target.value);
                 }}
-              />
+                style={{
+                  width: '100%', background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 7, padding: '8px 12px', color: '#fff', fontSize: 13,
+                  fontFamily: 'inherit', outline: 'none', cursor: 'pointer', colorScheme: 'dark',
+                }}
+              >
+                <option value="" disabled>Sélectionner un type…</option>
+                {EVENT_TYPES.map(t => (
+                  <option key={t} value={t} style={{ background: '#0d1b2a' }}>{t}</option>
+                ))}
+              </select>
+              {/* Champ personnalisé si "Autre" sélectionné et pas dans la liste */}
+              {eventType && !EVENT_TYPES.slice(0, -1).includes(eventType) && (
+                <input
+                  value={eventType === 'Autre' ? '' : eventType}
+                  onChange={e => setEventType(e.target.value)}
+                  autoFocus
+                  placeholder="Précisez le type d'événement…"
+                  style={{
+                    marginTop: 8, width: '100%', background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(184,239,11,0.3)', borderRadius: 7,
+                    padding: '8px 12px', color: '#fff', fontSize: 13,
+                    fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box',
+                  }}
+                />
+              )}
             </div>
             {/* Date — éditable */}
             <div>

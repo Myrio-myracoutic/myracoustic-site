@@ -108,15 +108,16 @@ const TYPE_LABELS = {
   balance: 'Facture de solde',
 };
 
-function DocRow({ icon: Icon, iconColor, title, subtitle, url, badge, badgeColor }) {
-  const inner = (
+function DocRow({ icon: Icon, iconColor, title, subtitle, url, badge, badgeColor, payUrl }) {
+  return (
     <div style={{
       display: 'flex', alignItems: 'center', gap: 14,
       background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
-      borderRadius: 10, padding: '14px 18px', transition: 'border-color 0.2s',
+      borderRadius: 10, padding: '14px 18px', marginBottom: 10,
+      transition: 'border-color 0.2s',
     }}
-      onMouseEnter={e => url && (e.currentTarget.style.borderColor = 'rgba(184,239,11,0.3)')}
-      onMouseLeave={e => url && (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)')}
+      onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.14)'}
+      onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
     >
       <div style={{
         width: 40, height: 40, borderRadius: 10, flexShrink: 0,
@@ -125,28 +126,32 @@ function DocRow({ icon: Icon, iconColor, title, subtitle, url, badge, badgeColor
       }}>
         <Icon size={18} color={iconColor} strokeWidth={1.5} />
       </div>
-      <div style={{ flex: 1 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 14, fontWeight: 500 }}>{title}</div>
         {subtitle && <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, marginTop: 2 }}>{subtitle}</div>}
       </div>
-      {badge && (
-        <span style={{
-          fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 10,
-          background: `${badgeColor}18`, color: badgeColor, border: `1px solid ${badgeColor}35`,
-          flexShrink: 0,
-        }}>{badge}</span>
-      )}
-      {url && <ExternalLink size={15} color="rgba(255,255,255,0.25)" style={{ flexShrink: 0 }} />}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+        {badge && (
+          <span style={{
+            fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 10,
+            background: `${badgeColor}18`, color: badgeColor, border: `1px solid ${badgeColor}35`,
+          }}>{badge}</span>
+        )}
+        {payUrl && (
+          <a href={payUrl} target="_blank" rel="noopener noreferrer" style={{
+            display: 'inline-flex', alignItems: 'center', gap: 5,
+            background: '#b8ef0b', color: '#060e16',
+            borderRadius: 8, padding: '6px 14px',
+            fontSize: 12, fontWeight: 700, textDecoration: 'none',
+            fontFamily: 'var(--font-display), sans-serif',
+          }}>
+            Payer →
+          </a>
+        )}
+        {url && !payUrl && <ExternalLink size={15} color="rgba(255,255,255,0.25)" />}
+      </div>
     </div>
   );
-  if (url) {
-    return (
-      <a href={url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'block', marginBottom: 10 }}>
-        {inner}
-      </a>
-    );
-  }
-  return <div style={{ marginBottom: 10, cursor: 'default' }}>{inner}</div>;
 }
 
 function FacturationTab({ ev, token }) {
@@ -231,7 +236,18 @@ function FacturationTab({ ev, token }) {
         const label     = TYPE_LABELS[inv.type] || `Facture ${inv.number}`;
         const badge     = isPaid ? 'Payée' : isOverdue ? 'En retard' : 'En attente';
         const badgeColor = isPaid ? '#22c55e' : isOverdue ? '#ef4444' : '#f59e0b';
-        const sub    = [
+
+        // Bouton Payer visible :
+        // - Acompte (deposit) : dès que non payé
+        // - Solde (balance)   : à partir de J-1 avant l'événement (ou après)
+        const today    = new Date(); today.setHours(0, 0, 0, 0);
+        const eventDay = data.event_date ? new Date(data.event_date + 'T00:00:00') : null;
+        const j1       = eventDay ? new Date(eventDay.getTime() - 24 * 60 * 60 * 1000) : null;
+        const payVisible = !isPaid && inv.pay_url && (
+          inv.type === 'deposit' || !j1 || today >= j1
+        );
+
+        const sub = [
           inv.amount > 0 ? fmtEur(inv.amount) : null,
           isPaid && inv.paid_at
             ? `Payée le ${fmtDate(inv.paid_at)}`
@@ -249,9 +265,10 @@ function FacturationTab({ ev, token }) {
             iconColor={isPaid ? '#22c55e' : isOverdue ? '#ef4444' : '#f59e0b'}
             title={label}
             subtitle={sub || null}
-            url={inv.url}
+            url={inv.pay_url}
             badge={badge}
             badgeColor={badgeColor}
+            payUrl={payVisible ? inv.pay_url : null}
           />
         );
       })}

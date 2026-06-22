@@ -234,6 +234,46 @@ export default function AdminDevisDetail() {
 
       <AdminGuestSection eventId={params.id} />
 
+      {/* Aperçus des emails */}
+      <div style={{
+        marginTop: 20, background: '#0d1b2a', borderRadius: 14, padding: '18px 24px',
+        border: '1px solid rgba(255,255,255,0.06)',
+      }}>
+        <h2 style={{
+          fontFamily: 'var(--font-display), sans-serif', fontSize: 11, fontWeight: 700,
+          color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em',
+          margin: '0 0 14px',
+        }}>Aperçu des emails</h2>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          {[
+            { type: 'devis_envoye', label: 'Devis envoyé' },
+            { type: 'accepte',      label: 'Devis signé' },
+            { type: 'confirme',     label: 'Réservation confirmée' },
+            { type: 'payment-reminder', label: 'Rappel paiement solde' },
+            { type: 'termine',      label: 'Terminé' },
+            { type: 'annule',       label: 'Annulation' },
+          ].map(({ type, label }) => (
+            <a
+              key={type}
+              href={`/api/admin/preview/email/${type}?eventId=${params.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: 8, padding: '6px 14px', fontSize: 12, fontWeight: 600,
+                color: 'rgba(255,255,255,0.55)', textDecoration: 'none',
+                fontFamily: 'var(--font-display), sans-serif',
+                transition: 'all 0.15s',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(184,239,11,0.4)'; e.currentTarget.style.color = '#b8ef0b'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'rgba(255,255,255,0.55)'; }}
+            >
+              {label}
+            </a>
+          ))}
+        </div>
+      </div>
+
       <AdminPlaylistSection eventId={params.id} />
 
       {ev.qonto_quote_url && (

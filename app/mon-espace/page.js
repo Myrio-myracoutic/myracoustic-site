@@ -5,11 +5,12 @@ import Image from 'next/image';
 import { supabase } from '@/app/lib/supabase';
 import {
   ClipboardList, Calendar, Music2, CheckSquare,
-  Phone, Camera, LogOut, ChevronDown, Users, Heart,
+  Phone, Camera, LogOut, ChevronDown, Users, Heart, Settings,
 } from 'lucide-react';
 
-import NotificationBell  from './NotificationBell';
-import SuiviSection      from './SuiviSection';
+import NotificationBell    from './NotificationBell';
+import ParametrageSection  from './ParametrageSection';
+import SuiviSection        from './SuiviSection';
 import ProgrammeSection  from './ProgrammeSection';
 import PlaylistSection   from './PlaylistSection';
 import PreparationSection from './PreparationSection';
@@ -49,6 +50,7 @@ function getSections(ev) {
     { id: 'preparation', label: 'Préparation',   shortLabel: 'Prép.',    icon: CheckSquare,    locked: !active },
     { id: 'contact',     label: 'Contact',       shortLabel: 'Contact',  icon: Phone,          locked: false },
     { id: 'galerie',     label: 'Galerie',       shortLabel: 'Photos',   icon: Camera,         locked: !termine },
+    { id: 'parametrage', label: 'Paramétrage',   shortLabel: 'Params',   icon: Settings,       locked: false },
   ];
 }
 
@@ -226,6 +228,7 @@ function SectionTitle({ section }) {
     documents:   'Vos documents',
     contact:     'Nous contacter',
     galerie:     'Galerie photos',
+    parametrage: 'Paramétrage',
   };
   return (
     <h1 style={{
@@ -239,14 +242,15 @@ function SectionTitle({ section }) {
 /* ── Page principale ───────────────────────────────────────────── */
 export default function MonEspacePage() {
   const router = useRouter();
-  const [user,      setUser]      = useState(null);
-  const [client,    setClient]    = useState(null);
-  const [events,    setEvents]    = useState([]);
-  const [eventId,   setEventId]   = useState(null);
-  const [token,     setToken]     = useState('');
-  const [loading,   setLoading]   = useState(true);
-  const [section,   setSection]   = useState('suivi');
-  const [notifTick, setNotifTick] = useState(0);
+  const [user,           setUser]           = useState(null);
+  const [client,         setClient]         = useState(null);
+  const [events,         setEvents]         = useState([]);
+  const [eventId,        setEventId]        = useState(null);
+  const [token,          setToken]          = useState('');
+  const [loading,        setLoading]        = useState(true);
+  const [section,        setSection]        = useState('suivi');
+  const [notifTick,      setNotifTick]      = useState(0);
+  const [isCollaborator, setIsCollaborator] = useState(false);
 
   const ev = events.find(e => e.id === eventId) || events[0] || null;
   const sections = getSections(ev);
@@ -268,6 +272,39 @@ export default function MonEspacePage() {
         const evs = eventsData || [];
         setEvents(evs);
         if (evs.length > 0) setEventId(evs[0].id);
+      } else {
+        // Chercher en tant que collaborateur (par auth_id ou par email)
+        const { supabaseAdmin } = await import('@/app/lib/supabase-admin');
+        let collab = (await supabaseAdmin
+          .from('event_collaborators')
+          .select('id, event_id, auth_id, email, events(*, clients(*))')
+          .eq('auth_id', session.user.id)
+          .single()).data;
+
+        if (!collab) {
+          // Première connexion : trouver par email et mettre à jour auth_id
+          collab = (await supabaseAdmin
+            .from('event_collaborators')
+            .select('id, event_id, email, events(*, clients(*))')
+            .eq('email', session.user.email?.toLowerCase())
+            .single()).data;
+          if (collab) {
+            await supabaseAdmin.from('event_collaborators')
+              .update({ auth_id: session.user.id, accepted_at: new Date().toISOString() })
+              .eq('id', collab.id);
+          }
+        }
+
+        if (collab?.events) {
+          const ev = collab.events;
+          setIsCollaborator(true);
+          setClient(ev.clients || { first_name: '', last_name: '', email: session.user.email });
+          setEvents([ev]);
+          setEventId(ev.id);
+        } else {
+          router.replace('/mon-espace/connexion');
+          return;
+        }
       }
       setLoading(false);
     });
@@ -358,6 +395,7 @@ export default function MonEspacePage() {
       case 'preparation': return <PreparationSection ev={ev} token={token} />;
       case 'contact':     return <ContactSection />;
       case 'galerie':     return <GalerieSection ev={ev} />;
+      case 'parametrage': return <ParametrageSection ev={ev} token={token} isOwner={!isCollaborator} />;
       default:            return null;
     }
   };

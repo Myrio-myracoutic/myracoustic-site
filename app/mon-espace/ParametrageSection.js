@@ -318,8 +318,14 @@ function TabAcces({ token, eventId, isOwner }) {
 }
 
 /* ── Section principale ────────────────────────────────────────── */
-export default function ParametrageSection({ ev, token, isOwner = true }) {
+export default function ParametrageSection({ ev, token, isOwner = true, isPro = false }) {
   const [tab, setTab] = useState('compte');
+
+  const visibleTabs = TABS.filter(t => {
+    if (t.id === 'facturation' && !isPro) return false; // réservé aux entreprises
+    if (t.id === 'acces' && !isOwner) return false;     // réservé au responsable
+    return true;
+  });
 
   return (
     <div style={{
@@ -328,7 +334,7 @@ export default function ParametrageSection({ ev, token, isOwner = true }) {
     }}>
       {/* Onglets */}
       <div style={{ display: 'flex', gap: 4, marginBottom: 24, borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 0 }}>
-        {TABS.filter(t => t.id !== 'acces' || isOwner).map(t => {
+        {visibleTabs.map(t => {
           const isAct = tab === t.id;
           return (
             <button key={t.id} onClick={() => setTab(t.id)} style={{

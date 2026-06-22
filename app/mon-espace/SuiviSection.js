@@ -103,6 +103,145 @@ function StatLine({ label, value, color }) {
   );
 }
 
+const TYPE_LABELS = {
+  deposit: 'Facture d\'acompte',
+  balance: 'Facture de solde',
+};
+
+function DocRow({ icon: Icon, iconColor, title, subtitle, url, badge, badgeColor }) {
+  const inner = (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 14,
+      background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
+      borderRadius: 10, padding: '14px 18px', transition: 'border-color 0.2s',
+    }}
+      onMouseEnter={e => url && (e.currentTarget.style.borderColor = 'rgba(184,239,11,0.3)')}
+      onMouseLeave={e => url && (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)')}
+    >
+      <div style={{
+        width: 40, height: 40, borderRadius: 10, flexShrink: 0,
+        background: `${iconColor}14`, border: `1px solid ${iconColor}30`,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <Icon size={18} color={iconColor} strokeWidth={1.5} />
+      </div>
+      <div style={{ flex: 1 }}>
+        <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 14, fontWeight: 500 }}>{title}</div>
+        {subtitle && <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, marginTop: 2 }}>{subtitle}</div>}
+      </div>
+      {badge && (
+        <span style={{
+          fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 10,
+          background: `${badgeColor}18`, color: badgeColor, border: `1px solid ${badgeColor}35`,
+          flexShrink: 0,
+        }}>{badge}</span>
+      )}
+      {url && <ExternalLink size={15} color="rgba(255,255,255,0.25)" style={{ flexShrink: 0 }} />}
+    </div>
+  );
+  if (url) {
+    return (
+      <a href={url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'block', marginBottom: 10 }}>
+        {inner}
+      </a>
+    );
+  }
+  return <div style={{ marginBottom: 10, cursor: 'default' }}>{inner}</div>;
+}
+
+function FacturationTab({ ev, token }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!token || !ev?.id) { setLoading(false); return; }
+    fetch(`/api/mon-espace/facturation/${ev.id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(r => r.json())
+      .then(d => { setData(d); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [ev?.id, token]);
+
+  if (loading) return <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: 13 }}>Chargement…</p>;
+
+  const hasDocuments = data?.quote || data?.invoices?.length > 0;
+
+  if (!hasDocuments) {
+    return (
+      <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: 13, fontStyle: 'italic' }}>
+        Aucun document disponible pour le moment.
+      </p>
+    );
+  }
+
+  const fmtDate = (d) => {
+    if (!d) return null;
+    return new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+  };
+
+  const fmtEur = (v) => v > 0 ? v.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) + ' €' : null;
+
+  return (
+    <div>
+      {/* Devis */}
+      {data.quote && (
+        <DocRow
+          icon={FileText}
+          iconColor="#b8ef0b"
+          title="Devis Myracoustic"
+          subtitle={data.quote.total > 0 ? `Montant total : ${fmtEur(data.quote.total)}` : 'Cliquez pour consulter ou télécharger'}
+          url={data.quote.url}
+        />
+      )}
+
+      {/* Factures */}
+      {(data.invoices || []).map(inv => {
+        const isPaid = inv.status === 'paid';
+        const label  = TYPE_LABELS[inv.type] || `Facture ${inv.number}`;
+        const badge  = isPaid ? 'Payée' : 'En attente';
+        const badgeColor = isPaid ? '#22c55e' : '#f59e0b';
+        const sub    = [
+          inv.amount > 0 ? fmtEur(inv.amount) : null,
+          isPaid && inv.paid_at ? `Payée le ${fmtDate(inv.paid_at)}` : null,
+          !isPaid && inv.issued_at ? `Émise le ${fmtDate(inv.issued_at)}` : null,
+        ].filter(Boolean).join(' · ');
+
+        return (
+          <DocRow
+            key={inv.id}
+            icon={CreditCard}
+            iconColor={isPaid ? '#22c55e' : '#f59e0b'}
+            title={label}
+            subtitle={sub || null}
+            url={inv.url}
+            badge={badge}
+            badgeColor={badgeColor}
+          />
+        );
+      })}
+
+      {/* Résumé paiements si plusieurs factures */}
+      {data.invoices?.length > 0 && (() => {
+        const total    = data.quote?.total || 0;
+        const paid     = data.invoices.filter(i => i.status === 'paid').reduce((s, i) => s + i.amount, 0);
+        const remaining = Math.max(0, total - paid);
+        if (remaining <= 0 || total <= 0) return null;
+        return (
+          <div style={{
+            marginTop: 6, padding: '12px 16px',
+            background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.15)',
+            borderRadius: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          }}>
+            <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Reste à régler</span>
+            <span style={{ color: '#f59e0b', fontSize: 15, fontWeight: 700 }}>{fmtEur(remaining)}</span>
+          </div>
+        );
+      })()}
+    </div>
+  );
+}
+
 export default function SuiviSection({ ev, token }) {
   const [tab, setTab] = useState('apercu');
   const [guests, setGuests]             = useState([]);
@@ -327,38 +466,7 @@ export default function SuiviSection({ ev, token }) {
         )}
 
         {tab === 'facturation' && (
-          <div>
-            {ev.qonto_quote_url ? (
-              <a href={ev.qonto_quote_url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
-                <div
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 16,
-                    background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
-                    borderRadius: 10, padding: '16px 20px', transition: 'border-color 0.2s',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(184,239,11,0.3)'}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
-                >
-                  <div style={{
-                    width: 42, height: 42, borderRadius: 10, flexShrink: 0,
-                    background: 'rgba(184,239,11,0.08)', border: '1px solid rgba(184,239,11,0.2)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <FileText size={20} color="#b8ef0b" strokeWidth={1.5} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 14, fontWeight: 500 }}>Devis Myracoustic</div>
-                    <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12, marginTop: 2 }}>Cliquez pour consulter ou télécharger</div>
-                  </div>
-                  <ExternalLink size={16} color="rgba(255,255,255,0.3)" />
-                </div>
-              </a>
-            ) : (
-              <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: 13, fontStyle: 'italic' }}>
-                Aucun document disponible pour le moment.
-              </p>
-            )}
-          </div>
+          <FacturationTab ev={ev} token={token} />
         )}
       </div>
     </div>

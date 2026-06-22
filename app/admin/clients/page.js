@@ -1,32 +1,97 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { UserPlus, X, Search, CheckCircle, FileText, Loader } from 'lucide-react';
+import { UserPlus, X, Search, CheckCircle, FileText, Loader, Mail, RefreshCw, ShieldCheck, Clock, AlertCircle } from 'lucide-react';
 
 function fmtDate(d) {
   if (!d) return '—';
   return new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+function fmtDateTime(d) {
+  if (!d) return null;
+  return new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
 const STATUS_QONTO = {
-  approved:         { label: 'Signé',     color: '#22c55e' },
+  approved:         { label: 'Signé',      color: '#22c55e' },
   pending_approval: { label: 'En attente', color: '#f59e0b' },
-  sent:             { label: 'Envoyé',    color: '#60a5fa' },
-  draft:            { label: 'Brouillon', color: 'rgba(255,255,255,0.3)' },
+  sent:             { label: 'Envoyé',     color: '#60a5fa' },
+  draft:            { label: 'Brouillon',  color: 'rgba(255,255,255,0.3)' },
 };
+
+function AccountStatus({ client, onReinvite, reinviting }) {
+  const { auth_status, invitation_sent_at } = client;
+
+  if (!client.auth_id) {
+    return (
+      <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', fontStyle: 'italic' }}>
+        Sans compte
+      </span>
+    );
+  }
+
+  if (auth_status?.confirmed) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <ShieldCheck size={13} color="#22c55e" strokeWidth={2} />
+        <span style={{ fontSize: 12, color: '#22c55e', fontWeight: 600 }}>Compte actif</span>
+        {auth_status.lastSignIn && (
+          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>
+            · {fmtDate(auth_status.lastSignIn)}
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+        <Clock size={12} color="#f59e0b" strokeWidth={2} />
+        <span style={{ fontSize: 12, color: '#f59e0b', fontWeight: 600 }}>
+          {invitation_sent_at ? `Invitation envoyée` : 'Non invité'}
+        </span>
+        {invitation_sent_at && (
+          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>
+            · {fmtDate(invitation_sent_at)}
+          </span>
+        )}
+      </div>
+      <button
+        onClick={e => { e.stopPropagation(); onReinvite(client); }}
+        disabled={reinviting}
+        title="Ré-envoyer l'invitation"
+        style={{
+          display: 'flex', alignItems: 'center', gap: 4,
+          background: 'rgba(96,165,250,0.1)', border: '1px solid rgba(96,165,250,0.25)',
+          borderRadius: 6, padding: '3px 9px', cursor: 'pointer',
+          color: '#60a5fa', fontSize: 11, fontWeight: 600,
+          opacity: reinviting ? 0.5 : 1,
+        }}
+      >
+        {reinviting
+          ? <Loader size={10} style={{ animation: 'spin 0.8s linear infinite' }} />
+          : <RefreshCw size={10} />
+        }
+        {invitation_sent_at ? 'Ré-inviter' : 'Inviter'}
+      </button>
+    </div>
+  );
+}
 
 /* ── Modal création compte ─────────────────────────────────────── */
 function CreateAccountModal({ onClose, onCreated }) {
-  const [email,     setEmail]     = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName,  setLastName]  = useState('');
-  const [phone,     setPhone]     = useState('');
-  const [quotes,    setQuotes]    = useState(null);   // null = pas encore cherché
-  const [searching, setSearching] = useState(false);
+  const [email,      setEmail]      = useState('');
+  const [firstName,  setFirstName]  = useState('');
+  const [lastName,   setLastName]   = useState('');
+  const [phone,      setPhone]      = useState('');
+  const [quotes,     setQuotes]     = useState(null);
+  const [searching,  setSearching]  = useState(false);
   const [selectedQuote, setSelectedQuote] = useState(null);
   const [submitting, setSubmitting] = useState(false);
-  const [error,      setError]    = useState('');
-  const [success,    setSuccess]  = useState(false);
+  const [error,      setError]      = useState('');
+  const [success,    setSuccess]    = useState(false);
   const searchTimeout = useRef(null);
 
   const searchQonto = async (val) => {
@@ -35,7 +100,6 @@ function CreateAccountModal({ onClose, onCreated }) {
     const res  = await fetch(`/api/admin/clients/qonto-search?email=${encodeURIComponent(val)}`);
     const data = await res.json();
     setQuotes(data.quotes || []);
-    // Pré-remplir prénom/nom si trouvés et champs encore vides
     if (data.firstName && !firstName) setFirstName(data.firstName);
     if (data.lastName  && !lastName)  setLastName(data.lastName);
     if (data.phone     && !phone)     setPhone(data.phone);
@@ -71,15 +135,11 @@ function CreateAccountModal({ onClose, onCreated }) {
       position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 200,
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
     }} onClick={onClose}>
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.1)',
-          borderRadius: 16, padding: '32px 32px 28px', width: '100%', maxWidth: 520,
-          maxHeight: '90vh', overflowY: 'auto',
-        }}
-      >
-        {/* Header */}
+      <div onClick={e => e.stopPropagation()} style={{
+        background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.1)',
+        borderRadius: 16, padding: '32px 32px 28px', width: '100%', maxWidth: 520,
+        maxHeight: '90vh', overflowY: 'auto',
+      }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
           <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 18, fontWeight: 800, color: '#fff', margin: 0 }}>
             Créer un compte client
@@ -96,34 +156,19 @@ function CreateAccountModal({ onClose, onCreated }) {
           </div>
         ) : (
           <>
-            {/* Email */}
             <div style={{ marginBottom: 16 }}>
-              <label style={{ display: 'block', fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 6, fontWeight: 600 }}>
-                ADRESSE E-MAIL *
-              </label>
+              <label style={{ display: 'block', fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 6, fontWeight: 600 }}>ADRESSE E-MAIL *</label>
               <div style={{ position: 'relative' }}>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={e => handleEmailChange(e.target.value)}
-                  placeholder="client@email.com"
-                  style={{
-                    width: '100%', background: 'rgba(255,255,255,0.05)',
-                    border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8,
-                    padding: '10px 36px 10px 14px', color: '#fff', fontSize: 14,
-                    fontFamily: 'inherit', boxSizing: 'border-box',
-                  }}
-                />
+                <input type="email" value={email} onChange={e => handleEmailChange(e.target.value)} placeholder="client@email.com"
+                  style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '10px 36px 10px 14px', color: '#fff', fontSize: 14, fontFamily: 'inherit', boxSizing: 'border-box' }} />
                 <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)' }}>
                   {searching
                     ? <Loader size={14} color="rgba(255,255,255,0.3)" style={{ animation: 'spin 0.8s linear infinite' }} />
-                    : <Search size={14} color="rgba(255,255,255,0.2)" />
-                  }
+                    : <Search size={14} color="rgba(255,255,255,0.2)" />}
                 </div>
               </div>
             </div>
 
-            {/* Prénom + Nom */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
               {[
                 { label: 'PRÉNOM *', value: firstName, set: setFirstName, placeholder: 'Marie' },
@@ -131,159 +176,60 @@ function CreateAccountModal({ onClose, onCreated }) {
               ].map(({ label, value, set, placeholder }) => (
                 <div key={label}>
                   <label style={{ display: 'block', fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 6, fontWeight: 600 }}>{label}</label>
-                  <input
-                    type="text" value={value} onChange={e => set(e.target.value)} placeholder={placeholder}
-                    style={{
-                      width: '100%', background: 'rgba(255,255,255,0.05)',
-                      border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8,
-                      padding: '10px 14px', color: '#fff', fontSize: 14,
-                      fontFamily: 'inherit', boxSizing: 'border-box',
-                    }}
-                  />
+                  <input type="text" value={value} onChange={e => set(e.target.value)} placeholder={placeholder}
+                    style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '10px 14px', color: '#fff', fontSize: 14, fontFamily: 'inherit', boxSizing: 'border-box' }} />
                 </div>
               ))}
             </div>
 
-            {/* Téléphone */}
             <div style={{ marginBottom: 24 }}>
-              <label style={{ display: 'block', fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 6, fontWeight: 600 }}>
-                TÉLÉPHONE
-              </label>
-              <input
-                type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="07 68 53 33 08"
-                style={{
-                  width: '100%', background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8,
-                  padding: '10px 14px', color: '#fff', fontSize: 14,
-                  fontFamily: 'inherit', boxSizing: 'border-box',
-                }}
-              />
+              <label style={{ display: 'block', fontSize: 12, color: 'rgba(255,255,255,0.4)', marginBottom: 6, fontWeight: 600 }}>TÉLÉPHONE</label>
+              <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="07 68 53 33 08"
+                style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8, padding: '10px 14px', color: '#fff', fontSize: 14, fontFamily: 'inherit', boxSizing: 'border-box' }} />
             </div>
 
-            {/* Devis Qonto trouvés */}
             {quotes !== null && (
               <div style={{ marginBottom: 24 }}>
                 <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', fontWeight: 600, margin: '0 0 10px' }}>
-                  DEVIS QONTO TROUVÉS {quotes.length === 0 ? '— aucun' : `(${quotes.length})`}
+                  DEVIS QONTO {quotes.length === 0 ? '— aucun trouvé' : `(${quotes.length})`}
                 </p>
-                {quotes.length > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {quotes.map(q => {
-                      const st = STATUS_QONTO[q.status] || { label: q.status, color: 'rgba(255,255,255,0.3)' };
-                      const isSelected = selectedQuote?.id === q.id;
-                      const fmt = v => v > 0 ? v.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €' : null;
-                      return (
-                        <div
-                          key={q.id}
-                          onClick={() => setSelectedQuote(isSelected ? null : q)}
-                          style={{
-                            background: isSelected ? 'rgba(184,239,11,0.06)' : 'rgba(255,255,255,0.03)',
-                            border: `1px solid ${isSelected ? 'rgba(184,239,11,0.35)' : 'rgba(255,255,255,0.08)'}`,
-                            borderRadius: 8, padding: '12px 14px', cursor: 'pointer',
-                            transition: 'all 0.15s',
-                          }}
-                        >
-                          {/* Ligne principale */}
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: q.invoices?.length ? 10 : 0 }}>
-                            <FileText size={15} color={isSelected ? '#b8ef0b' : 'rgba(255,255,255,0.3)'} style={{ flexShrink: 0 }} />
-                            <div style={{ flex: 1 }}>
-                              <span style={{ fontSize: 14, fontWeight: 700, color: isSelected ? '#b8ef0b' : 'rgba(255,255,255,0.85)' }}>
-                                {q.number}
-                              </span>
-                              {q.header && (
-                                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginLeft: 8 }}>
-                                  {q.header.slice(0, 55)}
-                                </span>
-                              )}
-                            </div>
-                            <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                              <div style={{ fontSize: 12, color: st.color, fontWeight: 600 }}>{st.label}</div>
-                              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', fontWeight: 600 }}>
-                                {fmt(q.total)}
-                              </div>
-                            </div>
-                            {isSelected && <CheckCircle size={15} color="#b8ef0b" style={{ flexShrink: 0 }} />}
-                          </div>
-
-                          {/* Détail paiements */}
-                          {q.invoices?.length > 0 && (
-                            <div style={{
-                              borderTop: '1px solid rgba(255,255,255,0.06)',
-                              paddingTop: 8, display: 'flex', flexDirection: 'column', gap: 4,
-                            }}>
-                              {q.invoices.map((inv, idx) => {
-                                const isPaid = inv.status === 'paid';
-                                return (
-                                  <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                    <div style={{
-                                      width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
-                                      background: isPaid ? '#22c55e' : '#f59e0b',
-                                    }} />
-                                    <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', flex: 1 }}>
-                                      {inv.number} — {inv.type === 'deposit' ? 'Acompte' : 'Facture'}
-                                    </span>
-                                    <span style={{ fontSize: 12, fontWeight: 600, color: isPaid ? '#22c55e' : '#f59e0b' }}>
-                                      {isPaid ? '✓ Payé' : 'En attente'} · {fmt(inv.amount)}
-                                    </span>
-                                  </div>
-                                );
-                              })}
-                              {q.remaining > 0 && (
-                                <div style={{
-                                  display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-                                  borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 6, marginTop: 2,
-                                }}>
-                                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>
-                                    Reste à régler :
-                                  </span>
-                                  <span style={{ fontSize: 12, fontWeight: 700, color: '#f59e0b', marginLeft: 6 }}>
-                                    {fmt(q.remaining)}
-                                  </span>
-                                </div>
-                              )}
-                              {q.remaining === 0 && q.paidAmount > 0 && (
-                                <div style={{ textAlign: 'right', paddingTop: 4 }}>
-                                  <span style={{ fontSize: 12, fontWeight: 700, color: '#22c55e' }}>✓ Soldé</span>
-                                </div>
-                              )}
-                            </div>
-                          )}
+                {quotes.map(q => {
+                  const st = STATUS_QONTO[q.status] || { label: q.status, color: 'rgba(255,255,255,0.3)' };
+                  const isSelected = selectedQuote?.id === q.id;
+                  const fmt = v => v > 0 ? v.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) + ' €' : null;
+                  return (
+                    <div key={q.id} onClick={() => setSelectedQuote(isSelected ? null : q)}
+                      style={{ background: isSelected ? 'rgba(184,239,11,0.06)' : 'rgba(255,255,255,0.03)', border: `1px solid ${isSelected ? 'rgba(184,239,11,0.35)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 8, padding: '12px 14px', cursor: 'pointer', marginBottom: 8 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <FileText size={15} color={isSelected ? '#b8ef0b' : 'rgba(255,255,255,0.3)'} style={{ flexShrink: 0 }} />
+                        <div style={{ flex: 1 }}>
+                          <span style={{ fontSize: 14, fontWeight: 700, color: isSelected ? '#b8ef0b' : 'rgba(255,255,255,0.85)' }}>{q.number}</span>
+                          {q.header && <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginLeft: 8 }}>{q.header.slice(0, 55)}</span>}
                         </div>
-                      );
-                    })}
-                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', margin: '4px 0 0', fontStyle: 'italic' }}>
-                      Cliquez sur un devis pour le lier au compte (optionnel).
-                    </p>
-                  </div>
-                )}
-                {quotes.length === 0 && (
-                  <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.25)', fontStyle: 'italic', margin: 0 }}>
-                    Aucun devis trouvé dans Qonto pour cet email.
+                        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                          <div style={{ fontSize: 12, color: st.color, fontWeight: 600 }}>{st.label}</div>
+                          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', fontWeight: 600 }}>{fmt(q.total)}</div>
+                        </div>
+                        {isSelected && <CheckCircle size={15} color="#b8ef0b" />}
+                      </div>
+                    </div>
+                  );
+                })}
+                {quotes.length > 0 && (
+                  <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', margin: '4px 0 0', fontStyle: 'italic' }}>
+                    Cliquez sur un devis pour le lier (optionnel).
                   </p>
                 )}
               </div>
             )}
 
-            {error && (
-              <p style={{ color: '#ef4444', fontSize: 13, margin: '0 0 16px' }}>{error}</p>
-            )}
+            {error && <p style={{ color: '#ef4444', fontSize: 13, margin: '0 0 16px' }}>{error}</p>}
 
-            <button
-              onClick={handleSubmit}
-              disabled={submitting || !email || !firstName || !lastName}
-              style={{
-                width: '100%', background: '#b8ef0b', color: '#060e16',
-                border: 'none', borderRadius: 10, padding: '12px 24px',
-                fontFamily: 'var(--font-display), sans-serif', fontWeight: 800,
-                fontSize: 14, cursor: 'pointer', transition: 'opacity 0.15s',
-                opacity: (submitting || !email || !firstName || !lastName) ? 0.5 : 1,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              }}
-            >
+            <button onClick={handleSubmit} disabled={submitting || !email || !firstName || !lastName}
+              style={{ width: '100%', background: '#b8ef0b', color: '#060e16', border: 'none', borderRadius: 10, padding: '12px 24px', fontFamily: 'var(--font-display), sans-serif', fontWeight: 800, fontSize: 14, cursor: 'pointer', opacity: (submitting || !email || !firstName || !lastName) ? 0.5 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
               {submitting
                 ? <><Loader size={15} style={{ animation: 'spin 0.8s linear infinite' }} /> Création en cours…</>
-                : 'Créer le compte et envoyer l\'invitation'
-              }
+                : <><Mail size={15} /> Créer le compte et envoyer l'invitation</>}
             </button>
           </>
         )}
@@ -296,32 +242,31 @@ function CreateAccountModal({ onClose, onCreated }) {
 /* ── Page clients ──────────────────────────────────────────────── */
 export default function AdminClientsPage() {
   const router = useRouter();
-  const [data,        setData]        = useState(null);
-  const [loading,     setLoading]     = useState(true);
-  const [search,      setSearch]      = useState('');
-  const [showModal,   setShowModal]   = useState(false);
+  const [clients,    setClients]    = useState([]);
+  const [loading,    setLoading]    = useState(true);
+  const [search,     setSearch]     = useState('');
+  const [showModal,  setShowModal]  = useState(false);
+  const [reinviting, setReinviting] = useState(null); // id du client en cours
 
-  const load = () => {
-    fetch('/api/admin/events').then(r => {
-      if (r.status === 401) { router.replace('/admin/login'); return null; }
-      return r.json();
-    }).then(events => {
-      if (!events) return;
-      const map = {};
-      events.forEach(ev => {
-        const c = ev.clients;
-        if (!c) return;
-        if (!map[c.id]) map[c.id] = { ...c, events: [] };
-        map[c.id].events.push(ev);
-      });
-      setData(Object.values(map).sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
-      setLoading(false);
-    });
+  const load = async () => {
+    setLoading(true);
+    const res = await fetch('/api/admin/clients');
+    if (res.status === 401) { router.replace('/admin/login'); return; }
+    const data = await res.json();
+    setClients(data.clients || []);
+    setLoading(false);
   };
 
   useEffect(() => { load(); }, []);
 
-  const filtered = (data || []).filter(c => {
+  const handleReinvite = async (client) => {
+    setReinviting(client.id);
+    await fetch(`/api/admin/clients/${client.id}/reinvite`, { method: 'POST' });
+    await load();
+    setReinviting(null);
+  };
+
+  const filtered = clients.filter(c => {
     if (!search) return true;
     const q = search.toLowerCase();
     return (
@@ -339,51 +284,42 @@ export default function AdminClientsPage() {
     </div>
   );
 
+  // Compteurs
+  const totalActifs    = clients.filter(c => c.auth_status?.confirmed).length;
+  const totalAttente   = clients.filter(c => c.auth_id && !c.auth_status?.confirmed).length;
+
   return (
     <div style={{ padding: '36px 36px 60px' }}>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 28 }}>
+      {/* En-tête */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 24 }}>
         <div>
           <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 26, fontWeight: 800, color: '#fff', margin: '0 0 4px' }}>Clients</h1>
-          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 14, margin: 0 }}>{filtered.length} client{filtered.length > 1 ? 's' : ''}</p>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)' }}>{clients.length} client{clients.length > 1 ? 's' : ''}</span>
+            {totalActifs > 0 && <span style={{ fontSize: 13, color: '#22c55e' }}>· {totalActifs} actif{totalActifs > 1 ? 's' : ''}</span>}
+            {totalAttente > 0 && <span style={{ fontSize: 13, color: '#f59e0b' }}>· {totalAttente} en attente d'activation</span>}
+          </div>
         </div>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Rechercher un client…"
-            style={{
-              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10,
-              padding: '9px 16px', fontSize: 14, color: 'rgba(255,255,255,0.8)',
-              outline: 'none', width: 240,
-            }}
-          />
-          <button
-            onClick={() => setShowModal(true)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 8,
-              background: '#b8ef0b', color: '#060e16', border: 'none',
-              borderRadius: 10, padding: '9px 18px', cursor: 'pointer',
-              fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 14,
-            }}
-          >
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher un client…"
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '9px 16px', fontSize: 14, color: 'rgba(255,255,255,0.8)', outline: 'none', width: 240 }} />
+          <button onClick={() => setShowModal(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#b8ef0b', color: '#060e16', border: 'none', borderRadius: 10, padding: '9px 18px', cursor: 'pointer', fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 14 }}>
             <UserPlus size={16} /> Créer un compte
           </button>
         </div>
       </div>
 
+      {/* Table */}
       <div style={{ background: '#0d1b2a', borderRadius: 14, border: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden' }}>
-        <div style={{
-          display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr 1fr',
-          padding: '12px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)',
-          background: 'rgba(255,255,255,0.03)',
-          fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em',
-        }}>
+        {/* Header */}
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.8fr 1fr 2fr', padding: '12px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.03)', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
           <span>Client</span>
           <span>Email</span>
-          <span>Téléphone</span>
-          <span>Devis</span>
+          <span>Événements</span>
+          <span>Statut compte</span>
         </div>
 
         {filtered.length === 0 ? (
@@ -391,50 +327,52 @@ export default function AdminClientsPage() {
             Aucun client trouvé.
           </div>
         ) : (
-          filtered.map((c, i) => (
-            <div
-              key={c.id}
-              onClick={() => { const ev = c.events?.[0]; if (ev) router.push(`/admin/devis/${ev.id}`); }}
-              style={{
-                display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr 1fr',
-                padding: '14px 20px', cursor: 'pointer', alignItems: 'center',
-                borderBottom: i < filtered.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
-                transition: 'background 0.1s',
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
-              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{
-                  width: 36, height: 36, borderRadius: '50%',
-                  background: 'rgba(184,239,11,0.12)', color: '#b8ef0b',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 12, fontWeight: 700, flexShrink: 0,
-                }}>
-                  {c.first_name?.[0]}{c.last_name?.[0]}
+          filtered.map((c, i) => {
+            const firstEvent = c.events?.[0];
+            return (
+              <div key={c.id}
+                style={{ display: 'grid', gridTemplateColumns: '2fr 1.8fr 1fr 2fr', padding: '14px 20px', alignItems: 'center', borderBottom: i < filtered.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none', transition: 'background 0.1s' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+              >
+                {/* Client */}
+                <div
+                  style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: firstEvent ? 'pointer' : 'default' }}
+                  onClick={() => firstEvent && router.push(`/admin/devis/${firstEvent.id}`)}
+                >
+                  <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(184,239,11,0.12)', color: '#b8ef0b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
+                    {c.first_name?.[0]}{c.last_name?.[0]}
+                  </div>
+                  <div>
+                    <p style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.85)', margin: '0 0 1px' }}>{c.first_name} {c.last_name}</p>
+                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', margin: 0 }}>Créé le {fmtDate(c.created_at)}</p>
+                  </div>
                 </div>
-                <div>
-                  <p style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.85)', margin: '0 0 1px' }}>{c.first_name} {c.last_name}</p>
-                  <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', margin: 0 }}>Client depuis {fmtDate(c.created_at)}</p>
-                </div>
+
+                {/* Email */}
+                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.email}</p>
+
+                {/* Événements */}
+                <span style={{ background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.5)', borderRadius: 20, padding: '2px 10px', fontSize: 12, fontWeight: 600 }}>
+                  {c.events?.length || 0} devis
+                </span>
+
+                {/* Statut compte */}
+                <AccountStatus
+                  client={c}
+                  onReinvite={handleReinvite}
+                  reinviting={reinviting === c.id}
+                />
               </div>
-              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', margin: 0 }}>{c.email}</p>
-              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', margin: 0 }}>{c.phone || '—'}</p>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <span style={{
-                  background: 'rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.6)',
-                  borderRadius: 20, padding: '2px 10px', fontSize: 12, fontWeight: 600,
-                }}>{c.events.length} devis</span>
-              </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 
       {showModal && (
         <CreateAccountModal
           onClose={() => setShowModal(false)}
-          onCreated={() => { setLoading(true); load(); }}
+          onCreated={() => load()}
         />
       )}
     </div>

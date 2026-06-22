@@ -135,6 +135,10 @@ export async function POST(request) {
     });
     if (linkData?.properties?.action_link) {
       await sendInviteEmail(email.toLowerCase(), firstName, linkData.properties.action_link);
+      await supabaseAdmin
+        .from('clients')
+        .update({ invitation_sent_at: new Date().toISOString() })
+        .eq('id', newClient.id);
     }
   }
 

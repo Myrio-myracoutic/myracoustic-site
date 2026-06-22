@@ -101,12 +101,20 @@ export async function GET(request) {
     };
   });
 
+  const isCompany = client.type === 'company';
+
   return NextResponse.json({
     quotes,
     clientFound: true,
-    clientName: client.name || `${client.first_name || ''} ${client.last_name || ''}`.trim(),
-    firstName: client.first_name || '',
-    lastName: client.last_name || client.name || '',
-    phone: client.phone ? `+${client.phone.country_code?.replace('+', '')}${client.phone.number}` : '',
+    clientType: client.type || 'individual',
+    // Entreprise : name = raison sociale, first/last = contact
+    companyName: isCompany ? (client.name || '') : '',
+    firstName:   client.first_name || '',
+    lastName:    isCompany
+      ? (client.last_name || '')
+      : (client.last_name || client.name || ''),
+    phone: client.phone
+      ? `+${(client.phone.country_code || '33').replace('+', '')}${client.phone.number}`
+      : '',
   });
 }

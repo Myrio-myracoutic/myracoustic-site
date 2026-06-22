@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import AdminPlaylistSection from './AdminPlaylistSection';
 import AdminGuestSection from './AdminGuestSection';
+import { Eye } from 'lucide-react';
 
 const STATUSES = {
   devis_envoye: { label: 'Devis envoyé',  color: '#f59e0b' },
@@ -52,6 +53,7 @@ export default function AdminDevisDetail() {
   const [clientMessage, setClientMessage] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [previewing, setPreviewing] = useState(false);
 
   useEffect(() => {
     fetch(`/api/admin/events/${params.id}`)
@@ -66,6 +68,15 @@ export default function AdminDevisDetail() {
         }
       });
   }, [params.id]);
+
+  const handlePreview = async () => {
+    setPreviewing(true);
+    const res = await fetch(`/api/admin/events/${params.id}/preview`, { method: 'POST' });
+    const data = await res.json();
+    setPreviewing(false);
+    if (data.url) window.open(data.url, '_blank');
+    else alert(data.error || 'Impossible de générer le lien.');
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -109,12 +120,32 @@ export default function AdminDevisDetail() {
             Soumis le {new Date(ev.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
           </p>
         </div>
-        <span style={{
-          background: `${st.color}18`, color: st.color,
-          border: `1px solid ${st.color}50`,
-          borderRadius: 20, padding: '5px 14px', fontSize: 13, fontWeight: 600,
-          fontFamily: 'var(--font-display), sans-serif',
-        }}>{st.label}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button
+            onClick={handlePreview}
+            disabled={previewing}
+            title="Ouvrir l'espace client dans un nouvel onglet"
+            style={{
+              display: 'flex', alignItems: 'center', gap: 7,
+              background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
+              borderRadius: 9, padding: '7px 14px', cursor: 'pointer',
+              color: 'rgba(255,255,255,0.65)', fontSize: 13, fontWeight: 600,
+              fontFamily: 'var(--font-display), sans-serif',
+              opacity: previewing ? 0.6 : 1, transition: 'all 0.15s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(184,239,11,0.1)'; e.currentTarget.style.color = '#b8ef0b'; e.currentTarget.style.borderColor = 'rgba(184,239,11,0.3)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; }}
+          >
+            <Eye size={14} strokeWidth={1.5} />
+            {previewing ? 'Connexion…' : 'Voir l\'espace client'}
+          </button>
+          <span style={{
+            background: `${st.color}18`, color: st.color,
+            border: `1px solid ${st.color}50`,
+            borderRadius: 20, padding: '5px 14px', fontSize: 13, fontWeight: 600,
+            fontFamily: 'var(--font-display), sans-serif',
+          }}>{st.label}</span>
+        </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 20, marginBottom: 20 }}>

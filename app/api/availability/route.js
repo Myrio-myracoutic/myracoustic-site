@@ -1,6 +1,7 @@
 import { google } from 'googleapis';
 import { NextResponse } from 'next/server';
 import { parseDateFromHeader } from '@/lib/parse-date-fr';
+import { supabaseAdmin } from '@/app/lib/supabase-admin';
 
 export const dynamic = 'force-dynamic';
 
@@ -82,11 +83,28 @@ export async function GET(request) {
       }
     }
 
+    // Dates des devis Qonto en attente de signature
     let pendingDates = {};
     try {
       pendingDates = await getPendingDates();
     } catch (err) {
       console.error('Qonto pending quotes error:', err.message);
+    }
+
+    // Dates des devis en cours de remplissage (dernières 72h)
+    try {
+      const cutoff = new Date();
+      cutoff.setHours(cutoff.getHours() - 72);
+      const { data: progRows } = await supabaseAdmin
+        .from('devis_particulier_progress')
+        .select('data')
+        .gte('updated_at', cutoff.toISOString());
+      for (const row of (progRows || [])) {
+        const d = row.data?.date;
+        if (d) pendingDates[d] = (pendingDates[d] ?? 0) + 1;
+      }
+    } catch (err) {
+      console.error('Progress pending dates error:', err.message);
     }
 
     return NextResponse.json({ bookedDates: [...bookedDates], pendingDates });

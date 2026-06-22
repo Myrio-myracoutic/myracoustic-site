@@ -99,13 +99,16 @@ function CreateAccountModal({ onClose, onCreated }) {
     setSearching(true);
     const res  = await fetch(`/api/admin/clients/qonto-search?email=${encodeURIComponent(val)}`);
     const data = await res.json();
-    setQuotes(data.quotes || []);
+    const quotes = data.quotes || [];
+    setQuotes(quotes);
     if (data.clientFound) {
       if (data.firstName)   setFirstName(data.firstName);
       if (data.lastName)    setLastName(data.lastName);
       if (data.phone)       setPhone(data.phone);
       if (data.companyName) setCompanyName(data.companyName);
       if (data.clientType === 'company') setProfil('professionnel');
+      // Auto-sélectionner si un seul devis trouvé
+      if (quotes.length === 1) setSelectedQuote(quotes[0]);
     }
     setSearching(false);
   };

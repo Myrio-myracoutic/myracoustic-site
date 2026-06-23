@@ -421,7 +421,7 @@ export default function DevisFlow({ forcedProfil = null }) {
 
   /* ── Analytics : un événement par étape du tunnel ──────────────── */
   const STEP_NAMES = {
-    0: 'calendrier', 1: 'email', 2: 'evenement', 3: 'prestations',
+    0: 'email', 1: 'calendrier', 2: 'evenement', 3: 'prestations',
     4: 'facturation', 5: 'recapitulatif',
     9: 'pro_besoin', 10: 'pro_contact', 19: 'pro_prestations_cible',
     20: 'pro_facturation', 21: 'pro_recapitulatif',
@@ -678,17 +678,17 @@ export default function DevisFlow({ forcedProfil = null }) {
     if (data.ville !== undefined) setVille(data.ville);
     setResumeOffer(null);
     setDateUnavailableNotice(dateUnavailable);
-    goStep(dateUnavailable ? 0 : savedStep);
+    goStep(dateUnavailable ? 1 : savedStep);
   };
 
   const validateEmail = async () => {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
       setEmailErr('Adresse invalide.');
-      gtagEvent('funnel_error', { step: 1, step_name: 'email', error_type: 'email_invalide' });
+      gtagEvent('funnel_error', { step: 0, step_name: 'email', error_type: 'email_invalide' });
       return;
     }
     if (!prenom || !nom || !tel || !/^[0-9+\s().-]{6,}$/.test(tel)) {
-      gtagEvent('funnel_error', { step: 1, step_name: 'email', error_type: 'tel_invalide' });
+      gtagEvent('funnel_error', { step: 0, step_name: 'email', error_type: 'tel_invalide' });
       return;
     }
     setEmailErr('');
@@ -696,14 +696,14 @@ export default function DevisFlow({ forcedProfil = null }) {
     try {
       const res = await fetch(`/api/devis/progress?email=${encodeURIComponent(email)}`);
       const { progress } = await res.json();
-      if (progress && progress.step > 1) {
+      if (progress && progress.step > 0) {
         setResumeOffer(progress);
         setCheckingResume(false);
         return;
       }
     } catch {}
     setCheckingResume(false);
-    goStep(2);
+    goStep(1);
   };
 
   const estimateKm = async () => {
@@ -877,6 +877,10 @@ export default function DevisFlow({ forcedProfil = null }) {
           items,
           discountPct: remiseDeadline ? 0.15 : 0,
           remiseDeadline: remiseDeadline ? toLocalISODate(remiseDeadline) : null,
+          note: [
+            !lieu.trim() && 'Lieu à définir — calculer et ajouter les frais de déplacement avant envoi',
+            !date && 'Date à définir — confirmer avec le client lors du rappel',
+          ].filter(Boolean).join(' / ') || undefined,
         }),
       });
       const data = await res.json();
@@ -1216,16 +1220,17 @@ export default function DevisFlow({ forcedProfil = null }) {
   );
 
   /* Étape 0 — Date */
-  const renderStep0 = () => (
+  /* Étape 1 — Calendrier */
+  const renderStep1 = () => (
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
       <div style={{ width: '100%', maxWidth: 480, textAlign: 'center' }}>
-        <MobileStepBar current={0} total={6} />
-        <DesktopStepBar current={0} total={6} />
+        <MobileStepBar current={1} total={6} />
+        <DesktopStepBar current={1} total={6} />
         <h2 className="devis-step-title" style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 8 }}>
           Quelle est la date de votre événement ?
         </h2>
         <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: 13, marginBottom: 24, lineHeight: 1.6 }}>
-          Vérifiez notre disponibilité avant de continuer.
+          Vérifiez notre disponibilité · Devis gratuit · Rappel sous 24h
         </p>
         <MiniCal
           selected={date}
@@ -1252,15 +1257,14 @@ export default function DevisFlow({ forcedProfil = null }) {
           </div>
         )}
         <BtnPrimary
-          onClick={() => goStep(1)}
-          disabled={!date}
+          onClick={() => { goStep(2); saveProgress(2); }}
           style={{ width: '100%', marginTop: date ? 4 : 16 }}
         >
-          Continuer →
+          {date ? 'Continuer →' : 'Continuer sans date →'}
         </BtnPrimary>
         {!date && (
-          <p style={{ color: 'rgba(255,255,255,0.28)', fontSize: 12, marginTop: 12 }}>
-            Sélectionnez une date pour continuer.
+          <p style={{ color: 'rgba(255,255,255,0.28)', fontSize: 12, marginTop: 12, lineHeight: 1.6 }}>
+            Pas encore de date précise ? Continuez quand même — votre conseiller la définira avec vous lors du rappel.
           </p>
         )}
       </div>
@@ -1329,12 +1333,12 @@ export default function DevisFlow({ forcedProfil = null }) {
     </div>
   );
 
-  /* Étape 1 — Email + Identité */
-  const renderStep1 = () => (
+  /* Étape 0 — Email + Identité */
+  const renderStep0 = () => (
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
       <div style={{ width: '100%', maxWidth: 440, textAlign: 'center' }}>
-        <MobileStepBar current={1} total={6} />
-        <DesktopStepBar current={1} total={6} />
+        <MobileStepBar current={0} total={6} />
+        <DesktopStepBar current={0} total={6} />
         <h2 className="devis-step-title" style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(14px,2vw,19px)', fontWeight: 700, marginBottom: 16, textAlign: 'center', whiteSpace: 'nowrap' }}>
           Réalisez votre devis en moins de 2 minutes
         </h2>
@@ -1390,7 +1394,7 @@ export default function DevisFlow({ forcedProfil = null }) {
               <BtnPrimary onClick={() => applyResumeData(resumeOffer)} style={{ width: '100%' }}>
                 Reprendre mon devis →
               </BtnPrimary>
-              <button onClick={() => { setResumeOffer(null); goStep(2); }} style={{
+              <button onClick={() => { setResumeOffer(null); goStep(1); }} style={{
                 background: 'none', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8,
                 color: 'rgba(255,255,255,0.6)', padding: '10px 16px', cursor: 'pointer',
                 fontFamily: 'var(--font-display), sans-serif', fontWeight: 500, fontSize: 13,
@@ -1417,12 +1421,12 @@ export default function DevisFlow({ forcedProfil = null }) {
           <div style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#fff', fontWeight: 700, marginBottom: 12 }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Calendar size={13} strokeWidth={2} /> Votre événement</span>
           </div>
-          {/* Date — lecture seule, choisie à l'étape 0 */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: 'rgba(184,239,11,0.06)', border: '1px solid rgba(184,239,11,0.18)', borderRadius: 8, marginBottom: 16 }}>
-            <span style={{ fontSize: 13, color: 'var(--lime)', fontFamily: 'var(--font-display), sans-serif', fontWeight: 600 }}>
-              ✓ {date ? new Date(date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : ''}
+          {/* Date — lecture seule, choisie à l'étape 1 */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: date ? 'rgba(184,239,11,0.06)' : 'rgba(255,255,255,0.03)', border: `1px solid ${date ? 'rgba(184,239,11,0.18)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 8, marginBottom: 16 }}>
+            <span style={{ fontSize: 13, color: date ? 'var(--lime)' : 'rgba(255,255,255,0.38)', fontFamily: 'var(--font-display), sans-serif', fontWeight: 600 }}>
+              {date ? `✓ ${new Date(date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}` : '📅 Date : à définir'}
             </span>
-            <button onClick={() => goStep(0)} style={{
+            <button onClick={() => goStep(1)} style={{
               background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', fontSize: 12,
               cursor: 'pointer', textDecoration: 'underline', padding: 0, fontFamily: 'inherit',
             }}>Modifier</button>
@@ -1503,12 +1507,17 @@ export default function DevisFlow({ forcedProfil = null }) {
               ⚠ Cliquez sur "Estimer le trajet" pour valider l'adresse avant de continuer
             </p>
           )}
+          {!lieu.trim() && (
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', marginTop: 10, lineHeight: 1.6 }}>
+              Lieu pas encore connu ? Laissez vide — votre conseiller calculera les frais de déplacement lors du rappel.
+            </p>
+          )}
         </div>
 
         <div onClickCapture={() => {
-          if (!lieu.trim() || !km) gtagEvent('funnel_error', { step: 2, step_name: 'evenement', error_type: 'lieu_sans_estimation' });
+          if (lieu.trim() && !km) gtagEvent('funnel_error', { step: 2, step_name: 'evenement', error_type: 'lieu_sans_estimation' });
         }}>
-          <BtnPrimary onClick={() => { goStep(3); saveProgress(3); }} disabled={!date || !lieu.trim() || !km}>
+          <BtnPrimary onClick={() => { goStep(3); saveProgress(3); }} disabled={!!(lieu.trim() && !km)}>
             Continuer →
           </BtnPrimary>
         </div>
@@ -1622,6 +1631,15 @@ export default function DevisFlow({ forcedProfil = null }) {
             </div>
             <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>
               Non inclus dans le total ci-dessous — un conseiller vous proposera un tarif sur mesure.
+            </div>
+          </div>
+        </PackBlock>
+      )}
+      {!lieu.trim() && (
+        <PackBlock icon={Car} title="Frais de déplacement" badge="À DÉFINIR" badgeColor="rgba(255,255,255,0.3)">
+          <div style={{ padding: '14px 18px' }}>
+            <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, lineHeight: 1.6 }}>
+              Lieu non renseigné — les frais de déplacement seront calculés et ajoutés par votre conseiller lors du rappel.
             </div>
           </div>
         </PackBlock>
@@ -2011,6 +2029,23 @@ export default function DevisFlow({ forcedProfil = null }) {
           </div>
         )}
 
+        {(!date || !lieu.trim()) && (
+          <div style={{
+            marginBottom: 16, padding: '14px 16px',
+            background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: 10, display: 'flex', gap: 12, alignItems: 'flex-start',
+          }}>
+            <div style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>📋</div>
+            <div>
+              <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 13, marginBottom: 5 }}>
+                Devis provisoire
+              </div>
+              <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 12, lineHeight: 1.65, margin: 0 }}>
+                {[!date && 'la date', !lieu.trim() && 'le lieu'].filter(Boolean).join(' et ')} {(!date && !lieu.trim()) ? 'ne sont pas encore définis' : "n'est pas encore défini"} — le total affiché est une estimation. Votre conseiller vous contacte sous 24h pour valider ces informations et vous envoyer le devis définitif.
+              </p>
+            </div>
+          </div>
+        )}
         <div className="submit-cta-bar">
           {qontoError && <p style={{ textAlign: 'center', color: '#ef4444', fontSize: 12, marginBottom: 8 }}>⚠ {qontoError}</p>}
           <BtnPrimary onClick={submitDevisParticulier} disabled={qontoLoading} className="submit-devis-btn" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>

@@ -147,7 +147,21 @@ export default function AdminDevisPage() {
                   <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', margin: 0 }}>{ev.venue_city || ''}</p>
                 </div>
                 <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', margin: 0 }}>{fmtDate(ev.event_date)}</p>
-                <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', margin: 0 }}>{ev.guests ? `${ev.guests} pers.` : '—'}</p>
+                <div>
+                  {ev.guest_count > 0 ? (
+                    <>
+                      <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', margin: '0 0 1px', fontWeight: 500 }}>
+                        {ev.guest_count} invité{ev.guest_count > 1 ? 's' : ''}
+                      </p>
+                      <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', margin: 0 }}>
+                        {ev.guest_present > 0 && `${ev.guest_present} présent${ev.guest_present > 1 ? 's' : ''}`}
+                        {ev.guest_pending > 0 && ` · ${ev.guest_pending} en attente`}
+                      </p>
+                    </>
+                  ) : (
+                    <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.25)', margin: 0 }}>—</p>
+                  )}
+                </div>
                 <span style={{
                   background: `${st.color}15`, color: st.color,
                   border: `1px solid ${st.color}35`,

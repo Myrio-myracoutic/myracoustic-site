@@ -1,25 +1,9 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/app/lib/supabase';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
+import { verifyEventAccess } from '@/app/lib/event-access';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://myracoustic.com';
 const SENDER  = 'contact@myracoustic.com';
-
-async function getClient(token) {
-  const { verifyEventAccess } = await import('@/app/lib/event-access');
-  const { data: { user } } = await supabase.auth.getUser(token);
-  if (!user) return null;
-  const { data } = await supabaseAdmin.from('clients').select('id').eq('auth_id', user.id).single();
-  if (data) return data;
-  // Collaborateur : trouver le client_id via son accès collaborateur
-  const { data: collab } = await supabaseAdmin
-    .from('event_collaborators')
-    .select('events(client_id, clients(id))')
-    .eq('auth_id', user.id)
-    .limit(1)
-    .single();
-  return collab?.events?.clients || null;
-}
 
 async function sendInviteEmail(toEmail, firstName, inviteLink, eventType, clientFirstName) {
   const html = `
@@ -68,16 +52,15 @@ async function sendInviteEmail(toEmail, firstName, inviteLink, eventType, client
 
 /* GET — liste des invités d'un événement */
 export async function GET(request) {
-  const auth = request.headers.get('authorization')?.replace('Bearer ', '');
-  const client = await getClient(auth);
-  if (!client) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+  const token = request.headers.get('authorization')?.replace('Bearer ', '');
+  if (!token) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
 
   const { searchParams } = new URL(request.url);
   const eventId = searchParams.get('eventId');
   if (!eventId) return NextResponse.json({ error: 'eventId requis' }, { status: 400 });
 
-  const { data: ev } = await supabaseAdmin.from('events').select('id, client_id').eq('id', eventId).single();
-  if (!ev || ev.client_id !== client.id) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
+  const access = await verifyEventAccess(token, eventId);
+  if (!access) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
 
   const { data: guests } = await supabaseAdmin
     .from('event_guests')
@@ -85,7 +68,6 @@ export async function GET(request) {
     .eq('event_id', eventId)
     .order('created_at');
 
-  // Compter suggestions par invité
   const { data: suggestions } = await supabaseAdmin
     .from('guest_song_suggestions')
     .select('guest_id, status')
@@ -104,22 +86,22 @@ export async function GET(request) {
 
 /* POST — inviter / ré-inviter un invité */
 export async function POST(request) {
-  const auth = request.headers.get('authorization')?.replace('Bearer ', '');
-  const client = await getClient(auth);
-  if (!client) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+  const token = request.headers.get('authorization')?.replace('Bearer ', '');
+  if (!token) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
 
-  const { eventId, email, firstName, playlistIds, maxSongs, reinvite } = await request.json();
-  if (!eventId || !email || !firstName) return NextResponse.json({ error: 'Champs requis manquants' }, { status: 400 });
+  const { eventId, email, firstName, playlistIds, maxSongs } = await request.json();
+  if (!eventId || !email || !firstName)
+    return NextResponse.json({ error: 'Champs requis manquants' }, { status: 400 });
 
-  // Vérifier que l'événement appartient au client
+  const access = await verifyEventAccess(token, eventId);
+  if (!access) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
+
   const { data: ev } = await supabaseAdmin
     .from('events')
-    .select('id, client_id, event_type, clients(first_name)')
+    .select('id, event_type, clients(first_name)')
     .eq('id', eventId)
     .single();
-  if (!ev || ev.client_id !== client.id) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
 
-  // Upsert invité (crée ou met à jour sans changer le token)
   const { data: guest, error } = await supabaseAdmin
     .from('event_guests')
     .upsert(
@@ -132,10 +114,9 @@ export async function POST(request) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // Envoyer (ou ré-envoyer) l'email d'invitation
   const inviteLink = `${APP_URL}/invitation/${guest.token}`;
-  const clientFirstName = ev.clients?.first_name || 'Votre hôte';
-  await sendInviteEmail(email.toLowerCase(), firstName, inviteLink, ev.event_type, clientFirstName);
+  const clientFirstName = ev?.clients?.first_name || 'Votre hôte';
+  await sendInviteEmail(email.toLowerCase(), firstName, inviteLink, ev?.event_type, clientFirstName);
 
   return NextResponse.json({ ok: true, guest });
 }

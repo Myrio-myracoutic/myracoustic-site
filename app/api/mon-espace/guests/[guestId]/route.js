@@ -1,31 +1,22 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/app/lib/supabase';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
+import { verifyEventAccess } from '@/app/lib/event-access';
 
-async function getClient(token) {
-  const { data: { user } } = await supabase.auth.getUser(token);
-  if (!user) return null;
-  const { data } = await supabaseAdmin.from('clients').select('id').eq('auth_id', user.id).single();
-  return data;
-}
-
-async function ownsGuest(clientId, guestId) {
-  const { data } = await supabaseAdmin
-    .from('event_guests')
-    .select('id, event_id, events(client_id)')
-    .eq('id', guestId)
-    .single();
-  return data?.events?.client_id === clientId ? data : null;
+async function getGuestAccess(token, guestId) {
+  const { data: guest } = await supabaseAdmin
+    .from('event_guests').select('id, event_id').eq('id', guestId).single();
+  if (!guest) return null;
+  const access = await verifyEventAccess(token, guest.event_id);
+  return access ? guest : null;
 }
 
 /* PATCH — modifier playlists ou max_songs */
 export async function PATCH(request, { params }) {
   const { guestId } = await params;
-  const auth = request.headers.get('authorization')?.replace('Bearer ', '');
-  const client = await getClient(auth);
-  if (!client) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+  const token = request.headers.get('authorization')?.replace('Bearer ', '');
+  if (!token) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
 
-  const guest = await ownsGuest(client.id, guestId);
+  const guest = await getGuestAccess(token, guestId);
   if (!guest) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
 
   const body = await request.json();
@@ -42,11 +33,10 @@ export async function PATCH(request, { params }) {
 /* DELETE — supprimer un invité */
 export async function DELETE(request, { params }) {
   const { guestId } = await params;
-  const auth = request.headers.get('authorization')?.replace('Bearer ', '');
-  const client = await getClient(auth);
-  if (!client) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+  const token = request.headers.get('authorization')?.replace('Bearer ', '');
+  if (!token) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
 
-  const guest = await ownsGuest(client.id, guestId);
+  const guest = await getGuestAccess(token, guestId);
   if (!guest) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
 
   await supabaseAdmin.from('event_guests').delete().eq('id', guestId);

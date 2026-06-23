@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 
 const STATUS = {
   devis_envoye: { label: 'Devis envoyé',  color: '#f59e0b' },
@@ -25,154 +25,6 @@ function fmtDate(d) {
   return new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-function timeAgo(iso) {
-  const diff = Date.now() - new Date(iso).getTime();
-  const h = Math.floor(diff / 3600000);
-  if (h < 1) return 'il y a moins d\'1h';
-  if (h < 24) return `il y a ${h}h`;
-  const d = Math.floor(h / 24);
-  return `il y a ${d} jour${d > 1 ? 's' : ''}`;
-}
-
-const STEP_LABELS = ['Calendrier', 'Identité', 'Événement', 'Prestations', 'Facturation', 'Récapitulatif'];
-const TOTAL_STEPS = 5;
-
-function ProspectsSection() {
-  const [prospects, setProspects] = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [open, setOpen]           = useState(true);
-
-  const load = () => {
-    fetch('/api/admin/prospects')
-      .then(r => r.json())
-      .then(d => { setProspects(d.prospects || []); setLoading(false); });
-  };
-
-  useEffect(() => { load(); }, []);
-
-  const handleDelete = async (email) => {
-    if (!confirm(`Supprimer le prospect ${email} ?`)) return;
-    await fetch('/api/admin/prospects', {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
-    });
-    load();
-  };
-
-  if (loading || prospects.length === 0) return null;
-
-  return (
-    <div style={{
-      background: '#0d1b2a', borderRadius: 14, border: '1px solid rgba(245,158,11,0.2)',
-      overflow: 'hidden', marginBottom: 24,
-    }}>
-      {/* Header */}
-      <button
-        onClick={() => setOpen(o => !o)}
-        style={{
-          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '14px 20px', background: 'rgba(245,158,11,0.06)',
-          border: 'none', cursor: 'pointer',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{
-            width: 8, height: 8, borderRadius: '50%', background: '#f59e0b',
-            boxShadow: '0 0 6px #f59e0b', display: 'inline-block', animation: 'pulse-p 2s ease-in-out infinite',
-          }} />
-          <span style={{
-            fontFamily: 'var(--font-display), sans-serif', fontSize: 12, fontWeight: 700,
-            color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.08em',
-          }}>
-            Prospects en cours
-          </span>
-          <span style={{
-            background: 'rgba(245,158,11,0.15)', color: '#f59e0b',
-            border: '1px solid rgba(245,158,11,0.3)',
-            borderRadius: 10, padding: '1px 8px', fontSize: 11, fontWeight: 700,
-          }}>{prospects.length}</span>
-        </div>
-        {open
-          ? <ChevronUp size={15} color="#f59e0b" />
-          : <ChevronDown size={15} color="#f59e0b" />
-        }
-      </button>
-
-      {open && (
-        <div>
-          <style>{`@keyframes pulse-p { 0%,100%{opacity:1} 50%{opacity:0.4} }`}</style>
-          {/* En-tête colonnes */}
-          <div style={{
-            display: 'grid', gridTemplateColumns: '2fr 1.2fr 1fr 1fr 1.4fr 32px',
-            padding: '8px 20px', borderBottom: '1px solid rgba(255,255,255,0.05)',
-            fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.25)',
-            textTransform: 'uppercase', letterSpacing: '0.08em',
-          }}>
-            <span>Email</span>
-            <span>Événement</span>
-            <span>Date souhaitée</span>
-            <span>Lieu</span>
-            <span>Progression</span>
-            <span />
-          </div>
-
-          {prospects.map((p, i) => {
-            const d  = p.data || {};
-            const pct = Math.round((p.step / TOTAL_STEPS) * 100);
-            const stepLabel = STEP_LABELS[p.step] || `Étape ${p.step}`;
-            return (
-              <div key={p.email} style={{
-                display: 'grid', gridTemplateColumns: '2fr 1.2fr 1fr 1fr 1.4fr 32px',
-                padding: '12px 20px', alignItems: 'center',
-                borderBottom: i < prospects.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
-              }}>
-                <div>
-                  <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>
-                    {d.prenom || ''} {d.nom || ''}
-                  </div>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>
-                    {p.email} · {timeAgo(p.updated_at)}
-                  </div>
-                </div>
-                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>
-                  {d.eventType || '—'}
-                </div>
-                <div style={{ fontSize: 13, color: d.date ? '#b8ef0b' : 'rgba(255,255,255,0.25)', fontWeight: d.date ? 600 : 400 }}>
-                  {d.date ? fmtDate(d.date) : '—'}
-                </div>
-                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {d.lieu?.split(',')[0] || '—'}
-                </div>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div style={{ flex: 1, height: 4, background: 'rgba(255,255,255,0.08)', borderRadius: 4, overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${pct}%`, background: '#f59e0b', borderRadius: 4 }} />
-                    </div>
-                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', flexShrink: 0, minWidth: 60 }}>
-                      {stepLabel}
-                    </span>
-                  </div>
-                </div>
-                <button
-                  onClick={() => handleDelete(p.email)}
-                  style={{
-                    background: 'none', border: 'none', cursor: 'pointer', padding: 4,
-                    color: 'rgba(255,255,255,0.2)',
-                  }}
-                  onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.2)'}
-                >
-                  <Trash2 size={13} />
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function AdminDevisPage() {
   const router = useRouter();
@@ -215,7 +67,7 @@ export default function AdminDevisPage() {
       {/* En-tête */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16, marginBottom: 28 }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 26, fontWeight: 800, color: '#fff', margin: '0 0 4px' }}>Devis</h1>
+          <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 26, fontWeight: 800, color: '#fff', margin: '0 0 4px' }}>Événements</h1>
           <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 14, margin: 0 }}>{events.length} devis au total</p>
         </div>
         {/* Recherche */}
@@ -230,9 +82,6 @@ export default function AdminDevisPage() {
           }}
         />
       </div>
-
-      {/* Prospects en cours */}
-      <ProspectsSection />
 
       {/* Filtres */}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>

@@ -436,7 +436,7 @@ export default function EvenementsPage() {
       {/* En-tête */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 20 }}>
         <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 24, fontWeight: 800, color: '#fff', margin: 0 }}>
-          Événements
+          Planification
         </h1>
 
         {/* Sélecteur de vue */}

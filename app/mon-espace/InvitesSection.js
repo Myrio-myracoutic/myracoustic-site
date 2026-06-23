@@ -67,12 +67,15 @@ function GuestRow({ guest, playlists, token, onDelete, onReinvite, onUpdate }) {
     }}>
       <style>{`
         @media (max-width: 640px) {
-          .gr-row { flex-wrap: wrap; gap: 8px !important; padding: 10px 12px !important; }
-          .gr-meta { display: none; }
-          .gr-actions { margin-left: auto; }
+          .gr-desktop { display: none !important; }
+        }
+        @media (min-width: 641px) {
+          .gr-mobile-dot { display: none !important; }
         }
       `}</style>
-      <div className="gr-row" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px' }}>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px' }}>
+        {/* Avatar */}
         <div style={{
           width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
           background: 'rgba(184,239,11,0.1)', color: '#b8ef0b',
@@ -80,28 +83,31 @@ function GuestRow({ guest, playlists, token, onDelete, onReinvite, onUpdate }) {
           fontSize: 13, fontWeight: 700,
         }}>{guest.first_name[0]}</div>
 
+        {/* Nom + email — flex 1 pour prendre tout l'espace dispo */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>{guest.first_name}</div>
-          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{guest.email}</div>
+          <div style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.85)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {guest.first_name}
+          </div>
+          <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {guest.email}
+          </div>
         </div>
 
-        <RSVPBadge attending={guest.attending} responded_at={guest.responded_at} />
-
-        {guest.attending && (
-          <span className="gr-meta" style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
-            {guest.adults_count > 0 && `${guest.adults_count}A`}
-            {guest.children_count > 0 && ` ${guest.children_count}E`}
-          </span>
-        )}
-
-        <div className="gr-actions" style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-          {guest.suggestions?.pending > 0 && (
-            <span style={{
-              fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10,
-              background: 'rgba(245,158,11,0.15)', color: '#f59e0b',
-            }}>{guest.suggestions.pending} prop.</span>
+        {/* Desktop : RSVP badge + adultes + badges + boutons */}
+        <div className="gr-desktop" style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          <RSVPBadge attending={guest.attending} responded_at={guest.responded_at} />
+          {guest.attending && (
+            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
+              {guest.adults_count > 0 && `${guest.adults_count}A`}
+              {guest.children_count > 0 && ` ${guest.children_count}E`}
+            </span>
           )}
-          <button onClick={handleReinvite} disabled={reinviting} title="Ré-envoyer l'invitation"
+          {guest.suggestions?.pending > 0 && (
+            <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: 'rgba(245,158,11,0.15)', color: '#f59e0b' }}>
+              {guest.suggestions.pending} prop.
+            </span>
+          )}
+          <button onClick={handleReinvite} disabled={reinviting}
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', padding: 4 }}>
             <RefreshCw size={14} style={reinviting ? { animation: 'spin 0.8s linear infinite' } : {}} />
           </button>
@@ -116,11 +122,52 @@ function GuestRow({ guest, playlists, token, onDelete, onReinvite, onUpdate }) {
             {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           </button>
         </div>
+
+        {/* Mobile : point de statut + chevron uniquement */}
+        <div className="gr-mobile-dot" style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          <div style={{
+            width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
+            background: guest.attending === true ? '#22c55e' : guest.attending === false ? '#ef4444' : 'rgba(255,255,255,0.25)',
+          }} />
+          <button onClick={() => setExpanded(v => !v)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.4)', padding: 4 }}>
+            {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </button>
+        </div>
       </div>
 
       {expanded && (
-        <div style={{ padding: '0 16px 14px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-          <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+        <div style={{ padding: '0 14px 14px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+
+          {/* Infos RSVP + actions boutons — visible sur mobile dans le panneau déployé */}
+          <div className="gr-mobile-dot" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 12, marginBottom: 10 }}>
+            <RSVPBadge attending={guest.attending} responded_at={guest.responded_at} />
+            {guest.attending && (guest.adults_count > 0 || guest.children_count > 0) && (
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)' }}>
+                {guest.adults_count > 0 && `${guest.adults_count} adulte${guest.adults_count > 1 ? 's' : ''}`}
+                {guest.children_count > 0 && ` · ${guest.children_count} enfant${guest.children_count > 1 ? 's' : ''}`}
+              </span>
+            )}
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
+              {guest.suggestions?.pending > 0 && (
+                <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: 'rgba(245,158,11,0.15)', color: '#f59e0b' }}>
+                  {guest.suggestions.pending} prop.
+                </span>
+              )}
+              <button onClick={handleReinvite} disabled={reinviting}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.35)', padding: 4 }}>
+                <RefreshCw size={14} style={reinviting ? { animation: 'spin 0.8s linear infinite' } : {}} />
+              </button>
+              <button onClick={handleDelete} disabled={deleting}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', padding: 4 }}
+                onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
+                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.2)'}>
+                <Trash2 size={14} />
+              </button>
+            </div>
+          </div>
+
+          <div style={{ marginTop: 4, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
             <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>Playlists :</span>
             {guestPlaylists.length
               ? guestPlaylists.map(p => (
@@ -193,7 +240,12 @@ function InviteForm({ playlists, token, eventId, onInvited }) {
       background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(184,239,11,0.2)',
       borderRadius: 10, padding: '16px', marginTop: 12,
     }}>
-      <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+      <style>{`
+        @media (max-width: 640px) {
+          .inv-fields { flex-direction: column !important; }
+        }
+      `}</style>
+      <div className="inv-fields" style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
         <input type="text" value={firstName} onChange={e => setFirstName(e.target.value)}
           placeholder="Prénom *"
           style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 7, padding: '8px 12px', color: '#fff', fontSize: 13, fontFamily: 'inherit' }} />

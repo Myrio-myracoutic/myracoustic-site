@@ -25,7 +25,7 @@ export async function verifyEventAccess(token, eventId) {
   if (client) {
     const { data: ev } = await supabaseAdmin
       .from('events').select('id').eq('id', eventId).eq('client_id', client.id).single();
-    if (ev) return { clientId: client.id, isCollaborator: false };
+    if (ev) return { clientId: client.id, isCollaborator: false, userId: user.id };
   }
 
   // 2. Collaborateur
@@ -36,7 +36,7 @@ export async function verifyEventAccess(token, eventId) {
     .eq('event_id', eventId)
     .single();
 
-  if (collab) return { clientId: collab.events?.client_id, isCollaborator: true };
+  if (collab) return { clientId: collab.events?.client_id, isCollaborator: true, userId: user.id };
 
   return null;
 }
@@ -80,7 +80,7 @@ export async function verifyPlaylistAccess(token, playlistId) {
 
   // Propriétaire
   if (ev?.clients?.auth_id === user.id)
-    return { clientId: ev.client_id, isCollaborator: false };
+    return { clientId: ev.client_id, isCollaborator: false, userId: user.id };
 
   // Collaborateur
   const { data: collab } = await supabaseAdmin
@@ -90,6 +90,6 @@ export async function verifyPlaylistAccess(token, playlistId) {
     .eq('event_id', pl.event_id)
     .single();
 
-  if (collab) return { clientId: ev?.client_id, isCollaborator: true };
+  if (collab) return { clientId: ev?.client_id, isCollaborator: true, userId: user.id };
   return null;
 }

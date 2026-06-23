@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { Music2, Search, Plus, X, ChevronDown, ChevronUp, Loader2, Play, Pause, Check, ThumbsUp, ThumbsDown, Pencil, Trash2 } from 'lucide-react';
+import { Music2, Search, Plus, X, ChevronDown, ChevronUp, Loader2, Play, Pause, Check, ThumbsUp, ThumbsDown, Pencil, Trash2, Gift } from 'lucide-react';
 import { SkeletonPlaylist } from './SkeletonLoader';
 
 function fmtDuration(s) {
@@ -567,7 +567,10 @@ function PlaylistCard({ playlist, token, onRefresh }) {
             display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, textAlign: 'left',
           }}
         >
-          <Music2 size={16} color="#b8ef0b" strokeWidth={1.5} style={{ flexShrink: 0 }} />
+          {playlist.is_surprise
+            ? <Gift size={16} color="#a78bfa" strokeWidth={1.5} style={{ flexShrink: 0 }} />
+            : <Music2 size={16} color="#b8ef0b" strokeWidth={1.5} style={{ flexShrink: 0 }} />
+          }
 
           {renaming ? (
             <input
@@ -592,6 +595,17 @@ function PlaylistCard({ playlist, token, onRefresh }) {
             background: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: '2px 8px',
             flexShrink: 0,
           }}>{tracks.length} titre{tracks.length !== 1 ? 's' : ''}</span>
+          {playlist.is_surprise && (
+            <span style={{
+              background: 'rgba(139,92,246,0.15)', color: '#a78bfa',
+              border: '1px solid rgba(139,92,246,0.3)',
+              borderRadius: 10, padding: '2px 8px', fontSize: 10, fontWeight: 700,
+              flexShrink: 0, fontFamily: 'var(--font-display), sans-serif',
+              display: 'flex', alignItems: 'center', gap: 4,
+            }}>
+              <Gift size={9} /> Surprise
+            </span>
+          )}
           {playlist.pending_suggestions > 0 && (
             <span style={{
               background: 'rgba(245,158,11,0.15)', color: '#f59e0b',
@@ -657,6 +671,28 @@ function PlaylistCard({ playlist, token, onRefresh }) {
 
       {open && (
         <div style={{ padding: '0 18px 18px' }}>
+
+          {/* Bandeau surprise — visible uniquement par le collaborateur créateur */}
+          {playlist.is_surprise && (
+            <div style={{
+              background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)',
+              borderRadius: 8, padding: '10px 14px', marginBottom: 14,
+              display: 'flex', alignItems: 'flex-start', gap: 10,
+            }}>
+              <Gift size={16} color="#a78bfa" style={{ flexShrink: 0, marginTop: 1 }} />
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: '#a78bfa', marginBottom: 3 }}>
+                  🎁 Playlist surprise
+                </div>
+                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', lineHeight: 1.6 }}>
+                  Cette playlist est <strong style={{ color: 'rgba(255,255,255,0.75)' }}>invisible pour les mariés</strong>.
+                  Seuls vous (le collaborateur qui l'avez créée) et Myracoustic pouvez la voir,
+                  la gérer et la télécharger. Idéal pour préparer une animation ou une entrée musicale surprise !
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Onglets */}
           <div style={{ display: 'flex', gap: 4, marginBottom: 14, borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 0 }}>
             {['playlist', 'propositions'].map(tab => (
@@ -701,22 +737,23 @@ function PlaylistCard({ playlist, token, onRefresh }) {
   );
 }
 
-function CreatePlaylistForm({ eventId, token, onCreated }) {
-  const [open,   setOpen]   = useState(false);
-  const [name,   setName]   = useState('');
-  const [saving, setSaving] = useState(false);
+function CreatePlaylistForm({ eventId, token, onCreated, isCollaborator }) {
+  const [open,      setOpen]      = useState(false);
+  const [name,      setName]      = useState('');
+  const [isSurprise, setIsSurprise] = useState(false);
+  const [saving,    setSaving]    = useState(false);
 
   const save = async () => {
     if (!name.trim()) return;
     setSaving(true);
-    const res  = await fetch('/api/mon-espace/playlists', {
+    const res = await fetch('/api/mon-espace/playlists', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ eventId, name: name.trim() }),
+      body: JSON.stringify({ eventId, name: name.trim(), is_surprise: isSurprise }),
     });
     const data = await res.json();
     setSaving(false);
-    if (data.playlist) { setName(''); setOpen(false); onCreated(); }
+    if (data.playlist) { setName(''); setIsSurprise(false); setOpen(false); onCreated(); }
   };
 
   if (!open) return (
@@ -736,36 +773,73 @@ function CreatePlaylistForm({ eventId, token, onCreated }) {
 
   return (
     <div style={{
-      display: 'flex', alignItems: 'center', gap: 8, marginTop: 10,
-      background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(184,239,11,0.25)',
-      borderRadius: 8, padding: '8px 12px',
+      marginTop: 10, background: 'rgba(255,255,255,0.03)',
+      border: `1px solid ${isSurprise ? 'rgba(139,92,246,0.35)' : 'rgba(184,239,11,0.25)'}`,
+      borderRadius: 8, padding: '12px 14px',
     }}>
-      <input
-        type="text" value={name} onChange={e => setName(e.target.value)}
-        onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') setOpen(false); }}
-        autoFocus placeholder="Nom de la playlist (ex : Groupe de danse, Entrée des mariés…)"
-        style={{
-          flex: 1, background: 'none', border: 'none', outline: 'none',
-          color: '#fff', fontSize: 13, fontFamily: 'inherit',
-        }}
-      />
-      <button
-        onClick={save} disabled={saving || !name.trim()}
-        style={{
-          background: '#b8ef0b', color: '#060e16', border: 'none', borderRadius: 6,
-          padding: '5px 12px', cursor: 'pointer', fontWeight: 700, fontSize: 12,
-          fontFamily: 'var(--font-display), sans-serif', flexShrink: 0,
-          opacity: !name.trim() ? 0.4 : 1,
-        }}
-      >Créer</button>
-      <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', padding: 4 }}>
-        <X size={14} />
-      </button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <input
+          type="text" value={name} onChange={e => setName(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') save(); if (e.key === 'Escape') setOpen(false); }}
+          autoFocus placeholder="Nom de la playlist (ex : Groupe de danse, Entrée des mariés…)"
+          style={{
+            flex: 1, background: 'none', border: 'none', outline: 'none',
+            color: '#fff', fontSize: 13, fontFamily: 'inherit',
+          }}
+        />
+        <button
+          onClick={save} disabled={saving || !name.trim()}
+          style={{
+            background: isSurprise ? '#a78bfa' : '#b8ef0b',
+            color: '#060e16', border: 'none', borderRadius: 6,
+            padding: '5px 12px', cursor: 'pointer', fontWeight: 700, fontSize: 12,
+            fontFamily: 'var(--font-display), sans-serif', flexShrink: 0,
+            opacity: !name.trim() ? 0.4 : 1,
+          }}
+        >Créer</button>
+        <button onClick={() => { setOpen(false); setIsSurprise(false); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', padding: 4 }}>
+          <X size={14} />
+        </button>
+      </div>
+
+      {/* Toggle surprise — uniquement pour les collaborateurs */}
+      {isCollaborator && (
+        <div style={{ marginTop: 10 }}>
+          <button
+            onClick={() => setIsSurprise(v => !v)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              background: isSurprise ? 'rgba(139,92,246,0.12)' : 'rgba(255,255,255,0.04)',
+              border: `1px solid ${isSurprise ? 'rgba(139,92,246,0.4)' : 'rgba(255,255,255,0.1)'}`,
+              borderRadius: 7, padding: '6px 12px', cursor: 'pointer',
+              color: isSurprise ? '#a78bfa' : 'rgba(255,255,255,0.4)',
+              fontSize: 12, fontFamily: 'inherit',
+              transition: 'all 0.15s',
+            }}
+          >
+            <Gift size={13} />
+            <span style={{ fontWeight: isSurprise ? 700 : 400 }}>
+              {isSurprise ? '🎁 Playlist surprise activée' : 'Rendre cette playlist secrète (surprise)'}
+            </span>
+          </button>
+          {isSurprise && (
+            <div style={{
+              marginTop: 8, fontSize: 12, color: 'rgba(167,139,250,0.7)',
+              background: 'rgba(139,92,246,0.07)', border: '1px solid rgba(139,92,246,0.15)',
+              borderRadius: 6, padding: '8px 12px', lineHeight: 1.6,
+            }}>
+              🎁 <strong style={{ color: '#a78bfa' }}>Mode surprise activé</strong> — Cette playlist sera
+              <strong> invisible pour les mariés</strong>. Seuls vous et Myracoustic pourrez la voir et la télécharger.
+              Parfait pour préparer une animation ou une entrée musicale en toute discrétion !
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
-export default function PlaylistSection({ eventId, token, onSuggestionActed }) {
+export default function PlaylistSection({ eventId, token, onSuggestionActed, isCollaborator }) {
   const [playlists, setPlaylists] = useState([]);
   const [loading, setLoading]     = useState(true);
   const onActedRef = useRef(onSuggestionActed);
@@ -815,7 +889,7 @@ export default function PlaylistSection({ eventId, token, onSuggestionActed }) {
         {playlists.map(pl => (
           <PlaylistCard key={pl.id} playlist={pl} token={token} onRefresh={refresh} />
         ))}
-        <CreatePlaylistForm eventId={eventId} token={token} onCreated={refresh} />
+        <CreatePlaylistForm eventId={eventId} token={token} onCreated={refresh} isCollaborator={isCollaborator} />
       </div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>

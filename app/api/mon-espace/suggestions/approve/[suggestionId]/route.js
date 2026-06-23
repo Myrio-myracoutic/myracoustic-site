@@ -1,32 +1,25 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/app/lib/supabase';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
-
-async function getClient(token) {
-  const { data: { user } } = await supabase.auth.getUser(token);
-  if (!user) return null;
-  const { data } = await supabaseAdmin.from('clients').select('id').eq('auth_id', user.id).single();
-  return data;
-}
+import { verifyPlaylistAccess } from '@/app/lib/event-access';
 
 /* PATCH — approuver ou rejeter une suggestion */
 export async function PATCH(request, { params }) {
   const { suggestionId } = await params;
-  const auth = request.headers.get('authorization')?.replace('Bearer ', '');
-  const client = await getClient(auth);
-  if (!client) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+  const token = request.headers.get('authorization')?.replace('Bearer ', '');
+  if (!token) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
 
   const { action } = await request.json(); // 'approve' | 'reject'
 
   const { data: suggestion } = await supabaseAdmin
     .from('guest_song_suggestions')
-    .select('*, playlists(event_id, events(client_id))')
+    .select('*, playlists(id, event_id)')
     .eq('id', suggestionId)
     .single();
 
-  if (!suggestion || suggestion.playlists?.events?.client_id !== client.id) {
-    return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
-  }
+  if (!suggestion) return NextResponse.json({ error: 'Suggestion introuvable' }, { status: 404 });
+
+  const access = await verifyPlaylistAccess(token, suggestion.playlist_id);
+  if (!access) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
 
   if (action === 'approve') {
     const { data: maxPos } = await supabaseAdmin

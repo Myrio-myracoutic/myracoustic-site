@@ -1,32 +1,15 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/app/lib/supabase';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
-
-async function getClient(token) {
-  const { data: { user } } = await supabase.auth.getUser(token);
-  if (!user) return null;
-  const { data } = await supabaseAdmin.from('clients').select('id').eq('auth_id', user.id).single();
-  return data;
-}
-
-async function ownsPlaylist(clientId, playlistId) {
-  const { data } = await supabaseAdmin
-    .from('playlists')
-    .select('id, event_id, events(client_id)')
-    .eq('id', playlistId)
-    .single();
-  return data?.events?.client_id === clientId ? data : null;
-}
+import { verifyPlaylistAccess } from '@/app/lib/event-access';
 
 /* GET — liste des suggestions pour une playlist */
 export async function GET(request, { params }) {
   const { playlistId } = await params;
-  const auth = request.headers.get('authorization')?.replace('Bearer ', '');
-  const client = await getClient(auth);
-  if (!client) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+  const token = request.headers.get('authorization')?.replace('Bearer ', '');
+  if (!token) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
 
-  const pl = await ownsPlaylist(client.id, playlistId);
-  if (!pl) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
+  const access = await verifyPlaylistAccess(token, playlistId);
+  if (!access) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
 
   const { data } = await supabaseAdmin
     .from('guest_song_suggestions')
@@ -40,15 +23,15 @@ export async function GET(request, { params }) {
 /* POST — approuver toutes les suggestions pending d'une playlist */
 export async function POST(request, { params }) {
   const { playlistId } = await params;
-  const auth = request.headers.get('authorization')?.replace('Bearer ', '');
-  const client = await getClient(auth);
-  if (!client) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+  const token = request.headers.get('authorization')?.replace('Bearer ', '');
+  if (!token) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
 
-  const pl = await ownsPlaylist(client.id, playlistId);
-  if (!pl) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
+  const access = await verifyPlaylistAccess(token, playlistId);
+  if (!access) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
 
   const body = await request.json();
-  if (body.action !== 'approve-all') return NextResponse.json({ error: 'Action inconnue' }, { status: 400 });
+  if (body.action !== 'approve-all')
+    return NextResponse.json({ error: 'Action inconnue' }, { status: 400 });
 
   const { data: pending } = await supabaseAdmin
     .from('guest_song_suggestions')

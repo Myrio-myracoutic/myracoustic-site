@@ -1,34 +1,15 @@
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
+import { verifyEventAccess } from '@/app/lib/event-access';
 
 export async function PATCH(req, { params }) {
   const { token, checked } = await req.json();
-  if (!token || !Array.isArray(checked)) {
+  if (!token || !Array.isArray(checked))
     return Response.json({ error: 'Paramètres manquants' }, { status: 400 });
-  }
 
   const { id } = await params;
 
-  const { data: { user }, error: authErr } = await supabaseAdmin.auth.getUser(token);
-  if (authErr || !user) {
-    return Response.json({ error: 'Non autorisé' }, { status: 401 });
-  }
-
-  const { data: clientData } = await supabaseAdmin
-    .from('clients')
-    .select('id')
-    .eq('auth_id', user.id)
-    .single();
-
-  if (!clientData) return Response.json({ error: 'Client introuvable' }, { status: 403 });
-
-  const { data: ev } = await supabaseAdmin
-    .from('events')
-    .select('id, client_id')
-    .eq('id', id)
-    .eq('client_id', clientData.id)
-    .single();
-
-  if (!ev) return Response.json({ error: 'Événement introuvable' }, { status: 403 });
+  const access = await verifyEventAccess(token, id);
+  if (!access) return Response.json({ error: 'Non autorisé' }, { status: 403 });
 
   const { data, error } = await supabaseAdmin
     .from('events')

@@ -1,42 +1,39 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { supabase } from '@/app/lib/supabase';
 import { Eye, EyeOff, Save } from 'lucide-react';
 
 export default function FairepartSection({ ev, token }) {
-  const [page,    setPage]    = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [saving,  setSaving]  = useState(false);
-  const [saved,   setSaved]   = useState(false);
-
+  const [loading,     setLoading]     = useState(true);
+  const [saving,      setSaving]      = useState(false);
+  const [saved,       setSaved]       = useState(false);
   const [title,       setTitle]       = useState('');
   const [subtitle,    setSubtitle]    = useState('');
   const [message,     setMessage]     = useState('');
   const [isPublished, setIsPublished] = useState(false);
 
   const load = useCallback(async () => {
-    const { data } = await supabase
-      .from('event_page')
-      .select('*')
-      .eq('event_id', ev.id)
-      .maybeSingle();
-
-    if (data) {
-      setPage(data);
-      setTitle(data.title || '');
-      setSubtitle(data.subtitle || '');
-      setMessage(data.message || '');
-      setIsPublished(data.is_published || false);
+    const res = await fetch(`/api/mon-espace/fairepart/${ev.id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    if (data.page) {
+      setTitle(data.page.title || '');
+      setSubtitle(data.page.subtitle || '');
+      setMessage(data.page.message || '');
+      setIsPublished(data.page.is_published || false);
     }
     setLoading(false);
-  }, [ev.id]);
+  }, [ev.id, token]);
 
   useEffect(() => { load(); }, [load]);
 
   const save = async () => {
     setSaving(true);
-    const payload = { event_id: ev.id, title, subtitle, message, is_published: isPublished };
-    await supabase.from('event_page').upsert(payload, { onConflict: 'event_id' });
+    await fetch(`/api/mon-espace/fairepart/${ev.id}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ title, subtitle, message, is_published: isPublished }),
+    });
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
@@ -82,7 +79,7 @@ export default function FairepartSection({ ev, token }) {
           </label>
           <input
             value={title} onChange={e => setTitle(e.target.value)}
-            placeholder={`Ex : Mariage de Marie & Paul`}
+            placeholder="Ex : Mariage de Marie & Paul"
             style={{
               width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
               borderRadius: 8, padding: '10px 14px', color: '#fff', fontSize: 15,
@@ -123,7 +120,6 @@ export default function FairepartSection({ ev, token }) {
         </div>
       </div>
 
-      {/* Aperçu */}
       {(title || subtitle || message) && (
         <div style={{
           marginTop: 20, background: '#060e16', border: '1px solid rgba(255,255,255,0.06)',
@@ -132,9 +128,9 @@ export default function FairepartSection({ ev, token }) {
           <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', fontWeight: 700, letterSpacing: '0.1em', margin: '0 0 12px', textTransform: 'uppercase' }}>
             Aperçu
           </p>
-          {title && <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 20, fontWeight: 800, color: '#fff', margin: '0 0 6px' }}>{title}</h2>}
+          {title    && <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 20, fontWeight: 800, color: '#fff', margin: '0 0 6px' }}>{title}</h2>}
           {subtitle && <p style={{ fontSize: 13, color: '#b8ef0b', margin: '0 0 14px', fontWeight: 600 }}>{subtitle}</p>}
-          {message && <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', lineHeight: 1.7, margin: 0 }}>{message}</p>}
+          {message  && <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)', lineHeight: 1.7, margin: 0 }}>{message}</p>}
         </div>
       )}
 

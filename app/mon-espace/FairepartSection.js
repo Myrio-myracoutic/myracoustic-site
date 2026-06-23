@@ -1,90 +1,139 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { Eye, EyeOff, Save, X, ExternalLink } from 'lucide-react';
+import { Eye, EyeOff, Save, X, ExternalLink, Music2 } from 'lucide-react';
 
-/* ── Modal aperçu — rendu comme les invités le voient ─────────── */
-function PreviewModal({ title, subtitle, message, onClose }) {
+/* ── Modal aperçu — rendu identique à la page /invitation/[token] ─ */
+function PreviewModal({ title, subtitle, message, ev, onClose }) {
   return (
     <div
       style={{
-        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 500,
-        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', zIndex: 500,
+        display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+        padding: '20px 16px', overflowY: 'auto',
       }}
       onClick={onClose}
     >
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          background: '#060e16', borderRadius: 16, padding: '36px 32px',
-          maxWidth: 560, width: '100%', position: 'relative',
+          background: '#060e16', borderRadius: 16, width: '100%', maxWidth: 480,
           border: '1px solid rgba(255,255,255,0.08)',
-          boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
-          maxHeight: '90vh', overflowY: 'auto',
+          boxShadow: '0 24px 64px rgba(0,0,0,0.7)',
+          overflow: 'hidden', marginBottom: 20,
         }}
       >
-        {/* Fermer */}
-        <button
-          onClick={onClose}
-          style={{
-            position: 'absolute', top: 16, right: 16,
-            background: 'rgba(255,255,255,0.07)', border: 'none', borderRadius: '50%',
-            width: 32, height: 32, cursor: 'pointer', color: 'rgba(255,255,255,0.5)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}
-        >
-          <X size={16} />
-        </button>
-
-        {/* Étiquette */}
-        <p style={{
-          fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.2)',
-          letterSpacing: '0.12em', textTransform: 'uppercase', margin: '0 0 24px',
-        }}>
-          Aperçu — tel que vos invités le verront
-        </p>
-
-        {/* Contenu faire-part */}
+        {/* Barre de navigation simulée */}
         <div style={{
-          background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
-          borderRadius: 12, padding: '28px 24px',
+          background: 'rgba(6,14,22,0.97)', borderBottom: '1px solid rgba(255,255,255,0.07)',
+          padding: '14px 20px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
-          {title && (
-            <h1 style={{
-              fontFamily: 'var(--font-display), sans-serif',
-              fontSize: 'clamp(20px, 5vw, 28px)', fontWeight: 800,
-              color: '#fff', margin: '0 0 10px', lineHeight: 1.2,
-            }}>
-              {title}
-            </h1>
-          )}
-          {subtitle && (
-            <p style={{
-              fontSize: 15, color: '#b8ef0b', fontWeight: 600,
-              margin: '0 0 20px', lineHeight: 1.5,
-            }}>
-              {subtitle}
-            </p>
-          )}
-          {message && (
-            <p style={{
-              fontSize: 15, color: 'rgba(255,255,255,0.7)',
-              lineHeight: 1.8, margin: 0,
-            }}>
-              {message}
-            </p>
-          )}
-          {!title && !subtitle && !message && (
-            <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 14, margin: 0, fontStyle: 'italic' }}>
-              Aucun contenu renseigné pour l'instant.
-            </p>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <img src="/logo.png" alt="Myracoustic" style={{ height: 28, width: 'auto' }} />
+            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontStyle: 'italic' }}>
+              Invitation personnelle
+            </span>
+          </div>
+          <button onClick={onClose} style={{
+            background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: '50%',
+            width: 28, height: 28, cursor: 'pointer', color: 'rgba(255,255,255,0.5)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <X size={14} />
+          </button>
         </div>
 
-        <p style={{
-          fontSize: 12, color: 'rgba(255,255,255,0.25)', margin: '20px 0 0', lineHeight: 1.6,
+        {/* En-tête événement — identique à la page invité */}
+        <div style={{
+          borderBottom: '1px solid rgba(255,255,255,0.05)',
+          padding: '28px 20px 24px', textAlign: 'center',
         }}>
-          Ce contenu apparaît en haut de la page d'invitation de chaque invité, avant le formulaire RSVP et les playlists.
-        </p>
+          <h1 style={{
+            fontFamily: 'var(--font-display), sans-serif',
+            fontSize: 'clamp(18px, 5vw, 26px)', fontWeight: 800,
+            color: '#fff', margin: '0 0 6px', lineHeight: 1.2,
+          }}>
+            {title || ev?.event_type || 'Votre événement'}
+          </h1>
+          {ev?.event_date && (
+            <p style={{ fontSize: 13, color: '#b8ef0b', margin: 0, fontWeight: 600 }}>
+              {new Date(ev.event_date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+              {ev.venue_city && ` · ${ev.venue_city}`}
+            </p>
+          )}
+          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', margin: '8px 0 0' }}>
+            Bonjour Prénom, cette invitation vous est réservée.
+          </p>
+        </div>
+
+        {/* Corps — identique à /invitation/[token] */}
+        <div style={{ padding: '28px 20px' }}>
+
+          {/* Bloc faire-part — rendu IDENTIQUE à la page invité */}
+          {(subtitle || message) ? (
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(184,239,11,0.06), rgba(184,239,11,0.02))',
+              border: '1px solid rgba(184,239,11,0.15)',
+              borderRadius: 16, padding: '24px', marginBottom: 24,
+            }}>
+              {subtitle && (
+                <p style={{ fontSize: 13, color: '#b8ef0b', margin: '0 0 12px', fontWeight: 600 }}>
+                  {subtitle}
+                </p>
+              )}
+              {message && (
+                <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)', lineHeight: 1.8, margin: 0 }}>
+                  {message}
+                </p>
+              )}
+            </div>
+          ) : (
+            <div style={{
+              background: 'rgba(255,255,255,0.03)', border: '1px dashed rgba(255,255,255,0.1)',
+              borderRadius: 12, padding: '20px', marginBottom: 24, textAlign: 'center',
+              color: 'rgba(255,255,255,0.2)', fontSize: 13, fontStyle: 'italic',
+            }}>
+              Sous-titre et message non renseignés
+            </div>
+          )}
+
+          {/* RSVP placeholder */}
+          <div style={{
+            background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
+            borderRadius: 12, padding: '20px', marginBottom: 20,
+          }}>
+            <p style={{ fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 12px' }}>
+              RSVP
+            </p>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <div style={{ flex: 1, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: 8, padding: '10px', textAlign: 'center', fontSize: 13, color: '#22c55e', fontWeight: 600 }}>
+                ✓ Je serai présent(e)
+              </div>
+              <div style={{ flex: 1, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, padding: '10px', textAlign: 'center', fontSize: 13, color: 'rgba(255,255,255,0.3)' }}>
+                Je ne pourrai pas venir
+              </div>
+            </div>
+          </div>
+
+          {/* Playlists placeholder */}
+          <div style={{
+            background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)',
+            borderRadius: 10, padding: '16px',
+            display: 'flex', alignItems: 'center', gap: 10, color: 'rgba(255,255,255,0.2)',
+          }}>
+            <Music2 size={16} color="rgba(184,239,11,0.3)" />
+            <span style={{ fontSize: 13, fontStyle: 'italic' }}>
+              Les playlists pour proposer des chansons apparaissent ici…
+            </span>
+          </div>
+        </div>
+
+        {/* Note en bas */}
+        <div style={{ padding: '0 20px 20px', borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: 4 }}>
+          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', margin: '16px 0 0', textAlign: 'center', lineHeight: 1.5 }}>
+            Aperçu de ce que vos invités verront · Le contenu RSVP et les playlists sont simulés
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -247,7 +296,7 @@ export default function FairepartSection({ ev, token }) {
       {/* Modal aperçu */}
       {showPreview && (
         <PreviewModal
-          title={title} subtitle={subtitle} message={message}
+          title={title} subtitle={subtitle} message={message} ev={ev}
           onClose={() => setShowPreview(false)}
         />
       )}

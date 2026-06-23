@@ -224,20 +224,41 @@ function TabAcces({ token, eventId, isOwner }) {
               }}>
                 <div style={{
                   width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
-                  background: accepted ? 'rgba(34,197,94,0.12)' : 'rgba(245,158,11,0.1)',
+                  background: 'rgba(255,255,255,0.06)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.5)',
+                  fontFamily: 'var(--font-display)',
                 }}>
-                  {accepted
-                    ? <CheckCircle size={16} color="#22c55e" />
-                    : <Clock size={16} color="#f59e0b" />
-                  }
+                  {(c.first_name?.[0] || '?').toUpperCase()}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>
-                    {c.first_name} {c.last_name || ''}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>
+                      {c.first_name} {c.last_name || ''}
+                    </span>
+                    <span style={{
+                      fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10,
+                      background: accepted ? 'rgba(34,197,94,0.12)' : 'rgba(245,158,11,0.1)',
+                      color: accepted ? '#22c55e' : '#f59e0b',
+                      border: `1px solid ${accepted ? 'rgba(34,197,94,0.25)' : 'rgba(245,158,11,0.2)'}`,
+                    }}>
+                      {accepted ? '✓ Connecté(e)' : '⏳ Pas encore connecté(e)'}
+                    </span>
                   </div>
-                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>
-                    {c.email} · {accepted ? 'Accès actif' : 'Invitation envoyée'}
+                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', marginTop: 2 }}>
+                    {c.email}
+                    {accepted && c.accepted_at && (
+                      <span style={{ color: 'rgba(255,255,255,0.2)' }}>
+                        {' · Première connexion le '}
+                        {new Date(c.accepted_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      </span>
+                    )}
+                    {!accepted && (
+                      <span style={{ color: 'rgba(255,255,255,0.2)' }}>
+                        {' · Invitation envoyée le '}
+                        {new Date(c.invited_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      </span>
+                    )}
                   </div>
                 </div>
                 {isOwner && (

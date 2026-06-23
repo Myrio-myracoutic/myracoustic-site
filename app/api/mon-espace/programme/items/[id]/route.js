@@ -18,8 +18,17 @@ export async function PATCH(req, { params }) {
   if (!item) return Response.json({ error: 'Non autorisé' }, { status: 403 });
 
   const body = await req.json();
+  // secret_animation et secret_visible sont réservés à l'admin
+  const CLIENT_FIELDS = ['time', 'label', 'position', 'playlist_ids', 'instructions'];
+  const updates = {};
+  for (const k of CLIENT_FIELDS) {
+    if (body[k] !== undefined) updates[k] = body[k];
+  }
+  if (!Object.keys(updates).length)
+    return Response.json({ error: 'Aucun champ valide' }, { status: 400 });
+
   const { data, error } = await supabaseAdmin
-    .from('event_programme').update(body).eq('id', id).select().single();
+    .from('event_programme').update(updates).eq('id', id).select().single();
 
   if (error) return Response.json({ error: error.message }, { status: 500 });
   return Response.json({ item: data });

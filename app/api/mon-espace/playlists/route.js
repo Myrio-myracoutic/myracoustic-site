@@ -1,14 +1,6 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
-
-function getSupabase(token) {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    { global: { headers: { Authorization: `Bearer ${token}` } } }
-  );
-}
+import { verifyEventAccess } from '@/app/lib/event-access';
 
 // POST /api/mon-espace/playlists — créer une playlist personnalisée
 export async function POST(request) {
@@ -16,25 +8,15 @@ export async function POST(request) {
   if (!token) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
 
   const { eventId, name } = await request.json();
-  if (!eventId || !name?.trim()) return NextResponse.json({ error: 'eventId et name requis' }, { status: 400 });
+  if (!eventId || !name?.trim())
+    return NextResponse.json({ error: 'eventId et name requis' }, { status: 400 });
 
-  const supabase = getSupabase(token);
+  const access = await verifyEventAccess(token, eventId);
+  if (!access) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
 
-  // Vérifier que l'événement appartient au client
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-
-  const { data: client } = await supabaseAdmin
-    .from('clients').select('id').eq('auth_id', user.id).single();
-  if (!client) return NextResponse.json({ error: 'Client introuvable' }, { status: 404 });
-
-  const { data: ev } = await supabaseAdmin
-    .from('events').select('id').eq('id', eventId).eq('client_id', client.id).single();
-  if (!ev) return NextResponse.json({ error: 'Événement introuvable' }, { status: 404 });
-
-  // Position = max existant + 1
   const { data: existing } = await supabaseAdmin
-    .from('playlists').select('position').eq('event_id', eventId).order('position', { ascending: false }).limit(1);
+    .from('playlists').select('position').eq('event_id', eventId)
+    .order('position', { ascending: false }).limit(1);
   const position = (existing?.[0]?.position ?? -1) + 1;
 
   const { data: playlist, error } = await supabaseAdmin

@@ -1,21 +1,15 @@
-import { createClient } from '@supabase/supabase-js';
-
-function getSupabase(token) {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    { global: { headers: { Authorization: `Bearer ${token}` } } }
-  );
-}
+import { supabaseAdmin } from '@/app/lib/supabase-admin';
+import { verifyEventAccess } from '@/app/lib/event-access';
 
 export async function GET(req, { params }) {
   const token = req.headers.get('authorization')?.replace('Bearer ', '');
   if (!token) return Response.json({ error: 'Non autorisé' }, { status: 401 });
 
   const { eventId } = await params;
-  const supabase = getSupabase(token);
+  const access = await verifyEventAccess(token, eventId);
+  if (!access) return Response.json({ error: 'Non autorisé' }, { status: 403 });
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('event_programme')
     .select('*')
     .eq('event_id', eventId)
@@ -31,11 +25,13 @@ export async function POST(req, { params }) {
   if (!token) return Response.json({ error: 'Non autorisé' }, { status: 401 });
 
   const { eventId } = await params;
+  const access = await verifyEventAccess(token, eventId);
+  if (!access) return Response.json({ error: 'Non autorisé' }, { status: 403 });
+
   const { time, label, position } = await req.json();
   if (!time || !label) return Response.json({ error: 'time et label requis' }, { status: 400 });
 
-  const supabase = getSupabase(token);
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('event_programme')
     .insert({ event_id: eventId, time, label, position: position ?? 0 })
     .select()

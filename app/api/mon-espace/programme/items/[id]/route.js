@@ -1,11 +1,12 @@
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/app/lib/supabase-admin';
+import { verifyEventAccess } from '@/app/lib/event-access';
 
-function getSupabase(token) {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    { global: { headers: { Authorization: `Bearer ${token}` } } }
-  );
+async function getItemEventAccess(token, id) {
+  const { data: item } = await supabaseAdmin
+    .from('event_programme').select('event_id').eq('id', id).single();
+  if (!item) return null;
+  const access = await verifyEventAccess(token, item.event_id);
+  return access ? item : null;
 }
 
 export async function PATCH(req, { params }) {
@@ -13,15 +14,12 @@ export async function PATCH(req, { params }) {
   if (!token) return Response.json({ error: 'Non autorisé' }, { status: 401 });
 
   const { id } = await params;
-  const body = await req.json();
-  const supabase = getSupabase(token);
+  const item = await getItemEventAccess(token, id);
+  if (!item) return Response.json({ error: 'Non autorisé' }, { status: 403 });
 
-  const { data, error } = await supabase
-    .from('event_programme')
-    .update(body)
-    .eq('id', id)
-    .select()
-    .single();
+  const body = await req.json();
+  const { data, error } = await supabaseAdmin
+    .from('event_programme').update(body).eq('id', id).select().single();
 
   if (error) return Response.json({ error: error.message }, { status: 500 });
   return Response.json({ item: data });
@@ -32,13 +30,10 @@ export async function DELETE(req, { params }) {
   if (!token) return Response.json({ error: 'Non autorisé' }, { status: 401 });
 
   const { id } = await params;
-  const supabase = getSupabase(token);
+  const item = await getItemEventAccess(token, id);
+  if (!item) return Response.json({ error: 'Non autorisé' }, { status: 403 });
 
-  const { error } = await supabase
-    .from('event_programme')
-    .delete()
-    .eq('id', id);
-
+  const { error } = await supabaseAdmin.from('event_programme').delete().eq('id', id);
   if (error) return Response.json({ error: error.message }, { status: 500 });
   return Response.json({ ok: true });
 }

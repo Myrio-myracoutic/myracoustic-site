@@ -6,10 +6,19 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://myracoustic.com';
 const SENDER  = 'contact@myracoustic.com';
 
 async function getClient(token) {
+  const { verifyEventAccess } = await import('@/app/lib/event-access');
   const { data: { user } } = await supabase.auth.getUser(token);
   if (!user) return null;
   const { data } = await supabaseAdmin.from('clients').select('id').eq('auth_id', user.id).single();
-  return data;
+  if (data) return data;
+  // Collaborateur : trouver le client_id via son accès collaborateur
+  const { data: collab } = await supabaseAdmin
+    .from('event_collaborators')
+    .select('events(client_id, clients(id))')
+    .eq('auth_id', user.id)
+    .limit(1)
+    .single();
+  return collab?.events?.clients || null;
 }
 
 async function sendInviteEmail(toEmail, firstName, inviteLink, eventType, clientFirstName) {

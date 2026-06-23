@@ -1,16 +1,8 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/app/lib/supabase-admin';
+import { verifyPlaylistAccess } from '@/app/lib/event-access';
 
-function getSupabase(token) {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    { global: { headers: { Authorization: `Bearer ${token}` } } }
-  );
-}
-
-// POST /api/mon-espace/playlists/tracks
-// Ajoute un morceau à une playlist
+// POST /api/mon-espace/playlists/tracks — ajouter un morceau
 export async function POST(request) {
   const token = request.headers.get('authorization')?.replace('Bearer ', '');
   if (!token) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
@@ -19,23 +11,23 @@ export async function POST(request) {
   const { playlist_id, title, artist, note, tidal_id, position,
           album, deezer_id, preview_url, cover_url } = body;
 
-  if (!playlist_id || !title?.trim() || !artist?.trim()) {
+  if (!playlist_id || !title?.trim() || !artist?.trim())
     return NextResponse.json({ error: 'playlist_id, title et artist requis' }, { status: 400 });
-  }
 
-  const supabase = getSupabase(token);
+  const access = await verifyPlaylistAccess(token, playlist_id);
+  if (!access) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
 
-  // Calcule la position si non fournie (ajoute en fin)
+  // Position en fin si non fournie
   let pos = position;
   if (pos === undefined || pos === null) {
-    const { count } = await supabase
+    const { count } = await supabaseAdmin
       .from('playlist_tracks')
       .select('*', { count: 'exact', head: true })
       .eq('playlist_id', playlist_id);
     pos = count || 0;
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('playlist_tracks')
     .insert({
       playlist_id,

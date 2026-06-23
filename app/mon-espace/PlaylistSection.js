@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { Music2, Search, Plus, X, ChevronDown, ChevronUp, Loader2, Play, Pause, Check, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Music2, Search, Plus, X, ChevronDown, ChevronUp, Loader2, Play, Pause, Check, ThumbsUp, ThumbsDown, Pencil, Trash2 } from 'lucide-react';
 import { SkeletonPlaylist } from './SkeletonLoader';
 
 function fmtDuration(s) {
@@ -489,14 +489,58 @@ function SuggestionsTab({ playlistId, token, onRefresh, onApproved }) {
 }
 
 function PlaylistCard({ playlist, token, onRefresh }) {
-  const [open, setOpen]       = useState(false);
+  const [open,      setOpen]      = useState(false);
   const [activeTab, setActiveTab] = useState('playlist');
+  const [renaming,  setRenaming]  = useState(false);
+  const [newName,   setNewName]   = useState(playlist.name);
+  const [saving,    setSaving]    = useState(false);
+  const [deleting,  setDeleting]  = useState(false);
+  const nameInputRef = useRef(null);
 
   const deleteTrack = async (trackId) => {
     await fetch(`/api/mon-espace/playlists/tracks/${trackId}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` },
     });
+    onRefresh();
+  };
+
+  const startRename = (e) => {
+    e.stopPropagation();
+    setNewName(playlist.name);
+    setRenaming(true);
+    setTimeout(() => nameInputRef.current?.focus(), 50);
+  };
+
+  const cancelRename = (e) => {
+    e?.stopPropagation();
+    setRenaming(false);
+    setNewName(playlist.name);
+  };
+
+  const saveRename = async (e) => {
+    e?.stopPropagation();
+    if (!newName.trim() || newName.trim() === playlist.name) { cancelRename(); return; }
+    setSaving(true);
+    await fetch(`/api/mon-espace/playlists/${playlist.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ name: newName.trim() }),
+    });
+    setSaving(false);
+    setRenaming(false);
+    onRefresh();
+  };
+
+  const handleDelete = async (e) => {
+    e.stopPropagation();
+    if (!confirm(`Supprimer la playlist "${playlist.name}" et tous ses titres ?`)) return;
+    setDeleting(true);
+    await fetch(`/api/mon-espace/playlists/${playlist.id}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    setDeleting(false);
     onRefresh();
   };
 
@@ -508,19 +552,41 @@ function PlaylistCard({ playlist, token, onRefresh }) {
       borderRadius: 12, marginBottom: 10, position: 'relative',
       zIndex: open ? 10 : 1,
     }}>
-      <button
-        onClick={() => setOpen(o => !o)}
+      <div
         style={{
-          width: '100%', background: 'none', border: 'none', cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '14px 18px', gap: 12,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+        {/* Zone cliquable pour ouvrir/fermer */}
+        <button
+          onClick={() => !renaming && setOpen(o => !o)}
+          style={{
+            flex: 1, background: 'none', border: 'none',
+            cursor: renaming ? 'default' : 'pointer',
+            display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, textAlign: 'left',
+          }}
+        >
           <Music2 size={16} color="#b8ef0b" strokeWidth={1.5} style={{ flexShrink: 0 }} />
-          <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: 14, fontWeight: 500, textAlign: 'left' }}>
-            {playlist.name}
-          </span>
+
+          {renaming ? (
+            <input
+              ref={nameInputRef}
+              value={newName}
+              onChange={e => setNewName(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') saveRename(e); if (e.key === 'Escape') cancelRename(e); }}
+              onClick={e => e.stopPropagation()}
+              style={{
+                background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(184,239,11,0.4)',
+                borderRadius: 6, padding: '3px 10px', color: '#fff', fontSize: 14,
+                fontFamily: 'inherit', outline: 'none', minWidth: 0, flex: 1,
+              }}
+            />
+          ) : (
+            <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: 14, fontWeight: 500 }}>
+              {playlist.name}
+            </span>
+          )}
           <span style={{
             fontSize: 11, color: 'rgba(255,255,255,0.3)',
             background: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: '2px 8px',
@@ -536,12 +602,58 @@ function PlaylistCard({ playlist, token, onRefresh }) {
               {playlist.pending_suggestions} à valider
             </span>
           )}
+        </button>
+
+        {/* Actions : renommer, supprimer, chevron */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+          {renaming ? (
+            <>
+              <button onClick={saveRename} disabled={saving} title="Enregistrer" style={{
+                background: 'rgba(184,239,11,0.12)', border: '1px solid rgba(184,239,11,0.3)',
+                borderRadius: 6, padding: '4px 8px', cursor: 'pointer', color: '#b8ef0b',
+              }}>
+                {saving ? <Loader2 size={12} style={{ animation: 'spin 0.8s linear infinite' }} /> : <Check size={12} />}
+              </button>
+              <button onClick={cancelRename} title="Annuler" style={{
+                background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: 6, padding: '4px 8px', cursor: 'pointer', color: 'rgba(255,255,255,0.4)',
+              }}>
+                <X size={12} />
+              </button>
+            </>
+          ) : (
+            <>
+              <button onClick={startRename} title="Renommer la playlist" style={{
+                background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px',
+                color: 'rgba(255,255,255,0.25)', borderRadius: 5, transition: 'color 0.15s',
+              }}
+                onMouseEnter={e => e.currentTarget.style.color = '#b8ef0b'}
+                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.25)'}
+              >
+                <Pencil size={13} />
+              </button>
+              <button onClick={handleDelete} disabled={deleting} title="Supprimer la playlist" style={{
+                background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px',
+                color: 'rgba(255,255,255,0.25)', borderRadius: 5, transition: 'color 0.15s',
+                opacity: deleting ? 0.5 : 1,
+              }}
+                onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
+                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.25)'}
+              >
+                <Trash2 size={13} />
+              </button>
+              <button onClick={() => setOpen(o => !o)} style={{
+                background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px',
+              }}>
+                {open
+                  ? <ChevronUp size={16} color="rgba(255,255,255,0.3)" />
+                  : <ChevronDown size={16} color="rgba(255,255,255,0.3)" />
+                }
+              </button>
+            </>
+          )}
         </div>
-        {open
-          ? <ChevronUp size={16} color="rgba(255,255,255,0.3)" style={{ flexShrink: 0 }} />
-          : <ChevronDown size={16} color="rgba(255,255,255,0.3)" style={{ flexShrink: 0 }} />
-        }
-      </button>
+      </div>
 
       {open && (
         <div style={{ padding: '0 18px 18px' }}>

@@ -338,6 +338,13 @@ export default function SuiviSection({ ev, token }) {
         background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.07)',
         borderRadius: 14, padding: '24px 28px', marginBottom: 16,
       }}>
+        <style>{`
+          @media (max-width: 640px) {
+            .sv-wrap { padding: 16px !important; }
+            .sv-jx { flex-direction: column !important; align-items: flex-start !important; }
+            .sv-stats { grid-template-columns: repeat(2, 1fr) !important; }
+          }
+        `}</style>
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 4, marginBottom: 24 }}>
           {TABS.map(t => {
@@ -419,7 +426,7 @@ export default function SuiviSection({ ev, token }) {
             {active && statsLoaded && (
               <div style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
                 gap: 12, marginBottom: 24,
               }}>
                 {/* Invités */}

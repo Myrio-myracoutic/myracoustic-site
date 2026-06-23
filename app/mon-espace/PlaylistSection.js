@@ -552,14 +552,22 @@ function PlaylistCard({ playlist, token, onRefresh }) {
       borderRadius: 12, marginBottom: 10, position: 'relative',
       zIndex: open ? 10 : 1,
     }}>
-      <div
+      <style>{`
+        @media (max-width: 640px) {
+          .pl-card-header { padding: 10px 12px !important; gap: 8px !important; }
+          .pl-card-btn { flex-wrap: wrap; gap: 6px !important; }
+          .pl-card-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: calc(100vw - 140px); }
+          .pl-card-actions { gap: 2px !important; }
+        }
+      `}</style>
+      <div className="pl-card-header"
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '14px 18px', gap: 12,
         }}
       >
         {/* Zone cliquable pour ouvrir/fermer */}
-        <button
+        <button className="pl-card-btn"
           onClick={() => !renaming && setOpen(o => !o)}
           style={{
             flex: 1, background: 'none', border: 'none',
@@ -586,7 +594,7 @@ function PlaylistCard({ playlist, token, onRefresh }) {
               }}
             />
           ) : (
-            <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: 14, fontWeight: 500 }}>
+            <span className="pl-card-name" style={{ color: 'rgba(255,255,255,0.85)', fontSize: 14, fontWeight: 500 }}>
               {playlist.name}
             </span>
           )}
@@ -619,7 +627,7 @@ function PlaylistCard({ playlist, token, onRefresh }) {
         </button>
 
         {/* Actions : renommer, supprimer, chevron */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+        <div className="pl-card-actions" style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
           {renaming ? (
             <>
               <button onClick={saveRename} disabled={saving} title="Enregistrer" style={{

@@ -65,7 +65,14 @@ function GuestRow({ guest, playlists, token, onDelete, onReinvite, onUpdate }) {
       background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
       borderRadius: 10, marginBottom: 8, overflow: 'hidden',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px' }}>
+      <style>{`
+        @media (max-width: 640px) {
+          .gr-row { flex-wrap: wrap; gap: 8px !important; padding: 10px 12px !important; }
+          .gr-meta { display: none; }
+          .gr-actions { margin-left: auto; }
+        }
+      `}</style>
+      <div className="gr-row" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px' }}>
         <div style={{
           width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
           background: 'rgba(184,239,11,0.1)', color: '#b8ef0b',
@@ -81,13 +88,13 @@ function GuestRow({ guest, playlists, token, onDelete, onReinvite, onUpdate }) {
         <RSVPBadge attending={guest.attending} responded_at={guest.responded_at} />
 
         {guest.attending && (
-          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
-            {guest.adults_count > 0 && `${guest.adults_count} adulte${guest.adults_count > 1 ? 's' : ''}`}
-            {guest.children_count > 0 && ` · ${guest.children_count} enfant${guest.children_count > 1 ? 's' : ''}`}
+          <span className="gr-meta" style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
+            {guest.adults_count > 0 && `${guest.adults_count}A`}
+            {guest.children_count > 0 && ` ${guest.children_count}E`}
           </span>
         )}
 
-        <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+        <div className="gr-actions" style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
           {guest.suggestions?.pending > 0 && (
             <span style={{
               fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10,

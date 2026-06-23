@@ -43,9 +43,11 @@ export default function NotificationBell({ eventId, token, onNavigate, refreshTr
   const toggleOpen = () => {
     if (!open && bellRef.current) {
       const rect = bellRef.current.getBoundingClientRect();
-      const dropW = 264;
+      const vw   = window.innerWidth;
+      const dropW = Math.min(264, vw - 16);
       let left = rect.right - dropW;
       if (left < 8) left = 8;
+      if (left + dropW > vw - 8) left = vw - dropW - 8;
       setDropStyle({
         position: 'fixed',
         top: rect.bottom + 8,

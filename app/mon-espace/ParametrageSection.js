@@ -48,7 +48,7 @@ function TabCompte({ token, eventId }) {
 
   return (
     <div style={{ maxWidth: 480 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+      <div className="pm-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
         <div>
           <label style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 6 }}>PRÉNOM</label>
           <input style={inputStyle} value={form.firstName} onChange={e => setForm(f => ({ ...f, firstName: e.target.value }))} placeholder="Marie" />
@@ -228,7 +228,7 @@ function TabAcces({ token, eventId, isOwner }) {
           {collabs.map(c => {
             const accepted = !!c.accepted_at;
             return (
-              <div key={c.id} style={{
+              <div key={c.id} className="pm-collab-row" style={{
                 background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
                 borderRadius: 10, padding: '12px 16px',
                 display: 'flex', alignItems: 'center', gap: 12,
@@ -273,7 +273,7 @@ function TabAcces({ token, eventId, isOwner }) {
                   </div>
                 </div>
                 {isOwner && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                  <div className="pm-collab-actions" style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                     {/* Toggle accès facturation */}
                     <button
                       onClick={() => toggleBilling(c)}
@@ -392,18 +392,28 @@ export default function ParametrageSection({ ev, token, isOwner = true, isPro = 
       background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.07)',
       borderRadius: 14, padding: '24px 28px',
     }}>
+      <style>{`
+        @media (max-width: 640px) {
+          .pm-tabs { overflow-x: auto; padding-bottom: 0; gap: 0 !important; }
+          .pm-tab { padding: 8px 10px !important; font-size: 11px !important; gap: 4px !important; white-space: nowrap; }
+          .pm-section { padding: 16px !important; }
+          .pm-collab-row { flex-wrap: wrap; gap: 8px !important; }
+          .pm-collab-actions { width: 100%; justify-content: flex-end; }
+          .pm-form-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
       {/* Onglets */}
-      <div style={{ display: 'flex', gap: 4, marginBottom: 24, borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 0 }}>
+      <div className="pm-tabs" style={{ display: 'flex', gap: 4, marginBottom: 24, borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 0 }}>
         {visibleTabs.map(t => {
           const isAct = tab === t.id;
           return (
-            <button key={t.id} onClick={() => setTab(t.id)} style={{
+            <button key={t.id} onClick={() => setTab(t.id)} className="pm-tab" style={{
               display: 'flex', alignItems: 'center', gap: 7,
               background: 'none', border: 'none', cursor: 'pointer',
               padding: '8px 16px', fontSize: 13, fontWeight: isAct ? 700 : 400,
               color: isAct ? '#b8ef0b' : 'rgba(255,255,255,0.4)',
               borderBottom: isAct ? '2px solid #b8ef0b' : '2px solid transparent',
-              fontFamily: 'var(--font-display), sans-serif',
+              fontFamily: 'var(--font-display), sans-serif', flexShrink: 0,
             }}>
               <t.icon size={14} strokeWidth={isAct ? 2.2 : 1.5} />
               {t.label}

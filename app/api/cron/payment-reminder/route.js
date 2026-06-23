@@ -33,7 +33,7 @@ function fmtDate(d) {
   });
 }
 
-async function sendReminderEmail(toEmail, firstName, eventType, eventDate, amount, payUrl) {
+async function sendReminderEmail(toEmail, firstName, eventType, eventDate, amount, payUrl, ccEmail) {
   const html = `
 <!DOCTYPE html><html lang="fr"><body style="margin:0;padding:0;background:#060e16;font-family:sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:40px 20px;">
@@ -99,7 +99,8 @@ async function sendReminderEmail(toEmail, firstName, eventType, eventDate, amoun
     headers: { 'Content-Type': 'application/json', 'api-key': process.env.BREVO_API_KEY },
     body: JSON.stringify({
       sender:      { name: 'Myracoustic', email: SENDER },
-      to:          [{ email: toEmail, name: firstName }],
+      to:          [{ email: toEmail }],
+      ...(ccEmail && ccEmail !== toEmail ? { cc: [{ email: ccEmail, name: firstName }] } : {}),
       replyTo:     { email: SENDER, name: 'Myracoustic' },
       subject:     `Rappel paiement — votre ${eventType || 'événement'} est demain`,
       htmlContent: html,
@@ -130,7 +131,7 @@ export async function GET(request) {
   // Événements demain, non annulés, rappel pas encore envoyé, avec devis Qonto
   const { data: events, error } = await supabaseAdmin
     .from('events')
-    .select('id, event_type, event_date, qonto_quote_id, status, clients(first_name, last_name, email)')
+    .select('id, event_type, event_date, qonto_quote_id, status, billing_email, clients(first_name, last_name, email)')
     .eq('event_date', tomorrowStr)
     .not('status', 'eq', 'annule')
     .not('status', 'eq', 'termine')
@@ -170,13 +171,18 @@ export async function GET(request) {
     }
 
     try {
+      // Si billing_email défini : envoyer À billing + CC client principal
+      const reminderTo = ev.billing_email || client.email;
+      const reminderCc = ev.billing_email ? client.email : null;
+
       await sendReminderEmail(
-        client.email,
+        reminderTo,
         client.first_name,
         ev.event_type,
         ev.event_date,
         fmtAmount(balanceInv.total_amount),
         balanceInv.invoice_url,
+        reminderCc,
       );
 
       await supabaseAdmin

@@ -120,21 +120,39 @@ function buildStatusEmail(firstName, status, eventType) {
 </body></html>`;
 }
 
-async function sendStatusEmail(toEmail, firstName, status, eventType) {
+// Statuts où la facturation est impliquée → envoyer à l'email de facturation
+const BILLING_STATUSES = new Set(['confirme', 'termine']);
+
+async function sendStatusEmail(toEmail, firstName, status, eventType, billingEmail) {
   const cfg = EMAIL_CONFIGS[status];
   if (!cfg || !toEmail) return;
 
   const html = buildStatusEmail(firstName, status, eventType);
   if (!html) return;
 
+  // Pour les statuts facturation : envoyer À l'email billing + copie au compte principal
+  // Sinon : envoyer uniquement au compte principal
+  const isBillingStatus = BILLING_STATUSES.has(status) && billingEmail && billingEmail !== toEmail;
+  const recipients = isBillingStatus
+    ? [{ email: billingEmail }]
+    : [{ email: toEmail, name: firstName }];
+  const cc = isBillingStatus
+    ? [{ email: toEmail, name: firstName }]
+    : undefined;
+
+  const subject = isBillingStatus
+    ? `[Facturation] ${cfg.subject}`
+    : cfg.subject;
+
   await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'api-key': process.env.BREVO_API_KEY },
     body: JSON.stringify({
       sender:    { name: 'Myracoustic', email: SENDER },
-      to:        [{ email: toEmail, name: firstName }],
+      to:        recipients,
+      ...(cc ? { cc } : {}),
       replyTo:   { email: SENDER, name: 'Myracoustic' },
-      subject:   cfg.subject,
+      subject,
       htmlContent: html,
     }),
   });
@@ -187,7 +205,7 @@ export async function PATCH(req, { params }) {
   // Récupérer l'événement actuel avec le client pour comparer le statut
   const { data: current } = await supabaseAdmin
     .from('events')
-    .select('status, event_type, clients(first_name, email)')
+    .select('status, event_type, billing_email, clients(first_name, email)')
     .eq('id', id)
     .single();
 
@@ -218,13 +236,14 @@ export async function PATCH(req, { params }) {
     );
   }
 
-  // Envoie l'email si le statut a changé (await : Vercel tue la fonction après la réponse)
+  // Envoie l'email si le statut a changé
   if (body.status && body.status !== previousStatus && current?.clients?.email) {
     await sendStatusEmail(
       current.clients.email,
       current.clients.first_name || 'Client',
       body.status,
       current.event_type,
+      current.billing_email || null,
     ).catch(e => console.error('sendStatusEmail error:', e.message));
   }
 

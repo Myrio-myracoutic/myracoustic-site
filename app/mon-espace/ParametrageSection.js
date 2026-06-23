@@ -151,8 +151,9 @@ function TabAcces({ token, eventId, isOwner }) {
   const [showForm,  setShowForm]  = useState(false);
   const [form,      setForm]      = useState({ firstName: '', lastName: '', email: '' });
   const [inviting,  setInviting]  = useState(false);
-  const [deleting,  setDeleting]  = useState(null);
-  const [toggling,  setToggling]  = useState(null);
+  const [deleting,   setDeleting]   = useState(null);
+  const [toggling,   setToggling]   = useState(null);
+  const [reinviting, setReinviting] = useState(null);
   const [error,     setError]     = useState('');
 
   const load = useCallback(async () => {
@@ -190,6 +191,16 @@ function TabAcces({ token, eventId, isOwner }) {
     });
     setDeleting(null);
     load();
+  };
+
+  const reinvite = async (collab) => {
+    setReinviting(collab.id);
+    await fetch('/api/mon-espace/collaborateurs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ eventId, email: collab.email, firstName: collab.first_name, lastName: collab.last_name }),
+    });
+    setReinviting(null);
   };
 
   const toggleBilling = async (c) => {
@@ -282,11 +293,17 @@ function TabAcces({ token, eventId, isOwner }) {
                       {c.can_see_billing ? 'Fact.' : 'Fact.'}
                     </button>
                     <button
-                      onClick={() => invite_resend(c)}
+                      onClick={() => reinvite(c)}
+                      disabled={reinviting === c.id}
                       title="Ré-envoyer l'invitation"
-                      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 7, padding: '5px 9px', cursor: 'pointer', color: 'rgba(255,255,255,0.4)' }}
+                      style={{
+                        background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: 7, padding: '5px 9px', cursor: 'pointer',
+                        color: reinviting === c.id ? '#b8ef0b' : 'rgba(255,255,255,0.4)',
+                        opacity: reinviting === c.id ? 0.6 : 1,
+                      }}
                     >
-                      <RefreshCw size={12} />
+                      <RefreshCw size={12} style={reinviting === c.id ? { animation: 'spin 0.8s linear infinite' } : {}} />
                     </button>
                     <button
                       onClick={() => remove(c.id)}
@@ -358,14 +375,6 @@ function TabAcces({ token, eventId, isOwner }) {
     </div>
   );
 
-  // Ré-envoyer l'invitation (réutilise le POST)
-  async function invite_resend(collab) {
-    await fetch('/api/mon-espace/collaborateurs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ eventId, email: collab.email, firstName: collab.first_name, lastName: collab.last_name }),
-    });
-  }
 }
 
 /* ── Section principale ────────────────────────────────────────── */

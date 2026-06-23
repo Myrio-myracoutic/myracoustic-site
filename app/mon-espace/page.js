@@ -274,35 +274,18 @@ export default function MonEspacePage() {
         setEvents(evs);
         if (evs.length > 0) setEventId(evs[0].id);
       } else {
-        // Chercher en tant que collaborateur (par auth_id ou par email)
-        const { supabaseAdmin } = await import('@/app/lib/supabase-admin');
-        let collab = (await supabaseAdmin
-          .from('event_collaborators')
-          .select('id, event_id, auth_id, email, can_see_billing, events(*, clients(*))')
-          .eq('auth_id', session.user.id)
-          .single()).data;
+        // Chercher en tant que collaborateur via API (supabaseAdmin reste côté serveur)
+        const collabRes = await fetch('/api/mon-espace/collaborateur-auth', {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        const collabData = await collabRes.json();
 
-        if (!collab) {
-          // Première connexion : trouver par email et mettre à jour auth_id
-          collab = (await supabaseAdmin
-            .from('event_collaborators')
-            .select('id, event_id, email, can_see_billing, events(*, clients(*))')
-            .eq('email', session.user.email?.toLowerCase())
-            .single()).data;
-          if (collab) {
-            await supabaseAdmin.from('event_collaborators')
-              .update({ auth_id: session.user.id, accepted_at: new Date().toISOString() })
-              .eq('id', collab.id);
-          }
-        }
-
-        if (collab?.events) {
-          const ev = collab.events;
+        if (collabData.found) {
           setIsCollaborator(true);
-          setCanSeeBilling(!!collab.can_see_billing);
-          setClient(ev.clients || { first_name: '', last_name: '', email: session.user.email });
-          setEvents([ev]);
-          setEventId(ev.id);
+          setCanSeeBilling(!!collabData.canSeeBilling);
+          setClient(collabData.client || { first_name: '', last_name: '', email: session.user.email });
+          setEvents([collabData.event]);
+          setEventId(collabData.event.id);
         } else {
           router.replace('/mon-espace/connexion');
           return;

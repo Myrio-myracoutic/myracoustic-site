@@ -697,6 +697,7 @@ export default function DevisFlow({ forcedProfil = null }) {
       const res = await fetch(`/api/devis/progress?email=${encodeURIComponent(email)}`);
       const { progress } = await res.json();
       if (progress && progress.step > 0) {
+        gtagEvent('resume_offer_shown', { saved_step: progress.step });
         setResumeOffer(progress);
         setCheckingResume(false);
         return;
@@ -1391,10 +1392,10 @@ export default function DevisFlow({ forcedProfil = null }) {
               </div>
             )}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <BtnPrimary onClick={() => applyResumeData(resumeOffer)} style={{ width: '100%' }}>
+              <BtnPrimary onClick={() => { gtagEvent('resume_offer_accepted', { saved_step: resumeOffer.step }); applyResumeData(resumeOffer); }} style={{ width: '100%' }}>
                 Reprendre mon devis →
               </BtnPrimary>
-              <button onClick={() => { setResumeOffer(null); goStep(1); }} style={{
+              <button onClick={() => { gtagEvent('resume_offer_dismissed', { saved_step: resumeOffer.step }); setResumeOffer(null); goStep(1); }} style={{
                 background: 'none', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 8,
                 color: 'rgba(255,255,255,0.6)', padding: '10px 16px', cursor: 'pointer',
                 fontFamily: 'var(--font-display), sans-serif', fontWeight: 500, fontSize: 13,

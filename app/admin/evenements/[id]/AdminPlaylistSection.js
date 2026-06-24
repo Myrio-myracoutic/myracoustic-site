@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { Music2, RefreshCw, Download, Wifi, WifiOff, ChevronDown, ChevronUp, Loader2, ExternalLink, Play, Pause, Trash2 } from 'lucide-react';
+import { Music2, RefreshCw, Download, Wifi, WifiOff, ChevronDown, ChevronUp, Loader2, ExternalLink, Play, Pause, Trash2, Gift, User } from 'lucide-react';
 
 function fmtExpiry(expiresIn) {
   if (!expiresIn) return '';
@@ -73,11 +73,29 @@ function PlaylistRow({ playlist, playingId, loadingId, onPlay, onDeleteTidal }) 
           display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', textAlign: 'left',
         }}
       >
-        <Music2 size={14} color="#b8ef0b" strokeWidth={1.5} style={{ flexShrink: 0 }} />
-        <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, fontWeight: 500, flex: 1 }}>
-          {playlist.name}
-        </span>
-        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginRight: 4 }}>
+        {playlist.is_surprise
+          ? <Gift size={14} color="#a78bfa" strokeWidth={1.5} style={{ flexShrink: 0 }} />
+          : <Music2 size={14} color="#b8ef0b" strokeWidth={1.5} style={{ flexShrink: 0 }} />
+        }
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: 13, fontWeight: 500 }}>
+            {playlist.name}
+          </span>
+          {playlist.is_surprise && (
+            <span style={{
+              marginLeft: 8, fontSize: 10, fontWeight: 700, color: '#a78bfa',
+              background: 'rgba(167,139,250,0.12)', border: '1px solid rgba(167,139,250,0.25)',
+              borderRadius: 4, padding: '1px 6px', verticalAlign: 'middle',
+            }}>SURPRISE</span>
+          )}
+          {playlist.created_by_name && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 2 }}>
+              <User size={10} color="rgba(255,255,255,0.25)" />
+              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>{playlist.created_by_name}</span>
+            </div>
+          )}
+        </div>
+        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginRight: 4, flexShrink: 0 }}>
           {tracks.length} titre{tracks.length !== 1 ? 's' : ''}
           {tracks.length > 0 && (
             <span style={{ marginLeft: 6, color: tidalCount === tracks.length ? '#22c55e' : tidalCount > 0 ? '#f59e0b' : 'rgba(255,255,255,0.2)' }}>

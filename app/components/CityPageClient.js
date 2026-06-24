@@ -116,7 +116,7 @@ export default function CityPageClient({ city }) {
           }}>
             {intro}
           </p>
-          <a href="/devis/particulier" style={{
+          <a href="/devis" style={{
             background: 'var(--lime)', color: '#0d1b2a',
             padding: '14px 28px', borderRadius: 8, fontSize: 15, fontWeight: 700,
             fontFamily: 'var(--font-display), sans-serif',

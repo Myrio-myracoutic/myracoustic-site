@@ -405,7 +405,7 @@ const BtnPrimary = ({ children, onClick, disabled, style, className }) => (
 ══════════════════════════════════════════════════════════════════════ */
 
 /* forcedProfil : null → écran de choix de profil (gate) ; 'particulier' ou 'professionnel' → tunnel démarré directement, sans gate */
-export default function DevisFlow({ forcedProfil = null }) {
+export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
   const router = useRouter();
 
   /* ── Navigation tunnel ─────────────────────────────────────────── */
@@ -477,8 +477,9 @@ export default function DevisFlow({ forcedProfil = null }) {
   }, []);
 
   /* ── Particulier — identité & événement ────────────────────────── */
-  const [email,      setEmail]      = useState('');
-  const [emailErr,   setEmailErr]   = useState('');
+  const [email,         setEmail]         = useState(initialEmail);
+  const [emailErr,      setEmailErr]      = useState('');
+  const [pendingResume, setPendingResume] = useState(null);
   const [prenom,     setPrenom]     = useState('');
   const [nom,        setNom]        = useState('');
   const [tel,        setTel]        = useState('');
@@ -680,6 +681,21 @@ export default function DevisFlow({ forcedProfil = null }) {
     setDateUnavailableNotice(dateUnavailable);
     goStep(dateUnavailable ? 1 : savedStep);
   };
+
+  /* ── Auto-reprise depuis lien email de relance ──────────────────── */
+  useEffect(() => {
+    if (!initialEmail) return;
+    fetch(`/api/devis/progress?email=${encodeURIComponent(initialEmail)}`)
+      .then(r => r.json())
+      .then(({ progress }) => { if (progress && progress.step > 0) setPendingResume(progress); })
+      .catch(() => {});
+  }, [initialEmail]);
+
+  useEffect(() => {
+    if (!pendingResume || availabilityLoading) return;
+    applyResumeData(pendingResume);
+    setPendingResume(null);
+  }, [pendingResume, availabilityLoading]);
 
   const validateEmail = async () => {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {

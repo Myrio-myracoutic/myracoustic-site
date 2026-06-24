@@ -16,6 +16,7 @@ export async function GET(request) {
       .eq('email', email.toLowerCase());
   }
 
-  const destination = `${APP_URL}/devis/particulier?utm_source=email&utm_medium=relance&utm_campaign=prospects_relance`;
+  const emailParam = email ? `&email=${encodeURIComponent(email.toLowerCase())}` : '';
+  const destination = `${APP_URL}/devis/particulier?utm_source=email&utm_medium=relance&utm_campaign=prospects_relance${emailParam}`;
   return NextResponse.redirect(destination, { status: 302 });
 }

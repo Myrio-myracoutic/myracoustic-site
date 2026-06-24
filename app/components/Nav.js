@@ -75,7 +75,7 @@ export default function Nav() {
           >
             Mon espace
           </a>
-          <a href="/devis/particulier" style={{
+          <a href="/devis" style={{
             background: 'var(--lime)', color: '#0d1b2a',
             padding: '10px 20px', borderRadius: 6, fontSize: 14,
             fontWeight: 700, fontFamily: "var(--font-display), sans-serif",
@@ -118,7 +118,7 @@ export default function Nav() {
               {l.label}
             </Link>
           ))}
-          <a href="/devis/particulier" onClick={() => setOpen(false)} style={{
+          <a href="/devis" onClick={() => setOpen(false)} style={{
             display: 'block', marginTop: 16, width: '100%',
             background: 'var(--lime)', color: '#0d1b2a',
             padding: '13px 0', borderRadius: 6, fontSize: 15, fontWeight: 700,

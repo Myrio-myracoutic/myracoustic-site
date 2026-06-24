@@ -30,8 +30,9 @@ export default function AdminDevisPage() {
   const router = useRouter();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all');
-  const [search, setSearch] = useState('');
+  const [filter,     setFilter]     = useState('all');
+  const [dateFilter, setDateFilter] = useState('all');
+  const [search,     setSearch]     = useState('');
 
   useEffect(() => {
     fetch('/api/admin/events')
@@ -39,8 +40,18 @@ export default function AdminDevisPage() {
       .then(d => { if (d) { setEvents(d); setLoading(false); } });
   }, []);
 
+  const today     = new Date().toISOString().slice(0, 10);
+  const thisMonth = today.slice(0, 7);
+
   const filtered = events
     .filter(e => filter === 'all' || e.status === filter)
+    .filter(e => {
+      if (dateFilter === 'all')    return true;
+      if (dateFilter === 'avenir') return e.event_date && e.event_date >= today;
+      if (dateFilter === 'mois')   return e.event_date && e.event_date.startsWith(thisMonth);
+      if (dateFilter === 'passes') return !e.event_date || e.event_date < today;
+      return true;
+    })
     .filter(e => {
       if (!search) return true;
       const q = search.toLowerCase();
@@ -83,8 +94,8 @@ export default function AdminDevisPage() {
         />
       </div>
 
-      {/* Filtres */}
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
+      {/* Filtres statut */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
         {FILTERS.map(f => (
           <button key={f.key} onClick={() => setFilter(f.key)} style={{
             background: filter === f.key ? 'rgba(184,239,11,0.12)' : 'rgba(255,255,255,0.04)',
@@ -95,6 +106,27 @@ export default function AdminDevisPage() {
             transition: 'all 0.15s',
           }}>
             {f.label}{f.key !== 'all' && counts[f.key] ? ` (${counts[f.key]})` : ''}
+          </button>
+        ))}
+      </div>
+
+      {/* Filtres date */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
+        {[
+          { key: 'all',    label: 'Toutes les dates' },
+          { key: 'avenir', label: '📅 À venir' },
+          { key: 'mois',   label: 'Ce mois' },
+          { key: 'passes', label: 'Passés' },
+        ].map(f => (
+          <button key={f.key} onClick={() => setDateFilter(f.key)} style={{
+            background: dateFilter === f.key ? 'rgba(96,165,250,0.12)' : 'rgba(255,255,255,0.03)',
+            border: `1px solid ${dateFilter === f.key ? 'rgba(96,165,250,0.4)' : 'rgba(255,255,255,0.08)'}`,
+            color: dateFilter === f.key ? '#60a5fa' : 'rgba(255,255,255,0.35)',
+            borderRadius: 20, padding: '5px 12px', fontSize: 12, cursor: 'pointer',
+            fontFamily: 'var(--font-display), sans-serif', fontWeight: dateFilter === f.key ? 600 : 400,
+            transition: 'all 0.15s',
+          }}>
+            {f.label}
           </button>
         ))}
       </div>

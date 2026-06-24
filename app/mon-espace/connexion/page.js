@@ -154,18 +154,24 @@ function ConnexionForm() {
 
   return (
     <div style={{
-      minHeight: '100vh', background: '#060e16',
+      minHeight: '100vh',
+      backgroundImage: 'url(/ban_connect.jpg)',
+      backgroundSize: 'cover', backgroundPosition: 'center',
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       padding: '40px 24px',
     }}>
-      <a href="/" style={{ marginBottom: 48 }}>
+      {/* Voile sombre */}
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(6,14,22,0.72)', zIndex: 0 }} />
+      <a href="/" style={{ marginBottom: 48, position: 'relative', zIndex: 1 }}>
         <Image src="/logo.png" alt="Myracoustic" width={180} height={60} style={{ height: 60, width: 'auto' }} />
       </a>
 
       <div style={{
         width: '100%', maxWidth: 400,
-        background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.07)',
+        background: 'rgba(13,27,42,0.92)', border: '1px solid rgba(255,255,255,0.1)',
         borderRadius: 16, padding: 40,
+        backdropFilter: 'blur(12px)',
+        position: 'relative', zIndex: 1,
       }}>
         <h1 style={{
           fontFamily: 'var(--font-display), sans-serif', fontSize: 22, fontWeight: 700,

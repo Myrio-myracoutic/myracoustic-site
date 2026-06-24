@@ -33,6 +33,7 @@ export default function AdminDevisPage() {
   const [filter,     setFilter]     = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
   const [search,     setSearch]     = useState('');
+  const [sortDate,   setSortDate]   = useState('asc');
 
   useEffect(() => {
     fetch('/api/admin/events')
@@ -62,6 +63,11 @@ export default function AdminDevisPage() {
         e.event_type?.toLowerCase().includes(q) ||
         e.venue_city?.toLowerCase().includes(q)
       );
+    })
+    .sort((a, b) => {
+      const da = a.event_date || '';
+      const db = b.event_date || '';
+      return sortDate === 'asc' ? da.localeCompare(db) : db.localeCompare(da);
     });
 
   const counts = Object.fromEntries(Object.keys(STATUS).map(k => [k, events.filter(e => e.status === k).length]));
@@ -142,7 +148,17 @@ export default function AdminDevisPage() {
         }}>
           <span>Client</span>
           <span>Événement</span>
-          <span>Date</span>
+          <button
+            onClick={() => setSortDate(s => s === 'asc' ? 'desc' : 'asc')}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+              fontSize: 11, fontWeight: 700, color: 'rgba(184,239,11,0.8)',
+              textTransform: 'uppercase', letterSpacing: '0.08em',
+              display: 'flex', alignItems: 'center', gap: 4,
+            }}
+          >
+            Date {sortDate === 'asc' ? '↑' : '↓'}
+          </button>
           <span>Invités</span>
           <span>Statut</span>
           <span />

@@ -6,8 +6,8 @@ import { LayoutDashboard, FileText, Users, LogOut, CalendarDays, UserSearch } fr
 
 const NAV = [
   { href: '/admin',              icon: LayoutDashboard, label: "Vue d'ensemble",  exact: true },
-  { href: '/admin/devis',        icon: FileText,        label: 'Événements' },
-  { href: '/admin/evenements',   icon: CalendarDays,    label: 'Planification' },
+  { href: '/admin/evenements',   icon: FileText,        label: 'Événements' },
+  { href: '/admin/planification', icon: CalendarDays,   label: 'Planification' },
   { href: '/admin/prospects',    icon: UserSearch,      label: 'Prospects' },
   { href: '/admin/clients',      icon: Users,           label: 'Clients' },
 ];

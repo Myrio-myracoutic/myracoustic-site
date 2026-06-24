@@ -382,7 +382,7 @@ export default function AdminClientsPage() {
                 {/* Client */}
                 <div
                   style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: firstEvent ? 'pointer' : 'default' }}
-                  onClick={() => firstEvent && router.push(`/admin/devis/${firstEvent.id}`)}
+                  onClick={() => firstEvent && router.push(`/admin/evenements/${firstEvent.id}`)}
                 >
                   <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(184,239,11,0.12)', color: '#b8ef0b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
                     {c.first_name?.[0]}{c.last_name?.[0]}

@@ -264,11 +264,11 @@ export default function AdminDevisDetail() {
     <div style={{ padding: '36px 36px 60px', maxWidth: 980, margin: '0 auto' }}>
 
       {/* Retour + titre */}
-      <button onClick={() => router.push('/admin/devis')} style={{
+      <button onClick={() => router.push('/admin/evenements')} style={{
         background: 'none', border: 'none', color: 'rgba(255,255,255,0.35)', cursor: 'pointer',
         fontSize: 13, padding: 0, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 6,
         fontFamily: 'inherit',
-      }}>← Retour aux devis</button>
+      }}>← Retour aux événements</button>
 
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 28 }}>
         <div>

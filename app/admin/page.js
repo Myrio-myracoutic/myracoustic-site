@@ -158,7 +158,7 @@ export default function AdminDashboard() {
           <h2 style={{ fontSize: 15, fontWeight: 700, color: 'rgba(255,255,255,0.85)', margin: 0, fontFamily: 'var(--font-display), sans-serif' }}>
             Activité récente
           </h2>
-          <a href="/admin/devis" style={{ fontSize: 13, color: '#b8ef0b', textDecoration: 'none', fontWeight: 600 }}>Voir tout →</a>
+          <a href="/admin/evenements" style={{ fontSize: 13, color: '#b8ef0b', textDecoration: 'none', fontWeight: 600 }}>Voir tout →</a>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           {stats.recentEvents.map((ev, i) => {
@@ -166,7 +166,7 @@ export default function AdminDashboard() {
             return (
               <div
                 key={ev.id}
-                onClick={() => router.push(`/admin/devis/${ev.id}`)}
+                onClick={() => router.push(`/admin/evenements/${ev.id}`)}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 16, padding: '13px 0', cursor: 'pointer',
                   borderBottom: i < stats.recentEvents.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',

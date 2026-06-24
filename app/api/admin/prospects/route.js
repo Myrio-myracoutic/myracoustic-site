@@ -9,7 +9,7 @@ export async function GET() {
 
   const { data, error } = await supabaseAdmin
     .from('devis_particulier_progress')
-    .select('email, step, data, updated_at')
+    .select('email, step, data, updated_at, last_relance_at, relance_clicked_at')
     .order('updated_at', { ascending: false });
 
   if (error) return Response.json({ error: error.message }, { status: 500 });

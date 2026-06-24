@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Trash2, Mail } from 'lucide-react';
+import { Trash2, Mail, MousePointerClick, Send } from 'lucide-react';
 
 const STEP_LABELS = ['Calendrier', 'Identité', 'Événement', 'Prestations', 'Facturation', 'Récapitulatif'];
 const TOTAL_STEPS = 5;
@@ -9,6 +9,11 @@ const TOTAL_STEPS = 5;
 function fmtDate(d) {
   if (!d) return '—';
   return new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function fmtDateTime(iso) {
+  if (!iso) return null;
+  return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
 function timeAgo(iso) {
@@ -21,9 +26,11 @@ function timeAgo(iso) {
 }
 
 export default function ProspectsPage() {
-  const router = useRouter();
+  const router    = useRouter();
   const [prospects, setProspects] = useState([]);
   const [loading,   setLoading]   = useState(true);
+  const [sending,   setSending]   = useState(null);
+  const [sent,      setSent]      = useState({});
 
   const load = () => {
     fetch('/api/admin/prospects')
@@ -41,6 +48,21 @@ export default function ProspectsPage() {
       body: JSON.stringify({ email }),
     });
     load();
+  };
+
+  const handleRelance = async (email) => {
+    setSending(email);
+    const res = await fetch('/api/admin/prospects/relance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    setSending(null);
+    if (res.ok) {
+      setSent(s => ({ ...s, [email]: true }));
+      setTimeout(() => setSent(s => ({ ...s, [email]: false })), 3000);
+      load();
+    }
   };
 
   if (loading) return (
@@ -70,15 +92,19 @@ export default function ProspectsPage() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {prospects.map(p => {
-            const d   = p.data || {};
-            const pct = Math.round((p.step / TOTAL_STEPS) * 100);
+            const d        = p.data || {};
+            const pct      = Math.round((p.step / TOTAL_STEPS) * 100);
             const stepLabel = STEP_LABELS[p.step] || `Étape ${p.step}`;
+            const isSending = sending === p.email;
+            const wasSent   = sent[p.email];
+
             return (
               <div key={p.email} style={{
                 background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.07)',
                 borderRadius: 12, padding: '18px 22px',
               }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
+
                   {/* Identité */}
                   <div style={{ flex: 1, minWidth: 180 }}>
                     <div style={{ fontSize: 15, fontWeight: 600, color: 'rgba(255,255,255,0.85)', marginBottom: 2 }}>
@@ -92,6 +118,22 @@ export default function ProspectsPage() {
                     </div>
                     <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', marginTop: 4 }}>
                       Dernière activité {timeAgo(p.updated_at)}
+                    </div>
+
+                    {/* Tracking relance */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginTop: 8 }}>
+                      {p.last_relance_at && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>
+                          <Send size={10} color="rgba(255,255,255,0.25)" />
+                          Relancé le {fmtDateTime(p.last_relance_at)}
+                        </div>
+                      )}
+                      {p.relance_clicked_at && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: '#22c55e' }}>
+                          <MousePointerClick size={10} color="#22c55e" />
+                          A cliqué le {fmtDateTime(p.relance_clicked_at)}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -118,28 +160,37 @@ export default function ProspectsPage() {
                   </div>
 
                   {/* Actions */}
-                  <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                    <a href={`mailto:${p.email}?subject=Votre devis Myracoustic&body=Bonjour ${d.prenom || ''},`}
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px',
-                        background: 'rgba(184,239,11,0.08)', border: '1px solid rgba(184,239,11,0.2)',
-                        borderRadius: 7, color: '#b8ef0b', fontSize: 12, fontWeight: 600,
-                        textDecoration: 'none', fontFamily: 'var(--font-display), sans-serif',
-                      }}
-                    >
-                      <Mail size={13} /> Relancer
-                    </a>
-                    <button
-                      onClick={() => handleDelete(p.email)}
-                      style={{
-                        display: 'flex', alignItems: 'center', padding: '7px 10px',
-                        background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.15)',
-                        borderRadius: 7, color: '#ef4444', cursor: 'pointer',
-                      }}
-                    >
-                      <Trash2 size={13} />
-                    </button>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0, alignItems: 'flex-end' }}>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button
+                        onClick={() => handleRelance(p.email)}
+                        disabled={isSending}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px',
+                          background: wasSent ? 'rgba(34,197,94,0.1)' : 'rgba(184,239,11,0.08)',
+                          border: `1px solid ${wasSent ? 'rgba(34,197,94,0.3)' : 'rgba(184,239,11,0.2)'}`,
+                          borderRadius: 7,
+                          color: wasSent ? '#22c55e' : '#b8ef0b',
+                          fontSize: 12, fontWeight: 600, cursor: isSending ? 'not-allowed' : 'pointer',
+                          fontFamily: 'var(--font-display), sans-serif', opacity: isSending ? 0.6 : 1,
+                        }}
+                      >
+                        <Mail size={13} />
+                        {isSending ? 'Envoi…' : wasSent ? '✓ Envoyé' : 'Relancer'}
+                      </button>
+                      <button
+                        onClick={() => handleDelete(p.email)}
+                        style={{
+                          display: 'flex', alignItems: 'center', padding: '7px 10px',
+                          background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.15)',
+                          borderRadius: 7, color: '#ef4444', cursor: 'pointer',
+                        }}
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
                   </div>
+
                 </div>
               </div>
             );

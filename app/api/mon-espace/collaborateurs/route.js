@@ -121,41 +121,43 @@ export async function POST(request) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   // Créer/inviter le compte Supabase
+  // NOTE: listUsers({ filter: ... }) ne filtre PAS réellement dans Supabase JS v2.
+  // On essaie toujours createUser d'abord ; si l'email existe déjà, on reçoit une erreur
+  // "User already registered" et on cherche l'utilisateur via listUsers + filtre manuel.
   let inviteLink = `${APP_URL}/mon-espace`;
   try {
-    const { data: existingUser } = await supabaseAdmin.auth.admin
-      .listUsers({ filter: `email.eq.${email.toLowerCase()}` }).catch(() => ({ data: null }));
+    const { data: authData, error: authErr } = await supabaseAdmin.auth.admin.createUser({
+      email: email.toLowerCase(),
+      email_confirm: false,
+      user_metadata: { first_name: firstName, last_name: lastName || '' },
+    });
 
-    const userExists = existingUser?.users?.length > 0;
-
-    if (userExists) {
-      // Envoyer un lien de connexion
+    if (!authErr && authData?.user) {
+      // Nouveau compte créé — lien d'invitation
       const { data: link } = await supabaseAdmin.auth.admin.generateLink({
-        type: 'magiclink',
+        type: 'invite',
         email: email.toLowerCase(),
-        options: { redirectTo: `${APP_URL}/mon-espace` },
+        options: { redirectTo: `${APP_URL}/auth/callback` },
       });
       if (link?.properties?.action_link) inviteLink = link.properties.action_link;
-      // Mettre à jour auth_id
       await supabaseAdmin.from('event_collaborators')
-        .update({ auth_id: existingUser.users[0].id })
+        .update({ auth_id: authData.user.id })
         .eq('id', collab.id);
     } else {
-      // Créer le compte et envoyer invitation
-      const { data: authData, error: authErr } = await supabaseAdmin.auth.admin.createUser({
-        email: email.toLowerCase(),
-        email_confirm: false,
-        user_metadata: { first_name: firstName, last_name: lastName || '' },
-      });
-      if (!authErr) {
+      // Compte existant — chercher l'utilisateur réel par email (filtre manuel)
+      const { data: allUsers } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
+      const existing = (allUsers?.users || []).find(
+        u => u.email?.toLowerCase() === email.toLowerCase()
+      );
+      if (existing) {
         const { data: link } = await supabaseAdmin.auth.admin.generateLink({
-          type: 'invite',
+          type: 'magiclink',
           email: email.toLowerCase(),
-          options: { redirectTo: `${APP_URL}/auth/callback` },
+          options: { redirectTo: `${APP_URL}/mon-espace` },
         });
         if (link?.properties?.action_link) inviteLink = link.properties.action_link;
         await supabaseAdmin.from('event_collaborators')
-          .update({ auth_id: authData.user.id })
+          .update({ auth_id: existing.id })
           .eq('id', collab.id);
       }
     }

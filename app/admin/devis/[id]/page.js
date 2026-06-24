@@ -4,6 +4,7 @@ import { useRouter, useParams } from 'next/navigation';
 import AdminPlaylistSection from './AdminPlaylistSection';
 import AdminGuestSection from './AdminGuestSection';
 import AdminProgrammeSection from './AdminProgrammeSection';
+import AdminCollaborateursSection from './AdminCollaborateursSection';
 import { Eye, Link2, X, FileText, CheckCircle, Loader } from 'lucide-react';
 
 const STATUS_QONTO = {
@@ -474,6 +475,8 @@ export default function AdminDevisDetail() {
       )}
 
       <AdminProgrammeSection eventId={params.id} />
+
+      <AdminCollaborateursSection eventId={params.id} />
 
       <AdminGuestSection eventId={params.id} />
 

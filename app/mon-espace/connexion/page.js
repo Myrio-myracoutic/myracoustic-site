@@ -161,7 +161,7 @@ function ConnexionForm() {
       padding: '40px 24px',
     }}>
       {/* Voile sombre */}
-      <div style={{ position: 'fixed', inset: 0, background: 'rgba(6,14,22,0.72)', zIndex: 0 }} />
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(6,14,22,0.30)', zIndex: 0 }} />
       <a href="/" style={{ marginBottom: 48, position: 'relative', zIndex: 1 }}>
         <Image src="/logo.png" alt="Myracoustic" width={180} height={60} style={{ height: 60, width: 'auto' }} />
       </a>

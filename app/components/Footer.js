@@ -151,6 +151,18 @@ export default function Footer() {
             <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: 13, whiteSpace: 'nowrap' }}>
               © 2026 Myracoustic.
             </p>
+            <Link href="/mon-espace/connexion" style={{
+              color: 'rgba(255,255,255,0.35)', fontSize: 12, fontWeight: 600,
+              textDecoration: 'none', whiteSpace: 'nowrap',
+              fontFamily: "var(--font-display), sans-serif",
+              transition: 'color 0.2s',
+            }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--lime)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.35)'; }}
+            >
+              Espace client
+            </Link>
+            <span style={{ color: 'rgba(255,255,255,0.1)', fontSize: 12 }}>·</span>
             {LEGAL_LINKS.map((l) => (
               <Link key={l.href} href={l.href} style={{
                 color: 'rgba(255,255,255,0.22)', fontSize: 12,

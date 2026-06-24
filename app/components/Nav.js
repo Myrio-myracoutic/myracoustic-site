@@ -65,6 +65,16 @@ export default function Nav() {
               )}
             </Link>
           ))}
+          <a href="/mon-espace/connexion" style={{
+            color: 'rgba(255,255,255,0.38)', fontSize: 13,
+            fontFamily: "var(--font-display), sans-serif", fontWeight: 500,
+            textDecoration: 'none', transition: 'color 0.2s',
+          }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.7)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.38)'; }}
+          >
+            Mon espace
+          </a>
           <a href="/devis/particulier" style={{
             background: 'var(--lime)', color: '#0d1b2a',
             padding: '10px 20px', borderRadius: 6, fontSize: 14,
@@ -117,6 +127,16 @@ export default function Nav() {
           }}>
             Demander un devis
           </a>
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: 16, paddingTop: 14 }}>
+            <a href="/mon-espace/connexion" onClick={() => setOpen(false)} style={{
+              display: 'block', textAlign: 'center',
+              color: 'rgba(255,255,255,0.35)', fontSize: 13,
+              fontFamily: "var(--font-display), sans-serif", fontWeight: 500,
+              textDecoration: 'none',
+            }}>
+              Mon espace client →
+            </a>
+          </div>
         </div>
       )}
     </nav>

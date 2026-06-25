@@ -57,6 +57,7 @@ export async function POST(req, { params }) {
         let tidalId = t.tidal_id;
         if (!tidalId) {
           try { tidalId = await resolveTrackId(`${t.artist} ${t.title}`.trim()); } catch { tidalId = null; }
+          await new Promise(r => setTimeout(r, 150));
         }
         if (tidalId) {
           desired.push(String(tidalId));

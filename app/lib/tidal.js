@@ -68,10 +68,15 @@ function authHeaders(write = false) {
 export async function resolveTrackId(query) {
   const headers = await authHeaders();
   const url = `${V2}/searchResults/${encodeURIComponent(query)}/relationships/tracks?countryCode=${COUNTRY}`;
-  const res = await fetch(url, { headers, signal: AbortSignal.timeout(15000) });
-  if (!res.ok) throw new Error(`Tidal search error: ${res.status}`);
-  const data = await res.json();
-  return data.data?.[0]?.id || null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt > 0) await new Promise(r => setTimeout(r, attempt * 1500));
+    const res = await fetch(url, { headers, signal: AbortSignal.timeout(15000) });
+    if (res.status === 429) continue;
+    if (!res.ok) throw new Error(`Tidal search error: ${res.status}`);
+    const data = await res.json();
+    return data.data?.[0]?.id || null;
+  }
+  return null;
 }
 
 // ─── Playlists ─────────────────────────────────────────────────────────────
@@ -125,12 +130,21 @@ export async function addTracksToTidalPlaylist(playlistId, trackIds) {
   if (!trackIds.length) return;
   const headers = await authHeaders(true);
   for (let i = 0; i < trackIds.length; i += 20) {
+    if (i > 0) await new Promise(r => setTimeout(r, 600));
     const chunk = trackIds.slice(i, i + 20);
     const body = JSON.stringify({ data: chunk.map(id => ({ id: String(id), type: 'tracks' })) });
-    const res = await fetch(`${V2}/playlists/${playlistId}/relationships/items?countryCode=${COUNTRY}`, {
-      method: 'POST', headers, body, signal: AbortSignal.timeout(20000),
-    });
-    if (!res.ok) throw new Error(`Tidal addTracks error: ${res.status} ${await res.text()}`);
+    let lastErr;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      if (attempt > 0) await new Promise(r => setTimeout(r, attempt * 2000));
+      const res = await fetch(`${V2}/playlists/${playlistId}/relationships/items?countryCode=${COUNTRY}`, {
+        method: 'POST', headers, body, signal: AbortSignal.timeout(20000),
+      });
+      if (res.status === 429) { lastErr = new Error(`Tidal addTracks error: 429`); continue; }
+      if (!res.ok) throw new Error(`Tidal addTracks error: ${res.status} ${await res.text()}`);
+      lastErr = null;
+      break;
+    }
+    if (lastErr) throw lastErr;
   }
 }
 
@@ -142,14 +156,23 @@ export async function removeTracksFromTidalPlaylist(playlistId, items) {
   if (!items.length) return;
   const headers = await authHeaders(true);
   for (let i = 0; i < items.length; i += 20) {
+    if (i > 0) await new Promise(r => setTimeout(r, 600));
     const chunk = items.slice(i, i + 20);
     const body = JSON.stringify({
       data: chunk.map(it => ({ id: String(it.tidalId), type: 'tracks', meta: { itemId: it.itemId } })),
     });
-    const res = await fetch(`${V2}/playlists/${playlistId}/relationships/items?countryCode=${COUNTRY}`, {
-      method: 'DELETE', headers, body, signal: AbortSignal.timeout(20000),
-    });
-    if (!res.ok) throw new Error(`Tidal removeTracks error: ${res.status} ${await res.text()}`);
+    let lastErr;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      if (attempt > 0) await new Promise(r => setTimeout(r, attempt * 2000));
+      const res = await fetch(`${V2}/playlists/${playlistId}/relationships/items?countryCode=${COUNTRY}`, {
+        method: 'DELETE', headers, body, signal: AbortSignal.timeout(20000),
+      });
+      if (res.status === 429) { lastErr = new Error(`Tidal removeTracks error: 429`); continue; }
+      if (!res.ok) throw new Error(`Tidal removeTracks error: ${res.status} ${await res.text()}`);
+      lastErr = null;
+      break;
+    }
+    if (lastErr) throw lastErr;
   }
 }
 

@@ -29,24 +29,27 @@ export async function GET(request) {
   const client = cData.clients?.find(c => c.email?.toLowerCase() === email.toLowerCase());
   if (!client) return NextResponse.json({ quotes: [], clientFound: false });
 
-  // Récupérer devis + factures en parallèle
+  // Récupérer devis + factures en parallèle (factures filtrées par client_id)
   const [qRes, invRes] = await Promise.all([
     fetch(`${QONTO_BASE}/quotes?per_page=100`, { headers: qHeaders() }),
-    fetch(`${QONTO_BASE}/client_invoices?per_page=100`, { headers: qHeaders() }),
+    fetch(`${QONTO_BASE}/client_invoices?client_id=${client.id}&per_page=100`, { headers: qHeaders() }),
   ]);
 
   const qData   = qRes.ok   ? await qRes.json()   : { quotes: [] };
   const invData = invRes.ok ? await invRes.json() : { client_invoices: [] };
 
-  // Construire un index des factures par numéro de devis référencé dans le titre
-  // ex: "Acompte du devis DEV-2026-048" → DEV-2026-048
+  const allInvoices = invData.client_invoices || [];
+
+  // Construire un index des factures liées à un devis
   const invoicesByDevis = {};
-  for (const inv of (invData.client_invoices || [])) {
+  const linkedInvoiceIds = new Set();
+
+  for (const inv of allInvoices) {
     // Lien direct via quote_id
-    const directQuoteId = inv.quote_id;
-    if (directQuoteId) {
-      if (!invoicesByDevis[directQuoteId]) invoicesByDevis[directQuoteId] = [];
-      invoicesByDevis[directQuoteId].push(inv);
+    if (inv.quote_id) {
+      if (!invoicesByDevis[inv.quote_id]) invoicesByDevis[inv.quote_id] = [];
+      invoicesByDevis[inv.quote_id].push(inv);
+      linkedInvoiceIds.add(inv.id);
       continue;
     }
     // Lien indirect via le titre des lignes (ex: "Acompte du devis DEV-2026-048")
@@ -56,10 +59,14 @@ export async function GET(request) {
         const devNum = m[0];
         if (!invoicesByDevis[devNum]) invoicesByDevis[devNum] = [];
         invoicesByDevis[devNum].push(inv);
+        linkedInvoiceIds.add(inv.id);
         break;
       }
     }
   }
+
+  // Factures autonomes (sans devis associé)
+  const standaloneInvoices = allInvoices.filter(i => !linkedInvoiceIds.has(i.id));
 
   const clientQuotes = (qData.quotes || [])
     .filter(q => q.client_id === client.id || q.client?.id === client.id)
@@ -107,6 +114,15 @@ export async function GET(request) {
 
   return NextResponse.json({
     quotes,
+    standaloneInvoices: standaloneInvoices.map(i => ({
+      number:      i.number,
+      status:      i.status,
+      type:        i.invoice_type,
+      amount:      parseFloat(i.total_amount?.value || 0),
+      paid_at:     i.paid_at || null,
+      due_date:    i.due_date || null,
+      invoice_url: i.invoice_url || null,
+    })),
     clientFound: true,
     clientType: client.type || 'individual',
     // Entreprise : name = raison sociale, first/last = contact

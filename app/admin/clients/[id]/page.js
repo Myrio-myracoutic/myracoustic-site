@@ -321,9 +321,9 @@ export default function AdminClientDetail() {
           <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: 13, fontStyle: 'italic', margin: 0 }}>
             Aucun dossier Qonto trouvé pour {email}.
           </p>
-        ) : qonto.quotes.length === 0 ? (
+        ) : qonto.quotes.length === 0 && !qonto.standaloneInvoices?.length ? (
           <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: 13, fontStyle: 'italic', margin: 0 }}>
-            Aucun devis Qonto pour ce client.
+            Aucune facturation Qonto pour ce client.
           </p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -401,6 +401,48 @@ export default function AdminClientDetail() {
               </div>
             ))}
           </div>
+
+          {/* Factures autonomes (sans devis associé) */}
+          {qonto.standaloneInvoices?.length > 0 && (
+            <div style={{ marginTop: 20 }}>
+              <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 10px' }}>
+                Factures sans devis associé
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {qonto.standaloneInvoices.map((inv, i) => {
+                  const ist = STATUS_INV[inv.status] || { label: inv.status, color: 'rgba(255,255,255,0.3)' };
+                  const typeLabel = inv.type === 'deposit' ? 'Acompte' : inv.type === 'balance' ? 'Solde' : inv.type === 'credit_note' ? 'Avoir' : 'Facture';
+                  const overdue = inv.status !== 'paid' && inv.due_date && new Date(inv.due_date) < new Date();
+                  return (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 14px', background: overdue ? 'rgba(239,68,68,0.06)' : 'rgba(255,255,255,0.03)', border: `1px solid ${overdue ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.07)'}`, borderRadius: 8, flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', width: 60, flexShrink: 0 }}>{typeLabel}</span>
+                      <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', minWidth: 110 }}>{inv.number}</span>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: overdue ? '#ef4444' : 'rgba(255,255,255,0.85)' }}>{fmtMoney(inv.amount)}</span>
+                      <span style={{ background: `${ist.color}18`, color: ist.color, border: `1px solid ${ist.color}35`, borderRadius: 20, padding: '2px 9px', fontSize: 11, fontWeight: 600 }}>
+                        {ist.label}
+                      </span>
+                      {inv.status !== 'paid' && inv.due_date && (
+                        <span style={{ fontSize: 11, fontWeight: 600, color: overdue ? '#ef4444' : '#f59e0b' }}>
+                          Échéance : {fmtDate(inv.due_date)}{overdue ? ' ⚠' : ''}
+                        </span>
+                      )}
+                      {inv.status === 'paid' && inv.paid_at && (
+                        <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>Payée le {fmtDate(inv.paid_at)}</span>
+                      )}
+                      {inv.invoice_url && (
+                        <a href={inv.invoice_url} target="_blank" rel="noopener noreferrer" style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4, color: 'rgba(255,255,255,0.4)', fontSize: 11, textDecoration: 'none' }}
+                          onMouseEnter={e => e.currentTarget.style.color = '#b8ef0b'}
+                          onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.4)'}
+                        >
+                          <ExternalLink size={11} /> Voir
+                        </a>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         )}
       </SectionCard>
     </div>

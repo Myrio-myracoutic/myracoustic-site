@@ -52,7 +52,7 @@ function StatusDot({ collab }) {
   );
 }
 
-export default function AdminCollaborateursSection({ eventId }) {
+export default function AdminCollaborateursSection({ eventId, compact = false }) {
   const [collabs,    setCollabs]    = useState([]);
   const [loading,    setLoading]    = useState(true);
   const [reinviting, setReinviting] = useState(null);
@@ -88,6 +88,25 @@ export default function AdminCollaborateursSection({ eventId }) {
     setDeleting(null);
     await load();
   };
+
+  if (compact) {
+    if (loading) return <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 12, margin: 0 }}>Chargement…</p>;
+    if (collabs.length === 0) return <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 12, fontStyle: 'italic', margin: 0 }}>Aucun accès partagé.</p>;
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {collabs.map(c => (
+          <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8 }}>
+            <div style={{ flex: 1 }}>
+              <p style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.8)', margin: '0 0 1px' }}>{c.first_name} {c.last_name || ''}</p>
+              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', margin: 0 }}>{c.email}</p>
+            </div>
+            <StatusDot collab={c} />
+          </div>
+        ))}
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
 
   return (
     <div style={{

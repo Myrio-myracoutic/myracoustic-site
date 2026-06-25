@@ -375,15 +375,13 @@ export default function AdminClientsPage() {
             const firstEvent = c.events?.[0];
             return (
               <div key={c.id}
-                style={{ display: 'grid', gridTemplateColumns: '2fr 1.8fr 1fr 2fr', padding: '14px 20px', alignItems: 'center', borderBottom: i < filtered.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none', transition: 'background 0.1s' }}
+                onClick={() => router.push(`/admin/clients/${c.id}`)}
+                style={{ display: 'grid', gridTemplateColumns: '2fr 1.8fr 1fr 2fr', padding: '14px 20px', alignItems: 'center', borderBottom: i < filtered.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none', transition: 'background 0.1s', cursor: 'pointer' }}
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
                 {/* Client */}
-                <div
-                  style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: firstEvent ? 'pointer' : 'default' }}
-                  onClick={() => firstEvent && router.push(`/admin/evenements/${firstEvent.id}`)}
-                >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                   <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(184,239,11,0.12)', color: '#b8ef0b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, flexShrink: 0 }}>
                     {c.first_name?.[0]}{c.last_name?.[0]}
                   </div>

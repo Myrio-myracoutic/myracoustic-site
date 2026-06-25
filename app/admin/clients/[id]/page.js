@@ -326,6 +326,7 @@ export default function AdminClientDetail() {
             Aucune facturation Qonto pour ce client.
           </p>
         ) : (
+          <>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {qonto.quotes.map(q => (
               <div key={q.id} style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 10, overflow: 'hidden' }}>
@@ -403,6 +404,7 @@ export default function AdminClientDetail() {
           </div>
 
           {/* Factures autonomes (sans devis associé) */}
+
           {qonto.standaloneInvoices?.length > 0 && (
             <div style={{ marginTop: 20 }}>
               <p style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 10px' }}>
@@ -443,6 +445,7 @@ export default function AdminClientDetail() {
               </div>
             </div>
           )}
+          </>
         )}
       </SectionCard>
     </div>

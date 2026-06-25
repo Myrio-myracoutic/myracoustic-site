@@ -75,9 +75,12 @@ export async function POST(req, { params }) {
       if (tidalUuid) {
         try {
           current = await getPlaylistItems(tidalUuid);
-        } catch {
-          // playlist disparue côté Tidal → on en recrée une
-          tidalUuid = null;
+        } catch (e) {
+          if (e.message === 'PLAYLIST_NOT_FOUND') {
+            tidalUuid = null; // playlist supprimée côté Tidal → recréer
+          } else {
+            throw e; // 429 ou autre erreur réseau → on propage, pas de recréation
+          }
         }
       }
       if (!tidalUuid) {

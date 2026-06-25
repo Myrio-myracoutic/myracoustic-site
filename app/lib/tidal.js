@@ -112,13 +112,20 @@ export async function getPlaylistItems(playlistId) {
   const items = [];
   let url = `${V2}/playlists/${playlistId}/relationships/items?countryCode=${COUNTRY}`;
   while (url) {
-    const res = await fetch(url, { headers, signal: AbortSignal.timeout(15000) });
+    let res;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      if (attempt > 0) await new Promise(r => setTimeout(r, attempt * 1500));
+      res = await fetch(url, { headers, signal: AbortSignal.timeout(15000) });
+      if (res.status !== 429) break;
+    }
+    if (res.status === 404) throw new Error('PLAYLIST_NOT_FOUND');
     if (!res.ok) throw new Error(`Tidal getItems error: ${res.status}`);
     const data = await res.json();
     for (const d of (data.data || [])) {
       items.push({ tidalId: d.id, itemId: d.meta?.itemId });
     }
     url = data.links?.next ? `https://openapi.tidal.com/v2${data.links.next}` : null;
+    if (url) await new Promise(r => setTimeout(r, 300));
   }
   return items;
 }

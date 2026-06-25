@@ -92,11 +92,13 @@ export async function GET(request) {
       pendingAmount,
       remaining,
       invoices: linked.map(i => ({
-        number: i.number,
-        status: i.status,
-        type: i.invoice_type,
-        amount: parseFloat(i.total_amount?.value || 0),
-        paid_at: i.paid_at || null,
+        number:      i.number,
+        status:      i.status,
+        type:        i.invoice_type,
+        amount:      parseFloat(i.total_amount?.value || 0),
+        paid_at:     i.paid_at || null,
+        due_date:    i.due_date || null,
+        invoice_url: i.invoice_url || null,
       })),
     };
   });

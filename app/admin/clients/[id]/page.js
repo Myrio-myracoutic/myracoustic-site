@@ -365,14 +365,34 @@ export default function AdminClientDetail() {
                       const ist = STATUS_INV[inv.status] || { label: inv.status, color: 'rgba(255,255,255,0.3)' };
                       const typeLabel = inv.type === 'deposit' ? 'Acompte' : inv.type === 'final' ? 'Solde' : inv.type === 'credit_note' ? 'Avoir' : 'Facture';
                       return (
-                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0', borderBottom: i < q.invoices.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none' }}>
-                          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', width: 70, flexShrink: 0 }}>{typeLabel}</span>
-                          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', flex: 1 }}>{inv.number}</span>
-                          <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>{fmtMoney(inv.amount)}</span>
-                          <span style={{ background: `${ist.color}18`, color: ist.color, border: `1px solid ${ist.color}35`, borderRadius: 20, padding: '2px 8px', fontSize: 10, fontWeight: 600 }}>
+                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: i < q.invoices.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none', flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', width: 60, flexShrink: 0 }}>{typeLabel}</span>
+                          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', minWidth: 110 }}>{inv.number}</span>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.85)' }}>{fmtMoney(inv.amount)}</span>
+                          <span style={{ background: `${ist.color}18`, color: ist.color, border: `1px solid ${ist.color}35`, borderRadius: 20, padding: '2px 9px', fontSize: 11, fontWeight: 600 }}>
                             {ist.label}
                           </span>
-                          {inv.paid_at && <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)' }}>{fmtDate(inv.paid_at)}</span>}
+                          {/* Échéance — uniquement si non payée */}
+                          {inv.status !== 'paid' && inv.due_date && (
+                            <span style={{
+                              fontSize: 11, fontWeight: 600,
+                              color: new Date(inv.due_date) < new Date() ? '#ef4444' : '#f59e0b',
+                            }}>
+                              Échéance : {fmtDate(inv.due_date)}
+                              {new Date(inv.due_date) < new Date() ? ' ⚠' : ''}
+                            </span>
+                          )}
+                          {inv.status === 'paid' && inv.paid_at && (
+                            <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>Payée le {fmtDate(inv.paid_at)}</span>
+                          )}
+                          {inv.invoice_url && (
+                            <a href={inv.invoice_url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4, color: 'rgba(255,255,255,0.4)', fontSize: 11, textDecoration: 'none' }}
+                              onMouseEnter={e => e.currentTarget.style.color = '#b8ef0b'}
+                              onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.4)'}
+                            >
+                              <ExternalLink size={11} /> Voir
+                            </a>
+                          )}
                         </div>
                       );
                     })}

@@ -123,16 +123,9 @@ export async function GET(request) {
 
   return NextResponse.json({
     quotes,
-    // Factures sans aucun devis associé (calculé après toutes les liaisons)
-    standaloneInvoices: allInvoices.filter(i => !linkedInvoiceIds.has(i.id)).map(i => ({
-      number:      i.number,
-      status:      i.status,
-      type:        i.invoice_type,
-      amount:      parseFloat(i.total_amount?.value || 0),
-      paid_at:     i.paid_at || null,
-      due_date:    i.due_date || null,
-      invoice_url: i.invoice_url || null,
-    })),
+    // standaloneInvoices supprimé : le filtre client_id de Qonto est ignoré,
+    // ce qui retournerait des factures d'autres clients.
+    standaloneInvoices: [],
     clientFound: true,
     clientType: client.type || 'individual',
     // Entreprise : name = raison sociale, first/last = contact

@@ -20,7 +20,9 @@ const STATUS_INV = {
 
 function fmtDate(d) {
   if (!d) return '—';
-  return new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+  // Si c'est déjà un timestamp ISO complet, on ne rajoute pas T12:00:00
+  const date = d.includes('T') ? new Date(d) : new Date(d + 'T12:00:00');
+  return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 function fmtDateTime(d) {

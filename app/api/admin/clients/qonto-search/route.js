@@ -65,9 +65,6 @@ export async function GET(request) {
     }
   }
 
-  // Factures autonomes (sans devis associé)
-  const standaloneInvoices = allInvoices.filter(i => !linkedInvoiceIds.has(i.id));
-
   const clientQuotes = (qData.quotes || [])
     .filter(q => q.client_id === client.id || q.client?.id === client.id)
     .filter(q => q.status !== 'canceled');
@@ -84,6 +81,18 @@ export async function GET(request) {
     const paidAmount    = paidInvoices.reduce((s, i) => s + parseFloat(i.total_amount?.value || 0), 0);
     const pendingAmount = pendingInvoices.reduce((s, i) => s + parseFloat(i.total_amount?.value || 0), 0);
     const remaining     = Math.max(0, total - paidAmount);
+
+    // Lier les soldes orphelins via deposit_amount :
+    // une facture de solde dont deposit_amount ≈ paidAmount de ce devis est son solde
+    const orphanSoldes = allInvoices.filter(i => {
+      if (linkedInvoiceIds.has(i.id)) return false;
+      const dep = parseFloat(i.deposit_amount?.value || 0);
+      return dep > 0 && Math.abs(dep - paidAmount) < 0.02;
+    });
+    for (const s of orphanSoldes) {
+      linked.push(s);
+      linkedInvoiceIds.add(s.id);
+    }
 
     return {
       id: q.id,
@@ -114,7 +123,8 @@ export async function GET(request) {
 
   return NextResponse.json({
     quotes,
-    standaloneInvoices: standaloneInvoices.map(i => ({
+    // Factures sans aucun devis associé (calculé après toutes les liaisons)
+    standaloneInvoices: allInvoices.filter(i => !linkedInvoiceIds.has(i.id)).map(i => ({
       number:      i.number,
       status:      i.status,
       type:        i.invoice_type,

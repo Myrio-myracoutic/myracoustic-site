@@ -219,6 +219,9 @@ export async function PATCH(req, { params }) {
   if (body.event_date       !== undefined) updates.event_date       = body.event_date;
   if (body.qonto_quote_id   !== undefined) updates.qonto_quote_id   = body.qonto_quote_id;
   if (body.qonto_quote_url  !== undefined) updates.qonto_quote_url  = body.qonto_quote_url;
+  if (body.venue            !== undefined) updates.venue            = body.venue;
+  if (body.venue_cp         !== undefined) updates.venue_cp         = body.venue_cp;
+  if (body.venue_city       !== undefined) updates.venue_city       = body.venue_city;
 
   const { data, error } = await supabaseAdmin
     .from('events')

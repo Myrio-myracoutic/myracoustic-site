@@ -206,8 +206,11 @@ export default function AdminDevisDetail() {
   const [status, setStatus] = useState('');
   const [notes, setNotes] = useState('');
   const [clientMessage, setClientMessage] = useState('');
-  const [eventType, setEventType] = useState('');
-  const [eventDate, setEventDate] = useState('');
+  const [eventType,  setEventType]  = useState('');
+  const [eventDate,  setEventDate]  = useState('');
+  const [venueCity,  setVenueCity]  = useState('');
+  const [venueCP,    setVenueCP]    = useState('');
+  const [venue,      setVenue]      = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [previewing, setPreviewing] = useState(false);
@@ -223,6 +226,9 @@ export default function AdminDevisDetail() {
         setClientMessage(data.client_message || '');
         setEventType(data.event_type || '');
         setEventDate(data.event_date || '');
+        setVenue(data.venue || '');
+        setVenueCP(data.venue_cp || '');
+        setVenueCity(data.venue_city || '');
         setLoading(false);
       }
     });
@@ -244,7 +250,7 @@ export default function AdminDevisDetail() {
     const res = await fetch(`/api/admin/events/${params.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status, admin_notes: notes, client_message: clientMessage, event_type: eventType || null, event_date: eventDate || null }),
+      body: JSON.stringify({ status, admin_notes: notes, client_message: clientMessage, event_type: eventType || null, event_date: eventDate || null, venue: venue || null, venue_cp: venueCP || null, venue_city: venueCity || null }),
     });
     if (res.ok) { setEv(await res.json()); setSaved(true); setTimeout(() => setSaved(false), 3000); }
     setSaving(false);
@@ -369,7 +375,40 @@ export default function AdminDevisDetail() {
                 }}
               />
             </div>
-            <InfoRow label="Lieu" value={[ev.venue, ev.venue_cp, ev.venue_city].filter(Boolean).join(', ')} />
+            {/* Lieu — éditable */}
+            <div>
+              <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', display: 'block', marginBottom: 5 }}>LIEU</label>
+              <input
+                value={venue} onChange={e => setVenue(e.target.value)}
+                placeholder="Nom du lieu ou adresse"
+                style={{
+                  width: '100%', boxSizing: 'border-box',
+                  background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: 7, padding: '8px 12px', color: '#fff', fontSize: 13,
+                  fontFamily: 'inherit', outline: 'none', marginBottom: 6,
+                }}
+              />
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input
+                  value={venueCP} onChange={e => setVenueCP(e.target.value)}
+                  placeholder="Code postal"
+                  style={{
+                    width: 110, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: 7, padding: '8px 12px', color: '#fff', fontSize: 13,
+                    fontFamily: 'inherit', outline: 'none',
+                  }}
+                />
+                <input
+                  value={venueCity} onChange={e => setVenueCity(e.target.value)}
+                  placeholder="Ville"
+                  style={{
+                    flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                    borderRadius: 7, padding: '8px 12px', color: '#fff', fontSize: 13,
+                    fontFamily: 'inherit', outline: 'none',
+                  }}
+                />
+              </div>
+            </div>
             <InfoRow label="Invités" value={ev.guests ? `${ev.guests} personnes` : null} />
             {/* Lier devis Qonto */}
             <div style={{ paddingTop: 6, borderTop: '1px solid rgba(255,255,255,0.06)' }}>

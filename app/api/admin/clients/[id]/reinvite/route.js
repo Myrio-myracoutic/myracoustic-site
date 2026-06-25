@@ -1,5 +1,6 @@
 import { verifyAdminCookie } from '@/app/lib/admin-auth';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
+import { ensureAuthUser, setupTempPassword, sendCredentialsEmail } from '@/app/lib/account-access';
 
 const APP_URL     = process.env.NEXT_PUBLIC_APP_URL || 'https://myracoustic.com';
 const SENDER      = 'contact@myracoustic.com';
@@ -62,21 +63,23 @@ export async function POST(req, { params }) {
     .single();
 
   if (!client) return Response.json({ error: 'Client introuvable' }, { status: 404 });
-  if (!client.auth_id) return Response.json({ error: 'Pas de compte auth pour ce client' }, { status: 400 });
 
-  const { data: linkData, error } = await supabaseAdmin.auth.admin.generateLink({
-    type: 'recovery',
-    email: client.email,
-    options: { redirectTo: `${APP_URL}/auth/callback` },
-  });
+  // Garantir un compte auth (au cas où auth_id manquant) puis envoyer un mot de passe temporaire
+  const { authId } = await ensureAuthUser(client.email, client.first_name, '');
+  if (!authId) return Response.json({ error: 'Impossible de créer le compte' }, { status: 500 });
 
-  if (error || !linkData?.properties?.action_link) {
-    return Response.json({ error: error?.message || 'Impossible de générer le lien' }, { status: 500 });
+  if (authId !== client.auth_id) {
+    await supabaseAdmin.from('clients').update({ auth_id: authId }).eq('id', id);
   }
 
-  await sendInviteEmail(client.email, client.first_name, linkData.properties.action_link);
+  const tempPassword = await setupTempPassword(authId);
+  await sendCredentialsEmail({
+    toEmail: client.email.toLowerCase(),
+    firstName: client.first_name,
+    tempPassword,
+    intro: `Voici vos identifiants pour accéder à votre <strong style="color:#b8ef0b;">espace personnel Myracoustic</strong>.`,
+  });
 
-  // Mettre à jour invitation_sent_at
   await supabaseAdmin
     .from('clients')
     .update({ invitation_sent_at: new Date().toISOString() })

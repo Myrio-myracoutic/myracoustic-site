@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
+import { ensureAuthUser, setupTempPassword, sendCredentialsEmail } from '@/app/lib/account-access';
 
 const SENDER_EMAIL = 'contact@myracoustic.com';
 
@@ -220,14 +221,8 @@ export async function POST(request) {
         const isNew = !existing;
 
         if (isNew) {
-          // Créer l'utilisateur auth (peut échouer si email déjà dans auth.users)
-          const { data: authData, error: authErr } = await supabaseAdmin.auth.admin.createUser({
-            email: client.email,
-            email_confirm: false,
-            user_metadata: { first_name: client.firstName, last_name: client.lastName },
-          });
-
-          const authId = authErr ? null : authData.user.id;
+          // Compte auth (onboarding par mot de passe)
+          const { authId } = await ensureAuthUser(client.email, client.firstName, client.lastName);
 
           // Insérer le client en base
           const { data: newClient, error: dbErr } = await supabaseAdmin
@@ -245,16 +240,15 @@ export async function POST(request) {
           if (dbErr) throw dbErr;
           supabaseClientId = newClient.id;
 
-          // Envoyer l'invitation uniquement si l'auth user vient d'être créé
-          if (!authErr && authId) {
-            const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
-              type: 'invite',
-              email: client.email,
-              options: { redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'https://myracoustic.com'}/auth/callback` },
+          // Envoyer les identifiants temporaires
+          if (authId) {
+            const tempPassword = await setupTempPassword(authId);
+            await sendCredentialsEmail({
+              toEmail: client.email.toLowerCase(),
+              firstName: client.firstName,
+              tempPassword,
+              intro: `Nous avons créé votre <strong style="color:#b8ef0b;">espace personnel Myracoustic</strong> pour suivre et gérer votre événement. Voici vos identifiants de connexion.`,
             });
-            if (linkData?.properties?.action_link) {
-              await sendInviteEmail(client.email, client.firstName, linkData.properties.action_link);
-            }
           }
         }
 

@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { UserCircle, CreditCard, Users, Plus, Trash2, CheckCircle, Clock, RefreshCw, Receipt } from 'lucide-react';
+import { UserCircle, CreditCard, Users, Plus, Trash2, CheckCircle, Clock, RefreshCw, Receipt, Lock } from 'lucide-react';
+import { supabase } from '@/app/lib/supabase';
 
 const TABS = [
   { id: 'compte',    label: 'Mon compte',      icon: UserCircle },
@@ -75,6 +76,60 @@ function TabCompte({ token, eventId }) {
           fontSize: 14, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1,
         }}>{saving ? 'Enregistrement…' : 'Enregistrer'}</button>
         {saved && <span style={{ color: '#22c55e', fontSize: 13, fontWeight: 600 }}>✓ Mis à jour</span>}
+      </div>
+
+      <PasswordBlock />
+    </div>
+  );
+}
+
+/* ── Bloc changement de mot de passe ───────────────────────────── */
+function PasswordBlock() {
+  const [password, setPassword] = useState('');
+  const [confirm,  setConfirm]  = useState('');
+  const [saving,   setSaving]   = useState(false);
+  const [done,     setDone]     = useState(false);
+  const [error,    setError]    = useState('');
+
+  const save = async () => {
+    setError('');
+    if (password.length < 8) { setError('Au moins 8 caractères.'); return; }
+    if (password !== confirm) { setError('Les mots de passe ne correspondent pas.'); return; }
+    setSaving(true);
+    const { error: err } = await supabase.auth.updateUser({ password, data: { must_set_password: false } });
+    setSaving(false);
+    if (err) { setError('Erreur lors de la mise à jour.'); return; }
+    setDone(true); setPassword(''); setConfirm('');
+    setTimeout(() => setDone(false), 3000);
+  };
+
+  return (
+    <div style={{ marginTop: 32, paddingTop: 24, borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+        <Lock size={15} color="rgba(255,255,255,0.4)" />
+        <h3 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.7)', margin: 0 }}>
+          Mot de passe
+        </h3>
+      </div>
+      <div className="pm-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+        <div>
+          <label style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 6 }}>NOUVEAU MOT DE PASSE</label>
+          <input style={inputStyle} type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" autoComplete="new-password" />
+        </div>
+        <div>
+          <label style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 6 }}>CONFIRMER</label>
+          <input style={inputStyle} type="password" value={confirm} onChange={e => setConfirm(e.target.value)} placeholder="••••••••" autoComplete="new-password" />
+        </div>
+      </div>
+      {error && <p style={{ color: '#f87171', fontSize: 13, margin: '0 0 12px' }}>{error}</p>}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <button onClick={save} disabled={saving || !password} style={{
+          background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.85)',
+          border: '1px solid rgba(255,255,255,0.15)', borderRadius: 9,
+          padding: '10px 24px', fontFamily: 'var(--font-display), sans-serif', fontWeight: 700,
+          fontSize: 14, cursor: (saving || !password) ? 'not-allowed' : 'pointer', opacity: (saving || !password) ? 0.5 : 1,
+        }}>{saving ? 'Enregistrement…' : 'Changer le mot de passe'}</button>
+        {done && <span style={{ color: '#22c55e', fontSize: 13, fontWeight: 600 }}>✓ Mot de passe modifié</span>}
       </div>
     </div>
   );

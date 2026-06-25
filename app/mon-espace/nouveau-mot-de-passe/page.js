@@ -36,7 +36,11 @@ export default function NouveauMotDePassePage() {
     if (password.length < 8) { setError('Le mot de passe doit contenir au moins 8 caractères.'); return; }
     setError('');
     setLoading(true);
-    const { error: err } = await supabase.auth.updateUser({ password });
+    // Définit le mot de passe ET retire le flag must_set_password
+    const { error: err } = await supabase.auth.updateUser({
+      password,
+      data: { must_set_password: false },
+    });
     setLoading(false);
     if (err) { setError('Erreur lors de la mise à jour. Réessayez ou demandez un nouveau lien.'); return; }
     setDone(true);

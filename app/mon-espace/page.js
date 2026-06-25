@@ -259,6 +259,13 @@ export default function MonEspacePage() {
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) { router.replace('/mon-espace/connexion'); return; }
+
+      // Première connexion avec mot de passe temporaire → choisir son mot de passe
+      if (session.user.user_metadata?.must_set_password) {
+        router.replace('/mon-espace/nouveau-mot-de-passe');
+        return;
+      }
+
       setUser(session.user);
       setToken(session.access_token);
 

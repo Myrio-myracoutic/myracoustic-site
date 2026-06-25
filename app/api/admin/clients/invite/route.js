@@ -1,5 +1,6 @@
 import { verifyAdminCookie } from '@/app/lib/admin-auth';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
+import { ensureAuthUser, setupTempPassword, sendCredentialsEmail } from '@/app/lib/account-access';
 import { NextResponse } from 'next/server';
 
 const QONTO_BASE = 'https://thirdparty.qonto.com/v2';
@@ -81,14 +82,8 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Un compte existe déjà pour cet email' }, { status: 409 });
   }
 
-  // Créer l'utilisateur auth Supabase
-  const { data: authData, error: authErr } = await supabaseAdmin.auth.admin.createUser({
-    email: email.toLowerCase(),
-    email_confirm: false,
-    user_metadata: { first_name: firstName, last_name: lastName },
-  });
-
-  const authId = authErr ? null : authData.user.id;
+  // Créer le compte auth Supabase (onboarding par mot de passe)
+  const { authId } = await ensureAuthUser(email, firstName, lastName);
 
   // Créer le client en base
   const { data: newClient, error: dbErr } = await supabaseAdmin
@@ -128,20 +123,19 @@ export async function POST(request) {
     }
   }
 
-  // Envoyer l'invitation
+  // Envoyer les identifiants (mot de passe temporaire)
   if (authId) {
-    const { data: linkData } = await supabaseAdmin.auth.admin.generateLink({
-      type: 'invite',
-      email: email.toLowerCase(),
-      options: { redirectTo: `${APP_URL}/auth/callback` },
+    const tempPassword = await setupTempPassword(authId);
+    await sendCredentialsEmail({
+      toEmail: email.toLowerCase(),
+      firstName,
+      tempPassword,
+      intro: `Nous avons créé votre <strong style="color:#b8ef0b;">espace personnel Myracoustic</strong> pour suivre et gérer votre événement. Voici vos identifiants de connexion.`,
     });
-    if (linkData?.properties?.action_link) {
-      await sendInviteEmail(email.toLowerCase(), firstName, linkData.properties.action_link);
-      await supabaseAdmin
-        .from('clients')
-        .update({ invitation_sent_at: new Date().toISOString() })
-        .eq('id', newClient.id);
-    }
+    await supabaseAdmin
+      .from('clients')
+      .update({ invitation_sent_at: new Date().toISOString() })
+      .eq('id', newClient.id);
   }
 
   return NextResponse.json({ ok: true, clientId: newClient.id });

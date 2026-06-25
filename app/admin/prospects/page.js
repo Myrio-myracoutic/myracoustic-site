@@ -1,10 +1,87 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Trash2, Mail, MousePointerClick, Send } from 'lucide-react';
+import { Trash2, Mail, MousePointerClick, Send, FileText, ChevronDown } from 'lucide-react';
 
 const STEP_LABELS = ['Calendrier', 'Identité', 'Événement', 'Prestations', 'Facturation', 'Récapitulatif'];
 const TOTAL_STEPS = 5;
+
+const MATERIAL_LABEL = { true: 'Myracoustic fournit le matériel', false: 'Matériel déjà sur place' };
+const VIDEO_LABEL = {
+  none: 'Aucune', projecteur: 'Projecteur / écran', led: 'Écran LED',
+  ecran: 'Écran', mapping: 'Mapping vidéo',
+};
+const ECLAIR_LABEL = {
+  archi: 'Mise en lumière de la salle',
+  fumee: 'Machine à fumée',
+  etincelles: 'Étincelles froides',
+};
+
+/* ── Panneau détail du devis en cours ──────────────────────────── */
+function DetailRow({ label, value }) {
+  if (value === null || value === undefined || value === '') return null;
+  return (
+    <div style={{ display: 'flex', gap: 12, padding: '6px 0', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+      <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', width: 150, flexShrink: 0 }}>{label}</span>
+      <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>{value}</span>
+    </div>
+  );
+}
+
+function DetailGroup({ title, children }) {
+  const items = Array.isArray(children) ? children.filter(Boolean) : children;
+  if (!items || (Array.isArray(items) && items.length === 0)) return null;
+  return (
+    <div style={{ marginBottom: 18 }}>
+      <p style={{ fontSize: 10, fontWeight: 700, color: '#b8ef0b', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 4px' }}>{title}</p>
+      {children}
+    </div>
+  );
+}
+
+function ProspectDetail({ d }) {
+  const eclairs = Object.entries(d.eclairOpts || {}).filter(([, v]) => v).map(([k]) => ECLAIR_LABEL[k] || k);
+  const fmtFullDate = (x) => x ? new Date(x + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : '';
+  const lieuComplet = [d.adresse, d.cp, d.ville].filter(Boolean).join(', ');
+
+  return (
+    <div style={{
+      marginTop: 16, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.07)',
+      display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 24,
+    }}>
+      <div>
+        <DetailGroup title="Identité">
+          <DetailRow label="Prénom / Nom" value={`${d.prenom || ''} ${d.nom || ''}`.trim()} />
+          <DetailRow label="Téléphone" value={d.tel} />
+        </DetailGroup>
+
+        <DetailGroup title="Événement">
+          <DetailRow label="Type" value={d.eventType} />
+          <DetailRow label="Date" value={fmtFullDate(d.date)} />
+          <DetailRow label="Lieu" value={d.lieu} />
+          <DetailRow label="Distance" value={d.km ? `${d.km} km` : null} />
+          <DetailRow label="Nb de personnes" value={d.nbPersons} />
+        </DetailGroup>
+      </div>
+
+      <div>
+        <DetailGroup title="Prestations">
+          <DetailRow label="Animation DJ" value={d.djDuration ? `${d.djDuration} h` : null} />
+          <DetailRow label="Matériel" value={d.needsMaterial === null || d.needsMaterial === undefined ? null : MATERIAL_LABEL[d.needsMaterial]} />
+          <DetailRow label="Éclairage" value={eclairs.length ? eclairs.join(', ') : null} />
+          <DetailRow label="Vidéo" value={d.videoChoice ? (VIDEO_LABEL[d.videoChoice] || d.videoChoice) : null} />
+          <DetailRow label="Karaoké" value={d.karaokeActive ? 'Oui' : null} />
+        </DetailGroup>
+
+        {lieuComplet && (
+          <DetailGroup title="Facturation">
+            <DetailRow label="Adresse" value={lieuComplet} />
+          </DetailGroup>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function fmtDate(d) {
   if (!d) return '—';
@@ -31,6 +108,7 @@ export default function ProspectsPage() {
   const [loading,   setLoading]   = useState(true);
   const [sending,   setSending]   = useState(null);
   const [sent,      setSent]      = useState({});
+  const [expanded,  setExpanded]  = useState(null);
 
   const load = () => {
     fetch('/api/admin/prospects')
@@ -163,6 +241,20 @@ export default function ProspectsPage() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0, alignItems: 'flex-end' }}>
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button
+                        onClick={() => setExpanded(expanded === p.email ? null : p.email)}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px',
+                          background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)',
+                          borderRadius: 7, color: 'rgba(255,255,255,0.6)',
+                          fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                          fontFamily: 'var(--font-display), sans-serif',
+                        }}
+                      >
+                        <FileText size={13} />
+                        Voir le devis
+                        <ChevronDown size={13} style={{ transform: expanded === p.email ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                      </button>
+                      <button
                         onClick={() => handleRelance(p.email)}
                         disabled={isSending}
                         style={{
@@ -192,6 +284,9 @@ export default function ProspectsPage() {
                   </div>
 
                 </div>
+
+                {/* Panneau détail du devis */}
+                {expanded === p.email && <ProspectDetail d={d} />}
               </div>
             );
           })}

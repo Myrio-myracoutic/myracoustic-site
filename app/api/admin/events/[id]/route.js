@@ -224,7 +224,7 @@ export async function PATCH(req, { params }) {
     .from('events')
     .update(updates)
     .eq('id', id)
-    .select()
+    .select('*, clients(*)')
     .single();
 
   if (error) return Response.json({ error: error.message }, { status: 500 });

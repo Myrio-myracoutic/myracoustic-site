@@ -61,20 +61,67 @@ function authHeaders(write = false) {
 
 // ─── Recherche catalogue ───────────────────────────────────────────────────
 
+/** Normalise un titre pour comparaison : minuscules, sans accents, sans (…) [...]. */
+function normalizeTitle(s) {
+  return (s || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')   // accents
+    .replace(/\(.*?\)|\[.*?\]/g, ' ')                    // (Radio Edit), [Live]…
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+/** Vrai si le titre candidat correspond raisonnablement au titre demandé. */
+function titleMatches(reqTitle, candTitle) {
+  const req  = normalizeTitle(reqTitle);
+  const cand = normalizeTitle(candTitle);
+  if (!req || !cand) return false;
+  if (req === cand) return true;
+  const reqWords = req.split(' ').filter(w => w.length > 1);
+  if (!reqWords.length) return false;
+  const candSet = new Set(cand.split(' '));
+  // ≥ 60 % des mots significatifs du titre demandé présents dans le candidat
+  return reqWords.filter(w => candSet.has(w)).length / reqWords.length >= 0.6;
+}
+
 /**
- * Cherche le 1er titre Tidal correspondant à la requête.
- * @returns {string|null} ID de track Tidal, ou null si rien trouvé.
+ * Cherche l'ID Tidal correspondant à un titre.
+ *
+ * Valide que le titre du résultat correspond réellement à la demande : le 1er
+ * résultat de recherche Tidal est parfois une piste sans rapport (ce qui créait
+ * des chansons en double / mauvaises correspondances). On parcourt les résultats
+ * par ordre de pertinence et on retient le premier dont le titre concorde.
+ *
+ * @param {string} artist
+ * @param {string} title
+ * @returns {string|null} ID de track Tidal validé, ou null si aucune concordance.
  */
-export async function resolveTrackId(query) {
+export async function resolveTrackId(artist, title) {
+  const query = `${artist || ''} ${title || ''}`.trim();
+  if (!query) return null;
   const headers = await authHeaders();
-  const url = `${V2}/searchResults/${encodeURIComponent(query)}/relationships/tracks?countryCode=${COUNTRY}`;
+  const url = `${V2}/searchResults/${encodeURIComponent(query)}/relationships/tracks?countryCode=${COUNTRY}&include=tracks`;
   for (let attempt = 0; attempt < 3; attempt++) {
     if (attempt > 0) await new Promise(r => setTimeout(r, attempt * 1500));
     const res = await fetch(url, { headers, signal: AbortSignal.timeout(15000) });
     if (res.status === 429) continue;
     if (!res.ok) throw new Error(`Tidal search error: ${res.status}`);
     const data = await res.json();
-    return data.data?.[0]?.id || null;
+
+    const titleById = {};
+    for (const t of (data.included || [])) titleById[t.id] = t.attributes?.title || '';
+    const ids = (data.data || []).map(x => x.id);
+
+    // Si on a les titres : retenir le 1er résultat dont le titre concorde
+    if (Object.keys(titleById).length) {
+      for (const id of ids) {
+        if (titleMatches(title, titleById[id])) return id;
+      }
+      return null; // aucun titre ne concorde → "non trouvé" (mieux qu'une mauvaise piste)
+    }
+
+    // Mode dégradé (l'API n'a pas renvoyé les titres) : 1er résultat
+    return ids[0] || null;
   }
   return null;
 }

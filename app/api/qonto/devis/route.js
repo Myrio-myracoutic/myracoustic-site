@@ -132,14 +132,18 @@ async function findOrCreateClient({ type, firstName, lastName, societe, email, p
 
 export async function POST(request) {
   try {
-    const { client, event, items, discountPct, remiseDeadline, draft, note } = await request.json();
+    const { client, event, items, draft, note } = await request.json();
 
     const clientId = await findOrCreateClient(client);
 
     const today = new Date();
     const issueDate = today.toISOString().slice(0, 10);
-    const expiryDate = remiseDeadline
-      || new Date(today.getTime() + 30 * 86400000).toISOString().slice(0, 10);
+    const expiryDate = new Date(today.getTime() + 30 * 86400000).toISOString().slice(0, 10);
+
+    /* Cadeau premium offert aux particuliers (remplace l'ancienne remise −15 %) */
+    const giftFooter = client?.type === 'individual'
+      ? 'Offert avec votre prestation : une séance de préparation musicale (1h) avec votre DJ.'
+      : '';
 
     const validItems = items.filter(i => i.priceHT > 0);
     if (validItems.length === 0) {
@@ -167,7 +171,7 @@ export async function POST(request) {
       currency: 'EUR',
       terms_and_conditions: 'Acompte de 60 % à la signature du devis — Solde de 40 % le jour de la prestation.',
       header: headerParts.join(' · '),
-      footer: '',
+      footer: giftFooter,
       items: validItems.map(item => ({
         title: item.title,
         description: item.description || '',
@@ -176,7 +180,6 @@ export async function POST(request) {
         unit_price: { value: Number(item.priceHT).toFixed(2), currency: 'EUR' },
         vat_rate: '0.2',
       })),
-      ...(discountPct > 0 ? { discount: { type: 'percentage', value: String(discountPct) } } : {}),
     };
 
     const qRes = await fetch(`${QONTO_BASE}/quotes`, {

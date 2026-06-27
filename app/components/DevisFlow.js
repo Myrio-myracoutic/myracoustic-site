@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Building2, Calendar, PartyPopper, Volume2, Headphones, Lightbulb, Mic, Video, Wrench, MapPin, Mail, Send, Search, AlertTriangle, Banknote, Car, SlidersHorizontal, Users, CreditCard, User, Heart } from 'lucide-react';
+import { Building2, Calendar, PartyPopper, Volume2, Headphones, Lightbulb, Mic, Video, Wrench, MapPin, Mail, Send, Search, AlertTriangle, Car, SlidersHorizontal, Users, CreditCard, User, Heart, Gift } from 'lucide-react';
 import { AnimatedWave } from './AnimatedWave';
 import { gtagEvent, gtagBeacon } from '../lib/gtag';
 
@@ -72,24 +72,8 @@ function getTransportFee(km) {
   return null; /* sur devis */
 }
 
-/* Formate une date locale en YYYY-MM-DD sans décalage UTC
-   (toISOString() décale d'un jour en France, UTC+1/+2) */
-function toLocalISODate(d) {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
-
-/* Remise anticipation : 15 % si signature avant une échéance calculée depuis la date d'établissement du devis (aujourd'hui) */
-function getRemiseDeadline(dateStr) {
-  if (!dateStr) return null;
-  const diff = Math.round((new Date(dateStr + 'T12:00:00') - TODAY) / 86400000);
-  const delayDays = diff < 90 ? 3 : diff < 180 ? 7 : 14;
-  const deadline = new Date(TODAY);
-  deadline.setDate(deadline.getDate() + delayDays);
-  return deadline;
-}
+/* Cadeau premium offert avec chaque prestation particulier (remplace l'ancienne remise −15 %) */
+const GIFT_LABEL = 'Séance de préparation musicale avec votre DJ (1h)';
 
 /* Calcul de distance réelle (Mapbox) — point de départ : Nort-sur-Erdre */
 const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
@@ -555,28 +539,6 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
   const [blockedDateModal, setBlockedDateModal] = useState(null);  /* date string ou null */
   const [blockedDateThankYou, setBlockedDateThankYou] = useState(false);
 
-  /* ── Remise « signature rapide » ──────────────────────────────────
-     Date limite calculée localement en attendant la confirmation serveur,
-     qui fige la valeur pour ce couple (email, date d'événement) afin qu'un
-     nouveau devis ne réinitialise pas le compte à rebours. */
-  const [remiseDeadline, setRemiseDeadline] = useState(null);
-
-  useEffect(() => {
-    if (!date) { setRemiseDeadline(null); return; }
-    setRemiseDeadline(getRemiseDeadline(date));
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return;
-    fetch('/api/devis/remise', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, date }),
-    })
-      .then(r => r.json())
-      .then(({ deadline }) => {
-        if (deadline) setRemiseDeadline(new Date(deadline + 'T00:00:00'));
-      })
-      .catch(() => {});
-  }, [email, date]);
-
   /* ── Totaux calculés ───────────────────────────────────────────── */
   const djCfg = getDJCfg(eventType);
   useEffect(() => { setDjDuration(d => Math.max(djCfg.minDur, d)); }, [eventType]);
@@ -600,12 +562,8 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
       (karaokeActive ? KARAOKE_PRICE : 0) + INSTALL_PRICE + techPrice
     : 0;
   const totalBrut     = materialTotal + djForFait + djXtraCost + kmFee;
-  const remiseDate    = remiseDeadline
-    ? remiseDeadline.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
-    : null;
-  const totalNet      = remiseDeadline ? Math.round(totalBrut * 0.85) : totalBrut;
-  const acompte60     = Math.round(totalNet * 0.6);
-  const solde40       = totalNet - acompte60;
+  const acompte60     = Math.round(totalBrut * 0.6);
+  const solde40       = totalBrut - acompte60;
 
   /* ── Totaux — prestation ciblée pro (tarifs HT) ─────────────────── */
   const cibleNb          = parseInt(cibleNbPersons) || 0;
@@ -835,8 +793,6 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
               client: { type: 'individual', firstName: prenom, lastName: nom, email, phone: tel, adresse, cp, ville },
               event: { type: eventType, date, lieu, km },
               items: qontoItems,
-              discountPct: remiseDeadline ? 0.15 : 0,
-              remiseDeadline: remiseDeadline ? toLocalISODate(remiseDeadline) : null,
               draft: true,
               note: `Hors zone (${km} km) — ajouter les frais de déplacement avant envoi`,
             }),
@@ -892,8 +848,6 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
           client: { type: 'individual', firstName: prenom, lastName: nom, email, phone: tel, adresse, cp, ville },
           event: { type: eventType, date, lieu, km },
           items,
-          discountPct: remiseDeadline ? 0.15 : 0,
-          remiseDeadline: remiseDeadline ? toLocalISODate(remiseDeadline) : null,
           note: [
             !lieu.trim() && 'Lieu à définir — calculer et ajouter les frais de déplacement avant envoi',
             !date && 'Date à définir — confirmer avec le client lors du rappel',
@@ -1122,8 +1076,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
   );
 
   /* Détail de la sélection — lignes de prix + total, réutilisé dans le panneau flottant et la fenêtre mobile */
-  const BreakdownLines = ({ lines, total, totalLabel, unit = '€', savings = 0 }) => {
-    const subtotal = savings > 0 ? total + savings : 0;
+  const BreakdownLines = ({ lines, total, totalLabel, unit = '€' }) => {
     return (
       <>
         {lines.map(([k, v]) => (
@@ -1132,19 +1085,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
             <span style={{ color: 'rgba(255,255,255,0.85)', fontFamily: 'var(--font-display), sans-serif', fontWeight: 600 }}>{v.toLocaleString('fr-FR')} {unit}</span>
           </div>
         ))}
-        {savings > 0 && (
-          <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '6px 0 2px', borderTop: '1px solid rgba(255,255,255,0.1)', marginTop: 6, color: 'rgba(255,255,255,0.45)' }}>
-              <span>Sous-total</span>
-              <span>{subtotal.toLocaleString('fr-FR')} {unit}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, padding: '2px 0 6px', color: 'var(--lime)' }}>
-              <span>Remise −15 %</span>
-              <span>−{savings.toLocaleString('fr-FR')} {unit}</span>
-            </div>
-          </>
-        )}
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, paddingTop: savings > 0 ? 6 : 10, marginTop: savings > 0 ? 0 : 4, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, paddingTop: 10, marginTop: 4, borderTop: '1px solid rgba(255,255,255,0.1)' }}>
           <span style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, color: 'rgba(255,255,255,0.6)' }}>{totalLabel}</span>
           <span style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, color: 'var(--lime)' }}>{total.toLocaleString('fr-FR')} {unit}</span>
         </div>
@@ -1153,7 +1094,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
   };
 
   /* Panneau flottant — détail par catégorie, masqué sur mobile/tablette (remplacé par DetailToggle + DetailModal) */
-  const BreakdownPanel = ({ lines, total, totalLabel, unit, savings }) => lines.length > 0 && (
+  const BreakdownPanel = ({ lines, total, totalLabel, unit }) => lines.length > 0 && (
     <div className="detail-breakdown" style={{
       position: 'fixed', top: 90, right: 24, width: 230, zIndex: 40,
       background: 'rgba(13,27,42,0.92)', backdropFilter: 'blur(16px)',
@@ -1163,7 +1104,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
       <div style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 11, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#fff', fontWeight: 700, marginBottom: 10 }}>
         Détail de votre sélection
       </div>
-      <BreakdownLines lines={lines} total={total} totalLabel={totalLabel} unit={unit} savings={savings} />
+      <BreakdownLines lines={lines} total={total} totalLabel={totalLabel} unit={unit} />
     </div>
   );
 
@@ -1179,7 +1120,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
   );
 
   /* Fenêtre de détail — version mobile/tablette, ouverte via DetailToggle */
-  const DetailModal = ({ lines, total, totalLabel, unit, savings }) => showDetailModal && (
+  const DetailModal = ({ lines, total, totalLabel, unit }) => showDetailModal && (
     <div onClick={() => setShowDetailModal(false)} style={{
       position: 'fixed', inset: 0, zIndex: 90, background: 'rgba(6,14,22,0.7)',
       backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
@@ -1197,7 +1138,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
             background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', fontSize: 20, cursor: 'pointer', lineHeight: 1, padding: 0,
           }}>✕</button>
         </div>
-        <BreakdownLines lines={lines} total={total} totalLabel={totalLabel} unit={unit} savings={savings} />
+        <BreakdownLines lines={lines} total={total} totalLabel={totalLabel} unit={unit} />
       </div>
     </div>
   );
@@ -1551,14 +1492,12 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
         Vos prestations
       </h2>
       <p className="devis-step-sub" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 12 }}>Étape 3 sur 6 · Configurez votre événement</p>
-      {remiseDeadline && (
-        <div style={{ marginBottom: 20, padding: '11px 14px', background: 'rgba(184,239,11,0.06)', border: '1px solid rgba(184,239,11,0.2)', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ flexShrink: 0, color: 'var(--lime)' }}><Banknote size={15} strokeWidth={1.5} /></span>
-          <p style={{ margin: 0, fontSize: 12, color: 'rgba(255,255,255,0.55)', lineHeight: 1.7 }}>
-            <span style={{ color: 'var(--lime)', fontWeight: 700 }}>−15% de remise</span> appliqués automatiquement sur votre devis — signez avant le {remiseDate} pour en bénéficier.
-          </p>
-        </div>
-      )}
+      <div style={{ marginBottom: 20, padding: '11px 14px', background: 'rgba(184,239,11,0.06)', border: '1px solid rgba(184,239,11,0.2)', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
+        <span style={{ flexShrink: 0, color: 'var(--lime)' }}><Gift size={15} strokeWidth={1.5} /></span>
+        <p style={{ margin: 0, fontSize: 12, color: 'rgba(255,255,255,0.55)', lineHeight: 1.7 }}>
+          <span style={{ color: 'var(--lime)', fontWeight: 700 }}>Offert avec votre prestation :</span> une {GIFT_LABEL.charAt(0).toLowerCase() + GIFT_LABEL.slice(1)} pour construire ensemble l'ambiance de votre soirée.
+        </p>
+      </div>
 
       {/* Détail par catégorie — flottant en haut à droite (desktop) / fenêtre mobile via "Voir le détail" */}
       {(() => {
@@ -1572,12 +1511,10 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
           needsMaterial                        && ['Installation & désinstallation', INSTALL_PRICE],
           needsMaterial && techPrice > 0       && ['Technicien journée', techPrice],
         ].filter(Boolean);
-        const total = remiseDeadline ? totalNet : totalBrut;
-        const savings = remiseDeadline ? totalBrut - totalNet : 0;
         return (
           <>
-            <BreakdownPanel lines={lines} total={total} totalLabel="TOTAL TTC" savings={savings} />
-            <DetailModal    lines={lines} total={total} totalLabel="TOTAL TTC" savings={savings} />
+            <BreakdownPanel lines={lines} total={totalBrut} totalLabel="TOTAL TTC" />
+            <DetailModal    lines={lines} total={totalBrut} totalLabel="TOTAL TTC" />
           </>
         );
       })()}
@@ -1831,17 +1768,12 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
       }}>
         <div>
           <div style={{ color: 'rgba(255,255,255,0.85)', fontSize: 11, fontFamily: 'var(--font-display), sans-serif', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 2 }}>
-            Total estimé TTC {kmFee > 0 && `· dont ${kmFee} € déplacement`} {km && getTransportFee(km) === null && '· hors frais de déplacement'} {remiseDeadline && '· remise -15 % appliquée'}
+            Total estimé TTC {kmFee > 0 && `· dont ${kmFee} € déplacement`} {km && getTransportFee(km) === null && '· hors frais de déplacement'}
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
             <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 'clamp(18px,3vw,28px)', color: 'var(--lime)' }}>
-              <AnimatedPrice value={remiseDeadline ? totalNet : totalBrut} /> €
+              <AnimatedPrice value={totalBrut} /> €
             </div>
-            {remiseDeadline && (
-              <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.35)', textDecoration: 'line-through' }}>
-                {totalBrut.toLocaleString('fr-FR')} €
-              </div>
-            )}
           </div>
           <DetailToggle />
         </div>
@@ -1918,16 +1850,17 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
               </p>
             </>
           )}
-          {remiseDeadline && (
-            <div style={{ background: 'rgba(184,239,11,0.07)', border: '1px solid rgba(184,239,11,0.25)', borderRadius: 10, padding: '14px 18px', marginBottom: 24, textAlign: 'left' }}>
+          <div style={{ background: 'rgba(184,239,11,0.07)', border: '1px solid rgba(184,239,11,0.25)', borderRadius: 10, padding: '14px 18px', marginBottom: 24, textAlign: 'left', display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ flexShrink: 0, color: 'var(--lime)' }}><Gift size={20} strokeWidth={1.5} /></span>
+            <div>
               <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 14, color: 'var(--lime)', marginBottom: 4 }}>
-                ⏰ Remise 15 % — valable si confirmé avant le {remiseDate}
+                Offert avec votre prestation
               </div>
               <div style={{ color: 'rgba(255,255,255,0.55)', fontSize: 13, lineHeight: 1.6 }}>
-                Total remisé : <strong style={{ color: 'var(--lime)' }}>{totalNet.toLocaleString('fr-FR')} € TTC</strong> au lieu de {totalBrut.toLocaleString('fr-FR')} €.
+                Une {GIFT_LABEL.charAt(0).toLowerCase() + GIFT_LABEL.slice(1)} — votre conseiller vous en reparle lors de l'échange.
               </div>
             </div>
-          )}
+          </div>
           <a href="https://myracoustic.com" style={{
             background: 'var(--lime)', color: '#0d1b2a', border: 'none', cursor: 'pointer',
             padding: '13px 30px', borderRadius: 8, fontSize: 14, fontWeight: 700,
@@ -1970,22 +1903,18 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
         </h2>
         <p className="devis-step-sub" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 22 }}>Étape 5 sur 6 · Vérifiez et envoyez</p>
 
-        {/* Remise */}
-        {remiseDeadline && (
-          <div style={{ background: 'rgba(184,239,11,0.07)', border: '1px solid rgba(184,239,11,0.22)', borderRadius: 10, padding: '14px 18px', marginBottom: 14 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-              <span style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 13, color: 'var(--lime)' }}>
-                ⏰ Remise 15 % si vous signez avant le {remiseDate}
-              </span>
-              <span style={{ marginLeft: 'auto', fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 18, color: 'var(--lime)' }}>
-                {totalNet.toLocaleString('fr-FR')} €
-              </span>
-            </div>
-            <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, marginTop: 4 }}>
-              Au lieu de {totalBrut.toLocaleString('fr-FR')} € · économie de {(totalBrut - totalNet).toLocaleString('fr-FR')} €
+        {/* Cadeau offert */}
+        <div style={{ background: 'rgba(184,239,11,0.07)', border: '1px solid rgba(184,239,11,0.22)', borderRadius: 10, padding: '14px 18px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 12 }}>
+          <span style={{ flexShrink: 0, color: 'var(--lime)' }}><Gift size={18} strokeWidth={1.5} /></span>
+          <div>
+            <span style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 13, color: 'var(--lime)' }}>
+              Offert avec votre prestation
+            </span>
+            <div style={{ color: 'rgba(255,255,255,0.55)', fontSize: 12, marginTop: 3, lineHeight: 1.6 }}>
+              Une {GIFT_LABEL.charAt(0).toLowerCase() + GIFT_LABEL.slice(1)} pour préparer ensemble l'ambiance de votre événement.
             </div>
           </div>
-        )}
+        </div>
 
         {/* Infos client */}
         <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, overflow: 'hidden', marginBottom: 14 }}>
@@ -2008,13 +1937,8 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', fontSize: 17 }}>
             <span style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, color: 'rgba(255,255,255,0.6)' }}>TOTAL TTC</span>
             <div style={{ textAlign: 'right' }}>
-              {remiseDeadline && (
-                <div style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 13, color: 'rgba(255,255,255,0.3)', textDecoration: 'line-through' }}>
-                  {totalBrut.toLocaleString('fr-FR')} €
-                </div>
-              )}
               <span style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, color: 'var(--lime)', fontSize: 22 }}>
-                {totalNet.toLocaleString('fr-FR')} €
+                {totalBrut.toLocaleString('fr-FR')} €
               </span>
             </div>
           </div>

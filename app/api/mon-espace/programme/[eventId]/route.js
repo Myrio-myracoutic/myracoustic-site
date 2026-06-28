@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
 import { verifyEventAccess } from '@/app/lib/event-access';
+import { sortProgramme } from '@/app/lib/programme';
 
 export async function GET(req, { params }) {
   const token = req.headers.get('authorization')?.replace('Bearer ', '');
@@ -12,12 +13,10 @@ export async function GET(req, { params }) {
   const { data, error } = await supabaseAdmin
     .from('event_programme')
     .select('*')
-    .eq('event_id', eventId)
-    .order('position')
-    .order('time');
+    .eq('event_id', eventId);
 
   if (error) return Response.json({ error: error.message }, { status: 500 });
-  return Response.json({ items: data || [] });
+  return Response.json({ items: sortProgramme(data) });
 }
 
 export async function POST(req, { params }) {

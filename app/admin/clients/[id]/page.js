@@ -112,6 +112,22 @@ export default function AdminClientDetail() {
 
   useEffect(() => { load(); }, [load]);
 
+  const [filledFromQonto, setFilledFromQonto] = useState(false);
+
+  // Remplit les champs de facturation vides depuis Qonto (sans écraser ce qui est déjà saisi)
+  const fillFromQonto = () => {
+    const b = qonto?.billing;
+    if (!b) return;
+    if (b.adresse) setAdresse(v => v || b.adresse);
+    if (b.cp)      setCp(v => v || b.cp);
+    if (b.ville)   setVille(v => v || b.ville);
+    if (b.siret)   setSiret(v => v || b.siret);
+    setFilledFromQonto(true);
+    setTimeout(() => setFilledFromQonto(false), 3000);
+  };
+
+  const qontoHasBilling = !!(qonto?.billing && (qonto.billing.adresse || qonto.billing.cp || qonto.billing.ville || qonto.billing.siret));
+
   const handleSave = async () => {
     setSaving(true);
     const res = await fetch(`/api/admin/clients/${id}`, {
@@ -215,7 +231,19 @@ export default function AdminClientDetail() {
 
         {/* Facturation */}
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: 18, paddingTop: 18 }}>
-          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 14px' }}>Informations de facturation</p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, margin: '0 0 14px', flexWrap: 'wrap' }}>
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>Informations de facturation</p>
+            {qontoHasBilling && (
+              <button onClick={fillFromQonto} title="Récupère l'adresse depuis Qonto et remplit les champs vides" style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                background: 'rgba(184,239,11,0.1)', border: '1px solid rgba(184,239,11,0.25)', borderRadius: 7,
+                padding: '5px 11px', cursor: 'pointer', color: '#b8ef0b', fontSize: 12, fontWeight: 600,
+                fontFamily: 'var(--font-display), sans-serif',
+              }}>
+                <RefreshCw size={12} /> {filledFromQonto ? 'Champs complétés ✓' : 'Compléter depuis Qonto'}
+              </button>
+            )}
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', display: 'block', marginBottom: 5, fontWeight: 600 }}>ADRESSE</label>

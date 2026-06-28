@@ -216,12 +216,21 @@ export async function POST(request) {
       try {
         const { data: existing } = await supabaseAdmin
           .from('clients')
-          .select('id, auth_id')
+          .select('id, auth_id, adresse, cp, ville, siret, company_name')
           .eq('email', client.email)
           .maybeSingle();
 
         let supabaseClientId = existing?.id;
         const isNew = !existing;
+
+        // Adresse de facturation saisie dans le tunnel (envoyée aussi à Qonto)
+        const addressFields = {
+          adresse:      client.adresse || null,
+          cp:           client.cp || null,
+          ville:        client.ville || null,
+          siret:        client.siret || null,
+          company_name: client.societe || null,
+        };
 
         if (isNew) {
           // Compte auth (onboarding par mot de passe)
@@ -237,6 +246,7 @@ export async function POST(request) {
               last_name: client.lastName,
               phone: client.phone || null,
               profil: client.type === 'company' ? 'professionnel' : 'particulier',
+              ...addressFields,
             })
             .select('id')
             .single();
@@ -252,6 +262,15 @@ export async function POST(request) {
               tempPassword,
               intro: `Nous avons créé votre <strong style="color:#b8ef0b;">espace personnel Myracoustic</strong> pour suivre et gérer votre événement. Voici vos identifiants de connexion.`,
             });
+          }
+        } else if (supabaseClientId) {
+          // Client déjà connu : compléter les champs de facturation manquants (sans écraser l'existant)
+          const fill = {};
+          for (const key of ['adresse', 'cp', 'ville', 'siret', 'company_name']) {
+            if (!existing[key] && addressFields[key]) fill[key] = addressFields[key];
+          }
+          if (Object.keys(fill).length > 0) {
+            await supabaseAdmin.from('clients').update(fill).eq('id', supabaseClientId);
           }
         }
 

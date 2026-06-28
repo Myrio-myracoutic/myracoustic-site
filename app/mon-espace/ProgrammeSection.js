@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { Plus, Trash2, Printer, GripVertical, Check, X, Music2, ChevronDown, Info, Sparkles } from 'lucide-react';
 import { SkeletonCard } from './SkeletonLoader';
+import { sortProgramme } from '@/app/lib/programme';
 
 function fmtDate(d) {
   if (!d) return '';
@@ -396,7 +397,7 @@ export default function ProgrammeSection({ ev, token, client }) {
       fetch(`/api/mon-espace/playlists/${ev.id}`, { headers: { 'Authorization': `Bearer ${token}` } }),
     ]);
     const [progData, playData] = await Promise.all([progRes.json(), playRes.json()]);
-    setItems(progData.items || []);
+    setItems(sortProgramme(progData.items || []));
     setPlaylists(playData.playlists || []);
     setLoading(false);
   }, [ev.id, token]);
@@ -409,11 +410,11 @@ export default function ProgrammeSection({ ev, token, client }) {
   };
 
   const handleUpdate = (updated) => {
-    setItems(prev => prev.map(i => i.id === updated.id ? updated : i).sort((a, b) => a.time.localeCompare(b.time)));
+    setItems(prev => sortProgramme(prev.map(i => i.id === updated.id ? updated : i)));
   };
 
   const handleAdded = (item) => {
-    setItems(prev => [...prev, item].sort((a, b) => a.time.localeCompare(b.time)));
+    setItems(prev => sortProgramme([...prev, item]));
   };
 
   if (loading) return <SkeletonCard lines={4} />;

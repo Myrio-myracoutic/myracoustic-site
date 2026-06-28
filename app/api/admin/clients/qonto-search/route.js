@@ -120,9 +120,17 @@ export async function GET(request) {
   });
 
   const isCompany = client.type === 'company';
+  const addr = client.billing_address || client.address || {};
 
   return NextResponse.json({
     quotes,
+    // Adresse de facturation Qonto — pour compléter la fiche client si elle est vide
+    billing: {
+      adresse: addr.street_address || '',
+      cp:      addr.zip_code || '',
+      ville:   addr.city || '',
+      siret:   client.tax_identification_number || client.vat_number || '',
+    },
     // standaloneInvoices supprimé : le filtre client_id de Qonto est ignoré,
     // ce qui retournerait des factures d'autres clients.
     standaloneInvoices: [],

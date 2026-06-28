@@ -86,13 +86,25 @@ async function geocodeAddress(query) {
   );
   if (!res.ok) return [];
   const data = await res.json();
-  return (data.features || []).map(f => ({
-    label: f.place_name,
-    coords: f.center,
-    street: f.address ? `${f.address} ${f.text}` : f.text,
-    postcode: f.context?.find(c => c.id.startsWith('postcode'))?.text || '',
-    city: f.context?.find(c => c.id.startsWith('place'))?.text || '',
-  }));
+  return (data.features || []).map(f => {
+    const types = f.place_type || [];
+    const isAddress = types.includes('address');
+    const ctx = f.context || [];
+    const ctxText = (prefix) => ctx.find(c => c.id?.startsWith(prefix))?.text || '';
+    // Ville : pour une adresse → commune ("place", repli "locality"/"district") ;
+    //         pour une suggestion de ville/lieu → son propre libellé.
+    const city = isAddress
+      ? (ctxText('place') || ctxText('locality') || ctxText('district'))
+      : ((types.includes('place') || types.includes('locality')) ? f.text : ctxText('place'));
+    return {
+      label: f.place_name,
+      coords: f.center,
+      // Rue uniquement pour une vraie adresse (numéro + voie) — jamais le nom d'une ville
+      street: isAddress ? (f.address ? `${f.address} ${f.text}` : f.text) : '',
+      postcode: ctxText('postcode'),
+      city,
+    };
+  });
 }
 
 /* Distance routière aller-retour (km), arrondie */

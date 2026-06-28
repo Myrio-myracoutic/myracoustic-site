@@ -6,6 +6,7 @@ import { Volume2, Lightbulb, Video, Headphones } from 'lucide-react';
 import { AnimatedWave, WaveBullet, SectionLabel } from './components/AnimatedWave';
 import TestimonialCard from './components/TestimonialCard';
 import StatItem from './components/StatItem';
+import Reveal from './components/Reveal';
 
 /* ─── Carte service ────────────────────────────────────────────── */
 function ServiceCard({ icon: Icon, tag, title, desc, index }) {
@@ -194,18 +195,18 @@ export default function Home() {
         background: '#060e16',
         borderBottom: '1px solid rgba(255,255,255,0.06)',
       }}>
-        <div style={{
+        <Reveal style={{
           maxWidth: 1280, margin: '0 auto',
           display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 32,
         }}>
           <StatItem value="26" suffix="+" label="Années d'expérience" />
           <StatItem value="1000" suffix="+" label="Événements réalisés" />
-        </div>
+        </Reveal>
       </section>
 
       {/* ── SERVICES ──────────────────────────────────────────────── */}
       <section style={{ padding: 'clamp(64px,8vw,100px) 32px' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <Reveal style={{ maxWidth: 1280, margin: '0 auto' }}>
           <div style={{ marginBottom: 52 }}>
             <SectionLabel>Nos Prestations</SectionLabel>
             <h2 style={{
@@ -219,7 +220,7 @@ export default function Home() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 2 }}>
             {SERVICES.map((s) => <ServiceCard key={s.tag} {...s} />)}
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* ── TÉMOIGNAGES ───────────────────────────────────────────── */}
@@ -227,7 +228,7 @@ export default function Home() {
         padding: 'clamp(56px,7vw,88px) 32px',
         background: 'linear-gradient(180deg,transparent 0%,#060e16 100%)',
       }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <Reveal style={{ maxWidth: 1280, margin: '0 auto' }}>
           <div style={{ marginBottom: 52, textAlign: 'center' }}>
             <SectionLabel style={{ justifyContent: 'center' }}>Avis Clients</SectionLabel>
             <h2 style={{
@@ -240,7 +241,7 @@ export default function Home() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 18 }}>
             {TESTIMONIALS.map((t, i) => <TestimonialCard key={i} {...t} />)}
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* ── CTA FINAL ─────────────────────────────────────────────── */}
@@ -249,6 +250,7 @@ export default function Home() {
         background: 'linear-gradient(135deg,#0d1b2a 0%,#1a2260 50%,#0d1b2a 100%)',
         borderTop: '1px solid rgba(184,239,11,0.18)',
       }}>
+        <Reveal>
         <h2 style={{
           fontFamily: 'var(--font-display), sans-serif',
           fontSize: 'clamp(26px,4vw,50px)', fontWeight: 700, marginBottom: 14,
@@ -284,6 +286,7 @@ export default function Home() {
           </Link>
         </div>
         <AnimatedWave bars={56} height={52} style={{ marginTop: 48, maxWidth: 560, margin: '48px auto 0' }} opacity={0.55} />
+        </Reveal>
       </section>
     </div>
   );

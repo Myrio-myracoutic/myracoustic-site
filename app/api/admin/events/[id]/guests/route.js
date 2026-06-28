@@ -15,15 +15,21 @@ async function sendInviteEmail(toEmail, firstName, inviteLink, eventType, client
   <tr><td style="padding:40px 40px 32px;">
     <p style="color:rgba(255,255,255,0.6);font-size:15px;margin:0 0 20px;">Bonjour ${firstName},</p>
     <p style="color:rgba(255,255,255,0.85);font-size:15px;line-height:1.7;margin:0 0 16px;">
-      <strong style="color:#b8ef0b;">${clientFirstName}</strong> vous invite à participer à la préparation de son ${eventType || 'événement'} en vous permettant de proposer des chansons pour la playlist.
+      <strong style="color:#b8ef0b;">${clientFirstName}</strong> a le plaisir de vous convier à son ${eventType || 'événement'} et vous a préparé une invitation personnelle en ligne.
     </p>
-    <p style="color:rgba(255,255,255,0.85);font-size:15px;line-height:1.7;margin:0 0 32px;">
-      Cliquez sur le bouton ci-dessous pour accéder à votre espace et proposer vos chansons préférées !
+    <p style="color:rgba(255,255,255,0.85);font-size:15px;line-height:1.7;margin:0 0 14px;">
+      En quelques clics, et selon ce qui a été prévu, vous pourrez :
     </p>
+    <ul style="color:rgba(255,255,255,0.8);font-size:15px;line-height:1.9;margin:0 0 28px;padding-left:20px;">
+      <li><strong style="color:#ffffff;">Confirmer votre présence</strong> et le nombre de convives</li>
+      <li>Découvrir le <strong style="color:#ffffff;">faire-part</strong> et les <strong style="color:#ffffff;">infos pratiques</strong> du jour J</li>
+      <li>Indiquer vos <strong style="color:#ffffff;">choix de menu</strong></li>
+      <li>Proposer vos <strong style="color:#ffffff;">chansons préférées</strong> pour la playlist</li>
+    </ul>
     <table cellpadding="0" cellspacing="0" style="margin:0 auto 32px;">
       <tr><td style="background:#b8ef0b;border-radius:8px;padding:14px 32px;text-align:center;">
         <a href="${inviteLink}" style="color:#060e16;font-size:15px;font-weight:700;text-decoration:none;">
-          Accéder à mon invitation →
+          Voir mon invitation →
         </a>
       </td></tr>
     </table>
@@ -43,7 +49,7 @@ async function sendInviteEmail(toEmail, firstName, inviteLink, eventType, client
       sender: { name: 'Myracoustic', email: SENDER },
       to: [{ email: toEmail, name: firstName }],
       replyTo: { email: SENDER, name: 'Myracoustic' },
-      subject: `Vous êtes invité(e) à composer la playlist !`,
+      subject: `Vous êtes invité(e) au ${eventType || 'événement'} de ${clientFirstName} !`,
       htmlContent: html,
     }),
   });

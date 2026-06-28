@@ -252,6 +252,32 @@ function MenuCard({ menu, guest, token, onUpdated }) {
   );
 }
 
+/* Affichage du menu en mode buffet — lecture seule, aucune sélection */
+function BuffetMenu({ menu }) {
+  return (
+    <div style={{
+      background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.08)',
+      borderRadius: 14, padding: '24px', marginBottom: 20,
+    }}>
+      <h3 style={{
+        fontFamily: 'var(--font-display), sans-serif', fontSize: 13, fontWeight: 700,
+        color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 6px',
+      }}>Au menu</h3>
+      {menu.intro_text && <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', margin: '0 0 16px', lineHeight: 1.6 }}>{menu.intro_text}</p>}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {(menu.courses || []).map(c => (
+          <div key={c.key}>
+            <div style={{ fontSize: 13, color: '#b8ef0b', fontWeight: 700, marginBottom: 4 }}>{c.label}</div>
+            <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.8)', lineHeight: 1.7 }}>
+              {(c.options || []).length ? (c.options || []).join(' · ') : <span style={{ color: 'rgba(255,255,255,0.3)' }}>—</span>}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function SongSearch({ playlistId, token, onAdded }) {
   const [query,     setQuery]     = useState('');
   const [results,   setResults]   = useState([]);
@@ -604,8 +630,9 @@ export default function InvitationPage({ params }) {
         {/* RSVP */}
         <RSVPCard guest={guest} token={token} onUpdated={(upd) => setData(d => ({ ...d, guest: { ...d.guest, ...upd } }))} />
 
-        {/* Choix du menu — uniquement si activé par le couple et invité présent */}
-        {menu && guest.attending === true && (
+        {/* Menu — buffet : simple affichage (si pas absent) ; service à table : sélection (si présent) */}
+        {menu && menu.service_type === 'buffet' && guest.attending !== false && <BuffetMenu menu={menu} />}
+        {menu && menu.service_type !== 'buffet' && guest.attending === true && (
           <MenuCard menu={menu} guest={guest} token={token}
             onUpdated={(mr) => setData(d => ({ ...d, guest: { ...d.guest, menu_response: mr } }))} />
         )}

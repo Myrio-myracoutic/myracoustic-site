@@ -43,6 +43,7 @@ export async function PUT(request, { params }) {
   const payload = {
     event_id:      eventId,
     is_active:     !!body.isActive,
+    service_type:  body.serviceType === 'buffet' ? 'buffet' : 'plated',
     courses:       Array.isArray(body.courses) ? body.courses : [],
     ask_dietary:   body.askDietary !== false,
     ask_cake:      !!body.askCake,

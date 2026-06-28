@@ -4,6 +4,7 @@ import { useRouter, useParams } from 'next/navigation';
 import AdminPlaylistSection from './AdminPlaylistSection';
 import AdminGuestSection from './AdminGuestSection';
 import AdminMenuSection from './AdminMenuSection';
+import AdminPlanTableSection from './AdminPlanTableSection';
 import AdminProgrammeSection from './AdminProgrammeSection';
 import { Eye } from 'lucide-react';
 
@@ -241,6 +242,7 @@ export default function AdminDevisDetail() {
       <AdminProgrammeSection eventId={params.id} />
       <AdminGuestSection eventId={params.id} />
       <AdminMenuSection eventId={params.id} />
+      <AdminPlanTableSection eventId={params.id} />
       <AdminPlaylistSection eventId={params.id} />
     </div>
   );

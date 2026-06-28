@@ -24,6 +24,27 @@ export default function AdminMenuSection({ eventId }) {
   if (!config || !config.is_active) return null;
 
   const courses = Array.isArray(config.courses) ? config.courses : [];
+
+  // Mode buffet : affichage du menu, pas de réponses à consolider
+  if (config.service_type === 'buffet') {
+    return (
+      <div style={{ background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '20px', marginBottom: 20 }}>
+        <h3 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 4px' }}>
+          Menu & repas — Buffet
+        </h3>
+        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', margin: '0 0 14px' }}>Affiché aux invités, sans sélection.</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {courses.map(c => (
+            <div key={c.key}>
+              <div style={{ fontSize: 12, color: '#b8ef0b', fontWeight: 700 }}>{c.label}</div>
+              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>{(c.options || []).join(' · ') || '—'}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   const present = guests.filter(g => g.attending === true);
 
   const peopleOf = (g) => {

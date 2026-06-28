@@ -88,6 +88,7 @@ export default function MenuSection({ ev, token }) {
   const [askDrinks, setAskDrinks]     = useState(false);
   const [drinkOptions, setDrinkOptions] = useState([]);
   const [askComment, setAskComment]   = useState(false);
+  const [serviceType, setServiceType] = useState('plated'); // 'plated' (service à table) | 'buffet'
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/mon-espace/menu/${ev.id}`, { headers: { Authorization: `Bearer ${token}` } });
@@ -95,6 +96,7 @@ export default function MenuSection({ ev, token }) {
     const c = data.config;
     if (c) {
       setIsActive(c.is_active);
+      setServiceType(c.service_type || 'plated');
       setIntroText(c.intro_text || '');
       setCourses(Array.isArray(c.courses) ? c.courses : []);
       setAskDietary(c.ask_dietary);
@@ -118,7 +120,7 @@ export default function MenuSection({ ev, token }) {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({
-        isActive, introText, courses: cleanCourses,
+        isActive, serviceType, introText, courses: cleanCourses,
         askDietary, askCake, askDrinks,
         drinkOptions: drinkOptions.map(o => o.trim()).filter(Boolean),
         askComment,
@@ -158,8 +160,7 @@ export default function MenuSection({ ev, token }) {
           <div>
             <div style={{ fontSize: 15, fontWeight: 700, color: '#fff', marginBottom: 4 }}>Choix du menu par vos invités</div>
             <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', lineHeight: 1.6, margin: 0 }}>
-              Composez votre menu : un plat par moment du repas (entrée, plat, dessert), et sous chacun les choix possibles.
-              Chaque invité sélectionne le sien depuis son invitation, et vous obtenez un tableau prêt pour votre traiteur.
+              Composez votre menu, puis choisissez le type de service : <strong style={{ color: 'rgba(255,255,255,0.75)' }}>service à table</strong> (vos invités choisissent leurs plats) ou <strong style={{ color: 'rgba(255,255,255,0.75)' }}>buffet</strong> (le menu est simplement affiché).
             </p>
           </div>
         </div>
@@ -168,13 +169,42 @@ export default function MenuSection({ ev, token }) {
       {/* Activation */}
       <div style={card}>
         <Toggle on={isActive} onChange={activate}
-          label="Activer le choix du menu"
-          hint="Tant que c'est désactivé, vos invités ne voient aucune question sur le repas." />
+          label="Activer le menu"
+          hint="Tant que c'est désactivé, vos invités ne voient rien sur le repas." />
       </div>
 
       {isActive && (
         <>
-          {/* Consigne d'intro affichée au-dessus des questions du menu (≠ faire-part) */}
+          {/* Type de service : service à table (sélection) vs buffet (affichage) */}
+          <div style={card}>
+            <h3 style={h3}>Type de service</h3>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              {[
+                { id: 'plated', title: 'Service à table', desc: 'Vos invités choisissent leurs plats' },
+                { id: 'buffet', title: 'Buffet', desc: 'Le menu est affiché, sans choix à faire' },
+              ].map(m => {
+                const active = serviceType === m.id;
+                return (
+                  <button key={m.id} onClick={() => setServiceType(m.id)} style={{
+                    flex: '1 1 200px', textAlign: 'left', cursor: 'pointer',
+                    background: active ? 'rgba(184,239,11,0.1)' : 'rgba(255,255,255,0.03)',
+                    border: `1px solid ${active ? 'rgba(184,239,11,0.5)' : 'rgba(255,255,255,0.1)'}`,
+                    borderRadius: 10, padding: '12px 14px',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ width: 16, height: 16, borderRadius: '50%', flexShrink: 0, border: `2px solid ${active ? '#b8ef0b' : 'rgba(255,255,255,0.25)'}`, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {active && <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#b8ef0b' }} />}
+                      </span>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: active ? '#b8ef0b' : 'rgba(255,255,255,0.8)' }}>{m.title}</span>
+                    </div>
+                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 4, marginLeft: 24 }}>{m.desc}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Consigne d'intro affichée au-dessus du menu (≠ faire-part) */}
           <div style={card}>
             <h3 style={h3}>Consigne pour le menu (facultatif)</h3>
             <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', margin: '0 0 10px', lineHeight: 1.6 }}>
@@ -188,10 +218,13 @@ export default function MenuSection({ ev, token }) {
 
           {/* Constructeur de plats */}
           <div style={card}>
-            <h3 style={h3}>Les plats de votre menu</h3>
+            <h3 style={h3}>{serviceType === 'buffet' ? 'Votre buffet' : 'Les plats de votre menu'}</h3>
             <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', margin: '0 0 14px', lineHeight: 1.6 }}>
-              Chaque plat est un moment du repas (entrée, plat, dessert…). Sous chaque plat, ajoutez les
-              <strong style={{ color: 'rgba(255,255,255,0.7)' }}> choix possibles</strong> entre lesquels vos invités décident (ex. Viande / Poisson / Végétarien).
+              {serviceType === 'buffet' ? (
+                <>Chaque ligne est un moment du repas (entrée, plat, dessert…). Sous chacun, listez <strong style={{ color: 'rgba(255,255,255,0.7)' }}>ce qui sera proposé</strong> au buffet. Vos invités le verront affiché, <strong style={{ color: 'rgba(255,255,255,0.7)' }}>sans rien sélectionner</strong>.</>
+              ) : (
+                <>Chaque plat est un moment du repas (entrée, plat, dessert…). Sous chaque plat, ajoutez les <strong style={{ color: 'rgba(255,255,255,0.7)' }}>choix possibles</strong> entre lesquels vos invités décident (ex. Viande / Poisson / Végétarien).</>
+              )}
             </p>
             {courses.length === 0 && (
               <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.3)', fontStyle: 'italic', margin: '0 0 12px' }}>
@@ -210,7 +243,7 @@ export default function MenuSection({ ev, token }) {
                     <Trash2 size={15} />
                   </button>
                 </div>
-                <OptionList options={c.options || []} onChange={opts => setCourse(i, { options: opts })} placeholder="Choix possible (ex. Viande)" />
+                <OptionList options={c.options || []} onChange={opts => setCourse(i, { options: opts })} placeholder={serviceType === 'buffet' ? 'Plat proposé (ex. Rôti, Salade…)' : 'Choix possible (ex. Viande)'} />
               </div>
             ))}
             <button onClick={addCourse} style={{
@@ -222,23 +255,32 @@ export default function MenuSection({ ev, token }) {
             </button>
           </div>
 
-          {/* Options complémentaires */}
-          <div style={card}>
-            <h3 style={h3}>Options complémentaires</h3>
-            <Toggle on={askDietary} onChange={setAskDietary}
-              label="Allergies & régimes alimentaires" hint="Recommandé — l'invité signale ses allergies ou son régime (végétarien, sans gluten…)." />
-            <Toggle on={askCake} onChange={setAskCake}
-              label="Parts de gâteau" hint="L'invité indique combien de parts il souhaite." />
-            <Toggle on={askDrinks} onChange={setAskDrinks}
-              label="Boissons" hint="L'invité choisit sa boisson parmi celles que vous proposez." />
-            {askDrinks && (
-              <div style={{ paddingLeft: 54, paddingBottom: 8 }}>
-                <OptionList options={drinkOptions} onChange={setDrinkOptions} placeholder="Boisson (ex. Vin rouge)" />
-              </div>
-            )}
-            <Toggle on={askComment} onChange={setAskComment}
-              label="Commentaire libre" hint="Un champ libre pour un mot de chaque invité." />
-          </div>
+          {/* Options complémentaires — uniquement en service à table (le buffet est un simple affichage) */}
+          {serviceType === 'plated' ? (
+            <div style={card}>
+              <h3 style={h3}>Options complémentaires</h3>
+              <Toggle on={askDietary} onChange={setAskDietary}
+                label="Allergies & régimes alimentaires" hint="Recommandé — l'invité signale ses allergies ou son régime (végétarien, sans gluten…)." />
+              <Toggle on={askCake} onChange={setAskCake}
+                label="Parts de gâteau" hint="L'invité indique combien de parts il souhaite." />
+              <Toggle on={askDrinks} onChange={setAskDrinks}
+                label="Boissons" hint="L'invité choisit sa boisson parmi celles que vous proposez." />
+              {askDrinks && (
+                <div style={{ paddingLeft: 54, paddingBottom: 8 }}>
+                  <OptionList options={drinkOptions} onChange={setDrinkOptions} placeholder="Boisson (ex. Vin rouge)" />
+                </div>
+              )}
+              <Toggle on={askComment} onChange={setAskComment}
+                label="Commentaire libre" hint="Un champ libre pour un mot de chaque invité." />
+            </div>
+          ) : (
+            <div style={{ ...card, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+              <UtensilsCrossed size={18} color="#b8ef0b" strokeWidth={1.5} style={{ flexShrink: 0, marginTop: 2 }} />
+              <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', lineHeight: 1.6, margin: 0 }}>
+                <strong style={{ color: 'rgba(255,255,255,0.8)' }}>Mode buffet</strong> — vos invités verront ce menu affiché sur leur invitation, sans rien à sélectionner. Aucune réponse à collecter.
+              </p>
+            </div>
+          )}
         </>
       )}
 
@@ -250,8 +292,8 @@ export default function MenuSection({ ev, token }) {
         {isActive && <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>Vos invités verront les modifications immédiatement.</span>}
       </div>
 
-      {/* Réponses consolidées */}
-      {isActive && <Responses courses={courses} askDietary={askDietary} askCake={askCake} askDrinks={askDrinks} askComment={askComment} present={present} ev={ev} />}
+      {/* Réponses consolidées — uniquement en service à table (le buffet n'a pas de sélection) */}
+      {isActive && serviceType === 'plated' && <Responses courses={courses} askDietary={askDietary} askCake={askCake} askDrinks={askDrinks} askComment={askComment} present={present} ev={ev} />}
     </div>
   );
 }

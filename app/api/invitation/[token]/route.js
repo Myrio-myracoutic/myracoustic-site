@@ -39,7 +39,7 @@ export async function GET(request, { params }) {
   // Module menu : exposé à l'invité uniquement s'il est activé par le couple
   const { data: menuConfig } = await supabaseAdmin
     .from('event_menu_config')
-    .select('is_active, courses, ask_dietary, ask_cake, ask_drinks, drink_options, ask_comment, intro_text')
+    .select('is_active, service_type, courses, ask_dietary, ask_cake, ask_drinks, drink_options, ask_comment, intro_text')
     .eq('event_id', guest.event_id)
     .maybeSingle();
 

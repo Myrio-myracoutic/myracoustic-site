@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { Sparkles, Eye, EyeOff, Loader, ClipboardList, Music2, ChevronDown, ChevronUp } from 'lucide-react';
+import { Sparkles, Eye, EyeOff, Loader, ClipboardList, Music2, ChevronDown, ChevronUp, Star } from 'lucide-react';
+import { moodLabel, effectLabel } from '@/app/lib/highlights';
 
 function SecretRow({ item, eventId }) {
   const [text,    setText]    = useState(item.secret_animation || '');
@@ -98,6 +99,7 @@ export default function AdminProgrammeSection({ eventId }) {
 
   const playlistMap = Object.fromEntries(playlists.map(p => [p.id, p.name]));
   const secretCount = items.filter(i => i.secret_animation).length;
+  const highlightCount = items.filter(i => i.is_highlight).length;
 
   return (
     <div style={{
@@ -121,6 +123,13 @@ export default function AdminProgrammeSection({ eventId }) {
             fontSize: 10, background: 'rgba(184,239,11,0.12)', color: '#b8ef0b',
             border: '1px solid rgba(184,239,11,0.25)', borderRadius: 10, padding: '1px 7px', fontWeight: 700,
           }}>{items.length} étape{items.length > 1 ? 's' : ''}</span>
+          {highlightCount > 0 && (
+            <span style={{
+              fontSize: 10, background: 'rgba(184,239,11,0.12)', color: '#b8ef0b',
+              border: '1px solid rgba(184,239,11,0.25)', borderRadius: 10, padding: '1px 7px', fontWeight: 700,
+              display: 'inline-flex', alignItems: 'center', gap: 3,
+            }}><Star size={9} fill="#b8ef0b" /> {highlightCount} moment{highlightCount > 1 ? 's' : ''} fort{highlightCount > 1 ? 's' : ''}</span>
+          )}
           {secretCount > 0 && (
             <span style={{
               fontSize: 10, background: 'rgba(139,92,246,0.12)', color: '#a78bfa',
@@ -173,6 +182,42 @@ export default function AdminProgrammeSection({ eventId }) {
                           background: 'rgba(184,239,11,0.08)', color: '#b8ef0b', border: '1px solid rgba(184,239,11,0.2)',
                         }}><Music2 size={10} /> {n}</span>
                       ))}
+                    </div>
+                  )}
+
+                  {/* Moment fort : son + lumière souhaités par le couple (lecture seule) */}
+                  {item.is_highlight && (
+                    <div style={{
+                      marginLeft: 64, marginTop: 8,
+                      background: 'rgba(184,239,11,0.06)', border: '1px solid rgba(184,239,11,0.2)',
+                      borderRadius: 8, padding: '8px 14px',
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                        <Star size={12} color="#b8ef0b" fill="#b8ef0b" />
+                        <span style={{ fontSize: 11, fontWeight: 700, color: '#b8ef0b', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                          Moment fort — son + lumière
+                        </span>
+                      </div>
+                      {item.light_mood && (
+                        <div style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.6)', lineHeight: 1.6 }}>
+                          <span style={{ color: 'rgba(255,255,255,0.35)', fontWeight: 600 }}>Lumière : </span>{moodLabel(item.light_mood)}
+                        </div>
+                      )}
+                      {(item.effects || []).length > 0 && (
+                        <div style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.6)', lineHeight: 1.6 }}>
+                          <span style={{ color: 'rgba(255,255,255,0.35)', fontWeight: 600 }}>Effets : </span>{item.effects.map(effectLabel).join(', ')}
+                        </div>
+                      )}
+                      {item.ambiance_note && (
+                        <div style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, fontStyle: 'italic', marginTop: 2 }}>
+                          {item.ambiance_note}
+                        </div>
+                      )}
+                      {!item.light_mood && !(item.effects || []).length && !item.ambiance_note && (
+                        <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', fontStyle: 'italic' }}>
+                          Marqué comme moment fort (détails non précisés).
+                        </div>
+                      )}
                     </div>
                   )}
 

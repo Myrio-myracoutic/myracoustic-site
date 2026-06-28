@@ -1,8 +1,9 @@
 'use client';
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { Plus, Trash2, Printer, GripVertical, Check, X, Music2, ChevronDown, Info, Sparkles } from 'lucide-react';
+import { Plus, Trash2, Printer, GripVertical, Check, X, Music2, ChevronDown, Info, Sparkles, Star, Lightbulb } from 'lucide-react';
 import { SkeletonCard } from './SkeletonLoader';
 import { sortProgramme } from '@/app/lib/programme';
+import { LIGHT_MOODS, EFFECTS, moodLabel, effectLabel } from '@/app/lib/highlights';
 
 function fmtDate(d) {
   if (!d) return '';
@@ -146,6 +147,87 @@ function InstructionsField({ item, token, onUpdate }) {
   );
 }
 
+/* ── Moment fort : son + lumière ────────────────────────────────── */
+const hlLabel = { display: 'flex', alignItems: 'center', gap: 5, fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.06em', marginBottom: 7 };
+const hlPill = (sel) => ({
+  display: 'inline-flex', alignItems: 'center', gap: 4,
+  fontSize: 12, padding: '6px 11px', borderRadius: 8, cursor: 'pointer',
+  border: `1px solid ${sel ? 'rgba(184,239,11,0.35)' : 'rgba(255,255,255,0.1)'}`,
+  background: sel ? 'rgba(184,239,11,0.12)' : 'rgba(255,255,255,0.04)',
+  color: sel ? '#b8ef0b' : 'rgba(255,255,255,0.55)', fontWeight: sel ? 700 : 400,
+  fontFamily: 'var(--font-display), sans-serif',
+});
+
+function HighlightField({ item, token, onUpdate }) {
+  const isOn = !!item.is_highlight;
+  const [note, setNote] = useState(item.ambiance_note || '');
+  const timer = useRef(null);
+
+  const patch = async (fields) => {
+    await fetch(`/api/mon-espace/programme/items/${item.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(fields),
+    });
+    onUpdate({ ...item, ...fields });
+  };
+
+  const setMood = (v) => patch({ light_mood: item.light_mood === v ? null : v });
+  const toggleEffect = (v) => {
+    const cur = item.effects || [];
+    patch({ effects: cur.includes(v) ? cur.filter(x => x !== v) : [...cur, v] });
+  };
+  const onNote = (e) => {
+    setNote(e.target.value);
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => patch({ ambiance_note: e.target.value }), 700);
+  };
+
+  return (
+    <div style={{ marginTop: 10 }}>
+      <button onClick={() => patch({ is_highlight: !isOn })} style={{
+        display: 'inline-flex', alignItems: 'center', gap: 6,
+        background: isOn ? 'rgba(184,239,11,0.12)' : 'rgba(255,255,255,0.04)',
+        border: `1px solid ${isOn ? 'rgba(184,239,11,0.35)' : 'rgba(255,255,255,0.1)'}`,
+        borderRadius: 8, padding: '6px 12px', cursor: 'pointer',
+        color: isOn ? '#b8ef0b' : 'rgba(255,255,255,0.45)', fontSize: 12, fontWeight: 700,
+        fontFamily: 'var(--font-display), sans-serif',
+      }}>
+        <Star size={13} fill={isOn ? '#b8ef0b' : 'none'} /> Moment fort{isOn ? ' · son + lumière' : ''}
+      </button>
+
+      {isOn && (
+        <div style={{ marginTop: 10, padding: 14, background: 'rgba(184,239,11,0.04)', border: '1px solid rgba(184,239,11,0.15)', borderRadius: 10, display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div>
+            <div style={hlLabel}><Lightbulb size={12} color="#b8ef0b" /> AMBIANCE LUMIÈRE</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {LIGHT_MOODS.map(m => {
+                const sel = item.light_mood === m.value;
+                return <button key={m.value} onClick={() => setMood(m.value)} style={hlPill(sel)}>{sel && <Check size={11} />}{m.label}</button>;
+              })}
+            </div>
+          </div>
+          <div>
+            <div style={hlLabel}><Sparkles size={12} color="#b8ef0b" /> EFFETS</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {EFFECTS.map(ef => {
+                const sel = (item.effects || []).includes(ef.value);
+                return <button key={ef.value} onClick={() => toggleEffect(ef.value)} style={hlPill(sel)}>{sel && <Check size={11} />}{ef.label}</button>;
+              })}
+            </div>
+          </div>
+          <div>
+            <div style={hlLabel}>PRÉCISIONS (facultatif)</div>
+            <textarea value={note} onChange={onNote} rows={2}
+              placeholder="Ex : entrée des mariés sous les étincelles, lumière chaude puis bascule colorée au refrain…"
+              style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 7, padding: '8px 12px', color: 'rgba(255,255,255,0.75)', fontSize: 12, fontFamily: 'inherit', outline: 'none', resize: 'vertical', lineHeight: 1.6, boxSizing: 'border-box' }} />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ── Ligne du programme ─────────────────────────────────────────── */
 function ItemRow({ item, allPlaylists, token, onDelete, onUpdate }) {
   const [editing, setEditing] = useState(false);
@@ -197,6 +279,7 @@ function ItemRow({ item, allPlaylists, token, onDelete, onUpdate }) {
         <GripVertical size={14} color="rgba(255,255,255,0.15)" style={{ flexShrink: 0 }} />
         <span style={{ fontFamily: 'var(--font-mono), monospace', fontSize: 13, fontWeight: 600, color: '#b8ef0b', width: 52, flexShrink: 0 }}>{item.time}</span>
         <span style={{ flex: 1, color: 'rgba(255,255,255,0.8)', fontSize: 14 }}>{item.label}</span>
+        {item.is_highlight && <Star size={13} color="#b8ef0b" fill="#b8ef0b" style={{ flexShrink: 0 }} />}
         <button onClick={e => { e.stopPropagation(); onDelete(item.id); }}
           style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'rgba(255,255,255,0.2)', flexShrink: 0 }}
           onMouseEnter={e => { e.stopPropagation(); e.currentTarget.style.color = '#ef4444'; }}
@@ -211,6 +294,9 @@ function ItemRow({ item, allPlaylists, token, onDelete, onUpdate }) {
 
         {/* Instructions */}
         <InstructionsField item={item} token={token} onUpdate={onUpdate} />
+
+        {/* Moment fort : son + lumière */}
+        <HighlightField item={item} token={token} onUpdate={onUpdate} />
 
         {/* Bandeau surprise Myracoustic (si révélé) */}
         {item.secret_visible && item.secret_animation && (
@@ -308,6 +394,15 @@ function printProgramme(ev, items, allPlaylists, client) {
     const secretTag = it.secret_visible && it.secret_animation
       ? `<div class="secret">✨ ${it.secret_animation}</div>`
       : '';
+    const hlTag = it.is_highlight ? (() => {
+      const parts = [];
+      const mood = moodLabel(it.light_mood);
+      const fx = (it.effects || []).map(effectLabel);
+      if (mood) parts.push(`Lumière : ${mood}`);
+      if (fx.length) parts.push(`Effets : ${fx.join(', ')}`);
+      if ((it.ambiance_note || '').trim()) parts.push(it.ambiance_note);
+      return `<div class="highlight">★ Moment fort${parts.length ? ' — ' + parts.join(' · ') : ''}</div>`;
+    })() : '';
     return `
     <div class="row">
       <div class="time-col"><span class="time-label">${it.time}</span></div>
@@ -317,7 +412,7 @@ function printProgramme(ev, items, allPlaylists, client) {
       </div>
       <div class="label-col">
         <span class="label-text">${it.label}</span>
-        ${playlistTag}${instrTag}${secretTag}
+        ${playlistTag}${instrTag}${hlTag}${secretTag}
       </div>
     </div>`;
   }).join('');
@@ -352,6 +447,7 @@ function printProgramme(ev, items, allPlaylists, client) {
   .ptag { font-size: 10px; font-weight: 600; color: #4a6c0a; background: #eefac8; border-radius: 4px; padding: 2px 7px; }
   .instr { font-size: 12px; color: #666; font-style: italic; margin-top: 4px; line-height: 1.5; }
   .secret { font-size: 11px; color: #6d28d9; font-weight: 600; margin-top: 4px; background: #f3e8ff; border-radius: 4px; padding: 3px 8px; display: inline-block; }
+  .highlight { font-size: 11px; color: #5b6e00; font-weight: 700; margin-top: 4px; background: #f4fbd6; border: 1px solid #dcee9a; border-radius: 4px; padding: 3px 8px; display: inline-block; }
   .footer { background: #f7f7fa; border-top: 1px solid #e8e8f0; padding: 16px 36px; display: flex; align-items: center; justify-content: space-between; }
   .footer-brand { font-size: 11px; font-weight: 700; color: #060e16; letter-spacing: 0.08em; text-transform: uppercase; }
   .footer-info { font-size: 10px; color: #999; text-align: right; line-height: 1.7; }
@@ -456,6 +552,7 @@ export default function ProgrammeSection({ ev, token, client }) {
           • <strong>Ajoutez chaque étape</strong> avec l'heure et l'intitulé (Cérémonie, Cocktail, Dîner…)<br />
           • <strong>Instructions</strong> : notes internes pour chaque étape — visible dans le PDF distribué aux prestataires<br />
           • <strong>Liez une playlist</strong> à chaque moment pour indiquer la musique prévue<br />
+          • <Star size={12} color="#b8ef0b" fill="#b8ef0b" style={{ verticalAlign: '-1px' }} /> <strong style={{ color: '#b8ef0b' }}>Moment fort</strong> : marquez les instants clés (entrée, première danse, gâteau…) et précisez l'ambiance <strong>son + lumière</strong> souhaitée — transmise à votre prestataire<br />
           {hasSecret && (
             <>• <Sparkles size={12} color="#a78bfa" style={{ verticalAlign: '-1px' }} /> <strong style={{ color: '#a78bfa' }}>Animation Myracoustic</strong> : votre prestataire a préparé une surprise pour certaines étapes — les détails apparaissent quand ils décident de vous les révéler<br /></>
           )}

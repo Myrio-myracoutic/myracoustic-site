@@ -19,7 +19,7 @@ export async function PATCH(req, { params }) {
 
   const body = await req.json();
   // secret_animation et secret_visible sont réservés à l'admin
-  const CLIENT_FIELDS = ['time', 'label', 'position', 'playlist_ids', 'instructions'];
+  const CLIENT_FIELDS = ['time', 'label', 'position', 'playlist_ids', 'instructions', 'is_highlight', 'light_mood', 'effects', 'ambiance_note'];
   const updates = {};
   for (const k of CLIENT_FIELDS) {
     if (body[k] !== undefined) updates[k] = body[k];

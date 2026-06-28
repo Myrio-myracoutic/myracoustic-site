@@ -1,9 +1,30 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { Eye, EyeOff, Save, X, ExternalLink, Music2 } from 'lucide-react';
+import { Eye, EyeOff, Save, X, ExternalLink, Music2, MapPin, BedDouble, Car, Clock, Info, Plus, Trash2 } from 'lucide-react';
+import PracticalInfoCards from '@/app/components/PracticalInfo';
+
+/* Styles partagés pour l'éditeur d'infos pratiques */
+const piLabelRow = { display: 'flex', alignItems: 'center', gap: 7, marginBottom: 8 };
+const piLabel = { fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.7)', fontFamily: 'var(--font-display), sans-serif' };
+const piInput = {
+  background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+  borderRadius: 8, padding: '9px 12px', color: 'rgba(255,255,255,0.85)', fontSize: 14,
+  fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none',
+};
+const piTrash = {
+  width: 34, height: 34, flexShrink: 0, borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)',
+  background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.35)', cursor: 'pointer',
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+};
+const piAddBtn = {
+  display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start',
+  background: 'rgba(184,239,11,0.08)', border: '1px solid rgba(184,239,11,0.25)',
+  borderRadius: 8, padding: '7px 14px', color: '#b8ef0b', fontSize: 13, fontWeight: 600,
+  cursor: 'pointer', fontFamily: 'var(--font-display), sans-serif', marginTop: 2,
+};
 
 /* ── Modal aperçu — rendu identique à la page /invitation/[token] ─ */
-function PreviewModal({ title, subtitle, message, ev, onClose }) {
+function PreviewModal({ title, subtitle, message, practical, ev, onClose }) {
   return (
     <div
       style={{
@@ -115,6 +136,9 @@ function PreviewModal({ title, subtitle, message, ev, onClose }) {
             </div>
           </div>
 
+          {/* Infos pratiques — rendu identique à la page invité */}
+          <PracticalInfoCards info={practical} />
+
           {/* Playlists placeholder */}
           <div style={{
             background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)',
@@ -149,6 +173,7 @@ export default function FairepartSection({ ev, token }) {
   const [subtitle,    setSubtitle]    = useState('');
   const [message,     setMessage]     = useState('');
   const [isPublished, setIsPublished] = useState(false);
+  const [practical,   setPractical]   = useState({});
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/mon-espace/fairepart/${ev.id}`, {
@@ -160,6 +185,7 @@ export default function FairepartSection({ ev, token }) {
       setSubtitle(data.page.subtitle || '');
       setMessage(data.page.message || '');
       setIsPublished(data.page.is_published || false);
+      setPractical(data.page.practical_info && typeof data.page.practical_info === 'object' ? data.page.practical_info : {});
     }
     setLoading(false);
   }, [ev.id, token]);
@@ -171,11 +197,15 @@ export default function FairepartSection({ ev, token }) {
     await fetch(`/api/mon-espace/fairepart/${ev.id}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ title, subtitle, message, is_published: isPublished }),
+      body: JSON.stringify({ title, subtitle, message, is_published: isPublished, practical_info: practical }),
     });
     setSaving(false); setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
+
+  const setPI = (key, val) => setPractical(p => ({ ...p, [key]: val }));
+  const schedule = Array.isArray(practical.schedule) ? practical.schedule : [];
+  const setSchedule = (arr) => setPI('schedule', arr);
 
   if (loading) return <div style={{ color: 'rgba(255,255,255,0.2)', fontSize: 13 }}>Chargement…</div>;
 
@@ -278,6 +308,68 @@ export default function FairepartSection({ ev, token }) {
         </div>
       </div>
 
+      {/* ── Infos pratiques (jour J) ── */}
+      <div style={{ marginTop: 24, borderTop: '1px solid rgba(255,255,255,0.07)', paddingTop: 22 }}>
+        <h4 style={{
+          fontFamily: 'var(--font-display), sans-serif', fontSize: 13, fontWeight: 700,
+          color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 6px',
+        }}>Infos pratiques (jour J)</h4>
+        <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, margin: '0 0 18px', lineHeight: 1.6 }}>
+          Optionnel. Tout ce que vous remplissez s'affiche dans une rubrique « Infos pratiques » sur l'invitation. Laissez vide ce que vous ne voulez pas montrer.
+        </p>
+
+        {/* Horaires clés */}
+        <div style={{ marginBottom: 18 }}>
+          <div style={piLabelRow}><Clock size={14} color="#b8ef0b" /> <span style={piLabel}>Horaires clés</span></div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {schedule.map((s, i) => (
+              <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <input value={s.time || ''} onChange={e => setSchedule(schedule.map((x, j) => j === i ? { ...x, time: e.target.value } : x))}
+                  placeholder="18:00" style={{ ...piInput, width: 84, flexShrink: 0, textAlign: 'center' }} />
+                <input value={s.label || ''} onChange={e => setSchedule(schedule.map((x, j) => j === i ? { ...x, label: e.target.value } : x))}
+                  placeholder="Cérémonie, Cocktail, Dîner…" style={{ ...piInput, flex: 1, minWidth: 0 }} />
+                <button onClick={() => setSchedule(schedule.filter((_, j) => j !== i))} style={piTrash} title="Retirer cet horaire">
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))}
+            <button onClick={() => setSchedule([...schedule, { time: '', label: '' }])} style={piAddBtn}>
+              <Plus size={13} /> Ajouter un horaire
+            </button>
+          </div>
+        </div>
+
+        {/* Accès & parking */}
+        <div style={{ marginBottom: 18 }}>
+          <div style={piLabelRow}><MapPin size={14} color="#b8ef0b" /> <span style={piLabel}>Accès & parking</span></div>
+          <textarea value={practical.access || ''} onChange={e => setPI('access', e.target.value)} rows={2}
+            placeholder="Parking gratuit sur place, entrée par le portail côté jardin…" style={{ ...piInput, width: '100%', resize: 'vertical', lineHeight: 1.6 }} />
+          <input value={practical.address || ''} onChange={e => setPI('address', e.target.value)}
+            placeholder="Adresse complète (active un bouton « Itinéraire » pour les invités)" style={{ ...piInput, width: '100%', marginTop: 8 }} />
+        </div>
+
+        {/* Hébergement */}
+        <div style={{ marginBottom: 18 }}>
+          <div style={piLabelRow}><BedDouble size={14} color="#b8ef0b" /> <span style={piLabel}>Hébergement</span></div>
+          <textarea value={practical.accommodation || ''} onChange={e => setPI('accommodation', e.target.value)} rows={2}
+            placeholder="Hôtels et chambres d'hôtes à proximité, éventuel code de réduction…" style={{ ...piInput, width: '100%', resize: 'vertical', lineHeight: 1.6 }} />
+        </div>
+
+        {/* Covoiturage */}
+        <div style={{ marginBottom: 18 }}>
+          <div style={piLabelRow}><Car size={14} color="#b8ef0b" /> <span style={piLabel}>Covoiturage</span></div>
+          <textarea value={practical.carpool || ''} onChange={e => setPI('carpool', e.target.value)} rows={2}
+            placeholder="Lien d'un groupe de covoiturage, point de rendez-vous, départ groupé…" style={{ ...piInput, width: '100%', resize: 'vertical', lineHeight: 1.6 }} />
+        </div>
+
+        {/* Bon à savoir */}
+        <div>
+          <div style={piLabelRow}><Info size={14} color="#b8ef0b" /> <span style={piLabel}>Bon à savoir</span></div>
+          <textarea value={practical.other || ''} onChange={e => setPI('other', e.target.value)} rows={2}
+            placeholder="Dress code, enfants bienvenus, météo, cadeaux…" style={{ ...piInput, width: '100%', resize: 'vertical', lineHeight: 1.6 }} />
+        </div>
+      </div>
+
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 20, flexWrap: 'wrap' }}>
         <button
           onClick={save} disabled={saving}
@@ -296,7 +388,7 @@ export default function FairepartSection({ ev, token }) {
       {/* Modal aperçu */}
       {showPreview && (
         <PreviewModal
-          title={title} subtitle={subtitle} message={message} ev={ev}
+          title={title} subtitle={subtitle} message={message} practical={practical} ev={ev}
           onClose={() => setShowPreview(false)}
         />
       )}

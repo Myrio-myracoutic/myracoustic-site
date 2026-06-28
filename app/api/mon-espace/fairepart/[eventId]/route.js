@@ -29,14 +29,15 @@ export async function POST(request, { params }) {
   const access = await verifyEventAccess(token, eventId);
   if (!access) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
 
-  const { title, subtitle, message, is_published } = await request.json();
+  const { title, subtitle, message, is_published, practical_info } = await request.json();
+
+  const row = { event_id: eventId, title, subtitle, message, is_published };
+  if (practical_info !== undefined && practical_info !== null && typeof practical_info === 'object')
+    row.practical_info = practical_info;
 
   const { data, error } = await supabaseAdmin
     .from('event_page')
-    .upsert(
-      { event_id: eventId, title, subtitle, message, is_published },
-      { onConflict: 'event_id' }
-    )
+    .upsert(row, { onConflict: 'event_id' })
     .select()
     .single();
 

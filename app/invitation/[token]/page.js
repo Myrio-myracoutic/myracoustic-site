@@ -3,6 +3,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { use } from 'react';
 import Image from 'next/image';
 import { Music2, Search, Plus, Check, X, Loader2, Play, Pause, CheckCircle2, Cake } from 'lucide-react';
+import PracticalInfoCards from '@/app/components/PracticalInfo';
 
 function fmtDate(d) {
   if (!d) return '';
@@ -649,6 +650,9 @@ export default function InvitationPage({ params }) {
           <MenuCard menu={menu} guest={guest} token={token}
             onUpdated={(mr) => setData(d => ({ ...d, guest: { ...d.guest, menu_response: mr } }))} />
         )}
+
+        {/* Infos pratiques (jour J) — masquées si l'invité ne vient pas */}
+        {guest.attending !== false && <PracticalInfoCards info={page?.practical_info} />}
 
         {/* Propositions de chansons — masquées si l'invité ne vient pas */}
         {playlists.length > 0 && guest.attending !== false && (

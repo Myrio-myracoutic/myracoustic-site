@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { use } from 'react';
 import Image from 'next/image';
-import { Music2, Search, Plus, Check, X, Loader2, Play, Pause, CheckCircle2 } from 'lucide-react';
+import { Music2, Search, Plus, Check, X, Loader2, Play, Pause, CheckCircle2, Cake } from 'lucide-react';
 
 function fmtDate(d) {
   if (!d) return '';
@@ -43,7 +43,7 @@ function RSVPCard({ guest, token, onUpdated }) {
 
       <div style={{ display: 'flex', gap: 10, marginBottom: attending ? 16 : 0 }}>
         {[true, false].map(val => (
-          <button key={String(val)} onClick={() => { setAttending(val); if (!val) save(val, 0, 0); }} style={{
+          <button key={String(val)} onClick={() => { setAttending(val); if (!val) save(val, 0, 0); }} className="mc-press" style={{
             flex: 1, padding: '12px', borderRadius: 10, cursor: 'pointer', border: 'none',
             background: attending === val
               ? (val ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.12)')
@@ -56,8 +56,10 @@ function RSVPCard({ guest, token, onUpdated }) {
               : '1px solid rgba(255,255,255,0.06)',
             fontWeight: attending === val ? 700 : 400, fontSize: 14,
             fontFamily: 'var(--font-display), sans-serif',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
           }}>
-            {val ? '✓ Je serai présent(e)' : '✗ Je ne pourrai pas venir'}
+            {val ? <Check size={15} strokeWidth={2.5} /> : <X size={15} strokeWidth={2.5} />}
+            {val ? 'Je serai présent(e)' : 'Je ne pourrai pas venir'}
           </button>
         ))}
       </div>
@@ -67,20 +69,20 @@ function RSVPCard({ guest, token, onUpdated }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', flex: 1 }}>Nombre d'adultes</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <button onClick={() => setAdults(a => Math.max(1, a - 1))} style={counterBtn}> - </button>
+              <button onClick={() => setAdults(a => Math.max(1, a - 1))} className="mc-press" style={counterBtn}> - </button>
               <span style={{ width: 24, textAlign: 'center', color: '#fff', fontWeight: 700 }}>{adults}</span>
-              <button onClick={() => setAdults(a => a + 1)} style={counterBtn}> + </button>
+              <button onClick={() => setAdults(a => a + 1)} className="mc-press" style={counterBtn}> + </button>
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', flex: 1 }}>Nombre d'enfants</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <button onClick={() => setChildren(c => Math.max(0, c - 1))} style={counterBtn}> - </button>
+              <button onClick={() => setChildren(c => Math.max(0, c - 1))} className="mc-press" style={counterBtn}> - </button>
               <span style={{ width: 24, textAlign: 'center', color: '#fff', fontWeight: 700 }}>{children}</span>
-              <button onClick={() => setChildren(c => c + 1)} style={counterBtn}> + </button>
+              <button onClick={() => setChildren(c => c + 1)} className="mc-press" style={counterBtn}> + </button>
             </div>
           </div>
-          <button onClick={() => save(true, adults, children)} disabled={saving} style={{
+          <button onClick={() => save(true, adults, children)} disabled={saving} className="mc-press" style={{
             alignSelf: 'flex-start', background: '#b8ef0b', color: '#060e16', border: 'none',
             borderRadius: 8, padding: '9px 20px', cursor: 'pointer', fontWeight: 800,
             fontSize: 13, fontFamily: 'var(--font-display), sans-serif', marginTop: 4,
@@ -95,8 +97,8 @@ function RSVPCard({ guest, token, onUpdated }) {
 }
 
 const counterBtn = {
-  width: 30, height: 30, borderRadius: 8, border: '1px solid rgba(255,255,255,0.1)',
-  background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.6)', cursor: 'pointer', fontSize: 16,
+  width: 38, height: 38, borderRadius: 10, border: '1px solid rgba(255,255,255,0.1)',
+  background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', fontSize: 18,
   display: 'flex', alignItems: 'center', justifyContent: 'center',
 };
 
@@ -109,13 +111,14 @@ function pillRow(opts, selected, onPick) {
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
       {opts.map(opt => (
-        <button key={opt} onClick={() => onPick(opt)} style={{
+        <button key={opt} onClick={() => onPick(opt)} className="mc-press" style={{
           fontSize: 13, padding: '8px 14px', borderRadius: 10, cursor: 'pointer', border: 'none',
           background: selected === opt ? 'rgba(184,239,11,0.15)' : 'rgba(255,255,255,0.05)',
           color: selected === opt ? '#b8ef0b' : 'rgba(255,255,255,0.55)',
           outline: selected === opt ? '1px solid rgba(184,239,11,0.35)' : '1px solid rgba(255,255,255,0.08)',
           fontWeight: selected === opt ? 700 : 400, fontFamily: 'var(--font-display), sans-serif',
-        }}>{selected === opt && '✓ '}{opt}</button>
+          display: 'inline-flex', alignItems: 'center', gap: 5,
+        }}>{selected === opt && <Check size={12} strokeWidth={2.5} />}{opt}</button>
       ))}
     </div>
   );
@@ -223,11 +226,11 @@ function MenuCard({ menu, guest, token, onUpdated }) {
         {/* Niveau tablée : gâteau (total) + un mot */}
         {menu.ask_cake && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, paddingTop: 4 }}>
-            <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.8)', fontWeight: 600, flex: 1 }}>🎂 Parts de gâteau (pour votre tablée)</span>
+            <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.8)', fontWeight: 600, flex: 1, display: 'inline-flex', alignItems: 'center', gap: 8 }}><Cake size={16} color="#b8ef0b" strokeWidth={1.5} /> Parts de gâteau (pour votre tablée)</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <button onClick={() => setCake(n => Math.max(0, (parseInt(n) || 0) - 1))} style={counterBtn}> - </button>
+              <button onClick={() => setCake(n => Math.max(0, (parseInt(n) || 0) - 1))} className="mc-press" style={counterBtn}> - </button>
               <span style={{ width: 24, textAlign: 'center', color: '#fff', fontWeight: 700 }}>{cake}</span>
-              <button onClick={() => setCake(n => (parseInt(n) || 0) + 1)} style={counterBtn}> + </button>
+              <button onClick={() => setCake(n => (parseInt(n) || 0) + 1)} className="mc-press" style={counterBtn}> + </button>
             </div>
           </div>
         )}
@@ -241,7 +244,7 @@ function MenuCard({ menu, guest, token, onUpdated }) {
         )}
       </div>
 
-      <button onClick={save} disabled={saving} style={{
+      <button onClick={save} disabled={saving} className="mc-press" style={{
         marginTop: 18, background: '#b8ef0b', color: '#060e16', border: 'none', borderRadius: 8,
         padding: '10px 22px', cursor: 'pointer', fontWeight: 800, fontSize: 13,
         fontFamily: 'var(--font-display), sans-serif', display: 'flex', alignItems: 'center', gap: 6,
@@ -415,7 +418,7 @@ function SongSearch({ playlistId, token, onAdded }) {
               display: 'flex', alignItems: 'center', gap: 10,
               padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.04)',
             }}>
-              <button onClick={() => togglePreview(track)} disabled={!track.preview} style={{
+              <button onClick={() => togglePreview(track)} disabled={!track.preview} className="mc-press" style={{
                 width: 30, height: 30, borderRadius: '50%', flexShrink: 0, border: 'none',
                 cursor: track.preview ? 'pointer' : 'not-allowed',
                 background: playingId === track.id ? '#b8ef0b' : 'rgba(184,239,11,0.12)',
@@ -426,7 +429,7 @@ function SongSearch({ playlistId, token, onAdded }) {
                   : <Play size={13} color="#b8ef0b" fill="#b8ef0b" style={{ marginLeft: 1 }} />
                 }
               </button>
-              <button onClick={() => propose(track)} disabled={adding === track.id} style={{
+              <button onClick={() => propose(track)} disabled={adding === track.id} className="mc-press" style={{
                 flex: 1, minWidth: 0, background: 'none', border: 'none', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left', padding: 0,
               }}>
@@ -578,7 +581,17 @@ export default function InvitationPage({ params }) {
     <div style={{ minHeight: '100vh', background: '#060e16', color: '#fff', fontFamily: 'var(--font-body), sans-serif' }}>
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes mcFadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
         * { box-sizing: border-box; }
+        .mc-press { transition: transform .12s ease, background-color .15s ease, color .15s ease, opacity .15s ease, border-color .15s ease; }
+        .mc-press:active:not(:disabled) { transform: scale(0.96); }
+        .mc-press:disabled { opacity: .6; }
+        .mc-fade { animation: mcFadeUp .45s cubic-bezier(0.22,1,0.36,1) both; }
+        @media (prefers-reduced-motion: reduce) {
+          .mc-fade { animation: none; }
+          .mc-press { transition: none; }
+          .mc-press:active:not(:disabled) { transform: none; }
+        }
       `}</style>
 
       {/* Header minimaliste */}
@@ -593,7 +606,7 @@ export default function InvitationPage({ params }) {
       </div>
 
       {/* Titre de l'événement */}
-      <div style={{
+      <div className="mc-fade" style={{
         borderBottom: '1px solid rgba(255,255,255,0.05)',
         padding: '28px 20px 24px',
         textAlign: 'center',
@@ -614,7 +627,7 @@ export default function InvitationPage({ params }) {
         </p>
       </div>
 
-      <div style={{ maxWidth: 560, margin: '0 auto', padding: '28px 20px 60px' }}>
+      <div className="mc-fade" style={{ maxWidth: 560, margin: '0 auto', padding: '28px 20px 60px' }}>
 
         {/* Faire-part si publié (message + sous-titre) */}
         {page && (page.subtitle || page.message) && (

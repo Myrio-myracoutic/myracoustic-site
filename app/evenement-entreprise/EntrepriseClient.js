@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Mic, Building2, BarChart3, Scissors, Rocket, Wine, Music, Volume2, Lightbulb, Monitor, SlidersHorizontal, Handshake, FileText, Shield, MapPin, ClipboardList } from 'lucide-react';
 import { AnimatedWave, SectionLabel } from '../components/AnimatedWave';
 import { FAQ_ITEMS } from './faq-data';
+import Reveal from '../components/Reveal';
 
 /* ─── Carte offre ─────────────────────────────────────────────── */
 function OfferCard({ icon: Icon, title, desc, tags }) {
@@ -233,7 +234,7 @@ export default function EntreprisesPage() {
 
       {/* ── TYPES D'ÉVÉNEMENTS ──────────────────────────────────── */}
       <section style={{ padding: 'clamp(56px,7vw,88px) 32px', background: '#060e16' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <Reveal style={{ maxWidth: 1280, margin: '0 auto' }}>
           <SectionLabel>Ce que nous accompagnons</SectionLabel>
           <h2 style={{
             fontFamily: 'var(--font-display), sans-serif',
@@ -244,12 +245,12 @@ export default function EntreprisesPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 18 }}>
             {EVENT_TYPES.map((o) => <OfferCard key={o.title} {...o} />)}
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* ── COORDINATION TECHNIQUE ──────────────────────────────── */}
       <section style={{ padding: 'clamp(56px,7vw,88px) 32px' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <Reveal style={{ maxWidth: 1280, margin: '0 auto' }}>
           <SectionLabel>Coordination technique</SectionLabel>
           <h2 style={{
             fontFamily: 'var(--font-display), sans-serif',
@@ -268,12 +269,12 @@ export default function EntreprisesPage() {
           }}>
             Vidéo uniquement via écran LED — pas de captation, pas de streaming.
           </p>
-        </div>
+        </Reveal>
       </section>
 
       {/* ── MÉTHODE ─────────────────────────────────────────────── */}
       <section style={{ padding: 'clamp(56px,7vw,88px) 32px', background: '#060e16' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <Reveal style={{ maxWidth: 1280, margin: '0 auto' }}>
           <SectionLabel>Notre méthode</SectionLabel>
           <h2 style={{
             fontFamily: 'var(--font-display), sans-serif',
@@ -297,12 +298,12 @@ export default function EntreprisesPage() {
               }}>{t}</span>
             ))}
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* ── CADRE PROFESSIONNEL ─────────────────────────────────── */}
       <section style={{ padding: 'clamp(56px,7vw,88px) 32px' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <Reveal style={{ maxWidth: 1280, margin: '0 auto' }}>
           <SectionLabel>Un cadre clair</SectionLabel>
           <h2 style={{
             fontFamily: 'var(--font-display), sans-serif',
@@ -319,12 +320,12 @@ export default function EntreprisesPage() {
           }}>
             {GUARANTEES.map((g) => <GuaranteeItem key={g.title} {...g} />)}
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* ── RÉFÉRENCE ───────────────────────────────────────────── */}
       <section style={{ padding: 'clamp(56px,7vw,88px) 32px' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <Reveal style={{ maxWidth: 1280, margin: '0 auto' }}>
           <SectionLabel>Références</SectionLabel>
           <h2 style={{
             fontFamily: 'var(--font-display), sans-serif',
@@ -401,12 +402,12 @@ export default function EntreprisesPage() {
               </a>
             </div>
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* ── FAQ ─────────────────────────────────────────────────── */}
       <section style={{ padding: 'clamp(56px,7vw,88px) 32px', background: '#060e16' }}>
-        <div style={{ maxWidth: 760, margin: '0 auto' }}>
+        <Reveal style={{ maxWidth: 760, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 40 }}>
             <SectionLabel style={{ justifyContent: 'center' }}>Questions fréquentes</SectionLabel>
             <h2 style={{
@@ -422,7 +423,7 @@ export default function EntreprisesPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {FAQ_ITEMS.map((item, i) => <FaqItem key={i} {...item} />)}
           </div>
-        </div>
+        </Reveal>
       </section>
 
     </div>

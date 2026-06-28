@@ -6,6 +6,7 @@ import { AnimatedWave, WaveBullet, SectionLabel } from '../components/AnimatedWa
 import { FAQ_ITEMS } from './faq-data';
 import TestimonialCard from '../components/TestimonialCard';
 import StatItem from '../components/StatItem';
+import Reveal from '../components/Reveal';
 
 /* ─── Bullet point avec onde ────────────────────────────────────── */
 function BulletItem({ children }) {
@@ -226,19 +227,19 @@ export default function ParticuliersPage() {
         background: '#060e16',
         borderBottom: '1px solid rgba(255,255,255,0.06)',
       }}>
-        <div style={{
+        <Reveal style={{
           maxWidth: 1280, margin: '0 auto',
           display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 32,
         }}>
           <StatItem value="26" suffix="+" label="Années d'expérience" />
           <StatItem value="1000" suffix="+" label="Événements réalisés" />
           <StatItem value="10" suffix="+" label="Premières parties de concert" />
-        </div>
+        </Reveal>
       </section>
 
       {/* ── SERVICES ────────────────────────────────────────────── */}
       <section style={{ padding: 'clamp(64px,8vw,96px) 32px' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <Reveal style={{ maxWidth: 1280, margin: '0 auto' }}>
           <SectionLabel>Nos prestations</SectionLabel>
           <h2 style={{
             fontFamily: 'var(--font-display), sans-serif',
@@ -249,7 +250,7 @@ export default function ParticuliersPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 18 }}>
             {SERVICES.map((s) => <ServiceDetailCard key={s.tag} {...s} />)}
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* ── CE QUE VOUS OBTENEZ ─────────────────────────────────── */}
@@ -263,7 +264,7 @@ export default function ParticuliersPage() {
           position: 'absolute', inset: 0, zIndex: 0,
           background: 'rgba(6,14,22,0.65)',
         }} />
-        <div style={{
+        <Reveal style={{
           position: 'relative', zIndex: 1,
           maxWidth: 1280, margin: '0 auto',
           display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))',
@@ -284,12 +285,12 @@ export default function ParticuliersPage() {
             backgroundImage: 'url(/ban_fête_myr.jpg)',
             backgroundSize: 'cover', backgroundPosition: 'center',
           }} />
-        </div>
+        </Reveal>
       </section>
 
       {/* ── TÉMOIGNAGES ─────────────────────────────────────────── */}
       <section style={{ padding: 'clamp(56px,7vw,88px) 32px' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <Reveal style={{ maxWidth: 1280, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 48 }}>
             <SectionLabel style={{ justifyContent: 'center' }}>Ils en parlent</SectionLabel>
             <h2 style={{
@@ -302,12 +303,12 @@ export default function ParticuliersPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 18 }}>
             {TESTIMONIALS.map((t, i) => <TestimonialCard key={i} {...t} />)}
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* ── FAQ ─────────────────────────────────────────────────── */}
       <section style={{ padding: 'clamp(56px,7vw,88px) 32px' }}>
-        <div style={{ maxWidth: 760, margin: '0 auto' }}>
+        <Reveal style={{ maxWidth: 760, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 40 }}>
             <SectionLabel style={{ justifyContent: 'center' }}>Questions fréquentes</SectionLabel>
             <h2 style={{
@@ -323,7 +324,7 @@ export default function ParticuliersPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {FAQ_ITEMS.map((item, i) => <FaqItem key={i} {...item} />)}
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* ── CTA FINAL ───────────────────────────────────────────── */}
@@ -332,6 +333,7 @@ export default function ParticuliersPage() {
         background: 'linear-gradient(135deg,#0d1b2a 0%,#1a2260 50%,#0d1b2a 100%)',
         borderTop: '1px solid rgba(184,239,11,0.18)',
       }}>
+        <Reveal>
         <AnimatedWave bars={48} height={50} style={{ maxWidth: 560, margin: '0 auto 28px' }} opacity={0.55} />
         <h2 style={{
           fontFamily: 'var(--font-display), sans-serif',
@@ -353,6 +355,7 @@ export default function ParticuliersPage() {
         >
           Calculer mon devis en ligne →
         </a>
+        </Reveal>
       </section>
 
     </div>

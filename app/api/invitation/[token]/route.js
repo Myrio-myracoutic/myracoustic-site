@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
+import { getEventGallery } from '@/app/lib/gallery';
 
 async function getGuest(token) {
   const { data } = await supabaseAdmin
@@ -48,6 +49,11 @@ export async function GET(request, { params }) {
 
   const menu = menuConfig?.is_active ? menuConfig : null;
 
+  // Galerie : visible aux invités si Myracoustic l'a publiée (requête séparée, comme côté admin)
+  const { data: evRow } = await supabaseAdmin
+    .from('events').select('gallery_published').eq('id', guest.event_id).single();
+  const gallery = evRow?.gallery_published ? await getEventGallery(guest.event_id) : [];
+
   return NextResponse.json({
     guest: {
       id: guest.id,
@@ -64,6 +70,7 @@ export async function GET(request, { params }) {
     page: page || null,
     practicalInfo,
     menu,
+    gallery,
   });
 }
 

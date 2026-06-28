@@ -6,6 +6,7 @@ import AdminGuestSection from './AdminGuestSection';
 import AdminMenuSection from './AdminMenuSection';
 import AdminPlanTableSection from './AdminPlanTableSection';
 import AdminProgrammeSection from './AdminProgrammeSection';
+import AdminGalerieSection from './AdminGalerieSection';
 import { Eye } from 'lucide-react';
 
 const STATUSES = {
@@ -243,6 +244,7 @@ export default function AdminDevisDetail() {
       <AdminGuestSection eventId={params.id} />
       <AdminMenuSection eventId={params.id} />
       <AdminPlanTableSection eventId={params.id} />
+      <AdminGalerieSection eventId={params.id} />
       <AdminPlaylistSection eventId={params.id} />
     </div>
   );

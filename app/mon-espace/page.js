@@ -394,7 +394,7 @@ export default function MonEspacePage() {
       case 'fairepart':   return <FairepartSection ev={ev} token={token} />;
       case 'preparation': return <PreparationSection ev={ev} token={token} />;
       case 'contact':     return <ContactSection />;
-      case 'galerie':     return <GalerieSection ev={ev} />;
+      case 'galerie':     return <GalerieSection ev={ev} token={token} />;
       case 'parametrage': return <ParametrageSection ev={ev} token={token} isOwner={!isCollaborator} isPro={client?.profil === 'professionnel' && (!isCollaborator || canSeeBilling)} />;
       default:            return null;
     }

@@ -4,6 +4,7 @@ import { use } from 'react';
 import Image from 'next/image';
 import { Music2, Search, Plus, Check, X, Loader2, Play, Pause, CheckCircle2, Cake } from 'lucide-react';
 import PracticalInfoCards from '@/app/components/PracticalInfo';
+import GalleryGrid from '@/app/components/GalleryGrid';
 
 function fmtDate(d) {
   if (!d) return '';
@@ -571,7 +572,7 @@ export default function InvitationPage({ params }) {
     </div>
   );
 
-  const { guest, event, eventTitle, playlists, page, practicalInfo, menu } = data;
+  const { guest, event, eventTitle, playlists, page, practicalInfo, menu, gallery } = data;
 
   // Titre affiché : faire-part title > event_type + date
   const displayTitle = eventTitle || (event
@@ -638,6 +639,19 @@ export default function InvitationPage({ params }) {
           }}>
             {page.subtitle && <p style={{ fontSize: 13, color: '#b8ef0b', margin: '0 0 12px', fontWeight: 600 }}>{page.subtitle}</p>}
             {page.message && <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)', lineHeight: 1.8, margin: 0 }}>{page.message}</p>}
+          </div>
+        )}
+
+        {/* Galerie photos — après l'événement, si publiée */}
+        {gallery && gallery.length > 0 && (
+          <div style={{ marginBottom: 24 }}>
+            <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 18, fontWeight: 800, color: '#fff', margin: '0 0 6px' }}>
+              Galerie photos
+            </h2>
+            <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, margin: '0 0 14px', lineHeight: 1.6 }}>
+              Revivez ce moment — cliquez sur une photo pour l'ouvrir en grand et la télécharger.
+            </p>
+            <GalleryGrid photos={gallery} />
           </div>
         )}
 

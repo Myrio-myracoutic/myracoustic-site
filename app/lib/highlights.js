@@ -12,9 +12,8 @@ export const LIGHT_MOODS = [
 export const EFFECTS = [
   { value: 'fumee',        label: 'Machine à fumée' },
   { value: 'fumee_lourde', label: 'Fumée lourde (au sol)' },
-  { value: 'jeux',         label: 'Jeux de lumière' },
-  { value: 'strobo',       label: 'Stroboscope' },
   { value: 'etincelles',   label: 'Étincelles froides' },
+  { value: 'confettis',    label: 'Confettis' },
 ];
 
 export const moodLabel   = (v) => LIGHT_MOODS.find(m => m.value === v)?.label || '';

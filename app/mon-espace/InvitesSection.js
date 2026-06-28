@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { Users, Plus, X, Mail, Trash2, RefreshCw, Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { Users, Plus, X, Mail, Trash2, RefreshCw, Check, ChevronDown, ChevronUp, BellRing, Send } from 'lucide-react';
 
 function fmtDate(d) {
   if (!d) return null;
@@ -295,6 +295,80 @@ function InviteForm({ playlists, token, eventId, onInvited }) {
   );
 }
 
+/* ── Panneau Relances RSVP ──────────────────────────────────────── */
+function RsvpReminderPanel({ ev, token, pendingCount, onReloaded }) {
+  const [enabled, setEnabled] = useState(ev.rsvp_reminder_enabled !== false);
+  const [busy, setBusy]       = useState(false);
+  const [msg, setMsg]         = useState('');
+
+  const toggle = async () => {
+    const next = !enabled;
+    setEnabled(next);
+    await fetch(`/api/mon-espace/rsvp-reminders/${ev.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ enabled: next }),
+    });
+  };
+
+  const relanceNow = async () => {
+    if (pendingCount === 0 || busy) return;
+    if (!confirm(`Envoyer une relance à ${pendingCount} invité${pendingCount > 1 ? 's' : ''} sans réponse ?`)) return;
+    setBusy(true); setMsg('');
+    const res  = await fetch(`/api/mon-espace/rsvp-reminders/${ev.id}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    });
+    const data = await res.json();
+    setBusy(false);
+    setMsg(res.ok ? `Relance envoyée à ${data.sent} invité${data.sent > 1 ? 's' : ''}.` : (data.error || 'Erreur'));
+    onReloaded?.();
+  };
+
+  return (
+    <div style={{ background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, padding: '16px 20px', marginBottom: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <BellRing size={16} color="#b8ef0b" style={{ flexShrink: 0 }} />
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.85)', fontFamily: 'var(--font-display), sans-serif' }}>Relances RSVP</div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>
+              {pendingCount > 0 ? `${pendingCount} invité${pendingCount > 1 ? 's' : ''} sans réponse` : 'Tout le monde a répondu'}
+            </div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <button onClick={toggle} title="Relance automatique 7 jours après l'invitation, une seule fois" style={{
+            display: 'inline-flex', alignItems: 'center', gap: 7,
+            background: enabled ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.05)',
+            border: `1px solid ${enabled ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.1)'}`,
+            borderRadius: 8, padding: '7px 12px', cursor: 'pointer',
+            color: enabled ? '#22c55e' : 'rgba(255,255,255,0.4)', fontSize: 12, fontWeight: 600,
+            fontFamily: 'var(--font-display), sans-serif',
+          }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: enabled ? '#22c55e' : 'rgba(255,255,255,0.3)' }} />
+            Auto {enabled ? 'activée' : 'désactivée'}
+          </button>
+          <button onClick={relanceNow} disabled={busy || pendingCount === 0} style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+            background: pendingCount === 0 ? 'rgba(255,255,255,0.05)' : '#b8ef0b',
+            color: pendingCount === 0 ? 'rgba(255,255,255,0.3)' : '#060e16',
+            border: 'none', borderRadius: 8, padding: '8px 14px',
+            cursor: pendingCount === 0 ? 'default' : 'pointer',
+            fontWeight: 700, fontSize: 12, fontFamily: 'var(--font-display), sans-serif', opacity: busy ? 0.7 : 1,
+          }}>
+            <Send size={13} /> {busy ? 'Envoi…' : 'Relancer maintenant'}
+          </button>
+        </div>
+      </div>
+      {msg && <div style={{ marginTop: 10, fontSize: 12, color: '#b8ef0b' }}>{msg}</div>}
+      <div style={{ marginTop: 10, fontSize: 11, color: 'rgba(255,255,255,0.3)', lineHeight: 1.5 }}>
+        Une relance automatique part 7 jours après l'invitation aux invités sans réponse (une seule fois). « Relancer maintenant » envoie un rappel immédiat à tous les non-répondants.
+      </div>
+    </div>
+  );
+}
+
 export default function InvitesSection({ ev, token }) {
   const [guests,    setGuests]    = useState([]);
   const [playlists, setPlaylists] = useState([]);
@@ -331,6 +405,7 @@ export default function InvitesSection({ ev, token }) {
   const totalAdults   = present.reduce((s, g) => s + (g.adults_count || 1), 0);
   const totalChildren = present.reduce((s, g) => s + (g.children_count || 0), 0);
   const pendingSuggestions = guests.reduce((s, g) => s + (g.suggestions?.pending || 0), 0);
+  const pendingCount = guests.filter(g => (g.attending === null || g.attending === undefined) && g.email).length;
 
   return (
     <div>
@@ -356,6 +431,11 @@ export default function InvitesSection({ ev, token }) {
             </div>
           ))}
         </div>
+      )}
+
+      {/* Relances RSVP */}
+      {guests.length > 0 && (
+        <RsvpReminderPanel ev={ev} token={token} pendingCount={pendingCount} onReloaded={load} />
       )}
 
       {/* Liste */}

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
+import { runRsvpReminders } from '@/app/lib/run-rsvp-reminders';
 
 export const dynamic = 'force-dynamic';
 
@@ -123,6 +124,11 @@ export async function GET(request) {
     }
   }
 
+  // P5 — relances RSVP greffées sur ce cron quotidien (limite de crons du plan Vercel gratuit).
+  // À déplacer vers son propre cron /api/cron/rsvp-reminder après passage à Vercel Pro.
+  let rsvp = { sent: 0 };
+  try { rsvp = await runRsvpReminders(); } catch (e) { rsvp = { sent: 0, error: e.message }; }
+
   // Date de demain
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -138,8 +144,8 @@ export async function GET(request) {
     .is('payment_reminder_sent_at', null)
     .not('qonto_quote_id', 'is', null);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  if (!events?.length) return NextResponse.json({ ok: true, sent: 0, message: 'Aucun événement demain' });
+  if (error) return NextResponse.json({ error: error.message, rsvp }, { status: 500 });
+  if (!events?.length) return NextResponse.json({ ok: true, sent: 0, message: 'Aucun événement demain', rsvp });
 
   // Récupérer toutes les factures Qonto une seule fois
   const invRes = await fetch(`${QONTO_BASE}/client_invoices?per_page=100`, { headers: qHeaders() });
@@ -197,5 +203,5 @@ export async function GET(request) {
   }
 
   const sent = results.filter(r => r.status === 'sent').length;
-  return NextResponse.json({ ok: true, sent, results });
+  return NextResponse.json({ ok: true, sent, results, rsvp });
 }

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
+import { Menu, X } from 'lucide-react';
 
 const LINKS = [
   { href: '/',              label: 'Accueil' },
@@ -94,10 +95,10 @@ export default function Nav() {
         <button
           className="hide-desktop"
           onClick={() => setOpen(!open)}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'white', fontSize: 22, padding: 4 }}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'white', padding: 4, display: 'flex', alignItems: 'center' }}
           aria-label="Menu"
         >
-          {open ? '✕' : '☰'}
+          {open ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
 

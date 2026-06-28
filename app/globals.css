@@ -106,6 +106,15 @@ img {
 }
 .btn-indigo:hover { opacity: 0.88; }
 
+/* Finition premium — retour de pression sur tous les CTA (charte préservée) */
+.btn-primary, .btn-secondary, .btn-indigo {
+  transition: opacity 0.2s, border-color 0.2s, background 0.2s, transform 0.12s ease;
+}
+.btn-primary:active, .btn-secondary:active, .btn-indigo:active { transform: scale(0.97); }
+@media (prefers-reduced-motion: reduce) {
+  .btn-primary:active, .btn-secondary:active, .btn-indigo:active { transform: none; }
+}
+
 /* Animation barre d'onde sonore */
 @keyframes waveBar {
   0%   { transform: scaleY(0.38); }

@@ -100,6 +100,158 @@ const counterBtn = {
   display: 'flex', alignItems: 'center', justifyContent: 'center',
 };
 
+const menuInput = {
+  width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+  borderRadius: 8, padding: '10px 14px', color: '#fff', fontSize: 14, fontFamily: 'inherit', outline: 'none',
+};
+
+function pillRow(opts, selected, onPick) {
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+      {opts.map(opt => (
+        <button key={opt} onClick={() => onPick(opt)} style={{
+          fontSize: 13, padding: '8px 14px', borderRadius: 10, cursor: 'pointer', border: 'none',
+          background: selected === opt ? 'rgba(184,239,11,0.15)' : 'rgba(255,255,255,0.05)',
+          color: selected === opt ? '#b8ef0b' : 'rgba(255,255,255,0.55)',
+          outline: selected === opt ? '1px solid rgba(184,239,11,0.35)' : '1px solid rgba(255,255,255,0.08)',
+          fontWeight: selected === opt ? 700 : 400, fontFamily: 'var(--font-display), sans-serif',
+        }}>{selected === opt && '✓ '}{opt}</button>
+      ))}
+    </div>
+  );
+}
+
+/* Construit la liste des convives à partir du RSVP (adultes + enfants), en préservant les réponses déjà saisies */
+function buildPeople(adults, children, existing = []) {
+  const prevAdults = existing.filter(p => p.kind === 'adult');
+  const prevChildren = existing.filter(p => p.kind === 'child');
+  const blank = (kind, prev = {}) => ({ kind, name: prev.name || '', choices: prev.choices || {}, dietary: prev.dietary || '', drink: prev.drink || '' });
+  const list = [];
+  for (let i = 0; i < adults; i++)   list.push(blank('adult', prevAdults[i]));
+  for (let i = 0; i < children; i++) list.push(blank('child', prevChildren[i]));
+  return list;
+}
+
+function MenuCard({ menu, guest, token, onUpdated }) {
+  const adults   = Math.max(1, guest.adults_count || 1);
+  const children = guest.children_count || 0;
+  const init = guest.menu_response || {};
+
+  const [people,  setPeople]  = useState(() => buildPeople(adults, children, init.people || []));
+  const [cake,    setCake]    = useState(init.cake ?? 0);
+  const [comment, setComment] = useState(init.comment || '');
+  const [saving,  setSaving]  = useState(false);
+  const [saved,   setSaved]   = useState(false);
+
+  // Si le couple/invité change le nombre d'adultes ou d'enfants au RSVP, on reconstruit en préservant les réponses
+  useEffect(() => {
+    setPeople(prev => buildPeople(adults, children, prev));
+  }, [adults, children]);
+
+  const setPerson = (idx, patch) => setPeople(ps => ps.map((p, i) => i === idx ? { ...p, ...patch } : p));
+  const pick = (idx, key, opt) => setPeople(ps => ps.map((p, i) => i === idx ? { ...p, choices: { ...p.choices, [key]: opt } } : p));
+
+  const save = async () => {
+    setSaving(true);
+    const menuResponse = { people, cake, comment };
+    await fetch(`/api/invitation/${token}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ menuResponse }),
+    });
+    setSaving(false); setSaved(true); setTimeout(() => setSaved(false), 2000);
+    onUpdated(menuResponse);
+  };
+
+  // Numérotation par type (Adulte 1, Adulte 2, Enfant 1…)
+  let aN = 0, cN = 0;
+  const labels = people.map(p => p.kind === 'adult' ? `Adulte ${++aN}` : `Enfant ${++cN}`);
+
+  return (
+    <div style={{
+      background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.08)',
+      borderRadius: 14, padding: '24px', marginBottom: 20,
+    }}>
+      <h3 style={{
+        fontFamily: 'var(--font-display), sans-serif', fontSize: 13, fontWeight: 700,
+        color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 6px',
+      }}>Votre repas</h3>
+      {menu.intro_text && <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.45)', margin: '0 0 6px', lineHeight: 1.6 }}>{menu.intro_text}</p>}
+      <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', margin: '0 0 18px' }}>
+        Un choix par personne — {adults} adulte{adults > 1 ? 's' : ''}{children > 0 ? ` et ${children} enfant${children > 1 ? 's' : ''}` : ''} ({people.length} au total).
+      </p>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {people.map((person, idx) => (
+          <div key={idx} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
+              <span style={{
+                fontSize: 12, fontWeight: 700, padding: '3px 10px', borderRadius: 10,
+                background: person.kind === 'adult' ? 'rgba(184,239,11,0.12)' : 'rgba(96,165,250,0.14)',
+                color: person.kind === 'adult' ? '#b8ef0b' : '#60a5fa',
+              }}>{labels[idx]}</span>
+              <input value={person.name} onChange={e => setPerson(idx, { name: e.target.value })} placeholder="Prénom (facultatif)"
+                style={{ flex: 1, minWidth: 120, background: 'none', border: 'none', borderBottom: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: 13, fontFamily: 'inherit', outline: 'none', padding: '4px 2px' }} />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {(menu.courses || []).map(c => (
+                <div key={c.key}>
+                  <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', fontWeight: 600, marginBottom: 8 }}>{c.label}</div>
+                  {pillRow(c.options || [], person.choices[c.key], opt => pick(idx, c.key, opt))}
+                </div>
+              ))}
+
+              {menu.ask_drinks && (menu.drink_options || []).length > 0 && (
+                <div>
+                  <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', fontWeight: 600, marginBottom: 8 }}>Boisson</div>
+                  {pillRow(menu.drink_options, person.drink, opt => setPerson(idx, { drink: opt }))}
+                </div>
+              )}
+
+              {menu.ask_dietary && (
+                <div>
+                  <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', fontWeight: 600, marginBottom: 8 }}>Allergies / régime alimentaire</div>
+                  <input value={person.dietary} onChange={e => setPerson(idx, { dietary: e.target.value })}
+                    placeholder="Ex. sans gluten… (laissez vide si rien)" style={menuInput} />
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+
+        {/* Niveau tablée : gâteau (total) + un mot */}
+        {menu.ask_cake && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, paddingTop: 4 }}>
+            <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.8)', fontWeight: 600, flex: 1 }}>🎂 Parts de gâteau (pour votre tablée)</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <button onClick={() => setCake(n => Math.max(0, (parseInt(n) || 0) - 1))} style={counterBtn}> - </button>
+              <span style={{ width: 24, textAlign: 'center', color: '#fff', fontWeight: 700 }}>{cake}</span>
+              <button onClick={() => setCake(n => (parseInt(n) || 0) + 1)} style={counterBtn}> + </button>
+            </div>
+          </div>
+        )}
+
+        {menu.ask_comment && (
+          <div>
+            <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.8)', fontWeight: 600, marginBottom: 8 }}>Un mot (facultatif)</div>
+            <textarea value={comment} onChange={e => setComment(e.target.value)} rows={2}
+              style={{ ...menuInput, resize: 'vertical' }} />
+          </div>
+        )}
+      </div>
+
+      <button onClick={save} disabled={saving} style={{
+        marginTop: 18, background: '#b8ef0b', color: '#060e16', border: 'none', borderRadius: 8,
+        padding: '10px 22px', cursor: 'pointer', fontWeight: 800, fontSize: 13,
+        fontFamily: 'var(--font-display), sans-serif', display: 'flex', alignItems: 'center', gap: 6,
+      }}>
+        {saved ? <><CheckCircle2 size={14} /> Enregistré</> : saving ? 'Enregistrement…' : 'Valider mes choix'}
+      </button>
+    </div>
+  );
+}
+
 function SongSearch({ playlistId, token, onAdded }) {
   const [query,     setQuery]     = useState('');
   const [results,   setResults]   = useState([]);
@@ -389,7 +541,7 @@ export default function InvitationPage({ params }) {
     </div>
   );
 
-  const { guest, event, eventTitle, playlists, page } = data;
+  const { guest, event, eventTitle, playlists, page, menu } = data;
 
   // Titre affiché : faire-part title > event_type + date
   const displayTitle = eventTitle || (event
@@ -451,6 +603,12 @@ export default function InvitationPage({ params }) {
 
         {/* RSVP */}
         <RSVPCard guest={guest} token={token} onUpdated={(upd) => setData(d => ({ ...d, guest: { ...d.guest, ...upd } }))} />
+
+        {/* Choix du menu — uniquement si activé par le couple et invité présent */}
+        {menu && guest.attending === true && (
+          <MenuCard menu={menu} guest={guest} token={token}
+            onUpdated={(mr) => setData(d => ({ ...d, guest: { ...d.guest, menu_response: mr } }))} />
+        )}
 
         {/* Propositions de chansons — masquées si l'invité ne vient pas */}
         {playlists.length > 0 && guest.attending !== false && (

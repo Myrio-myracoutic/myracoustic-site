@@ -36,6 +36,15 @@ export async function GET(request, { params }) {
 
   const page = eventPage?.is_published ? eventPage : null;
 
+  // Module menu : exposé à l'invité uniquement s'il est activé par le couple
+  const { data: menuConfig } = await supabaseAdmin
+    .from('event_menu_config')
+    .select('is_active, courses, ask_dietary, ask_cake, ask_drinks, drink_options, ask_comment, intro_text')
+    .eq('event_id', guest.event_id)
+    .maybeSingle();
+
+  const menu = menuConfig?.is_active ? menuConfig : null;
+
   return NextResponse.json({
     guest: {
       id: guest.id,
@@ -44,11 +53,13 @@ export async function GET(request, { params }) {
       adults_count: guest.adults_count,
       children_count: guest.children_count,
       max_songs: guest.max_songs,
+      menu_response: guest.menu_response || {},
     },
     event: guest.events,
     eventTitle: eventPage?.title || null,
     playlists,
     page: page || null,
+    menu,
   });
 }
 
@@ -58,11 +69,13 @@ export async function PATCH(request, { params }) {
   const guest = await getGuest(token);
   if (!guest) return NextResponse.json({ error: 'Invitation invalide' }, { status: 404 });
 
-  const { attending, adultsCount, childrenCount } = await request.json();
+  const { attending, adultsCount, childrenCount, menuResponse } = await request.json();
   const updates = { responded_at: new Date().toISOString() };
   if (attending     !== undefined) updates.attending      = attending;
   if (adultsCount   !== undefined) updates.adults_count   = adultsCount;
   if (childrenCount !== undefined) updates.children_count = childrenCount;
+  if (menuResponse  !== undefined && menuResponse !== null && typeof menuResponse === 'object')
+    updates.menu_response = menuResponse;
 
   await supabaseAdmin.from('event_guests').update(updates).eq('id', guest.id);
   return NextResponse.json({ ok: true });

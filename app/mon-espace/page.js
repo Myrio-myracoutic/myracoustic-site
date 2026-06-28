@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { supabase } from '@/app/lib/supabase';
 import {
   ClipboardList, Calendar, Music2, CheckSquare,
-  Phone, Camera, LogOut, ChevronDown, Users, Heart, Settings,
+  Phone, Camera, LogOut, ChevronDown, Users, Heart, Settings, UtensilsCrossed,
 } from 'lucide-react';
 
 import NotificationBell    from './NotificationBell';
@@ -17,6 +17,7 @@ import PreparationSection from './PreparationSection';
 import ContactSection, { FloatingContact } from './ContactSection';
 import GalerieSection from './GalerieSection';
 import InvitesSection from './InvitesSection';
+import MenuSection from './MenuSection';
 import FairepartSection from './FairepartSection';
 
 const STATUS_LABELS = {
@@ -46,6 +47,7 @@ function getSections(ev) {
     { id: 'programme',   label: 'Programme',     shortLabel: 'Prog.',    icon: Calendar,       locked: !active },
     { id: 'playlist',    label: 'Playlist',      shortLabel: 'Playlist', icon: Music2,         locked: !active },
     { id: 'invites',     label: 'Invités',       shortLabel: 'Invités',  icon: Users,          locked: !active },
+    { id: 'menu',        label: 'Menu & repas',  shortLabel: 'Menu',     icon: UtensilsCrossed, locked: !active },
     { id: 'fairepart',   label: 'Faire-part',    shortLabel: 'F.-part',  icon: Heart,          locked: !active },
     { id: 'preparation', label: 'Préparation',   shortLabel: 'Prép.',    icon: CheckSquare,    locked: !active },
     { id: 'contact',     label: 'Contact',       shortLabel: 'Contact',  icon: Phone,          locked: false },
@@ -223,6 +225,7 @@ function SectionTitle({ section }) {
     programme:   'Programme de votre événement',
     playlist:    'Vos playlists musicales',
     invites:     'Vos invités',
+    menu:        'Menu & repas',
     fairepart:   'Faire-part en ligne',
     preparation: 'Checklist de préparation',
     documents:   'Vos documents',
@@ -383,6 +386,7 @@ export default function MonEspacePage() {
       case 'programme':   return <ProgrammeSection ev={ev} token={token} client={client} />;
       case 'playlist':    return <PlaylistSection eventId={ev.id} token={token} onSuggestionActed={() => setNotifTick(n => n + 1)} isCollaborator={isCollaborator} />;
       case 'invites':     return <InvitesSection ev={ev} token={token} />;
+      case 'menu':        return <MenuSection ev={ev} token={token} />;
       case 'fairepart':   return <FairepartSection ev={ev} token={token} />;
       case 'preparation': return <PreparationSection ev={ev} token={token} />;
       case 'contact':     return <ContactSection />;

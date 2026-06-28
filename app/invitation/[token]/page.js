@@ -571,7 +571,7 @@ export default function InvitationPage({ params }) {
     </div>
   );
 
-  const { guest, event, eventTitle, playlists, page, menu } = data;
+  const { guest, event, eventTitle, playlists, page, practicalInfo, menu } = data;
 
   // Titre affiché : faire-part title > event_type + date
   const displayTitle = eventTitle || (event
@@ -651,8 +651,8 @@ export default function InvitationPage({ params }) {
             onUpdated={(mr) => setData(d => ({ ...d, guest: { ...d.guest, menu_response: mr } }))} />
         )}
 
-        {/* Infos pratiques (jour J) — masquées si l'invité ne vient pas */}
-        {guest.attending !== false && <PracticalInfoCards info={page?.practical_info} />}
+        {/* Infos pratiques (jour J) — visibles dès qu'elles sont remplies ; masquées si l'invité décline */}
+        {guest.attending !== false && <PracticalInfoCards info={practicalInfo} />}
 
         {/* Propositions de chansons — masquées si l'invité ne vient pas */}
         {playlists.length > 0 && guest.attending !== false && (

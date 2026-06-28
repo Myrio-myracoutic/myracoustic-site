@@ -36,6 +36,9 @@ export async function GET(request, { params }) {
 
   const page = eventPage?.is_published ? eventPage : null;
 
+  // Infos pratiques : visibles dès qu'elles sont remplies, indépendamment de la publication du faire-part
+  const practicalInfo = eventPage?.practical_info || null;
+
   // Module menu : exposé à l'invité uniquement s'il est activé par le couple
   const { data: menuConfig } = await supabaseAdmin
     .from('event_menu_config')
@@ -59,6 +62,7 @@ export async function GET(request, { params }) {
     eventTitle: eventPage?.title || null,
     playlists,
     page: page || null,
+    practicalInfo,
     menu,
   });
 }

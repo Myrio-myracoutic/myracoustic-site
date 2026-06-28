@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Building2, Calendar, PartyPopper, Volume2, Headphones, Lightbulb, Mic, Video, Wrench, MapPin, Mail, Send, Search, AlertTriangle, Car, SlidersHorizontal, Users, CreditCard, User, Heart, Gift } from 'lucide-react';
+import { Building2, Calendar, PartyPopper, Volume2, Headphones, Lightbulb, Mic, Video, Wrench, MapPin, Mail, Send, Search, AlertTriangle, Car, SlidersHorizontal, Users, CreditCard, User, Heart, Gift, Check, ClipboardList, X } from 'lucide-react';
 import { AnimatedWave } from './AnimatedWave';
 import { gtagEvent, gtagBeacon } from '../lib/gtag';
 
@@ -1147,8 +1147,8 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
             Détail de votre sélection
           </div>
           <button onClick={() => setShowDetailModal(false)} style={{
-            background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', fontSize: 20, cursor: 'pointer', lineHeight: 1, padding: 0,
-          }}>✕</button>
+            background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', lineHeight: 1, padding: 0, display: 'flex', alignItems: 'center',
+          }}><X size={20} /></button>
         </div>
         <BreakdownLines lines={lines} total={total} totalLabel={totalLabel} unit={unit} />
       </div>
@@ -1223,7 +1223,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
         )}
         {date && (
           <div style={{ margin: '12px 0', padding: '10px 14px', background: 'rgba(184,239,11,0.07)', border: '1px solid rgba(184,239,11,0.25)', borderRadius: 8, fontSize: 13, color: 'var(--lime)', fontFamily: 'var(--font-display), sans-serif', fontWeight: 600 }}>
-            ✓ Disponible — {new Date(date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+            <Check size={13} style={{ verticalAlign: '-2px' }} />{' '}Disponible — {new Date(date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </div>
         )}
         <BtnPrimary
@@ -1321,7 +1321,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
         <input type="tel" placeholder="Téléphone *" value={tel} onChange={e => setTel(e.target.value)}
           style={{ ...IS, marginBottom: 10 }} onFocus={fo} onBlur={bl} />
         {tel.trim() && !/^[0-9+\s().-]{6,}$/.test(tel) && (
-          <p style={{ color: '#ef4444', fontSize: 12, marginBottom: 10, textAlign: 'left' }}>⚠ Numéro invalide — chiffres uniquement</p>
+          <p style={{ color: '#ef4444', fontSize: 12, marginBottom: 10, textAlign: 'left' }}><AlertTriangle size={13} style={{ verticalAlign: '-2px' }} />{' '}Numéro invalide — chiffres uniquement</p>
         )}
 
         <input type="email" placeholder="votre@email.com" value={email}
@@ -1357,7 +1357,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
             </p>
             {resumeOffer.data?.date && bookedDates.has(resumeOffer.data.date) && (
               <div style={{ padding: '10px 12px', background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.28)', borderRadius: 8, fontSize: 12, color: '#f97316', lineHeight: 1.6, marginBottom: 16, textAlign: 'left' }}>
-                ⚠ La date que vous aviez choisie ({new Date(resumeOffer.data.date + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}) n'est plus disponible — vous pourrez en choisir une nouvelle en reprenant votre devis.
+                <AlertTriangle size={13} style={{ verticalAlign: '-2px' }} />{' '}La date que vous aviez choisie ({new Date(resumeOffer.data.date + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}) n'est plus disponible — vous pourrez en choisir une nouvelle en reprenant votre devis.
               </div>
             )}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -1393,8 +1393,10 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
           </div>
           {/* Date — lecture seule, choisie à l'étape 1 */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', background: date ? 'rgba(184,239,11,0.06)' : 'rgba(255,255,255,0.03)', border: `1px solid ${date ? 'rgba(184,239,11,0.18)' : 'rgba(255,255,255,0.08)'}`, borderRadius: 8, marginBottom: 16 }}>
-            <span style={{ fontSize: 13, color: date ? 'var(--lime)' : 'rgba(255,255,255,0.38)', fontFamily: 'var(--font-display), sans-serif', fontWeight: 600 }}>
-              {date ? `✓ ${new Date(date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}` : '📅 Date : à définir'}
+            <span style={{ fontSize: 13, color: date ? 'var(--lime)' : 'rgba(255,255,255,0.38)', fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              {date
+                ? <><Check size={13} /> {new Date(date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</>
+                : <><Calendar size={13} /> Date : à définir</>}
             </span>
             <button onClick={() => goStep(1)} style={{
               background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', fontSize: 12,
@@ -1474,7 +1476,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
           )}
           {lieu.trim() && !km && !kmLoading && (
             <p style={{ fontSize: 11, color: 'rgba(249,115,22,0.85)', marginTop: 10 }}>
-              ⚠ Cliquez sur "Estimer le trajet" pour valider l'adresse avant de continuer
+              <AlertTriangle size={13} style={{ verticalAlign: '-2px' }} />{' '}Cliquez sur "Estimer le trajet" pour valider l'adresse avant de continuer
             </p>
           )}
           {!lieu.trim() && (
@@ -1536,7 +1538,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
         <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
           <div>
             <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14, color: 'var(--lime)', marginBottom: 3 }}>
-              ✓ DJ professionnel inclus dans chaque prestation
+              <Check size={13} style={{ verticalAlign: '-2px' }} />{' '}DJ professionnel inclus dans chaque prestation
             </div>
             <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>
               Choisissez la durée selon votre événement — minimum {djCfg.minDur}h
@@ -1577,7 +1579,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
           <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14, color: 'var(--lime)', marginBottom: 3 }}>
-                ✓ Trajet jusqu'au lieu de votre événement
+                <Check size={13} style={{ verticalAlign: '-2px' }} />{' '}Trajet jusqu'au lieu de votre événement
               </div>
               <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>
                 Calculés selon la distance estimée — déjà inclus dans le tarif affiché ci-dessous
@@ -1593,7 +1595,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
         <PackBlock icon={Car} title="Frais de déplacement" badge="À DÉTERMINER" badgeColor="#f97316">
           <div style={{ padding: '14px 18px' }}>
             <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14, color: '#f97316', marginBottom: 3 }}>
-              ⚠ Distance hors zone ({km} km)
+              <AlertTriangle size={13} style={{ verticalAlign: '-2px' }} />{' '}Distance hors zone ({km} km)
             </div>
             <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>
               Non inclus dans le total ci-dessous — un conseiller vous proposera un tarif sur mesure.
@@ -1626,7 +1628,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
               transition: 'all 0.2s',
             }}>
             <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 14, marginBottom: 3 }}>
-              {needsMaterial === true ? '✓ ' : ''}Oui, qu'il amène tout
+              {needsMaterial === true && <><Check size={13} style={{ verticalAlign: '-2px' }} />{' '}</>}Oui, qu'il amène tout
             </div>
             <div style={{ fontSize: 11, color: needsMaterial === true ? 'rgba(184,239,11,0.6)' : 'rgba(255,255,255,0.35)' }}>À configurer juste après selon votre événement</div>
           </button>
@@ -1639,7 +1641,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
               transition: 'all 0.2s',
             }}>
             <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 14, marginBottom: 3 }}>
-              {needsMaterial === false ? '✓ ' : ''}Non, j'ai déjà mon matériel sur place
+              {needsMaterial === false && <><Check size={13} style={{ verticalAlign: '-2px' }} />{' '}</>}Non, j'ai déjà mon matériel sur place
             </div>
             <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>Le DJ utilise mon installation existante</div>
           </button>
@@ -1665,13 +1667,13 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
               onFocus={fo} />
             {nb > 0 && (
               <div style={{ fontSize: 12, color: 'var(--lime)', fontFamily: 'var(--font-display), sans-serif', fontWeight: 600 }}>
-                ✓ {nb.toLocaleString('fr-FR')} personnes
+                <Check size={13} style={{ verticalAlign: '-2px' }} />{' '}{nb.toLocaleString('fr-FR')} personnes
               </div>
             )}
           </div>
           {nb === 0 && (
             <p style={{ fontSize: 11, color: 'rgba(249,115,22,0.85)', marginBottom: 10 }}>
-              ⚠ Indiquez le nombre de personnes pour continuer (minimum 50)
+              <AlertTriangle size={13} style={{ verticalAlign: '-2px' }} />{' '}Indiquez le nombre de personnes pour continuer (minimum 50)
             </p>
           )}
           {nb > 100 && (
@@ -1687,7 +1689,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
                 <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
                     <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14, color: 'var(--lime)', marginBottom: 3 }}>
-                      ✓ {son.label} — forfait automatique
+                      <Check size={13} style={{ verticalAlign: '-2px' }} />{' '}{son.label} — forfait automatique
                     </div>
                     <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>
                       Système adapté à votre configuration · technicien inclus
@@ -1714,7 +1716,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
             <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
               <div>
                 <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14, color: 'var(--lime)', marginBottom: 3 }}>
-                  ✓ Mise en lumière piste de danse — machine à fumée incluse
+                  <Check size={13} style={{ verticalAlign: '-2px' }} />{' '}Mise en lumière piste de danse — machine à fumée incluse
                 </div>
                 <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>Inclus obligatoirement dans chaque prestation</div>
               </div>
@@ -1757,7 +1759,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
             <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14, color: 'var(--lime)', marginBottom: 3 }}>
-                  ✓ Montage et démontage du matériel sur place
+                  <Check size={13} style={{ verticalAlign: '-2px' }} />{' '}Montage et démontage du matériel sur place
                 </div>
                 <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>
                   Obligatoire dès que Myracoustic fournit le matériel
@@ -1822,7 +1824,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
         </BtnPrimary>
         {(!adresse || !cp || !ville) && (
           <p style={{ fontSize: 12, color: 'rgba(249,115,22,0.85)', marginTop: 6 }}>
-            ⚠ Champs obligatoires manquants : {[
+            <AlertTriangle size={13} style={{ verticalAlign: '-2px' }} />{' '}Champs obligatoires manquants : {[
               !adresse && 'Numéro et rue', !cp && 'Code postal', !ville && 'Ville',
             ].filter(Boolean).join(' · ')}
           </p>
@@ -1956,7 +1958,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
           </div>
           {isHorsZone && (
             <div style={{ padding: '10px 16px', borderTop: '1px solid rgba(255,255,255,0.05)', color: '#f97316', fontSize: 12, lineHeight: 1.6 }}>
-              ⚠ Hors frais de déplacement ({km} km · distance hors zone) — à déterminer par votre conseiller
+              <AlertTriangle size={13} style={{ verticalAlign: '-2px' }} />{' '}Hors frais de déplacement ({km} km · distance hors zone) — à déterminer par votre conseiller
             </div>
           )}
         </div>
@@ -1988,7 +1990,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
             background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
             borderRadius: 10, display: 'flex', gap: 12, alignItems: 'flex-start',
           }}>
-            <div style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>📋</div>
+            <div style={{ flexShrink: 0, marginTop: 1, color: 'var(--lime)' }}><ClipboardList size={18} strokeWidth={1.8} /></div>
             <div>
               <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 13, marginBottom: 5 }}>
                 Devis provisoire
@@ -2000,7 +2002,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
           </div>
         )}
         <div className="submit-cta-bar">
-          {qontoError && <p style={{ textAlign: 'center', color: '#ef4444', fontSize: 12, marginBottom: 8 }}>⚠ {qontoError}</p>}
+          {qontoError && <p style={{ textAlign: 'center', color: '#ef4444', fontSize: 12, marginBottom: 8 }}><AlertTriangle size={13} style={{ verticalAlign: '-2px' }} />{' '}{qontoError}</p>}
           <BtnPrimary onClick={submitDevisParticulier} disabled={qontoLoading} className="submit-devis-btn" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
             {qontoLoading ? 'Envoi en cours…' : <><Mail size={14} strokeWidth={2} /> {isHorsZone ? 'Recevoir mon devis sur-mesure' : 'Obtenir mon devis par e-mail'}</>}
           </BtnPrimary>
@@ -2072,13 +2074,13 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
             <div>
               <input type="tel" placeholder="Téléphone *" value={cibleTel} onChange={e => setCibleTel(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
               {cibleTel.trim() && !/^[0-9+\s().-]{6,}$/.test(cibleTel) && (
-                <p style={{ fontSize: 11, color: '#ef4444', marginTop: 6 }}>⚠ Numéro invalide — chiffres uniquement</p>
+                <p style={{ fontSize: 11, color: '#ef4444', marginTop: 6 }}><AlertTriangle size={13} style={{ verticalAlign: '-2px' }} />{' '}Numéro invalide — chiffres uniquement</p>
               )}
             </div>
             <div>
               <input type="email" placeholder="Email professionnel *" value={cibleEmail} onChange={e => setCibleEmail(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
               {cibleEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(cibleEmail) && (
-                <p style={{ fontSize: 11, color: '#ef4444', marginTop: 6 }}>⚠ Format attendu : nom@domaine.fr</p>
+                <p style={{ fontSize: 11, color: '#ef4444', marginTop: 6 }}><AlertTriangle size={13} style={{ verticalAlign: '-2px' }} />{' '}Format attendu : nom@domaine.fr</p>
               )}
             </div>
           </div>
@@ -2110,7 +2112,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
               <MiniCal selected={cibleDate} onSelect={setCibleDate} devisPending={pendingDates} bookedDates={bookedDates} yearsAhead={2} loading={availabilityLoading} />
               {cibleDate && (
                 <div style={{ marginTop: 8, fontSize: 12, color: 'var(--lime)', fontFamily: 'var(--font-display), sans-serif' }}>
-                  ✓ {new Date(cibleDate + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                  <Check size={13} style={{ verticalAlign: '-2px' }} />{' '}{new Date(cibleDate + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                 </div>
               )}
               {cibleDate && (pendingDates[cibleDate] ?? 0) > 0 && (
@@ -2120,7 +2122,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
               )}
               {!cibleDate && (
                 <p style={{ fontSize: 11, color: 'rgba(249,115,22,0.85)', marginTop: 8 }}>
-                  ⚠ Sélectionnez une date pour continuer
+                  <AlertTriangle size={13} style={{ verticalAlign: '-2px' }} />{' '}Sélectionnez une date pour continuer
                 </p>
               )}
             </div>
@@ -2185,12 +2187,12 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
           )}
           {cibleLieu.trim() && !cibleKm && !cibleKmLoading && (
             <p style={{ fontSize: 11, color: 'rgba(249,115,22,0.85)', marginTop: 10 }}>
-              ⚠ Cliquez sur "Estimer le trajet" pour valider l'adresse avant de continuer
+              <AlertTriangle size={13} style={{ verticalAlign: '-2px' }} />{' '}Cliquez sur "Estimer le trajet" pour valider l'adresse avant de continuer
             </p>
           )}
           {!cibleLieu.trim() && (
             <p style={{ fontSize: 11, color: 'rgba(249,115,22,0.85)', marginTop: 10 }}>
-              ⚠ Renseignez le lieu de votre événement pour continuer
+              <AlertTriangle size={13} style={{ verticalAlign: '-2px' }} />{' '}Renseignez le lieu de votre événement pour continuer
             </p>
           )}
         </div>
@@ -2294,7 +2296,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
             </div>
             {!cibleNb && (
               <p style={{ fontSize: 11, color: 'rgba(249,115,22,0.85)', marginTop: 10 }}>
-                ⚠ Indiquez le nombre de personnes pour estimer le pack adapté
+                <AlertTriangle size={13} style={{ verticalAlign: '-2px' }} />{' '}Indiquez le nombre de personnes pour estimer le pack adapté
               </p>
             )}
 
@@ -2400,7 +2402,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
           <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14, color: 'var(--lime)', marginBottom: 3 }}>
-                ✓ Montage et démontage du matériel sur place
+                <Check size={13} style={{ verticalAlign: '-2px' }} />{' '}Montage et démontage du matériel sur place
               </div>
               <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>
                 Inclus dès qu'au moins une prestation est sélectionnée
@@ -2419,7 +2421,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
           <div style={{ padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14, color: 'var(--lime)', marginBottom: 3 }}>
-                ✓ Trajet jusqu'au lieu de votre événement
+                <Check size={13} style={{ verticalAlign: '-2px' }} />{' '}Trajet jusqu'au lieu de votre événement
               </div>
               <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>
                 {cibleKm} km estimés — déjà inclus dans le tarif affiché ci-dessous
@@ -2436,7 +2438,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
         <PackBlock icon={Car} title="Frais de déplacement" badge="À DÉTERMINER" badgeColor="#f97316">
           <div style={{ padding: '14px 18px' }}>
             <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14, color: '#f97316', marginBottom: 3 }}>
-              ⚠ Distance hors zone ({cibleKm} km)
+              <AlertTriangle size={13} style={{ verticalAlign: '-2px' }} />{' '}Distance hors zone ({cibleKm} km)
             </div>
             <div style={{ color: 'rgba(255,255,255,0.35)', fontSize: 12 }}>
               Non inclus dans le total ci-dessous — un conseiller vous proposera un tarif sur mesure.
@@ -2545,7 +2547,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
               }}>
                 <div>
                   <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 14, color: 'var(--lime)', marginBottom: 4 }}>
-                    ✓ {entSelected.nom}
+                    <Check size={13} style={{ verticalAlign: '-2px' }} />{' '}{entSelected.nom}
                   </div>
                   <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', lineHeight: 1.8 }}>
                     SIRET {entSelected.siret || '—'}{entSelected.forme && ` · ${entSelected.forme}`}<br />
@@ -2581,7 +2583,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
                   </button>
                 </div>
 
-                {entErr && <p style={{ fontSize: 12, color: '#f97316', marginBottom: 12 }}>⚠ {entErr}</p>}
+                {entErr && <p style={{ fontSize: 12, color: '#f97316', marginBottom: 12 }}><AlertTriangle size={13} style={{ verticalAlign: '-2px' }} />{' '}{entErr}</p>}
 
                 {entResults.length > 0 && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
@@ -2626,7 +2628,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
 
           {cibleIsHorsZone && (
             <p style={{ fontSize: 12, color: '#f97316', lineHeight: 1.6, textAlign: 'center' }}>
-              ⚠ Hors frais de déplacement ({cibleKm} km · distance hors zone) — à déterminer par votre conseiller
+              <AlertTriangle size={13} style={{ verticalAlign: '-2px' }} />{' '}Hors frais de déplacement ({cibleKm} km · distance hors zone) — à déterminer par votre conseiller
             </p>
           )}
 
@@ -2658,7 +2660,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
             style={{ marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
             {qontoLoading ? 'Envoi en cours…' : <><Mail size={14} strokeWidth={2} /> {cibleIsHorsZone ? 'Recevoir mon devis sur-mesure' : 'Recevoir mon devis →'}</>}
           </BtnPrimary>
-          {qontoError && <p style={{ textAlign: 'center', color: '#ef4444', fontSize: 12, marginTop: 8 }}>⚠ {qontoError}</p>}
+          {qontoError && <p style={{ textAlign: 'center', color: '#ef4444', fontSize: 12, marginTop: 8 }}><AlertTriangle size={13} style={{ verticalAlign: '-2px' }} />{' '}{qontoError}</p>}
         </div>
       </div>
     );
@@ -2682,13 +2684,13 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
           <div>
             <input type="email" placeholder="Email professionnel *" value={proEmail} onChange={e => setProEmail(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
             {proEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(proEmail) && (
-              <p style={{ fontSize: 11, color: '#ef4444', marginTop: 6 }}>⚠ Format attendu : nom@domaine.fr</p>
+              <p style={{ fontSize: 11, color: '#ef4444', marginTop: 6 }}><AlertTriangle size={13} style={{ verticalAlign: '-2px' }} />{' '}Format attendu : nom@domaine.fr</p>
             )}
           </div>
           <div>
             <input type="tel" placeholder="Téléphone *" value={proTel} onChange={e => setProTel(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
             {proTel.trim() && !/^[0-9+\s().-]{6,}$/.test(proTel) && (
-              <p style={{ fontSize: 11, color: '#ef4444', marginTop: 6 }}>⚠ Numéro invalide — chiffres uniquement</p>
+              <p style={{ fontSize: 11, color: '#ef4444', marginTop: 6 }}><AlertTriangle size={13} style={{ verticalAlign: '-2px' }} />{' '}Numéro invalide — chiffres uniquement</p>
             )}
           </div>
         </div>
@@ -2763,7 +2765,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
           <BtnPrimary onClick={submitContactPro} disabled={!proType || !proPersonnes || qontoLoading} style={{ marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
             {qontoLoading ? 'Envoi en cours…' : <><Send size={14} strokeWidth={2} /> Envoyer ma demande de contact →</>}
           </BtnPrimary>
-          {qontoError && <p style={{ textAlign: 'center', color: '#ef4444', fontSize: 12, marginTop: 8 }}>⚠ {qontoError}</p>}
+          {qontoError && <p style={{ textAlign: 'center', color: '#ef4444', fontSize: 12, marginTop: 8 }}><AlertTriangle size={13} style={{ verticalAlign: '-2px' }} />{' '}{qontoError}</p>}
           <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.28)', fontSize: 12 }}>
             Notre équipe vous recontacte sous 24h ouvrées
           </p>

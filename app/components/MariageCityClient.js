@@ -5,6 +5,7 @@ import { Headphones, Mic, Lightbulb, Video } from 'lucide-react';
 import { AnimatedWave, WaveBullet, SectionLabel } from './AnimatedWave';
 import TestimonialCard from './TestimonialCard';
 import StatItem from './StatItem';
+import Reveal from './Reveal';
 
 function BulletItem({ children }) {
   return (
@@ -180,16 +181,16 @@ export default function MariageCityClient({ city }) {
 
       {/* ── STATS ───────────────────────────────────────────────── */}
       <section style={{ padding: '72px 32px', background: '#060e16', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 32 }}>
+        <Reveal style={{ maxWidth: 1280, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 32 }}>
           <StatItem value="26" suffix="+" label="Années d'expérience" />
           <StatItem value="200" suffix="+" label="Mariages animés" />
           <StatItem value={distance} suffix="" label={`de ${nom}`} />
-        </div>
+        </Reveal>
       </section>
 
       {/* ── SERVICES ────────────────────────────────────────────── */}
       <section style={{ padding: 'clamp(64px,8vw,96px) 32px' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <Reveal style={{ maxWidth: 1280, margin: '0 auto' }}>
           <SectionLabel>Nos prestations</SectionLabel>
           <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 700, marginBottom: 44 }}>
             Choisissez vos services
@@ -197,7 +198,7 @@ export default function MariageCityClient({ city }) {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 18 }}>
             {SERVICES.map((s) => <ServiceDetailCard key={s.tag} {...s} />)}
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* ── CE QUE VOUS OBTENEZ ─────────────────────────────────── */}
@@ -208,7 +209,7 @@ export default function MariageCityClient({ city }) {
         position: 'relative', overflow: 'hidden',
       }}>
         <div style={{ position: 'absolute', inset: 0, zIndex: 0, background: 'rgba(6,14,22,0.65)' }} />
-        <div style={{
+        <Reveal style={{
           position: 'relative', zIndex: 1, maxWidth: 1280, margin: '0 auto',
           display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: 48, alignItems: 'center',
         }}>
@@ -220,12 +221,12 @@ export default function MariageCityClient({ city }) {
             {INCLUDES.map((item, i) => <BulletItem key={i}>{item}</BulletItem>)}
           </div>
           <div style={{ borderRadius: 16, minHeight: 380, backgroundImage: 'url(/ban_fête_myr.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
-        </div>
+        </Reveal>
       </section>
 
       {/* ── TÉMOIGNAGES ─────────────────────────────────────────── */}
       <section style={{ padding: 'clamp(56px,7vw,88px) 32px' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <Reveal style={{ maxWidth: 1280, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 48 }}>
             <SectionLabel style={{ justifyContent: 'center' }}>Ils en parlent</SectionLabel>
             <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(24px,3.5vw,42px)', fontWeight: 700 }}>
@@ -235,12 +236,12 @@ export default function MariageCityClient({ city }) {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 18 }}>
             {TESTIMONIALS.map((t, i) => <TestimonialCard key={i} {...t} />)}
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* ── FAQ ─────────────────────────────────────────────────── */}
       <section style={{ padding: 'clamp(56px,7vw,88px) 32px' }}>
-        <div style={{ maxWidth: 760, margin: '0 auto' }}>
+        <Reveal style={{ maxWidth: 760, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 40 }}>
             <SectionLabel style={{ justifyContent: 'center' }}>Questions fréquentes</SectionLabel>
             <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(24px,3.5vw,42px)', fontWeight: 700, marginBottom: 12 }}>
@@ -250,7 +251,7 @@ export default function MariageCityClient({ city }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {faq.map((item, i) => <FaqItem key={i} {...item} />)}
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* ── CTA FINAL ───────────────────────────────────────────── */}
@@ -259,6 +260,7 @@ export default function MariageCityClient({ city }) {
         background: 'linear-gradient(135deg,#0d1b2a 0%,#1a0510 50%,#0d1b2a 100%)',
         borderTop: '1px solid rgba(184,239,11,0.18)',
       }}>
+        <Reveal>
         <AnimatedWave bars={48} height={50} style={{ maxWidth: 560, margin: '0 auto 28px' }} opacity={0.55} />
         <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(24px,3.5vw,44px)', fontWeight: 700, marginBottom: 12 }}>
           Disponible pour votre date à {nom} ?
@@ -277,6 +279,7 @@ export default function MariageCityClient({ city }) {
         >
           Calculer mon devis mariage →
         </a>
+        </Reveal>
       </section>
 
     </div>

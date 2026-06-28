@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Volume2, Lightbulb, Monitor, Music } from 'lucide-react';
 import { AnimatedWave, WaveBullet, SectionLabel } from '../components/AnimatedWave';
 import { FAQ_ITEMS } from './faq-data';
+import Reveal from '../components/Reveal';
 
 /* ─── Pilier prestation ───────────────────────────────────────── */
 function PillarCard({ icon: Icon, title, desc }) {
@@ -152,7 +153,7 @@ export default function SonorisationNantesClient() {
 
       {/* ── NOS PRESTATIONS ─────────────────────────────────────── */}
       <section style={{ padding: 'clamp(56px,7vw,88px) 32px', background: '#060e16' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <Reveal style={{ maxWidth: 1280, margin: '0 auto' }}>
           <SectionLabel>Nos prestations à Nantes</SectionLabel>
           <h2 style={{
             fontFamily: 'var(--font-display), sans-serif',
@@ -166,12 +167,12 @@ export default function SonorisationNantesClient() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 16 }}>
             {PILLARS.map((p) => <PillarCard key={p.title} {...p} />)}
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* ── ZONE D'INTERVENTION ─────────────────────────────────── */}
       <section style={{ padding: 'clamp(56px,7vw,88px) 32px' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <Reveal style={{ maxWidth: 1280, margin: '0 auto' }}>
           <SectionLabel>Zone d'intervention</SectionLabel>
           <h2 style={{
             fontFamily: 'var(--font-display), sans-serif',
@@ -194,12 +195,12 @@ export default function SonorisationNantesClient() {
               </div>
             ))}
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* ── POUR QUI ─────────────────────────────────────────────── */}
       <section style={{ padding: 'clamp(56px,7vw,88px) 32px', background: '#060e16' }}>
-        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
+        <Reveal style={{ maxWidth: 1280, margin: '0 auto' }}>
           <SectionLabel>Pour qui ?</SectionLabel>
           <h2 style={{
             fontFamily: 'var(--font-display), sans-serif',
@@ -223,12 +224,12 @@ export default function SonorisationNantesClient() {
               cta="Découvrir l'offre Entreprises →"
             />
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* ── FAQ ─────────────────────────────────────────────────── */}
       <section style={{ padding: 'clamp(56px,7vw,88px) 32px' }}>
-        <div style={{ maxWidth: 760, margin: '0 auto' }}>
+        <Reveal style={{ maxWidth: 760, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 40 }}>
             <SectionLabel style={{ justifyContent: 'center' }}>Questions fréquentes</SectionLabel>
             <h2 style={{
@@ -241,7 +242,7 @@ export default function SonorisationNantesClient() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {FAQ_ITEMS.map((item, i) => <FaqItem key={i} {...item} />)}
           </div>
-        </div>
+        </Reveal>
       </section>
 
     </div>

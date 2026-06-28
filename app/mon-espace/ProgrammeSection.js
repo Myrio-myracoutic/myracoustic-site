@@ -223,7 +223,7 @@ function ItemRow({ item, allPlaylists, token, onDelete, onUpdate }) {
             <Sparkles size={14} color="#a78bfa" style={{ flexShrink: 0, marginTop: 1 }} />
             <div>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#a78bfa', marginBottom: 3, letterSpacing: '0.05em' }}>
-                ✨ ANIMATION MYRACOUSTIC
+                ANIMATION MYRACOUSTIC
               </div>
               <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>
                 {item.secret_animation}
@@ -457,7 +457,7 @@ export default function ProgrammeSection({ ev, token, client }) {
           • <strong>Instructions</strong> : notes internes pour chaque étape — visible dans le PDF distribué aux prestataires<br />
           • <strong>Liez une playlist</strong> à chaque moment pour indiquer la musique prévue<br />
           {hasSecret && (
-            <>• <strong style={{ color: '#a78bfa' }}>✨ Animation Myracoustic</strong> : votre prestataire a préparé une surprise pour certaines étapes — les détails apparaissent quand ils décident de vous les révéler<br /></>
+            <>• <Sparkles size={12} color="#a78bfa" style={{ verticalAlign: '-1px' }} /> <strong style={{ color: '#a78bfa' }}>Animation Myracoustic</strong> : votre prestataire a préparé une surprise pour certaines étapes — les détails apparaissent quand ils décident de vous les révéler<br /></>
           )}
         </div>
       )}

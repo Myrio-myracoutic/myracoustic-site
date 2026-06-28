@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { LayoutGrid, Plus, X, Trash2, Pencil, Check, Users, ArrowRightLeft } from 'lucide-react';
+import { LayoutGrid, Plus, X, Trash2, Pencil, Check, Users, ArrowRightLeft, AlertTriangle } from 'lucide-react';
 
 const card = {
   background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.07)',
@@ -303,7 +303,7 @@ export default function PlanTableSection({ ev, token }) {
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 700, color: over ? '#f59e0b' : '#b8ef0b' }}>
                   <Users size={12} /> {occ.length}/{t.capacity}
                 </span>
-                {over && <span style={{ fontSize: 11, color: '#f59e0b' }}>⚠ table pleine</span>}
+                {over && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#f59e0b' }}><AlertTriangle size={11} strokeWidth={2} /> table pleine</span>}
                 <span onClick={e => e.stopPropagation()} style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'rgba(255,255,255,0.3)' }}>
                   Capacité
                   <input type="number" min={1} max={50} value={t.capacity} onClick={e => e.stopPropagation()}

@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { UtensilsCrossed, Plus, X, Trash2, Check, FileDown, ChevronDown, ChevronUp } from 'lucide-react';
+import { UtensilsCrossed, Plus, X, Trash2, Check, FileDown, ChevronDown, ChevronUp, Wine, AlertTriangle, Cake } from 'lucide-react';
 import { printMenu } from '@/app/lib/menu-pdf';
 
 /* Génère une clé stable pour un plat */
@@ -411,13 +411,13 @@ function Responses({ courses, askDietary, askCake, askDrinks, askComment, presen
                             {c.label} : {p.choices[c.key]}
                           </span>
                         ))}
-                        {p.drink && <span style={{ fontSize: 12, padding: '2px 10px', borderRadius: 10, background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.6)' }}>🥂 {p.drink}</span>}
-                        {p.dietary && <span style={{ fontSize: 12, padding: '2px 10px', borderRadius: 10, background: 'rgba(245,158,11,0.12)', color: '#f59e0b' }}>⚠ {p.dietary}</span>}
+                        {p.drink && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, padding: '2px 10px', borderRadius: 10, background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.6)' }}><Wine size={11} strokeWidth={1.8} /> {p.drink}</span>}
+                        {p.dietary && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, padding: '2px 10px', borderRadius: 10, background: 'rgba(245,158,11,0.12)', color: '#f59e0b' }}><AlertTriangle size={11} strokeWidth={2} /> {p.dietary}</span>}
                       </div>
                     ))}
                     {(r.cake != null && parseInt(r.cake) > 0) || r.comment ? (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
-                        {r.cake != null && parseInt(r.cake) > 0 && <span style={{ fontSize: 12, padding: '2px 10px', borderRadius: 10, background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.6)' }}>🎂 {r.cake} part{parseInt(r.cake) > 1 ? 's' : ''}</span>}
+                        {r.cake != null && parseInt(r.cake) > 0 && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, padding: '2px 10px', borderRadius: 10, background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.6)' }}><Cake size={11} strokeWidth={1.8} /> {r.cake} part{parseInt(r.cake) > 1 ? 's' : ''}</span>}
                         {r.comment && <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', fontStyle: 'italic' }}>« {r.comment} »</span>}
                       </div>
                     ) : null}

@@ -690,7 +690,7 @@ function PlaylistCard({ playlist, token, onRefresh }) {
               <Gift size={16} color="#a78bfa" style={{ flexShrink: 0, marginTop: 1 }} />
               <div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: '#a78bfa', marginBottom: 3 }}>
-                  🎁 Playlist surprise
+                  Playlist surprise
                 </div>
                 <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', lineHeight: 1.6 }}>
                   Cette playlist est <strong style={{ color: 'rgba(255,255,255,0.75)' }}>invisible pour les mariés</strong>.
@@ -827,7 +827,7 @@ function CreatePlaylistForm({ eventId, token, onCreated, isCollaborator }) {
           >
             <Gift size={13} />
             <span style={{ fontWeight: isSurprise ? 700 : 400 }}>
-              {isSurprise ? '🎁 Playlist surprise activée' : 'Rendre cette playlist secrète (surprise)'}
+              {isSurprise ? 'Playlist surprise activée' : 'Rendre cette playlist secrète (surprise)'}
             </span>
           </button>
           {isSurprise && (
@@ -836,7 +836,7 @@ function CreatePlaylistForm({ eventId, token, onCreated, isCollaborator }) {
               background: 'rgba(139,92,246,0.07)', border: '1px solid rgba(139,92,246,0.15)',
               borderRadius: 6, padding: '8px 12px', lineHeight: 1.6,
             }}>
-              🎁 <strong style={{ color: '#a78bfa' }}>Mode surprise activé</strong> — Cette playlist sera
+              <Gift size={12} color="#a78bfa" style={{ verticalAlign: '-1px' }} /> <strong style={{ color: '#a78bfa' }}>Mode surprise activé</strong> — Cette playlist sera
               <strong> invisible pour les mariés</strong>. Seuls vous et Myracoustic pourrez la voir et la télécharger.
               Parfait pour préparer une animation ou une entrée musicale en toute discrétion !
             </div>

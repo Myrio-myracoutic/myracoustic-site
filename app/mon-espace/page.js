@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { supabase } from '@/app/lib/supabase';
 import {
   ClipboardList, Calendar, Music2, CheckSquare,
-  Phone, Camera, LogOut, ChevronDown, Users, Heart, Settings, UtensilsCrossed, LayoutGrid,
+  Phone, Camera, LogOut, ChevronDown, Users, Heart, Settings, UtensilsCrossed, LayoutGrid, Lock,
 } from 'lucide-react';
 
 import NotificationBell    from './NotificationBell';
@@ -132,7 +132,7 @@ function Sidebar({ sections, active, onSelect, client, ev, events, onEventChange
               <sec.icon size={16} strokeWidth={isActive ? 2 : 1.5} style={{ flexShrink: 0 }} />
               <span>{sec.label}</span>
               {sec.locked && (
-                <span style={{ marginLeft: 'auto', fontSize: 10, color: 'rgba(255,255,255,0.15)' }}>🔒</span>
+                <Lock size={11} style={{ marginLeft: 'auto', color: 'rgba(255,255,255,0.18)', flexShrink: 0 }} />
               )}
             </button>
           );
@@ -430,6 +430,21 @@ export default function MonEspacePage() {
           .floating-contact { bottom: 80px; right: 16px; }
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Finition premium — pression sur les boutons + fondu de section (charte préservée) */
+        @keyframes mcFadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+        .mc-fade { animation: mcFadeUp .4s cubic-bezier(0.22,1,0.36,1) both; }
+        .espace-main button:not(:disabled),
+        .espace-sidebar nav button:not(:disabled),
+        .espace-bottom-nav button:not(:disabled) { transition: transform .12s ease, background-color .15s ease, color .15s ease, border-color .15s ease; }
+        .espace-main button:not(:disabled):active,
+        .espace-sidebar nav button:not(:disabled):active,
+        .espace-bottom-nav button:not(:disabled):active { transform: scale(0.97); }
+        @media (prefers-reduced-motion: reduce) {
+          .mc-fade { animation: none; }
+          .espace-main button, .espace-sidebar nav button, .espace-bottom-nav button { transition: none !important; }
+          .espace-main button:active, .espace-sidebar nav button:active, .espace-bottom-nav button:active { transform: none !important; }
+        }
       `}</style>
 
       {/* Sidebar desktop */}
@@ -470,8 +485,10 @@ export default function MonEspacePage() {
           </div>
         )}
 
-        <SectionTitle section={section} />
-        {renderSection()}
+        <div key={section} className="mc-fade">
+          <SectionTitle section={section} />
+          {renderSection()}
+        </div>
       </main>
 
       {/* Bottom nav mobile */}

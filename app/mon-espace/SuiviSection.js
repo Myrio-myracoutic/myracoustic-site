@@ -456,7 +456,7 @@ export default function SuiviSection({ ev, token }) {
                   <StatLine label="Titres ajoutés"  value={totalTracks || '—'} />
                   <StatLine label="Playlists"        value={playlists.length || '—'} />
                   {pendingTotal > 0 && (
-                    <StatLine label="À valider" value={`${pendingTotal} 🔴`} color="#f59e0b" />
+                    <StatLine label="À valider" value={<span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>{pendingTotal}<span style={{ width: 7, height: 7, borderRadius: '50%', background: '#f59e0b', display: 'inline-block' }} /></span>} color="#f59e0b" />
                   )}
                 </div>
 

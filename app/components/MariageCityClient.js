@@ -6,6 +6,8 @@ import { AnimatedWave, WaveBullet, SectionLabel } from './AnimatedWave';
 import TestimonialCard from './TestimonialCard';
 import StatItem from './StatItem';
 import Reveal from './Reveal';
+import FormulesSection from './FormulesSection';
+import PlateformeSection from './PlateformeSection';
 
 function BulletItem({ children }) {
   return (
@@ -188,18 +190,9 @@ export default function MariageCityClient({ city }) {
         </Reveal>
       </section>
 
-      {/* ── SERVICES ────────────────────────────────────────────── */}
-      <section style={{ padding: 'clamp(64px,8vw,96px) 32px' }}>
-        <Reveal style={{ maxWidth: 1280, margin: '0 auto' }}>
-          <SectionLabel>Nos prestations</SectionLabel>
-          <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 700, marginBottom: 44 }}>
-            Choisissez vos services
-          </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: 18 }}>
-            {SERVICES.map((s) => <ServiceDetailCard key={s.tag} {...s} />)}
-          </div>
-        </Reveal>
-      </section>
+      {/* ── FORMULES + VITRINE PLATEFORME ───────────────────────── */}
+      <FormulesSection />
+      <PlateformeSection />
 
       {/* ── CE QUE VOUS OBTENEZ ─────────────────────────────────── */}
       <section style={{

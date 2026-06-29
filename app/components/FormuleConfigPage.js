@@ -2,7 +2,7 @@
 import { useState, useEffect, useMemo, Fragment } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, ArrowRight, Check, CheckCircle2, Loader2, Plus, Minus, SlidersHorizontal, CreditCard } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, CheckCircle2, Loader2, Plus, Minus, SlidersHorizontal, CreditCard, Phone } from 'lucide-react';
 import { FORMULES, fmtPrice, EXTRA_HOUR_PRICE } from '../lib/formules';
 import AddressAutocomplete from './AddressAutocomplete';
 import MiniCal from './MiniCal';
@@ -201,7 +201,7 @@ function Configurator({ formule }) {
           <CheckCircle2 size={52} color="#b8ef0b" style={{ margin: '0 auto 20px' }} />
           <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 26, fontWeight: 800, marginBottom: 12 }}>Votre devis est en route !</h1>
           <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 15, lineHeight: 1.7, marginBottom: 24 }}>
-            Vous allez recevoir votre devis <strong style={{ color: '#fff' }}>Formule {formule.name}</strong> par email, et l'accès à votre <strong style={{ color: '#fff' }}>espace de mariage en ligne</strong> pour tout organiser. Première connexion : utilisez l'email reçu.
+            Vous allez recevoir votre devis <strong style={{ color: '#fff' }}>Formule {formule.name}</strong> par email, et l'accès à votre <strong style={{ color: '#fff' }}>espace de mariage en ligne</strong>. <strong style={{ color: 'var(--lime)' }}>Un conseiller vous appellera sous 24h</strong> pour le finaliser avec vous. Première connexion à l'espace : utilisez l'email reçu.
           </p>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link href="/mon-espace/connexion" className="btn-primary">Accéder à mon espace client</Link>
@@ -334,7 +334,12 @@ function Configurator({ formule }) {
               </p>
               {error && <p style={{ color: '#ef4444', fontSize: 14, marginTop: 10 }}>{error}</p>}
 
-              <div style={{ marginTop: 22, display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+              <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 7, fontSize: 12.5, color: 'rgba(255,255,255,0.55)' }}>
+                <Phone size={13} color="var(--lime)" style={{ flexShrink: 0 }} />
+                <span>Après envoi, <strong style={{ color: 'rgba(255,255,255,0.8)' }}>un conseiller vous rappelle sous 24h</strong> pour finaliser votre devis.</span>
+              </div>
+
+              <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                 <button onClick={back} className="btn-secondary"><ArrowLeft size={16} /> Retour</button>
                 <button onClick={submit} disabled={sending} className="btn-primary" style={{ opacity: sending ? 0.6 : 1 }}>
                   {sending ? <><Loader2 size={15} style={{ animation: 'spin 0.8s linear infinite' }} /> Envoi…</> : 'Confirmer et recevoir mon devis →'}

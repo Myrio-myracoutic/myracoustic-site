@@ -84,6 +84,37 @@ function getSections(ev) {
 function Sidebar({ sections, active, onSelect, client, ev, events, onEventChange, onLogout, token, onNavigate, refreshTrigger }) {
   const st = ev ? (STATUS_LABELS[ev.status] || STATUS_LABELS.devis_envoye) : null;
 
+  const mainSections   = sections.filter(s => s.id !== 'contact');
+  const contactSection = sections.find(s => s.id === 'contact');
+
+  const renderNavBtn = (sec) => {
+    const isAct = sec.id === active;
+    return (
+      <button
+        key={sec.id}
+        onClick={() => !sec.locked && onSelect(sec.id)}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+          padding: '10px 12px', borderRadius: 8, marginBottom: 2, border: 'none',
+          background: isAct ? 'rgba(184,239,11,0.1)' : 'transparent',
+          color: sec.locked ? 'rgba(255,255,255,0.2)'
+            : isAct ? '#b8ef0b' : 'rgba(255,255,255,0.55)',
+          cursor: sec.locked ? 'default' : 'pointer',
+          textAlign: 'left', transition: 'all 0.15s',
+          fontFamily: 'var(--font-display), sans-serif', fontSize: 13, fontWeight: isAct ? 700 : 500,
+        }}
+        onMouseEnter={e => { if (!sec.locked && !isAct) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
+        onMouseLeave={e => { if (!sec.locked && !isAct) e.currentTarget.style.background = 'transparent'; }}
+      >
+        <sec.icon size={16} strokeWidth={isAct ? 2 : 1.5} style={{ flexShrink: 0 }} />
+        <span>{sec.label}</span>
+        {(sec.locked || sec.formuleLocked) && (
+          <Lock size={11} style={{ marginLeft: 'auto', color: sec.formuleLocked ? 'rgba(184,239,11,0.4)' : 'rgba(255,255,255,0.18)', flexShrink: 0 }} />
+        )}
+      </button>
+    );
+  };
+
   return (
     <aside className="espace-sidebar">
       {/* Logo */}
@@ -130,46 +161,21 @@ function Sidebar({ sections, active, onSelect, client, ev, events, onEventChange
         ) : null}
       </div>
 
-      {/* Nav */}
+      {/* Nav principale */}
       <nav style={{ padding: '12px 10px', flex: 1 }}>
-        {sections.map(sec => {
-          const isActive = sec.id === active;
-          return (
-            <button
-              key={sec.id}
-              onClick={() => !sec.locked && onSelect(sec.id)}
-              style={{
-                width: '100%', display: 'flex', alignItems: 'center', gap: 10,
-                padding: '10px 12px', borderRadius: 8, marginBottom: 2, border: 'none',
-                background: isActive ? 'rgba(184,239,11,0.1)' : 'transparent',
-                color: sec.locked ? 'rgba(255,255,255,0.2)'
-                  : isActive ? '#b8ef0b' : 'rgba(255,255,255,0.55)',
-                cursor: sec.locked ? 'default' : 'pointer',
-                textAlign: 'left', transition: 'all 0.15s',
-                fontFamily: 'var(--font-display), sans-serif', fontSize: 13, fontWeight: isActive ? 700 : 500,
-              }}
-              onMouseEnter={e => { if (!sec.locked && !isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
-              onMouseLeave={e => { if (!sec.locked && !isActive) e.currentTarget.style.background = 'transparent'; }}
-            >
-              <sec.icon size={16} strokeWidth={isActive ? 2 : 1.5} style={{ flexShrink: 0 }} />
-              <span>{sec.label}</span>
-              {(sec.locked || sec.formuleLocked) && (
-                <Lock size={11} style={{ marginLeft: 'auto', color: sec.formuleLocked ? 'rgba(184,239,11,0.4)' : 'rgba(255,255,255,0.18)', flexShrink: 0 }} />
-              )}
-            </button>
-          );
-        })}
+        {mainSections.map(sec => renderNavBtn(sec))}
       </nav>
 
-      {/* Déconnexion */}
-      <div style={{ padding: '12px 10px', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+      {/* Contact + Déconnexion — tout en bas */}
+      <div style={{ padding: '8px 10px', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+        {contactSection && renderNavBtn(contactSection)}
         <button
           onClick={onLogout}
           style={{
             width: '100%', display: 'flex', alignItems: 'center', gap: 10,
             padding: '10px 12px', borderRadius: 8, border: 'none', background: 'transparent',
             color: 'rgba(255,255,255,0.25)', cursor: 'pointer', fontSize: 13,
-            fontFamily: 'inherit',
+            fontFamily: 'inherit', marginTop: 2,
           }}
           onMouseEnter={e => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.background = 'rgba(239,68,68,0.06)'; }}
           onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.25)'; e.currentTarget.style.background = 'transparent'; }}

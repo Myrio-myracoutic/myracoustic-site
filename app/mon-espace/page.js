@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { supabase } from '@/app/lib/supabase';
 import {
   ClipboardList, Calendar, Music2, CheckSquare,
-  Phone, Camera, LogOut, ChevronDown, Users, Heart, Settings, UtensilsCrossed, LayoutGrid, Lock,
+  Phone, Camera, LogOut, ChevronDown, Users, Heart, Settings, UtensilsCrossed, LayoutGrid, Lock, MoreHorizontal,
 } from 'lucide-react';
 
 import NotificationBell    from './NotificationBell';
@@ -56,13 +56,13 @@ function getSections(ev) {
 
   const base = [
     { id: 'suivi',       label: 'Vue d\'ensemble', shortLabel: 'Accueil',  icon: ClipboardList,  locked: false },
+    { id: 'preparation', label: 'Préparation',   shortLabel: 'Prép.',    icon: CheckSquare,    locked: !active },
     { id: 'programme',   label: 'Programme',     shortLabel: 'Prog.',    icon: Calendar,       locked: !active },
     { id: 'playlist',    label: 'Playlist',      shortLabel: 'Playlist', icon: Music2,         locked: !active },
     { id: 'invites',     label: 'Invités',       shortLabel: 'Invités',  icon: Users,          locked: !active },
     { id: 'menu',        label: 'Menu & repas',  shortLabel: 'Menu',     icon: UtensilsCrossed, locked: !active },
     { id: 'plantable',   label: 'Plan de table', shortLabel: 'Tables',   icon: LayoutGrid,     locked: !active },
     { id: 'fairepart',   label: 'Faire-part',    shortLabel: 'F.-part',  icon: Heart,          locked: !active },
-    { id: 'preparation', label: 'Préparation',   shortLabel: 'Prép.',    icon: CheckSquare,    locked: !active },
     { id: 'contact',     label: 'Contact',       shortLabel: 'Contact',  icon: Phone,          locked: false },
     { id: 'galerie',     label: 'Galerie',       shortLabel: 'Photos',   icon: Camera,         locked: !termine },
     { id: 'parametrage', label: 'Paramétrage',   shortLabel: 'Params',   icon: Settings,       locked: false },
@@ -181,33 +181,108 @@ function Sidebar({ sections, active, onSelect, client, ev, events, onEventChange
   );
 }
 
-/* ── Bottom nav mobile ─────────────────────────────────────────── */
+/* ── Bottom nav mobile — 4 fixes + sheet "Plus" ───────────────── */
 function BottomNav({ sections, active, onSelect }) {
-  const visible = sections.filter(s => !s.locked || s.id === 'suivi');
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // Slot dynamique 4 : Invités si dispo (Signature+), sinon Préparation
+  const invitesAvail = sections.find(s => s.id === 'invites');
+  const dynamicId    = invitesAvail ? 'invites' : 'preparation';
+  const FIXED_IDS    = ['suivi', 'programme', 'playlist', dynamicId];
+
+  const fixedItems    = FIXED_IDS.map(id => sections.find(s => s.id === id)).filter(Boolean);
+  const overflowItems = sections.filter(s => !FIXED_IDS.includes(s.id) && s.id !== 'contact');
+  const overflowActive = overflowItems.some(s => s.id === active);
+
+  const handleSelect = (id) => { onSelect(id); setDrawerOpen(false); };
+
   return (
-    <nav className="espace-bottom-nav">
-      {visible.map(sec => {
-        const isAct = sec.id === active;
-        return (
+    <>
+      <nav className="espace-bottom-nav">
+        {fixedItems.map(sec => {
+          const isAct = sec.id === active;
+          return (
+            <button
+              key={sec.id}
+              onClick={() => !sec.locked && handleSelect(sec.id)}
+              style={{
+                flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
+                justifyContent: 'center', gap: 3, border: 'none', background: 'transparent',
+                color: isAct ? '#b8ef0b' : 'rgba(255,255,255,0.35)',
+                cursor: sec.locked ? 'default' : 'pointer', padding: '8px 4px',
+                transition: 'color 0.15s',
+              }}
+            >
+              <sec.icon size={20} strokeWidth={isAct ? 2 : 1.5} />
+              <span style={{ fontSize: 10, fontWeight: isAct ? 700 : 400, fontFamily: 'var(--font-display), sans-serif' }}>
+                {sec.shortLabel}
+              </span>
+            </button>
+          );
+        })}
+
+        {/* Tab "Plus" */}
+        {overflowItems.length > 0 && (
           <button
-            key={sec.id}
-            onClick={() => !sec.locked && onSelect(sec.id)}
+            onClick={() => setDrawerOpen(v => !v)}
             style={{
               flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
               justifyContent: 'center', gap: 3, border: 'none', background: 'transparent',
-              color: isAct ? '#b8ef0b' : 'rgba(255,255,255,0.35)',
-              cursor: sec.locked ? 'default' : 'pointer', padding: '8px 4px',
-              transition: 'color 0.15s',
+              color: drawerOpen || overflowActive ? '#b8ef0b' : 'rgba(255,255,255,0.35)',
+              cursor: 'pointer', padding: '8px 4px', transition: 'color 0.15s',
             }}
           >
-            <sec.icon size={20} strokeWidth={isAct ? 2 : 1.5} />
-            <span style={{ fontSize: 10, fontWeight: isAct ? 700 : 400, fontFamily: 'var(--font-display), sans-serif' }}>
-              {sec.shortLabel}
+            <MoreHorizontal size={20} strokeWidth={drawerOpen || overflowActive ? 2 : 1.5} />
+            <span style={{ fontSize: 10, fontWeight: drawerOpen || overflowActive ? 700 : 400, fontFamily: 'var(--font-display), sans-serif' }}>
+              Plus
             </span>
           </button>
-        );
-      })}
-    </nav>
+        )}
+      </nav>
+
+      {/* Bottom sheet overlay */}
+      {drawerOpen && (
+        <>
+          <div
+            onClick={() => setDrawerOpen(false)}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.55)', zIndex: 200, backdropFilter: 'blur(2px)' }}
+          />
+          <div style={{
+            position: 'fixed', bottom: 66, left: 0, right: 0, zIndex: 201,
+            background: '#07111c', borderRadius: '16px 16px 0 0',
+            border: '1px solid rgba(255,255,255,0.1)', borderBottom: 'none',
+            padding: '12px 12px 20px',
+            animation: 'slideUp 0.25s cubic-bezier(0.22,1,0.36,1) both',
+          }}>
+            <div style={{ width: 36, height: 3, background: 'rgba(255,255,255,0.18)', borderRadius: 2, margin: '0 auto 14px' }} />
+            {overflowItems.map(sec => {
+              const isAct = sec.id === active;
+              return (
+                <button
+                  key={sec.id}
+                  onClick={() => !sec.locked && handleSelect(sec.id)}
+                  style={{
+                    width: '100%', display: 'flex', alignItems: 'center', gap: 12,
+                    padding: '11px 14px', borderRadius: 10, marginBottom: 2,
+                    border: 'none', background: isAct ? 'rgba(184,239,11,0.1)' : 'transparent',
+                    color: sec.locked ? 'rgba(255,255,255,0.2)'
+                      : isAct ? '#b8ef0b' : 'rgba(255,255,255,0.65)',
+                    cursor: sec.locked ? 'default' : 'pointer', textAlign: 'left',
+                    fontFamily: 'var(--font-display), sans-serif', fontSize: 14, fontWeight: isAct ? 700 : 500,
+                  }}
+                >
+                  <sec.icon size={17} strokeWidth={isAct ? 2 : 1.5} style={{ flexShrink: 0 }} />
+                  <span>{sec.label}</span>
+                  {(sec.locked || sec.formuleLocked) && (
+                    <Lock size={12} style={{ marginLeft: 'auto', color: sec.formuleLocked ? 'rgba(184,239,11,0.4)' : 'rgba(255,255,255,0.18)', flexShrink: 0 }} />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </>
   );
 }
 
@@ -477,6 +552,7 @@ export default function MonEspacePage() {
         @keyframes spin { to { transform: rotate(360deg); } }
 
         /* Finition premium — pression sur les boutons + fondu de section (charte préservée) */
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         @keyframes mcFadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
         .mc-fade { animation: mcFadeUp .4s cubic-bezier(0.22,1,0.36,1) both; }
         .espace-main button:not(:disabled),

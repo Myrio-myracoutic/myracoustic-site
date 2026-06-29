@@ -84,8 +84,9 @@ function getSections(ev) {
 function Sidebar({ sections, active, onSelect, client, ev, events, onEventChange, onLogout, token, onNavigate, refreshTrigger }) {
   const st = ev ? (STATUS_LABELS[ev.status] || STATUS_LABELS.devis_envoye) : null;
 
-  const mainSections   = sections.filter(s => s.id !== 'contact');
-  const contactSection = sections.find(s => s.id === 'contact');
+  const BOTTOM_IDS     = ['parametrage', 'contact'];
+  const mainSections   = sections.filter(s => !BOTTOM_IDS.includes(s.id));
+  const bottomSections = BOTTOM_IDS.map(id => sections.find(s => s.id === id)).filter(Boolean);
 
   const renderNavBtn = (sec) => {
     const isAct = sec.id === active;
@@ -166,9 +167,9 @@ function Sidebar({ sections, active, onSelect, client, ev, events, onEventChange
         {mainSections.map(sec => renderNavBtn(sec))}
       </nav>
 
-      {/* Contact + Déconnexion — tout en bas */}
+      {/* Paramétrage + Contact + Déconnexion — tout en bas */}
       <div style={{ padding: '8px 10px', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
-        {contactSection && renderNavBtn(contactSection)}
+        {bottomSections.map(sec => renderNavBtn(sec))}
         <button
           onClick={onLogout}
           style={{

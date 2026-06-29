@@ -120,6 +120,15 @@ export default function PreparationSection({ ev, token }) {
         </span>
       </div>
 
+      {/* Explication du fonctionnement */}
+      <div style={{
+        background: 'rgba(184,239,11,0.05)', border: '1px solid rgba(184,239,11,0.12)',
+        borderRadius: 8, padding: '10px 14px', marginBottom: 16,
+        fontSize: 12, color: 'rgba(255,255,255,0.45)', lineHeight: 1.6,
+      }}>
+        Cochez chaque étape au fur et à mesure. <strong style={{ color: 'rgba(255,255,255,0.6)' }}>Cliquez sur le texte</strong> pour le modifier, <strong style={{ color: 'rgba(255,255,255,0.6)' }}>× </strong>pour supprimer un élément. Ajoutez vos propres étapes en bas de liste — tout est sauvegardé automatiquement.
+      </div>
+
       {done === items.length && items.length > 0 && (
         <div style={{
           background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)',

@@ -178,7 +178,7 @@ function Configurator({ formule }) {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           client: { type: 'individual', firstName: firstName.trim(), lastName: lastName.trim(), email: email.trim().toLowerCase(), phone: phone.trim() },
-          event: { type: 'Mariage', date, lieu: lieu.trim() },
+          event: { type: 'Mariage', date, lieu: lieu.trim(), formule: formule.key },
           items,
           note: `Formule ${formule.name}${guests ? ` · ${guests} invités` : ''} · personnalisé en ligne · déplacement à confirmer selon le lieu`,
         }),

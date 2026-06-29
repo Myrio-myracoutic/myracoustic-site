@@ -745,7 +745,7 @@ function PlaylistCard({ playlist, token, onRefresh }) {
   );
 }
 
-function CreatePlaylistForm({ eventId, token, onCreated, isCollaborator }) {
+function CreatePlaylistForm({ eventId, token, onCreated, isCollaborator, lockSurprise = false }) {
   const [open,      setOpen]      = useState(false);
   const [name,      setName]      = useState('');
   const [isSurprise, setIsSurprise] = useState(false);
@@ -810,8 +810,8 @@ function CreatePlaylistForm({ eventId, token, onCreated, isCollaborator }) {
         </button>
       </div>
 
-      {/* Toggle surprise — uniquement pour les collaborateurs */}
-      {isCollaborator && (
+      {/* Toggle surprise — collaborateurs, réservé Prestige */}
+      {isCollaborator && !lockSurprise && (
         <div style={{ marginTop: 10 }}>
           <button
             onClick={() => setIsSurprise(v => !v)}
@@ -847,7 +847,7 @@ function CreatePlaylistForm({ eventId, token, onCreated, isCollaborator }) {
   );
 }
 
-export default function PlaylistSection({ eventId, token, onSuggestionActed, isCollaborator }) {
+export default function PlaylistSection({ eventId, token, onSuggestionActed, isCollaborator, lockSurprise = false }) {
   const [playlists, setPlaylists] = useState([]);
   const [loading, setLoading]     = useState(true);
   const onActedRef = useRef(onSuggestionActed);
@@ -897,7 +897,7 @@ export default function PlaylistSection({ eventId, token, onSuggestionActed, isC
         {playlists.map(pl => (
           <PlaylistCard key={pl.id} playlist={pl} token={token} onRefresh={refresh} />
         ))}
-        <CreatePlaylistForm eventId={eventId} token={token} onCreated={refresh} isCollaborator={isCollaborator} />
+        <CreatePlaylistForm eventId={eventId} token={token} onCreated={refresh} isCollaborator={isCollaborator} lockSurprise={lockSurprise} />
       </div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>

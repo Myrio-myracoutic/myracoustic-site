@@ -281,6 +281,7 @@ export async function POST(request) {
             event_date: event?.date || null,
             event_type: event?.type || null,
             venue: event?.lieu || null,
+            formule: event?.formule || null,
             qonto_quote_id: quoteId,
             qonto_quote_url: quoteUrl,
           });

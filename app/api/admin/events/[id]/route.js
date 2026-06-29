@@ -216,6 +216,7 @@ export async function PATCH(req, { params }) {
   if (body.admin_notes      !== undefined) updates.admin_notes      = body.admin_notes;
   if (body.client_message   !== undefined) updates.client_message   = body.client_message;
   if (body.event_type       !== undefined) updates.event_type       = body.event_type;
+  if (body.formule          !== undefined) updates.formule          = body.formule || null;
   if (body.event_date       !== undefined) updates.event_date       = body.event_date;
   if (body.qonto_quote_id   !== undefined) updates.qonto_quote_id   = body.qonto_quote_id;
   if (body.qonto_quote_url  !== undefined) updates.qonto_quote_url  = body.qonto_quote_url;

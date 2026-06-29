@@ -40,10 +40,21 @@ function fmtDate(d) {
   });
 }
 
+/* Sections réservées au mariage, débloquées dès la formule Signature.
+   - Non-mariage → masquées (B). - Mariage sans formule (anciens comptes) → ouvertes.
+   - Mariage avec formule Essentiel → verrouillées (cadenas + upsell Signature). */
+const WEDDING_ORG = ['invites', 'menu', 'plantable', 'fairepart'];
+const FORMULE_RANK = { essentiel: 1, signature: 2, prestige: 3 };
+const FORMULE_LABEL = { essentiel: 'Essentiel', signature: 'Signature', prestige: 'Prestige' };
+
 function getSections(ev) {
   const active  = ev ? isActive(ev.status) : false;
   const termine = ev?.status === 'termine';
-  return [
+  const isMariage = ev?.event_type === 'Mariage';
+  const formule = ev?.formule || null;
+  const rank = formule ? FORMULE_RANK[formule] : null;
+
+  const base = [
     { id: 'suivi',       label: 'Vue d\'ensemble', shortLabel: 'Accueil',  icon: ClipboardList,  locked: false },
     { id: 'programme',   label: 'Programme',     shortLabel: 'Prog.',    icon: Calendar,       locked: !active },
     { id: 'playlist',    label: 'Playlist',      shortLabel: 'Playlist', icon: Music2,         locked: !active },
@@ -56,6 +67,17 @@ function getSections(ev) {
     { id: 'galerie',     label: 'Galerie',       shortLabel: 'Photos',   icon: Camera,         locked: !termine },
     { id: 'parametrage', label: 'Paramétrage',   shortLabel: 'Params',   icon: Settings,       locked: false },
   ];
+
+  return base
+    .map(sec => {
+      if (!WEDDING_ORG.includes(sec.id)) return sec;
+      if (!isMariage) return { ...sec, hidden: true };                 // B : non-mariage → masqué
+      if (rank && rank < FORMULE_RANK.signature) {                     // mariage Essentiel → verrouillé formule
+        return { ...sec, formuleLocked: true, requiredFormule: 'Signature' };
+      }
+      return sec;                                                       // Signature+ ou mariage sans formule → ouvert
+    })
+    .filter(sec => !sec.hidden);
 }
 
 /* ── Sidebar desktop ───────────────────────────────────────────── */
@@ -131,8 +153,8 @@ function Sidebar({ sections, active, onSelect, client, ev, events, onEventChange
             >
               <sec.icon size={16} strokeWidth={isActive ? 2 : 1.5} style={{ flexShrink: 0 }} />
               <span>{sec.label}</span>
-              {sec.locked && (
-                <Lock size={11} style={{ marginLeft: 'auto', color: 'rgba(255,255,255,0.18)', flexShrink: 0 }} />
+              {(sec.locked || sec.formuleLocked) && (
+                <Lock size={11} style={{ marginLeft: 'auto', color: sec.formuleLocked ? 'rgba(184,239,11,0.4)' : 'rgba(255,255,255,0.18)', flexShrink: 0 }} />
               )}
             </button>
           );
@@ -363,7 +385,30 @@ export default function MonEspacePage() {
   const renderSection = () => {
     if (!ev) return <p style={{ color: 'rgba(255,255,255,0.3)' }}>Aucun événement.</p>;
     const active = isActive(ev.status);
-    const locked = sections.find(s => s.id === section)?.locked;
+    const secObj = sections.find(s => s.id === section);
+    const locked = secObj?.locked;
+    // Fonctions réservées Prestige (moments forts, playlists surprises) : verrouillées si formule Essentiel/Signature
+    const lockPrestige = !!(ev.formule && ev.formule !== 'prestige');
+
+    if (secObj?.formuleLocked) return (
+      <div style={{
+        background: '#0d1b2a', border: '1px solid rgba(184,239,11,0.2)',
+        borderRadius: 14, padding: '40px 28px', textAlign: 'center',
+      }}>
+        <Lock size={30} color="rgba(184,239,11,0.5)" style={{ margin: '0 auto 16px' }} />
+        <h3 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 10 }}>
+          Disponible avec la formule {secObj.requiredFormule}
+        </h3>
+        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, lineHeight: 1.7, maxWidth: 380, margin: '0 auto 22px' }}>
+          Cette fonctionnalité est incluse à partir de la formule <strong style={{ color: 'var(--lime)' }}>{secObj.requiredFormule}</strong>. Contactez-nous pour faire évoluer votre formule et débloquer tout votre espace de mariage.
+        </p>
+        <a href="mailto:contact@myracoustic.com?subject=Évoluer ma formule mariage" style={{
+          display: 'inline-block', background: '#b8ef0b', color: '#060e16',
+          borderRadius: 8, padding: '10px 24px',
+          fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 14, textDecoration: 'none',
+        }}>Faire évoluer ma formule</a>
+      </div>
+    );
 
     if (locked) return (
       <div style={{
@@ -386,8 +431,8 @@ export default function MonEspacePage() {
 
     switch (section) {
       case 'suivi':       return <SuiviSection ev={ev} token={token} />;
-      case 'programme':   return <ProgrammeSection ev={ev} token={token} client={client} />;
-      case 'playlist':    return <PlaylistSection eventId={ev.id} token={token} onSuggestionActed={() => setNotifTick(n => n + 1)} isCollaborator={isCollaborator} />;
+      case 'programme':   return <ProgrammeSection ev={ev} token={token} client={client} lockMoments={lockPrestige} />;
+      case 'playlist':    return <PlaylistSection eventId={ev.id} token={token} onSuggestionActed={() => setNotifTick(n => n + 1)} isCollaborator={isCollaborator} lockSurprise={lockPrestige} />;
       case 'invites':     return <InvitesSection ev={ev} token={token} />;
       case 'menu':        return <MenuSection ev={ev} token={token} />;
       case 'plantable':   return <PlanTableSection ev={ev} token={token} />;

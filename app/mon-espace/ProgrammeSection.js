@@ -229,7 +229,7 @@ function HighlightField({ item, token, onUpdate }) {
 }
 
 /* ── Ligne du programme ─────────────────────────────────────────── */
-function ItemRow({ item, allPlaylists, token, onDelete, onUpdate }) {
+function ItemRow({ item, allPlaylists, token, onDelete, onUpdate, lockMoments = false }) {
   const [editing, setEditing] = useState(false);
   const [time,  setTime]  = useState(item.time);
   const [label, setLabel] = useState(item.label);
@@ -295,8 +295,8 @@ function ItemRow({ item, allPlaylists, token, onDelete, onUpdate }) {
         {/* Instructions */}
         <InstructionsField item={item} token={token} onUpdate={onUpdate} />
 
-        {/* Moment fort : son + lumière */}
-        <HighlightField item={item} token={token} onUpdate={onUpdate} />
+        {/* Moment fort : son + lumière — réservé Prestige */}
+        {!lockMoments && <HighlightField item={item} token={token} onUpdate={onUpdate} />}
 
         {/* Bandeau surprise Myracoustic (si révélé) */}
         {item.secret_visible && item.secret_animation && (
@@ -481,7 +481,7 @@ function printProgramme(ev, items, allPlaylists, client) {
 }
 
 /* ── Section principale ─────────────────────────────────────────── */
-export default function ProgrammeSection({ ev, token, client }) {
+export default function ProgrammeSection({ ev, token, client, lockMoments = false }) {
   const [items,     setItems]     = useState([]);
   const [playlists, setPlaylists] = useState([]);
   const [loading,   setLoading]   = useState(true);
@@ -552,7 +552,7 @@ export default function ProgrammeSection({ ev, token, client }) {
           • <strong>Ajoutez chaque étape</strong> avec l'heure et l'intitulé (Cérémonie, Cocktail, Dîner…)<br />
           • <strong>Instructions</strong> : notes internes pour chaque étape — visible dans le PDF distribué aux prestataires<br />
           • <strong>Liez une playlist</strong> à chaque moment pour indiquer la musique prévue<br />
-          • <Star size={12} color="#b8ef0b" fill="#b8ef0b" style={{ verticalAlign: '-1px' }} /> <strong style={{ color: '#b8ef0b' }}>Moment fort</strong> : marquez les instants clés (entrée, première danse, gâteau…) et précisez l'ambiance <strong>son + lumière</strong> souhaitée — transmise à votre prestataire<br />
+          {!lockMoments && <>• <Star size={12} color="#b8ef0b" fill="#b8ef0b" style={{ verticalAlign: '-1px' }} /> <strong style={{ color: '#b8ef0b' }}>Moment fort</strong> : marquez les instants clés (entrée, première danse, gâteau…) et précisez l'ambiance <strong>son + lumière</strong> souhaitée — transmise à votre prestataire<br /></>}
           {hasSecret && (
             <>• <Sparkles size={12} color="#a78bfa" style={{ verticalAlign: '-1px' }} /> <strong style={{ color: '#a78bfa' }}>Animation Myracoustic</strong> : votre prestataire a préparé une surprise pour certaines étapes — les détails apparaissent quand ils décident de vous les révéler<br /></>
           )}
@@ -569,7 +569,7 @@ export default function ProgrammeSection({ ev, token, client }) {
         </p>
       )}
       {items.map(item => (
-        <ItemRow key={item.id} item={item} allPlaylists={playlists} token={token} onDelete={handleDelete} onUpdate={handleUpdate} />
+        <ItemRow key={item.id} item={item} allPlaylists={playlists} token={token} onDelete={handleDelete} onUpdate={handleUpdate} lockMoments={lockMoments} />
       ))}
       <AddRow eventId={ev.id} token={token} onAdded={handleAdded} />
     </div>

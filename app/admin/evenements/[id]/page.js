@@ -51,6 +51,7 @@ export default function AdminDevisDetail() {
   const [venue,        setVenue]       = useState('');
   const [venueCP,      setVenueCP]     = useState('');
   const [venueCity,    setVenueCity]   = useState('');
+  const [formule,      setFormule]     = useState('');
   const [saving,       setSaving]      = useState(false);
   const [saved,        setSaved]       = useState(false);
   const [previewing,   setPreviewing]  = useState(false);
@@ -68,6 +69,7 @@ export default function AdminDevisDetail() {
         setVenue(data.venue || '');
         setVenueCP(data.venue_cp || '');
         setVenueCity(data.venue_city || '');
+        setFormule(data.formule || '');
         setLoading(false);
       }
     });
@@ -89,7 +91,7 @@ export default function AdminDevisDetail() {
     const res = await fetch(`/api/admin/events/${params.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status, admin_notes: notes, client_message: clientMessage, event_type: eventType || null, event_date: eventDate || null, venue: venue || null, venue_cp: venueCP || null, venue_city: venueCity || null }),
+      body: JSON.stringify({ status, admin_notes: notes, client_message: clientMessage, event_type: eventType || null, event_date: eventDate || null, venue: venue || null, venue_cp: venueCP || null, venue_city: venueCity || null, formule: formule || null }),
     });
     if (res.ok) { setEv(await res.json()); setSaved(true); setTimeout(() => setSaved(false), 3000); }
     setSaving(false);
@@ -169,6 +171,23 @@ export default function AdminDevisDetail() {
                 style={{ marginTop: 8, width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(184,239,11,0.3)', borderRadius: 7, padding: '8px 12px', color: '#fff', fontSize: 13, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' }}
               />
             )}
+          </div>
+          {/* Formule (mariage) */}
+          <div>
+            <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', display: 'block', marginBottom: 5 }}>FORMULE (MARIAGE)</label>
+            <select
+              value={formule}
+              onChange={e => setFormule(e.target.value)}
+              style={{ width: '100%', background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 7, padding: '8px 12px', color: '#fff', fontSize: 13, fontFamily: 'inherit', outline: 'none', cursor: 'pointer', colorScheme: 'dark' }}
+            >
+              <option value="" style={{ background: '#0d1b2a' }}>Aucune (accès complet)</option>
+              <option value="essentiel" style={{ background: '#0d1b2a' }}>Essentiel</option>
+              <option value="signature" style={{ background: '#0d1b2a' }}>Signature</option>
+              <option value="prestige" style={{ background: '#0d1b2a' }}>Prestige</option>
+            </select>
+            <p style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.3)', marginTop: 5, lineHeight: 1.5 }}>
+              Débloque les sections de l'espace client. « Aucune » = tout ouvert (non-mariage : sections mariage masquées).
+            </p>
           </div>
           {/* Date */}
           <div>

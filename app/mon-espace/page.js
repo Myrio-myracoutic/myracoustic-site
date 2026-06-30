@@ -512,7 +512,7 @@ export default function MonEspacePage() {
     );
 
     switch (section) {
-      case 'suivi':       return <SuiviSection ev={ev} token={token} />;
+      case 'suivi':       return <SuiviSection ev={ev} token={token} sections={sections} />;
       case 'programme':   return <ProgrammeSection ev={ev} token={token} client={client} lockMoments={lockPrestige} />;
       case 'playlist':    return <PlaylistSection eventId={ev.id} token={token} onSuggestionActed={() => setNotifTick(n => n + 1)} isCollaborator={isCollaborator} lockSurprise={lockPrestige} />;
       case 'invites':     return <InvitesSection ev={ev} token={token} />;

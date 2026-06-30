@@ -294,7 +294,7 @@ function FacturationTab({ ev, token }) {
   );
 }
 
-export default function SuiviSection({ ev, token }) {
+export default function SuiviSection({ ev, token, sections }) {
   const [tab, setTab] = useState('apercu');
   const [guests, setGuests]             = useState([]);
   const [playlists, setPlaylists]       = useState([]);
@@ -305,19 +305,29 @@ export default function SuiviSection({ ev, token }) {
   const annule  = ev.status === 'annule';
   const days    = daysUntil(ev.event_date);
 
+  // Invités : visible uniquement si la section est réellement accessible
+  // (mariage + formule Signature/Prestige, ou ancien compte sans formule).
+  // Sur formule Essentiel ou hors mariage, la section est masquée/verrouillée
+  // dans le menu — on ne doit donc pas en exposer les chiffres ici non plus.
+  const invitesSec = sections?.find(s => s.id === 'invites');
+  const invitesAccessible = sections ? !!invitesSec && !invitesSec.formuleLocked : true;
+
   useEffect(() => {
     if (!active || !token) { setStatsLoaded(true); return; }
-    Promise.all([
-      fetch(`/api/mon-espace/guests?eventId=${ev.id}`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()).catch(() => ({ guests: [] })),
-      fetch(`/api/mon-espace/playlists/${ev.id}`,      { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()).catch(() => ({ playlists: [] })),
-      fetch(`/api/mon-espace/programme/${ev.id}`,      { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()).catch(() => ({ items: [] })),
-    ]).then(([gData, pData, prData]) => {
+    const calls = [
+      invitesAccessible
+        ? fetch(`/api/mon-espace/guests?eventId=${ev.id}`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()).catch(() => ({ guests: [] }))
+        : Promise.resolve({ guests: [] }),
+      fetch(`/api/mon-espace/playlists/${ev.id}`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()).catch(() => ({ playlists: [] })),
+      fetch(`/api/mon-espace/programme/${ev.id}`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()).catch(() => ({ items: [] })),
+    ];
+    Promise.all(calls).then(([gData, pData, prData]) => {
       setGuests(gData.guests || []);
       setPlaylists(pData.playlists || []);
       setProgrammeCount((prData.items || []).length);
       setStatsLoaded(true);
     });
-  }, [ev.id, active, token]);
+  }, [ev.id, active, token, invitesAccessible]);
 
   // Calculs
   const totalGuests    = guests.length;
@@ -429,20 +439,22 @@ export default function SuiviSection({ ev, token }) {
                 gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
                 gap: 12, marginBottom: 24,
               }}>
-                {/* Invités */}
-                <div style={{
-                  background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
-                  borderRadius: 12, padding: '16px 18px',
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 12 }}>
-                    <Users size={14} color="#b8ef0b" strokeWidth={1.5} />
-                    <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'var(--font-display)' }}>Invités</span>
+                {/* Invités — uniquement si la section est accessible (mariage + formule Signature/Prestige) */}
+                {invitesAccessible && (
+                  <div style={{
+                    background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
+                    borderRadius: 12, padding: '16px 18px',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 12 }}>
+                      <Users size={14} color="#b8ef0b" strokeWidth={1.5} />
+                      <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'var(--font-display)' }}>Invités</span>
+                    </div>
+                    <StatLine label="Invités"     value={totalGuests || '—'} />
+                    <StatLine label="Confirmés"   value={presentGuests || '—'} color="#22c55e" />
+                    <StatLine label="Adultes"     value={totalAdults || '—'} />
+                    <StatLine label="Enfants"     value={totalChildren || '—'} />
                   </div>
-                  <StatLine label="Invités"     value={totalGuests || '—'} />
-                  <StatLine label="Confirmés"   value={presentGuests || '—'} color="#22c55e" />
-                  <StatLine label="Adultes"     value={totalAdults || '—'} />
-                  <StatLine label="Enfants"     value={totalChildren || '—'} />
-                </div>
+                )}
 
                 {/* Playlists */}
                 <div style={{

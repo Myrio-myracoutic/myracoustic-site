@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
-import { verifyEventAccess } from '@/app/lib/event-access';
+import { verifyEventAccess, verifyWeddingOrgAccess } from '@/app/lib/event-access';
 
 // GET /api/mon-espace/fairepart/[eventId]
 export async function GET(request, { params }) {
@@ -10,6 +10,7 @@ export async function GET(request, { params }) {
 
   const access = await verifyEventAccess(token, eventId);
   if (!access) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
+  if (!(await verifyWeddingOrgAccess(eventId))) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
 
   const { data } = await supabaseAdmin
     .from('event_page')
@@ -28,6 +29,7 @@ export async function POST(request, { params }) {
 
   const access = await verifyEventAccess(token, eventId);
   if (!access) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
+  if (!(await verifyWeddingOrgAccess(eventId))) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
 
   const { title, subtitle, message, is_published, practical_info } = await request.json();
 

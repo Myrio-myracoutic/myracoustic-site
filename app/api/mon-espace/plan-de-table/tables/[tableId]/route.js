@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
-import { verifyEventAccess } from '@/app/lib/event-access';
+import { verifyEventAccess, verifyWeddingOrgAccess } from '@/app/lib/event-access';
 
 function bearer(request) {
   return request.headers.get('authorization')?.replace('Bearer ', '');
@@ -13,6 +13,7 @@ async function authForTable(request, tableId) {
   if (!table) return { error: 'Table introuvable', status: 404 };
   const access = await verifyEventAccess(token, table.event_id);
   if (!access) return { error: 'Non autorisé', status: 403 };
+  if (!(await verifyWeddingOrgAccess(table.event_id))) return { error: 'Non autorisé', status: 403 };
   return { table };
 }
 

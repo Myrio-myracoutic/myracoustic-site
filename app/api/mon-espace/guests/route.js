@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
-import { verifyEventAccess } from '@/app/lib/event-access';
+import { verifyEventAccess, verifyWeddingOrgAccess } from '@/app/lib/event-access';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://myracoustic.com';
 const SENDER  = 'contact@myracoustic.com';
@@ -67,6 +67,7 @@ export async function GET(request) {
 
   const access = await verifyEventAccess(token, eventId);
   if (!access) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
+  if (!(await verifyWeddingOrgAccess(eventId))) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
 
   const { data: guests } = await supabaseAdmin
     .from('event_guests')
@@ -101,6 +102,7 @@ export async function POST(request) {
 
   const access = await verifyEventAccess(token, eventId);
   if (!access) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
+  if (!(await verifyWeddingOrgAccess(eventId))) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
 
   const { data: ev } = await supabaseAdmin
     .from('events')

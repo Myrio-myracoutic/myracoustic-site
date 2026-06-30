@@ -1,13 +1,15 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
-import { verifyEventAccess } from '@/app/lib/event-access';
+import { verifyEventAccess, verifyWeddingOrgAccess } from '@/app/lib/event-access';
 
 async function getGuestAccess(token, guestId) {
   const { data: guest } = await supabaseAdmin
     .from('event_guests').select('id, event_id').eq('id', guestId).single();
   if (!guest) return null;
   const access = await verifyEventAccess(token, guest.event_id);
-  return access ? guest : null;
+  if (!access) return null;
+  if (!(await verifyWeddingOrgAccess(guest.event_id))) return null;
+  return guest;
 }
 
 /* PATCH — modifier playlists ou max_songs */

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
-import { verifyEventAccess } from '@/app/lib/event-access';
+import { verifyEventAccess, verifyWeddingOrgAccess } from '@/app/lib/event-access';
 
 function bearer(request) {
   return request.headers.get('authorization')?.replace('Bearer ', '');
@@ -13,6 +13,7 @@ export async function POST(request, { params }) {
   if (!token) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
   const access = await verifyEventAccess(token, eventId);
   if (!access) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
+  if (!(await verifyWeddingOrgAccess(eventId))) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
 
   const body = await request.json().catch(() => ({}));
   const name = (body.name || '').trim();

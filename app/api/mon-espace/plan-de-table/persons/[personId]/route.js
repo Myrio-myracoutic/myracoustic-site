@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
-import { verifyEventAccess } from '@/app/lib/event-access';
+import { verifyEventAccess, verifyWeddingOrgAccess } from '@/app/lib/event-access';
 
 function bearer(request) {
   return request.headers.get('authorization')?.replace('Bearer ', '');
@@ -18,6 +18,7 @@ export async function PATCH(request, { params }) {
 
   const access = await verifyEventAccess(token, person.event_id);
   if (!access) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
+  if (!(await verifyWeddingOrgAccess(person.event_id))) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
 
   const body = await request.json().catch(() => ({}));
   const updates = {};
@@ -52,6 +53,7 @@ export async function DELETE(request, { params }) {
 
   const access = await verifyEventAccess(token, person.event_id);
   if (!access) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
+  if (!(await verifyWeddingOrgAccess(person.event_id))) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
 
   const { error } = await supabaseAdmin.from('event_persons').delete().eq('id', personId);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

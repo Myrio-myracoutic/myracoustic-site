@@ -1,6 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { supabaseAdmin } from './supabase-admin';
 
+const FORMULE_RANK = { essentiel: 1, signature: 2, prestige: 3 };
+
 export function getSupabaseClient(token) {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -39,6 +41,21 @@ export async function verifyEventAccess(token, eventId) {
   if (collab) return { clientId: collab.events?.client_id, isCollaborator: true, userId: user.id };
 
   return null;
+}
+
+/**
+ * Vérifie que l'événement donne accès aux modules mariage premium
+ * (invités, menu, plan de table, faire-part) : réservés aux mariages
+ * formule Signature+ (les mariages sans formule renseignée, comptes
+ * historiques, restent ouverts).
+ * @returns {Promise<boolean>}
+ */
+export async function verifyWeddingOrgAccess(eventId) {
+  const { data: ev } = await supabaseAdmin
+    .from('events').select('event_type, formule').eq('id', eventId).single();
+  if (!ev || ev.event_type !== 'Mariage') return false;
+  if (!ev.formule) return true;
+  return (FORMULE_RANK[ev.formule] || 0) >= FORMULE_RANK.signature;
 }
 
 /**

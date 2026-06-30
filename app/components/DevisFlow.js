@@ -1405,7 +1405,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
           </div>
           <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 10 }}>Type d'événement</div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {['Soirée privée', 'Mariage', 'PACS', 'Anniversaire', 'EVJF / EVG', 'Baptême', 'Communion', 'Fête familiale', 'Autre'].map(t => (
+            {['Soirée privée', 'PACS', 'Anniversaire', 'EVJF / EVG', 'Baptême', 'Communion', 'Fête familiale', 'Autre'].map(t => (
               <button key={t} onClick={() => setEventType(t)} style={{
                 padding: '8px 16px', borderRadius: 7,
                 border: `1px solid ${eventType === t ? 'var(--lime)' : 'rgba(255,255,255,0.12)'}`,
@@ -1415,6 +1415,22 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
                 cursor: 'pointer', transition: 'all 0.18s',
               }}>{t}</button>
             ))}
+          </div>
+          <div style={{
+            marginTop: 14, padding: '14px 16px', borderRadius: 8,
+            background: 'rgba(184,239,11,0.06)', border: '1px solid rgba(184,239,11,0.2)',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap',
+          }}>
+            <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13 }}>
+              Vous organisez un <strong style={{ color: '#fff' }}>mariage</strong> ? Nous avons un parcours dédié, plus complet.
+            </span>
+            <a href="/devis/mariage" style={{
+              background: 'var(--lime)', color: '#0d1b2a', padding: '8px 16px', borderRadius: 6,
+              fontSize: 13, fontWeight: 700, fontFamily: 'var(--font-display), sans-serif',
+              textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0,
+            }}>
+              Découvrir nos formules mariage →
+            </a>
           </div>
         </div>
 

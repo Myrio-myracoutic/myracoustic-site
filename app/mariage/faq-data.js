@@ -19,4 +19,6 @@ export const FAQ_ITEMS = [
     a: "Un acompte est demandé à la réservation pour bloquer votre date. Le solde est réglé avant ou le jour de l'événement selon les modalités du devis. Toutes les conditions sont précisées dans notre contrat et nos CGV." },
   { q: "Que se passe-t-il en cas d'imprévu technique le jour J ?",
     a: "Nous anticipons les imprévus en testant tout le matériel avant l'arrivée de vos invités et en ayant du matériel de secours. Notre expérience nous permet de gérer les aléas rapidement et discrètement, sans jamais perturber le déroulement de votre soirée." },
+  { q: 'Quelle différence entre Myracoustic et un DJ mariage classique ?',
+    a: "Un DJ classique gère en général uniquement l'animation musicale de la soirée. Myracoustic est un prestataire complet — sonorisation de cérémonie, éclairage de salle, vidéo et DJ — géré par une seule équipe, avec un espace personnel en ligne pour organiser playlists, invités, menu et programme jusqu'au jour J." },
 ];

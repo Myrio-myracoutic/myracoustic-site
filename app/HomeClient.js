@@ -157,6 +157,20 @@ export default function Home() {
             </p>
 
             <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', ...anim(0.6) }}>
+              <Link href="/mariage" style={{
+                background: 'transparent', color: 'white',
+                border: '2px solid rgba(255,255,255,0.35)',
+                padding: 'clamp(13px,1.5vw,16px) clamp(22px,2.5vw,32px)',
+                borderRadius: 8, fontSize: 'clamp(14px,1.2vw,16px)', fontWeight: 600,
+                display: 'flex', alignItems: 'center', gap: 9,
+                fontFamily: 'var(--font-display), sans-serif',
+                textDecoration: 'none', transition: 'all 0.2s',
+              }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--lime)'; e.currentTarget.style.color = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.35)'; e.currentTarget.style.color = 'white'; e.currentTarget.style.transform = 'translateY(0)'; }}
+              >
+                Mariage <span>→</span>
+              </Link>
               <Link href="/evenement-entreprise" style={{
                 background: 'var(--lime)', color: '#0d1b2a',
                 padding: 'clamp(13px,1.5vw,16px) clamp(22px,2.5vw,32px)',

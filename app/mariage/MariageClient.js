@@ -1,81 +1,46 @@
 'use client';
 
 import { useState } from 'react';
-import { Headphones, Mic, Lightbulb, Video } from 'lucide-react';
-import { AnimatedWave, WaveBullet, SectionLabel } from '../components/AnimatedWave';
+import { AnimatedWave, SectionLabel } from '../components/AnimatedWave';
 import { FAQ_ITEMS } from './faq-data';
 import TestimonialCard from '../components/TestimonialCard';
 import StatItem from '../components/StatItem';
 import Reveal from '../components/Reveal';
 
-function BulletItem({ children }) {
+function TimelineStep({ index, total, when, title, text, highlight }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 14 }}>
-      <WaveBullet size={16} />
-      <span style={{ color: 'rgba(255,255,255,0.72)', fontSize: 15, lineHeight: 1.65 }}>
-        {children}
-      </span>
-    </div>
-  );
-}
-
-function ServiceDetailCard({ icon: Icon, tag, title, desc, items }) {
-  const [hov, setHov] = useState(false);
-  return (
-    <div
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      style={{
-        background: hov ? '#111e2d' : 'var(--card)',
-        border: `1px solid ${hov ? 'var(--lime)' : 'rgba(255,255,255,0.07)'}`,
-        borderRadius: 12, overflow: 'hidden', transition: 'all 0.28s',
-        transform: hov ? 'translateY(-4px)' : 'none',
-        display: 'flex', flexDirection: 'column',
-      }}
-    >
-      <div style={{ padding: '32px 28px', flex: 1 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-          <span style={{
-            fontFamily: 'var(--font-display), sans-serif',
-            fontSize: 11, letterSpacing: '0.2em',
-            color: hov ? 'var(--lime)' : 'rgba(255,255,255,0.3)',
-            border: `1px solid ${hov ? 'var(--lime)' : 'rgba(255,255,255,0.15)'}`,
-            padding: '3px 10px', borderRadius: 3, transition: 'all 0.28s',
-          }}>
-            {tag}
-          </span>
-          <span style={{ color: hov ? 'var(--lime)' : 'rgba(255,255,255,0.72)' }}><Icon size={28} strokeWidth={1.5} /></span>
-        </div>
-        <h3 style={{
-          fontFamily: 'var(--font-display), sans-serif',
-          fontSize: 24, fontWeight: 700, marginBottom: 10,
+    <div style={{ display: 'flex', gap: 20 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
+        <div style={{
+          width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
+          background: highlight ? 'var(--lime)' : 'rgba(255,255,255,0.06)',
+          border: `1.5px solid ${highlight ? 'var(--lime)' : 'rgba(255,255,255,0.18)'}`,
+          color: highlight ? '#0d1b2a' : 'rgba(255,255,255,0.6)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontFamily: 'var(--font-display), sans-serif', fontWeight: 800, fontSize: 15,
         }}>
+          {index + 1}
+        </div>
+        {index < total - 1 && (
+          <div style={{
+            width: 2, flex: 1, minHeight: 24, marginTop: 6,
+            background: 'linear-gradient(to bottom, rgba(184,239,11,0.3), rgba(255,255,255,0.06))',
+          }} />
+        )}
+      </div>
+      <div style={{ paddingBottom: 36 }}>
+        <div style={{
+          fontFamily: 'var(--font-display), sans-serif', fontSize: 11, fontWeight: 700,
+          color: 'var(--lime)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 5,
+        }}>
+          {when}
+        </div>
+        <h3 style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 19, marginBottom: 8 }}>
           {title}
         </h3>
-        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, lineHeight: 1.7, marginBottom: 18 }}>
-          {desc}
+        <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 14.5, lineHeight: 1.7, maxWidth: 460 }}>
+          {text}
         </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
-          {items.map((it, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--lime)', flexShrink: 0 }} />
-              <span style={{ color: 'rgba(255,255,255,0.55)', fontSize: 13 }}>{it}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div style={{ padding: '16px 28px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-        <a href="/devis/mariage" style={{
-          background: 'var(--lime)', color: '#0d1b2a',
-          padding: '8px 16px', borderRadius: 5, fontSize: 13, fontWeight: 700,
-          fontFamily: 'var(--font-display), sans-serif',
-          textDecoration: 'none', display: 'inline-block', transition: 'background 0.2s',
-        }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = '#ceff2a'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; }}
-        >
-          Devis →
-        </a>
       </div>
     </div>
   );
@@ -109,36 +74,24 @@ function FaqItem({ q, a }) {
   );
 }
 
-const SERVICES = [
-  {
-    icon: Headphones, tag: 'DJ MARIAGE', title: 'Animation DJ',
-    desc: "Un DJ expérimenté en mariages qui lit son public, soigne chaque transition et maintient l'énergie de la piste du premier au dernier morceau.",
-    items: ["Ouverture de bal préparée ensemble", "Playlist 100% personnalisée", "Set soirée dansante jusqu'au bout", "MC & animations (lancer de bouquet, etc.)"],
-  },
-  {
-    icon: Mic, tag: 'CÉRÉMONIE', title: 'Son cérémonie & cocktail',
-    desc: "Sonorisation discrète et élégante pour vos vœux, lectures et moments clés — puis musique d'ambiance pour le vin d'honneur.",
-    items: ["Micro sans fil pour l'officiant", "Musique d'entrée & sortie personnalisée", "Sono cocktail & vin d'honneur", "Discours amplifiés au micro"],
-  },
-  {
-    icon: Lightbulb, tag: 'ÉCLAIRAGE', title: 'Ambiance lumineuse',
-    desc: "Des lumières qui métamorphosent votre salle et créent les atmosphères de chaque moment de votre soirée.",
-    items: ["Moving heads & PAR LED", "Gobos à vos prénoms / initiales", "Machine à fumée & brouillard", "Éclairage dynamique piste de danse"],
-  },
-  {
-    icon: Video, tag: 'VIDÉO', title: 'Diaporama & écrans',
-    desc: "Projetez vos plus belles photos de couple, votre histoire ensemble — un écrin visuel qui émeut vos invités.",
-    items: ["Projection photos/vidéos du couple", "Mur LED 2 m² ou 4 m²", "Contenu personnalisé & animé", "Intégration avec fond musical"],
-  },
-];
-
-const INCLUDES = [
-  "Visite technique du lieu avant le mariage",
-  "Coordination avec votre wedding planner ou traiteur",
-  "Planification musicale complète (cérémonie, cocktail, dîner, soirée)",
-  "Échanges et écoute jusqu'au jour J",
-  "Installation et démontage inclus dans le devis",
-  "Assurance responsabilité civile professionnelle",
+const JOURNEY = [
+  { when: 'Premier contact', title: 'On découvre votre projet',
+    text: "Vous nous présentez votre mariage, on vous présente Myracoustic. Un devis clair et détaillé vous est envoyé, sans engagement." },
+  { when: 'Réservation', title: 'Votre date est à vous',
+    text: "Dès réception de l'acompte, votre date est bloquée — on ne la propose plus à personne d'autre." },
+  { when: 'Quelques jours après', title: 'Découverte de votre espace',
+    text: "On vous présente votre espace de mariage en ligne : programme, playlists, invités, faire-part — tout au même endroit, à votre rythme." },
+  { when: '6 mois avant', title: 'Visite du lieu',
+    text: "Rendez-vous sur place pour caler ensemble l'organisation technique : sonorisation, implantation, accès, contraintes du lieu." },
+  { when: '1 mois avant', title: 'On reprend chaque détail',
+    text: "Déroulé, playlist, derniers ajustements — on fait le point ensemble pour que rien ne soit laissé au hasard." },
+  { when: '2 semaines avant', title: 'Tout est prêt',
+    text: "Le déroulé est figé, le matériel est vérifié. Il ne vous reste plus qu'à profiter." },
+  { when: 'Le jour J', title: 'Votre mariage, sans accroc',
+    text: "26 ans d'expérience et plus de 200 mariages animés : on a déjà vu et géré l'imprévu, pour que votre journée se déroule sans accroc, quoi qu'il arrive en coulisses.",
+    highlight: true },
+  { when: '1 semaine après', title: 'Un dernier mot',
+    text: "On revient vers vous pour un dernier merci, et pour recueillir vos premiers souvenirs de la soirée." },
 ];
 
 const TESTIMONIALS = [
@@ -187,7 +140,7 @@ export default function MariageClient() {
             fontSize: 'clamp(15px,1.5vw,18px)', lineHeight: 1.75,
             maxWidth: 520, marginBottom: 36,
           }}>
-            De la cérémonie à l'ouverture de bal, jusqu'aux dernières danses — Myracoustic crée l'atmosphère sonore et visuelle de votre plus belle journée.
+            Le jour où tout se joue. Nous orchestrons le son, la lumière et l&apos;émotion de votre cérémonie à la dernière danse — pour que vous n&apos;ayez qu&apos;à vivre l&apos;instant.
           </p>
           <a href="/devis/mariage" style={{
             background: 'var(--lime)', color: '#0d1b2a',
@@ -198,7 +151,7 @@ export default function MariageClient() {
             onMouseEnter={(e) => { e.currentTarget.style.background = '#ceff2a'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(0)'; }}
           >
-            Calculer mon devis mariage →
+            Découvrir nos formules mariage →
           </a>
         </div>
 
@@ -221,38 +174,42 @@ export default function MariageClient() {
           <StatItem value="200" suffix="+" label="Mariages animés" />
           <StatItem value="5" suffix="★" label="Note sur Google" />
         </Reveal>
+        <Reveal style={{ maxWidth: 720, margin: '40px auto 0', textAlign: 'center' }}>
+          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, lineHeight: 1.8 }}>
+            Basé à Nort-sur-Erdre, à 25 minutes de Nantes, Myracoustic est un prestataire de sonorisation, éclairage, vidéo et animation DJ pour mariages en Pays de la Loire — Nantes, Angers, Rennes, Saint-Nazaire et leurs environs.
+          </p>
+        </Reveal>
       </section>
 
-      {/* ── CE QUE VOUS OBTENEZ ─────────────────────────────────── */}
+      {/* ── PARCOURS D'ACCOMPAGNEMENT ──────────────────────────────── */}
       <section style={{
-        padding: 'clamp(48px,6vw,80px) 32px',
+        padding: 'clamp(56px,7vw,88px) 32px',
         backgroundImage: 'url(/ban_prestation_son.jpg)',
         backgroundSize: 'cover', backgroundPosition: 'center',
         position: 'relative', overflow: 'hidden',
       }}>
-        <div style={{ position: 'absolute', inset: 0, zIndex: 0, background: 'rgba(6,14,22,0.65)' }} />
-        <Reveal style={{
-          position: 'relative', zIndex: 1,
-          maxWidth: 1280, margin: '0 auto',
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))',
-          gap: 48, alignItems: 'center',
-        }}>
-          <div>
-            <SectionLabel>Inclus dans chaque prestation</SectionLabel>
+        <div style={{ position: 'absolute', inset: 0, zIndex: 0, background: 'rgba(6,14,22,0.88)' }} />
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: 1280, margin: '0 auto' }}>
+          <Reveal style={{ maxWidth: 640, margin: '0 auto 56px', textAlign: 'center' }}>
+            <SectionLabel style={{ justifyContent: 'center' }}>Votre accompagnement</SectionLabel>
             <h2 style={{
               fontFamily: 'var(--font-display), sans-serif',
-              fontSize: 'clamp(24px,3vw,40px)', fontWeight: 700, marginBottom: 32,
+              fontSize: 'clamp(24px,3.5vw,42px)', fontWeight: 700, marginBottom: 12,
             }}>
-              Ce que vous <span style={{ color: 'var(--lime)' }}>obtenez</span>
+              Du premier contact au <span style={{ color: 'var(--lime)' }}>jour J</span>
             </h2>
-            {INCLUDES.map((item, i) => <BulletItem key={i}>{item}</BulletItem>)}
+            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 15, lineHeight: 1.7 }}>
+              Sur la base d&apos;un mariage organisé un an à l&apos;avance, voici comment se déroule un accompagnement Myracoustic, étape par étape.
+            </p>
+          </Reveal>
+          <div style={{ maxWidth: 600, margin: '0 auto' }}>
+            {JOURNEY.map((step, i) => (
+              <Reveal key={i}>
+                <TimelineStep index={i} total={JOURNEY.length} {...step} />
+              </Reveal>
+            ))}
           </div>
-          <div style={{
-            borderRadius: 16, minHeight: 380,
-            backgroundImage: 'url(/ban_fête_myr.jpg)',
-            backgroundSize: 'cover', backgroundPosition: 'center',
-          }} />
-        </Reveal>
+        </div>
       </section>
 
       {/* ── TÉMOIGNAGES ─────────────────────────────────────────── */}
@@ -262,10 +219,13 @@ export default function MariageClient() {
             <SectionLabel style={{ justifyContent: 'center' }}>Ils en parlent</SectionLabel>
             <h2 style={{
               fontFamily: 'var(--font-display), sans-serif',
-              fontSize: 'clamp(24px,3.5vw,42px)', fontWeight: 700,
+              fontSize: 'clamp(24px,3.5vw,42px)', fontWeight: 700, marginBottom: 12,
             }}>
               Ils nous ont confié leur mariage
             </h2>
+            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 15 }}>
+              Ils ont vécu cet accompagnement avant vous.
+            </p>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 18 }}>
             {TESTIMONIALS.map((t, i) => <TestimonialCard key={i} {...t} />)}
@@ -309,7 +269,7 @@ export default function MariageClient() {
           Disponible pour votre date ?
         </h2>
         <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 16, marginBottom: 32 }}>
-          Calculez votre devis mariage en ligne en moins de 3 minutes.
+          Trois formules claires, un conseiller vous rappelle sous 24h pour finaliser votre devis.
         </p>
         <a href="/devis/mariage" style={{
           background: 'var(--lime)', color: '#0d1b2a',
@@ -320,7 +280,7 @@ export default function MariageClient() {
           onMouseEnter={(e) => { e.currentTarget.style.background = '#ceff2a'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(0)'; }}
         >
-          Calculer mon devis mariage →
+          Découvrir nos formules mariage →
         </a>
         </Reveal>
       </section>

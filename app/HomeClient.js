@@ -169,7 +169,7 @@ export default function Home() {
                 onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--lime)'; e.currentTarget.style.color = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.35)'; e.currentTarget.style.color = 'white'; e.currentTarget.style.transform = 'translateY(0)'; }}
               >
-                Mariage <span>→</span>
+                Mariages <span>→</span>
               </Link>
               <Link href="/evenement-entreprise" style={{
                 background: 'var(--lime)', color: '#0d1b2a',

@@ -12,7 +12,7 @@ const NAV_LINKS = [
   { href: '/',                     label: 'Accueil' },
   { href: '/evenements-prives',    label: 'Particuliers' },
   { href: '/evenement-entreprise', label: 'Entreprises' },
-  { href: '/mariage',              label: 'Mariage' },
+  { href: '/mariage',              label: 'Mariages' },
 ];
 
 const CITY_LINKS = [

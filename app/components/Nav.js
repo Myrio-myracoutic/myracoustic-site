@@ -10,7 +10,7 @@ const LINKS = [
   { href: '/',              label: 'Accueil' },
   { href: '/evenement-entreprise',   label: 'Entreprises' },
   { href: '/evenements-prives',  label: 'Particuliers' },
-  { href: '/mariage',        label: 'Mariage' },
+  { href: '/mariage',        label: 'Mariages' },
 ];
 
 export default function Nav() {

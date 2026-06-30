@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
-import { Users, Plus, X, Mail, Trash2, RefreshCw, Check, ChevronDown, ChevronUp, BellRing, Send } from 'lucide-react';
+import { Users, Plus, X, Trash2, RefreshCw, Check, ChevronDown, ChevronUp, BellRing, Send, Share2, AlertTriangle, Pencil } from 'lucide-react';
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://myracoustic.com';
 
 function fmtDate(d) {
   if (!d) return null;
@@ -29,6 +31,14 @@ function GuestRow({ guest, playlists, token, onDelete, onReinvite, onUpdate }) {
   const [savingMax, setSavingMax] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [reinviting, setReinviting] = useState(false);
+  const [shared, setShared] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editFirstName, setEditFirstName] = useState(guest.first_name);
+  const [editEmail, setEditEmail] = useState(guest.email || '');
+  const [editPhone, setEditPhone] = useState(guest.phone || '');
+  const [editPlaylistIds, setEditPlaylistIds] = useState(guest.playlist_ids || []);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [editError, setEditError] = useState('');
 
   const handleMaxSongs = async (val) => {
     const n = parseInt(val);
@@ -58,7 +68,47 @@ function GuestRow({ guest, playlists, token, onDelete, onReinvite, onUpdate }) {
     setReinviting(false);
   };
 
+  const handleShare = async () => {
+    const inviteLink = `${APP_URL}/invitation/${guest.token}`;
+    const text = `Bonjour ${guest.first_name}, voici votre invitation personnelle : ${inviteLink}`;
+    if (navigator.share) {
+      try { await navigator.share({ text }); } catch { /* annulé par l'utilisateur */ }
+    } else {
+      await navigator.clipboard.writeText(text);
+      setShared(true);
+      setTimeout(() => setShared(false), 2000);
+    }
+  };
+
   const guestPlaylists = playlists.filter(p => guest.playlist_ids?.includes(p.id));
+
+  const startEdit = () => {
+    setEditFirstName(guest.first_name);
+    setEditEmail(guest.email || '');
+    setEditPhone(guest.phone || '');
+    setEditPlaylistIds(guest.playlist_ids || []);
+    setEditError('');
+    setEditing(true);
+    setExpanded(true);
+  };
+
+  const toggleEditPlaylist = (id) =>
+    setEditPlaylistIds(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
+
+  const saveEdit = async () => {
+    if (!editFirstName.trim()) { setEditError('Le prénom est requis.'); return; }
+    setSavingEdit(true); setEditError('');
+    const res = await fetch(`/api/mon-espace/guests/${guest.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ firstName: editFirstName, email: editEmail, phone: editPhone, playlistIds: editPlaylistIds }),
+    });
+    const data = await res.json();
+    setSavingEdit(false);
+    if (!res.ok) { setEditError(data.error || 'Erreur'); return; }
+    onUpdate(data.guest);
+    setEditing(false);
+  };
 
   return (
     <div style={{
@@ -89,7 +139,7 @@ function GuestRow({ guest, playlists, token, onDelete, onReinvite, onUpdate }) {
             {guest.first_name}
           </div>
           <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {guest.email}
+            {guest.email || guest.phone || <span style={{ fontStyle: 'italic' }}>Aucun contact enregistré</span>}
           </div>
         </div>
 
@@ -107,9 +157,28 @@ function GuestRow({ guest, playlists, token, onDelete, onReinvite, onUpdate }) {
               {guest.suggestions.pending} prop.
             </span>
           )}
-          <button onClick={handleReinvite} disabled={reinviting}
+          <button onClick={handleShare}
+            title={`Lien personnel de ${guest.first_name} — à envoyer uniquement à cette personne`}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 5,
+              background: shared ? 'rgba(34,197,94,0.1)' : 'rgba(184,239,11,0.08)',
+              color: shared ? '#22c55e' : '#b8ef0b',
+              border: `1px solid ${shared ? 'rgba(34,197,94,0.3)' : 'rgba(184,239,11,0.25)'}`,
+              borderRadius: 7, padding: '4px 10px', fontSize: 11, fontWeight: 600,
+              cursor: 'pointer', fontFamily: 'var(--font-display), sans-serif',
+            }}>
+            {shared ? <Check size={12} /> : <Share2 size={12} />}
+            {shared ? 'Lien copié' : 'Envoyer'}
+          </button>
+          {guest.email && (
+            <button onClick={handleReinvite} disabled={reinviting} title="Ré-envoyer l'email d'invitation"
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', padding: 4 }}>
+              <RefreshCw size={14} style={reinviting ? { animation: 'spin 0.8s linear infinite' } : {}} />
+            </button>
+          )}
+          <button onClick={startEdit} title="Modifier l'invité"
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', padding: 4 }}>
-            <RefreshCw size={14} style={reinviting ? { animation: 'spin 0.8s linear infinite' } : {}} />
+            <Pencil size={14} />
           </button>
           <button onClick={handleDelete} disabled={deleting}
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', padding: 4 }}
@@ -123,8 +192,23 @@ function GuestRow({ guest, playlists, token, onDelete, onReinvite, onUpdate }) {
           </button>
         </div>
 
-        {/* Mobile : point de statut + chevron uniquement */}
+        {/* Mobile : Envoyer (tant que l'invité n'a pas répondu) + point de statut + chevron */}
         <div className="gr-mobile-dot" style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          {(guest.attending === null || guest.attending === undefined) && (
+            <button onClick={handleShare}
+              title={`Lien personnel de ${guest.first_name} — à envoyer uniquement à cette personne`}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 5,
+                background: shared ? 'rgba(34,197,94,0.1)' : 'rgba(184,239,11,0.08)',
+                color: shared ? '#22c55e' : '#b8ef0b',
+                border: `1px solid ${shared ? 'rgba(34,197,94,0.3)' : 'rgba(184,239,11,0.25)'}`,
+                borderRadius: 7, padding: '4px 10px', fontSize: 11, fontWeight: 600,
+                cursor: 'pointer', fontFamily: 'var(--font-display), sans-serif',
+              }}>
+              {shared ? <Check size={12} /> : <Share2 size={12} />}
+              {shared ? 'Lien copié' : 'Envoyer'}
+            </button>
+          )}
           <div style={{
             width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
             background: guest.attending === true ? '#22c55e' : guest.attending === false ? '#ef4444' : 'rgba(255,255,255,0.25)',
@@ -154,9 +238,15 @@ function GuestRow({ guest, playlists, token, onDelete, onReinvite, onUpdate }) {
                   {guest.suggestions.pending} prop.
                 </span>
               )}
-              <button onClick={handleReinvite} disabled={reinviting}
+              {guest.email && (
+                <button onClick={handleReinvite} disabled={reinviting} title="Ré-envoyer l'email d'invitation"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.35)', padding: 4 }}>
+                  <RefreshCw size={14} style={reinviting ? { animation: 'spin 0.8s linear infinite' } : {}} />
+                </button>
+              )}
+              <button onClick={startEdit} title="Modifier l'invité"
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.35)', padding: 4 }}>
-                <RefreshCw size={14} style={reinviting ? { animation: 'spin 0.8s linear infinite' } : {}} />
+                <Pencil size={14} />
               </button>
               <button onClick={handleDelete} disabled={deleting}
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.2)', padding: 4 }}
@@ -167,30 +257,86 @@ function GuestRow({ guest, playlists, token, onDelete, onReinvite, onUpdate }) {
             </div>
           </div>
 
-          <div style={{ marginTop: 4, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>Playlists :</span>
-            {guestPlaylists.length
-              ? guestPlaylists.map(p => (
-                  <span key={p.id} style={{
-                    fontSize: 12, padding: '2px 10px', borderRadius: 10,
-                    background: 'rgba(184,239,11,0.08)', color: '#b8ef0b', border: '1px solid rgba(184,239,11,0.2)',
-                  }}>{p.name}</span>
-                ))
-              : <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)', fontStyle: 'italic' }}>Aucune</span>
-            }
-          </div>
-          <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>Limite de chansons par playlist :</span>
-            <input
-              type="number" min={1} max={50} value={maxSongs}
-              onChange={e => handleMaxSongs(e.target.value)}
-              style={{
-                width: 60, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
-                borderRadius: 6, padding: '4px 8px', color: '#fff', fontSize: 13, textAlign: 'center',
-              }}
-            />
-            {savingMax && <span style={{ fontSize: 11, color: '#b8ef0b' }}>✓</span>}
-          </div>
+          {editing ? (
+            <div style={{
+              background: 'rgba(184,239,11,0.04)', border: '1px solid rgba(184,239,11,0.2)',
+              borderRadius: 10, padding: 14, marginTop: 4,
+            }}>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+                <input value={editFirstName} onChange={e => setEditFirstName(e.target.value)}
+                  placeholder="Prénom *"
+                  style={{ flex: 1, minWidth: 100, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 7, padding: '7px 10px', color: '#fff', fontSize: 13, fontFamily: 'inherit' }} />
+                <input type="email" value={editEmail} onChange={e => setEditEmail(e.target.value)}
+                  placeholder="Email (optionnel)"
+                  style={{ flex: 2, minWidth: 140, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 7, padding: '7px 10px', color: '#fff', fontSize: 13, fontFamily: 'inherit' }} />
+                <input type="tel" value={editPhone} onChange={e => setEditPhone(e.target.value)}
+                  placeholder="Téléphone (optionnel)"
+                  style={{ flex: 2, minWidth: 140, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 7, padding: '7px 10px', color: '#fff', fontSize: 13, fontFamily: 'inherit' }} />
+              </div>
+
+              {playlists.length > 0 && (
+                <div style={{ marginBottom: 10 }}>
+                  <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', margin: '0 0 6px' }}>Playlists accessibles :</p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {playlists.map(p => (
+                      <button key={p.id} onClick={() => toggleEditPlaylist(p.id)} style={{
+                        fontSize: 12, padding: '4px 12px', borderRadius: 20, cursor: 'pointer', border: 'none',
+                        background: editPlaylistIds.includes(p.id) ? 'rgba(184,239,11,0.15)' : 'rgba(255,255,255,0.05)',
+                        color: editPlaylistIds.includes(p.id) ? '#b8ef0b' : 'rgba(255,255,255,0.4)',
+                        outline: editPlaylistIds.includes(p.id) ? '1px solid rgba(184,239,11,0.3)' : '1px solid rgba(255,255,255,0.08)',
+                      }}>{editPlaylistIds.includes(p.id) && '✓ '}{p.name}</button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {editError && <p style={{ color: '#ef4444', fontSize: 12, margin: '0 0 8px' }}>{editError}</p>}
+
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={saveEdit} disabled={savingEdit} style={{
+                  background: '#b8ef0b', color: '#060e16', border: 'none', borderRadius: 8,
+                  padding: '7px 16px', cursor: 'pointer', fontWeight: 700, fontSize: 12,
+                  fontFamily: 'var(--font-display), sans-serif',
+                }}>
+                  {savingEdit ? 'Enregistrement…' : 'Enregistrer'}
+                </button>
+                <button onClick={() => setEditing(false)} style={{
+                  background: 'none', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8,
+                  padding: '7px 16px', cursor: 'pointer', color: 'rgba(255,255,255,0.4)', fontSize: 12,
+                  fontFamily: 'inherit',
+                }}>
+                  Annuler
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div style={{ marginTop: 4, display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>Playlists :</span>
+                {guestPlaylists.length
+                  ? guestPlaylists.map(p => (
+                      <span key={p.id} style={{
+                        fontSize: 12, padding: '2px 10px', borderRadius: 10,
+                        background: 'rgba(184,239,11,0.08)', color: '#b8ef0b', border: '1px solid rgba(184,239,11,0.2)',
+                      }}>{p.name}</span>
+                    ))
+                  : <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)', fontStyle: 'italic' }}>Aucune</span>
+                }
+              </div>
+              <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>Limite de chansons par playlist :</span>
+                <input
+                  type="number" min={1} max={50} value={maxSongs}
+                  onChange={e => handleMaxSongs(e.target.value)}
+                  style={{
+                    width: 60, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
+                    borderRadius: 6, padding: '4px 8px', color: '#fff', fontSize: 13, textAlign: 'center',
+                  }}
+                />
+                {savingMax && <span style={{ fontSize: 11, color: '#b8ef0b' }}>✓</span>}
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>
@@ -200,6 +346,7 @@ function GuestRow({ guest, playlists, token, onDelete, onReinvite, onUpdate }) {
 function InviteForm({ playlists, token, eventId, onInvited }) {
   const [open, setOpen]           = useState(false);
   const [email, setEmail]         = useState('');
+  const [phone, setPhone]         = useState('');
   const [firstName, setFirstName] = useState('');
   const [selected, setSelected]   = useState([]);
   const [maxSongs, setMaxSongs]   = useState(10);
@@ -209,17 +356,17 @@ function InviteForm({ playlists, token, eventId, onInvited }) {
   const toggle = (id) => setSelected(s => s.includes(id) ? s.filter(x => x !== id) : [...s, id]);
 
   const send = async () => {
-    if (!email || !firstName) { setError('Email et prénom sont requis.'); return; }
+    if (!firstName) { setError('Le prénom est requis.'); return; }
     setSending(true); setError('');
     const res = await fetch('/api/mon-espace/guests', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ eventId, email, firstName, playlistIds: selected, maxSongs }),
+      body: JSON.stringify({ eventId, email, phone, firstName, playlistIds: selected, maxSongs }),
     });
     const data = await res.json();
     setSending(false);
     if (!res.ok) { setError(data.error || 'Erreur'); return; }
-    setOpen(false); setEmail(''); setFirstName(''); setSelected([]);
+    setOpen(false); setEmail(''); setPhone(''); setFirstName(''); setSelected([]);
     onInvited();
   };
 
@@ -245,14 +392,20 @@ function InviteForm({ playlists, token, eventId, onInvited }) {
           .inv-fields { flex-direction: column !important; }
         }
       `}</style>
-      <div className="inv-fields" style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+      <div className="inv-fields" style={{ display: 'flex', gap: 10, marginBottom: 6 }}>
         <input type="text" value={firstName} onChange={e => setFirstName(e.target.value)}
           placeholder="Prénom *"
           style={{ flex: 1, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 7, padding: '8px 12px', color: '#fff', fontSize: 13, fontFamily: 'inherit' }} />
         <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-          placeholder="Email *"
+          placeholder="Email (optionnel)"
+          style={{ flex: 2, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 7, padding: '8px 12px', color: '#fff', fontSize: 13, fontFamily: 'inherit' }} />
+        <input type="tel" value={phone} onChange={e => setPhone(e.target.value)}
+          placeholder="Téléphone (optionnel)"
           style={{ flex: 2, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 7, padding: '8px 12px', color: '#fff', fontSize: 13, fontFamily: 'inherit' }} />
       </div>
+      <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', margin: '0 0 10px' }}>
+        Sans email, l&apos;invitation n&apos;est pas envoyée automatiquement — utilisez « Envoyer » sur la fiche de l&apos;invité pour partager le lien à la main (WhatsApp, SMS…).
+      </p>
 
       {playlists.length > 0 && (
         <div style={{ marginBottom: 10 }}>
@@ -279,13 +432,14 @@ function InviteForm({ playlists, token, eventId, onInvited }) {
       {error && <p style={{ color: '#ef4444', fontSize: 12, margin: '0 0 8px' }}>{error}</p>}
 
       <div style={{ display: 'flex', gap: 8 }}>
-        <button onClick={send} disabled={sending} style={{
+        <button onClick={send} disabled={sending || !firstName.trim()} style={{
           background: '#b8ef0b', color: '#060e16', border: 'none', borderRadius: 8,
           padding: '8px 18px', cursor: 'pointer', fontWeight: 700, fontSize: 13,
           fontFamily: 'var(--font-display), sans-serif',
           display: 'flex', alignItems: 'center', gap: 6,
+          opacity: !firstName.trim() ? 0.5 : 1,
         }}>
-          <Mail size={14} /> {sending ? 'Envoi…' : 'Envoyer l\'invitation'}
+          <Plus size={14} /> {sending ? 'Ajout…' : 'Ajouter l\'invité'}
         </button>
         <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)', padding: '8px 10px' }}>
           <X size={16} />
@@ -445,8 +599,18 @@ export default function InvitesSection({ ev, token }) {
       }}>
         <h3 style={{
           fontFamily: 'var(--font-display), sans-serif', fontSize: 13, fontWeight: 700,
-          color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 16px',
+          color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 6px',
         }}>Liste des invités</h3>
+        <div style={{
+          display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 16,
+          background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)',
+          borderRadius: 8, padding: '8px 12px',
+        }}>
+          <AlertTriangle size={14} color="#f59e0b" style={{ flexShrink: 0, marginTop: 1 }} />
+          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', margin: 0, lineHeight: 1.5 }}>
+            Chaque invité a un lien personnel et unique (RSVP, menu, playlists). Le bouton « Envoyer » ne doit être transmis qu&apos;à la personne concernée — ne le partagez pas dans un groupe ni avec d&apos;autres invités.
+          </p>
+        </div>
 
         {loading ? (
           <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 13 }}>Chargement…</p>

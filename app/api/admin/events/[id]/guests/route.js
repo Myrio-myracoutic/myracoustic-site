@@ -87,9 +87,9 @@ export async function GET(req, { params }) {
 export async function POST(req, { params }) {
   if (!(await verifyAdminCookie())) return Response.json({ error: 'Non autorisé' }, { status: 401 });
   const { id } = await params;
-  const { email, firstName, playlistIds, maxSongs } = await req.json();
+  const { email, firstName, phone, playlistIds, maxSongs } = await req.json();
 
-  if (!email || !firstName) return Response.json({ error: 'email et firstName requis' }, { status: 400 });
+  if (!firstName) return Response.json({ error: 'firstName requis' }, { status: 400 });
 
   const { data: ev } = await supabaseAdmin
     .from('events')
@@ -98,31 +98,30 @@ export async function POST(req, { params }) {
     .single();
   if (!ev) return Response.json({ error: 'Événement introuvable' }, { status: 404 });
 
-  const { data: guest, error } = await supabaseAdmin
-    .from('event_guests')
-    .upsert(
-      {
-        event_id: id,
-        email: email.toLowerCase(),
-        first_name: firstName,
-        playlist_ids: playlistIds || [],
-        max_songs: maxSongs ?? 10,
-      },
-      { onConflict: 'event_id,email', ignoreDuplicates: false }
-    )
-    .select()
-    .single();
+  const cleanEmail = email ? email.toLowerCase() : null;
+  const guestRow = {
+    event_id: id, email: cleanEmail, first_name: firstName, phone: phone || null,
+    playlist_ids: playlistIds || [], max_songs: maxSongs ?? 10,
+  };
+
+  const { data: guest, error } = cleanEmail
+    ? await supabaseAdmin.from('event_guests')
+        .upsert(guestRow, { onConflict: 'event_id,email', ignoreDuplicates: false })
+        .select().single()
+    : await supabaseAdmin.from('event_guests').insert(guestRow).select().single();
 
   if (error) return Response.json({ error: error.message }, { status: 500 });
 
-  const inviteLink = `${APP_URL}/invitation/${guest.token}`;
-  await sendInviteEmail(
-    email.toLowerCase(),
-    firstName,
-    inviteLink,
-    ev.event_type,
-    ev.clients?.first_name || 'Votre hôte'
-  );
+  if (cleanEmail) {
+    const inviteLink = `${APP_URL}/invitation/${guest.token}`;
+    await sendInviteEmail(
+      cleanEmail,
+      firstName,
+      inviteLink,
+      ev.event_type,
+      ev.clients?.first_name || 'Votre hôte'
+    );
+  }
 
   return Response.json({ ok: true, guest });
 }

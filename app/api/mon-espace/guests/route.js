@@ -96,8 +96,8 @@ export async function POST(request) {
   const token = request.headers.get('authorization')?.replace('Bearer ', '');
   if (!token) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
 
-  const { eventId, email, firstName, playlistIds, maxSongs } = await request.json();
-  if (!eventId || !email || !firstName)
+  const { eventId, email, firstName, phone, playlistIds, maxSongs } = await request.json();
+  if (!eventId || !firstName)
     return NextResponse.json({ error: 'Champs requis manquants' }, { status: 400 });
 
   const access = await verifyEventAccess(token, eventId);
@@ -110,21 +110,25 @@ export async function POST(request) {
     .eq('id', eventId)
     .single();
 
-  const { data: guest, error } = await supabaseAdmin
-    .from('event_guests')
-    .upsert(
-      { event_id: eventId, email: email.toLowerCase(), first_name: firstName,
-        playlist_ids: playlistIds || [], max_songs: maxSongs ?? 10 },
-      { onConflict: 'event_id,email', ignoreDuplicates: false }
-    )
-    .select()
-    .single();
+  const cleanEmail = email ? email.toLowerCase() : null;
+  const guestRow = {
+    event_id: eventId, email: cleanEmail, first_name: firstName, phone: phone || null,
+    playlist_ids: playlistIds || [], max_songs: maxSongs ?? 10,
+  };
+
+  const { data: guest, error } = cleanEmail
+    ? await supabaseAdmin.from('event_guests')
+        .upsert(guestRow, { onConflict: 'event_id,email', ignoreDuplicates: false })
+        .select().single()
+    : await supabaseAdmin.from('event_guests').insert(guestRow).select().single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  const inviteLink = `${APP_URL}/invitation/${guest.token}`;
-  const clientFirstName = ev?.clients?.first_name || 'Votre hôte';
-  await sendInviteEmail(email.toLowerCase(), firstName, inviteLink, ev?.event_type, clientFirstName);
+  if (cleanEmail) {
+    const inviteLink = `${APP_URL}/invitation/${guest.token}`;
+    const clientFirstName = ev?.clients?.first_name || 'Votre hôte';
+    await sendInviteEmail(cleanEmail, firstName, inviteLink, ev?.event_type, clientFirstName);
+  }
 
   return NextResponse.json({ ok: true, guest });
 }

@@ -12,7 +12,7 @@ async function getGuestAccess(token, guestId) {
   return guest;
 }
 
-/* PATCH — modifier playlists ou max_songs */
+/* PATCH — modifier prénom, email, téléphone, playlists ou max_songs */
 export async function PATCH(request, { params }) {
   const { guestId } = await params;
   const token = request.headers.get('authorization')?.replace('Bearer ', '');
@@ -23,12 +23,19 @@ export async function PATCH(request, { params }) {
 
   const body = await request.json();
   const updates = {};
+  if (body.firstName   !== undefined) updates.first_name  = body.firstName;
+  if (body.email       !== undefined) updates.email       = body.email ? body.email.toLowerCase() : null;
+  if (body.phone       !== undefined) updates.phone       = body.phone || null;
   if (body.playlistIds !== undefined) updates.playlist_ids = body.playlistIds;
   if (body.maxSongs    !== undefined) updates.max_songs    = body.maxSongs;
 
   const { data, error } = await supabaseAdmin
     .from('event_guests').update(updates).eq('id', guestId).select().single();
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    if (error.code === '23505')
+      return NextResponse.json({ error: 'Cet email est déjà utilisé par un autre invité de cet événement.' }, { status: 409 });
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
   return NextResponse.json({ ok: true, guest: data });
 }
 

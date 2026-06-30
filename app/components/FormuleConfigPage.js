@@ -1,11 +1,14 @@
 'use client';
-import { useState, useEffect, useMemo, Fragment } from 'react';
+import { useState, useEffect, useMemo, useRef, Fragment } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, Loader2, Plus, Minus, SlidersHorizontal, CreditCard, Phone } from 'lucide-react';
 import { FORMULES, fmtPrice, EXTRA_HOUR_PRICE } from '../lib/formules';
+import { gtagEvent, gtagBeacon } from '../lib/gtag';
 import AddressAutocomplete from './AddressAutocomplete';
 import MiniCal from './MiniCal';
+
+const STEP_NAMES = { 1: 'coordonnees', 2: 'evenement', 3: 'options' };
 
 const input = {
   width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)',
@@ -122,6 +125,32 @@ function Configurator({ formule }) {
   const allowExtra = formule.key !== 'prestige';
   const hasReception = formule.options.some(o => o.key === 'reception');
 
+  /* ── Suivi GA4 du tunnel ────────────────────────────────────────── */
+  const stepStartRef = useRef(Date.now());
+
+  useEffect(() => {
+    stepStartRef.current = Date.now();
+    gtagEvent('funnel_step', { profil: 'mariage', formule: formule.key, step, step_name: STEP_NAMES[step] ?? `step_${step}` });
+  }, [step, formule.key]);
+
+  useEffect(() => {
+    const fireAbandon = () => {
+      if (done) return;
+      gtagBeacon('funnel_abandon', {
+        profil: 'mariage', formule: formule.key, step,
+        step_name: STEP_NAMES[step] ?? `step_${step}`,
+        time_spent_sec: Math.round((Date.now() - stepStartRef.current) / 1000),
+      });
+    };
+    const onVisibility = () => { if (document.visibilityState === 'hidden') fireAbandon(); };
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('beforeunload', fireAbandon);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('beforeunload', fireAbandon);
+    };
+  }, [step, done, formule.key]);
+
   useEffect(() => {
     const t = new Date();
     const start = t.toISOString().slice(0, 10);
@@ -162,7 +191,17 @@ function Configurator({ formule }) {
   const step2Valid = date && lieu.trim();
 
   const goTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
-  const next = () => { if ((step === 1 && !step1Valid) || (step === 2 && !step2Valid)) return; setStep(s => Math.min(3, s + 1)); goTop(); };
+  const next = () => {
+    if (step === 1 && !step1Valid) {
+      gtagEvent('funnel_error', { step, step_name: STEP_NAMES[1], error_type: 'coordonnees_incompletes' });
+      return;
+    }
+    if (step === 2 && !step2Valid) {
+      gtagEvent('funnel_error', { step, step_name: STEP_NAMES[2], error_type: 'date_ou_lieu_manquant' });
+      return;
+    }
+    setStep(s => Math.min(3, s + 1)); goTop();
+  };
   const back = () => { setStep(s => Math.max(1, s - 1)); goTop(); };
 
   const submit = async () => {
@@ -185,11 +224,17 @@ function Configurator({ formule }) {
       });
       const data = await res.json();
       setSending(false);
-      if (!res.ok) { setError(data.error || 'Une erreur est survenue.'); return; }
+      if (!res.ok) {
+        setError(data.error || 'Une erreur est survenue.');
+        gtagEvent('funnel_error', { step, step_name: STEP_NAMES[step], error_type: 'soumission_echouee' });
+        return;
+      }
+      gtagEvent('generate_lead', { profil: 'mariage', formule: formule.key, currency: 'EUR', value: total });
       setDone(data.quoteUrl || true);
     } catch {
       setSending(false);
       setError('Une erreur est survenue. Réessayez ou contactez-nous.');
+      gtagEvent('funnel_error', { step, step_name: STEP_NAMES[step], error_type: 'erreur_reseau' });
     }
   };
 

@@ -52,3 +52,25 @@ export async function PATCH(req, { params }) {
   if (error) return Response.json({ error: error.message }, { status: 500 });
   return Response.json(data);
 }
+
+// DELETE /api/admin/clients/[id]
+export async function DELETE(req, { params }) {
+  if (!(await verifyAdminCookie())) return Response.json({ error: 'Non autorisé' }, { status: 401 });
+  const { id } = await params;
+
+  const { data: client } = await supabaseAdmin
+    .from('clients')
+    .select('auth_id')
+    .eq('id', id)
+    .single();
+
+  const { error } = await supabaseAdmin.from('clients').delete().eq('id', id);
+  if (error) return Response.json({ error: error.message }, { status: 500 });
+
+  // Supprime aussi le compte d'authentification associé, s'il existe
+  if (client?.auth_id) {
+    await supabaseAdmin.auth.admin.deleteUser(client.auth_id).catch(() => {});
+  }
+
+  return Response.json({ ok: true });
+}

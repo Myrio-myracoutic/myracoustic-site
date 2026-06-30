@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { UserPlus, X, Search, CheckCircle, FileText, Loader, Mail, RefreshCw, ShieldCheck, Clock, AlertCircle } from 'lucide-react';
+import { UserPlus, X, Search, CheckCircle, FileText, Loader, Mail, RefreshCw, ShieldCheck, Clock, AlertCircle, Trash2 } from 'lucide-react';
 
 function fmtDate(d) {
   if (!d) return '—';
@@ -291,6 +291,7 @@ export default function AdminClientsPage() {
   const [search,     setSearch]     = useState('');
   const [showModal,  setShowModal]  = useState(false);
   const [reinviting, setReinviting] = useState(null); // id du client en cours
+  const [deletingId, setDeletingId] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -308,6 +309,20 @@ export default function AdminClientsPage() {
     await fetch(`/api/admin/clients/${client.id}/reinvite`, { method: 'POST' });
     await load();
     setReinviting(null);
+  };
+
+  const handleDelete = async (e, c) => {
+    e.stopPropagation();
+    const nbEvents = c.events?.length || 0;
+    const warning = nbEvents > 0
+      ? ` Ses ${nbEvents} événement${nbEvents > 1 ? 's' : ''} et toutes les données associées (devis, invités, playlists…) seront aussi supprimés.`
+      : '';
+    if (!confirm(`Supprimer définitivement le client ${c.first_name} ${c.last_name || ''} ?${warning} Cette action est irréversible.`)) return;
+    setDeletingId(c.id);
+    const res = await fetch(`/api/admin/clients/${c.id}`, { method: 'DELETE' });
+    setDeletingId(null);
+    if (res.ok) setClients(prev => prev.filter(x => x.id !== c.id));
+    else { const d = await res.json().catch(() => ({})); alert(d.error || 'Erreur lors de la suppression.'); }
   };
 
   const filtered = clients.filter(c => {
@@ -359,11 +374,12 @@ export default function AdminClientsPage() {
       {/* Table */}
       <div style={{ background: '#0d1b2a', borderRadius: 14, border: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden' }}>
         {/* Header */}
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.8fr 1fr 2fr', padding: '12px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.03)', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.8fr 1fr 2fr 32px', padding: '12px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.03)', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
           <span>Client</span>
           <span>Email</span>
           <span>Événements</span>
           <span>Statut compte</span>
+          <span />
         </div>
 
         {filtered.length === 0 ? (
@@ -376,7 +392,7 @@ export default function AdminClientsPage() {
             return (
               <div key={c.id}
                 onClick={() => router.push(`/admin/clients/${c.id}`)}
-                style={{ display: 'grid', gridTemplateColumns: '2fr 1.8fr 1fr 2fr', padding: '14px 20px', alignItems: 'center', borderBottom: i < filtered.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none', transition: 'background 0.1s', cursor: 'pointer' }}
+                style={{ display: 'grid', gridTemplateColumns: '2fr 1.8fr 1fr 2fr 32px', padding: '14px 20px', alignItems: 'center', borderBottom: i < filtered.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none', transition: 'background 0.1s', cursor: 'pointer' }}
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
               >
@@ -408,6 +424,21 @@ export default function AdminClientsPage() {
                   onReinvite={handleReinvite}
                   reinviting={reinviting === c.id}
                 />
+
+                <button
+                  onClick={e => handleDelete(e, c)}
+                  disabled={deletingId === c.id}
+                  title="Supprimer ce client"
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: 'none', border: 'none', cursor: 'pointer', padding: 6,
+                    color: 'rgba(239,68,68,0.55)', opacity: deletingId === c.id ? 0.4 : 1,
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'rgba(239,68,68,0.55)'}
+                >
+                  <Trash2 size={15} />
+                </button>
               </div>
             );
           })

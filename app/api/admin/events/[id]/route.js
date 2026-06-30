@@ -195,6 +195,16 @@ export async function GET(req, { params }) {
   return Response.json(data);
 }
 
+export async function DELETE(req, { params }) {
+  if (!(await verifyAdminCookie())) {
+    return Response.json({ error: 'Non autorisé' }, { status: 401 });
+  }
+  const { id } = await params;
+  const { error } = await supabaseAdmin.from('events').delete().eq('id', id);
+  if (error) return Response.json({ error: error.message }, { status: 500 });
+  return Response.json({ ok: true });
+}
+
 export async function PATCH(req, { params }) {
   if (!(await verifyAdminCookie())) {
     return Response.json({ error: 'Non autorisé' }, { status: 401 });

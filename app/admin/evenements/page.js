@@ -34,12 +34,24 @@ export default function AdminDevisPage() {
   const [dateFilter, setDateFilter] = useState('all');
   const [search,     setSearch]     = useState('');
   const [sortDate,   setSortDate]   = useState('asc');
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     fetch('/api/admin/events')
       .then(r => { if (r.status === 401) { router.replace('/admin/login'); return null; } return r.json(); })
       .then(d => { if (d) { setEvents(d); setLoading(false); } });
   }, []);
+
+  const handleDelete = async (e, ev) => {
+    e.stopPropagation();
+    const label = ev.clients?.first_name ? `${ev.clients.first_name} ${ev.clients.last_name || ''}`.trim() : (ev.event_type || 'cet événement');
+    if (!confirm(`Supprimer définitivement l'événement de ${label} ? Toutes les données associées (invités, playlists, programme…) seront perdues. Cette action est irréversible.`)) return;
+    setDeletingId(ev.id);
+    const res = await fetch(`/api/admin/events/${ev.id}`, { method: 'DELETE' });
+    setDeletingId(null);
+    if (res.ok) setEvents(prev => prev.filter(x => x.id !== ev.id));
+    else { const d = await res.json().catch(() => ({})); alert(d.error || 'Erreur lors de la suppression.'); }
+  };
 
   const today     = new Date().toISOString().slice(0, 10);
   const thisMonth = today.slice(0, 7);
@@ -161,7 +173,7 @@ export default function AdminDevisPage() {
           </button>
           <span>Invités</span>
           <span>Statut</span>
-          <span />
+          <span style={{ textAlign: 'center' }}>Suppr.</span>
         </div>
 
         {filtered.length === 0 ? (
@@ -216,7 +228,20 @@ export default function AdminDevisPage() {
                   borderRadius: 20, padding: '3px 10px', fontSize: 11, fontWeight: 600,
                   display: 'inline-block',
                 }}>{st.label}</span>
-                <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: 16, textAlign: 'center' }}>›</span>
+                <button
+                  onClick={e => handleDelete(e, ev)}
+                  disabled={deletingId === ev.id}
+                  title="Supprimer cet événement"
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: 'none', border: 'none', cursor: 'pointer', padding: 6,
+                    color: 'rgba(239,68,68,0.55)', opacity: deletingId === ev.id ? 0.4 : 1,
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.color = '#ef4444'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'rgba(239,68,68,0.55)'}
+                >
+                  <Trash2 size={15} />
+                </button>
               </div>
             );
           })

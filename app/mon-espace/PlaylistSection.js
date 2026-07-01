@@ -1,5 +1,6 @@
 'use client';
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, memo } from 'react';
+import { createPortal } from 'react-dom';
 import { Music2, Search, Plus, X, ChevronDown, ChevronUp, Loader2, Play, Pause, Check, ThumbsUp, ThumbsDown, Pencil, Trash2, Gift } from 'lucide-react';
 import { SkeletonPlaylist } from './SkeletonLoader';
 
@@ -23,7 +24,7 @@ function fmtDuration(s) {
   return `${m}:${sec}`;
 }
 
-function TrackRow({ track, token, onDelete }) {
+const TrackRow = memo(function TrackRow({ track, token, onDelete }) {
   const [note, setNote]         = useState(track.note || '');
   const [saving, setSaving]     = useState(false);
   const [playing, setPlaying]   = useState(false);
@@ -192,7 +193,7 @@ function TrackRow({ track, token, onDelete }) {
       </button>
     </div>
   );
-}
+});
 
 function SearchBar({ playlistId, token, onAdded }) {
   const [query, setQuery]     = useState('');
@@ -206,6 +207,7 @@ function SearchBar({ playlistId, token, onAdded }) {
   const searchTimer = useRef(null);
   const wrapRef  = useRef(null);
   const inputRef = useRef(null);
+  const dropRef  = useRef(null);
 
   const stopPreview = useCallback(() => {
     if (_globalAudio && _globalStop === setPlayingId) stopGlobalAudio();
@@ -239,7 +241,9 @@ function SearchBar({ playlistId, token, onAdded }) {
 
   useEffect(() => {
     const handler = (e) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) { setOpen(false); stopPreview(); }
+      const inWrap = wrapRef.current && wrapRef.current.contains(e.target);
+      const inDrop = dropRef.current && dropRef.current.contains(e.target);
+      if (!inWrap && !inDrop) { setOpen(false); stopPreview(); }
     };
     document.addEventListener('mousedown', handler);
     return () => { document.removeEventListener('mousedown', handler); stopPreview(); };
@@ -377,11 +381,12 @@ function SearchBar({ playlistId, token, onAdded }) {
         </p>
       )}
 
-      {open && results.length > 0 && (
-        <div style={{
+      {open && results.length > 0 && typeof document !== 'undefined' && createPortal(
+        <div ref={dropRef} style={{
           ...dropStyle,
           background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.12)',
           borderRadius: 10, overflow: 'hidden', maxHeight: '60vh', overflowY: 'auto',
+          boxShadow: '0 12px 40px rgba(0,0,0,0.55)',
         }}>
           {results.map(track => (
             <div
@@ -444,7 +449,8 @@ function SearchBar({ playlistId, token, onAdded }) {
               </button>
             </div>
           ))}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
@@ -609,13 +615,13 @@ function PlaylistCard({ playlist, token, onRefresh }) {
   const [deleting,  setDeleting]  = useState(false);
   const nameInputRef = useRef(null);
 
-  const deleteTrack = async (trackId) => {
+  const deleteTrack = useCallback(async (trackId) => {
     await fetch(`/api/mon-espace/playlists/tracks/${trackId}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` },
     });
     onRefresh();
-  };
+  }, [token, onRefresh]);
 
   const startRename = (e) => {
     e.stopPropagation();

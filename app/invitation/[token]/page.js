@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { use } from 'react';
+import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { Music2, Search, Plus, Check, X, Loader2, Play, Pause, CheckCircle2, Cake } from 'lucide-react';
 import PracticalInfoCards from '@/app/components/PracticalInfo';
@@ -295,6 +296,7 @@ function SongSearch({ playlistId, token, onAdded }) {
   const wrapRef     = useRef(null);
   const inputRef    = useRef(null);
   const audioRef    = useRef(null);
+  const dropRef     = useRef(null);
 
   const computeDropStyle = useCallback(() => {
     if (!wrapRef.current) return {};
@@ -339,7 +341,9 @@ function SongSearch({ playlistId, token, onAdded }) {
 
   useEffect(() => {
     const handler = (e) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) { setOpen(false); stopPreview(); }
+      const inWrap = wrapRef.current && wrapRef.current.contains(e.target);
+      const inDrop = dropRef.current && dropRef.current.contains(e.target);
+      if (!inWrap && !inDrop) { setOpen(false); stopPreview(); }
     };
     document.addEventListener('mousedown', handler);
     return () => { document.removeEventListener('mousedown', handler); stopPreview(); };
@@ -408,8 +412,8 @@ function SongSearch({ playlistId, token, onAdded }) {
         />
       </div>
 
-      {open && results.length > 0 && (
-        <div style={{
+      {open && results.length > 0 && typeof document !== 'undefined' && createPortal(
+        <div ref={dropRef} style={{
           ...dropStyle,
           background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.12)',
           borderRadius: 10, overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
@@ -454,7 +458,8 @@ function SongSearch({ playlistId, token, onAdded }) {
               </button>
             </div>
           ))}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

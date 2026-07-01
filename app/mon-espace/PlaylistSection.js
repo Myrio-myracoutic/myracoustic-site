@@ -3,6 +3,19 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { Music2, Search, Plus, X, ChevronDown, ChevronUp, Loader2, Play, Pause, Check, ThumbsUp, ThumbsDown, Pencil, Trash2, Gift } from 'lucide-react';
 import { SkeletonPlaylist } from './SkeletonLoader';
 
+// Singleton audio : un seul morceau joue à la fois dans toute la section playlist
+let _globalAudio = null;
+let _globalStop = null;
+function stopGlobalAudio() {
+  if (_globalAudio) { _globalAudio.pause(); _globalAudio = null; }
+  if (_globalStop)  { _globalStop(false);  _globalStop  = null; }
+}
+function registerGlobalAudio(audio, setPlaying) {
+  stopGlobalAudio();
+  _globalAudio = audio;
+  _globalStop  = setPlaying;
+}
+
 function fmtDuration(s) {
   if (!s) return '';
   const m = Math.floor(s / 60);
@@ -11,9 +24,16 @@ function fmtDuration(s) {
 }
 
 function TrackRow({ track, token, onDelete }) {
-  const [note, setNote]   = useState(track.note || '');
-  const [saving, setSaving] = useState(false);
+  const [note, setNote]         = useState(track.note || '');
+  const [saving, setSaving]     = useState(false);
+  const [playing, setPlaying]   = useState(false);
+  const [loadingPlay, setLoadingPlay] = useState(false);
   const saveTimer = useRef(null);
+
+  // Nettoyage à la suppression du composant
+  useEffect(() => () => {
+    if (_globalAudio && _globalStop === setPlaying) stopGlobalAudio();
+  }, []);
 
   const saveNote = useCallback(async (val) => {
     setSaving(true);
@@ -32,23 +52,103 @@ function TrackRow({ track, token, onDelete }) {
     saveTimer.current = setTimeout(() => saveNote(val), 800);
   };
 
+  const canPreview = !!(track.preview_url || track.deezer_id);
+
+  const togglePlay = async () => {
+    if (playing) { stopGlobalAudio(); return; }
+
+    setLoadingPlay(true);
+    let url = track.preview_url;
+
+    // Rafraîchit l'URL si absente ou en cas d'erreur
+    if (!url && track.deezer_id) {
+      try {
+        const res  = await fetch(`/api/music/preview?deezer_id=${encodeURIComponent(track.deezer_id)}`);
+        const data = await res.json();
+        url = data.preview || '';
+      } catch { url = ''; }
+    }
+
+    if (!url) { setLoadingPlay(false); return; }
+
+    const audio = new Audio(url);
+    audio.onended = () => { _globalAudio = null; _globalStop = null; setPlaying(false); };
+    audio.onerror = async () => {
+      // Si l'URL stockée est expirée, on en récupère une fraîche
+      if (track.deezer_id) {
+        try {
+          const res  = await fetch(`/api/music/preview?deezer_id=${encodeURIComponent(track.deezer_id)}`);
+          const data = await res.json();
+          if (data.preview) {
+            const a2 = new Audio(data.preview);
+            a2.onended = () => { _globalAudio = null; _globalStop = null; setPlaying(false); };
+            a2.play().catch(() => { _globalAudio = null; _globalStop = null; setPlaying(false); });
+            registerGlobalAudio(a2, setPlaying);
+            return;
+          }
+        } catch {}
+      }
+      _globalAudio = null; _globalStop = null; setPlaying(false);
+    };
+
+    registerGlobalAudio(audio, setPlaying);
+    audio.play()
+      .then(() => setPlaying(true))
+      .catch(() => { _globalAudio = null; _globalStop = null; setPlaying(false); });
+    setLoadingPlay(false);
+  };
+
   return (
     <div style={{
-      display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 0',
+      display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 0',
       borderBottom: '1px solid rgba(255,255,255,0.05)',
     }}>
-      {track.cover_url ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={track.cover_url} alt="" width={34} height={34}
-          style={{ borderRadius: 8, flexShrink: 0, marginTop: 2, objectFit: 'cover' }} />
+      {/* Bouton play */}
+      {canPreview ? (
+        <button
+          onClick={togglePlay}
+          disabled={loadingPlay}
+          title={playing ? 'Arrêter' : 'Écouter un extrait (30s)'}
+          style={{
+            width: 30, height: 30, borderRadius: '50%', flexShrink: 0, border: 'none',
+            marginTop: 2, cursor: 'pointer',
+            background: playing ? '#b8ef0b' : 'rgba(184,239,11,0.1)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            transition: 'background 0.15s',
+            opacity: loadingPlay ? 0.5 : 1,
+          }}
+        >
+          {loadingPlay
+            ? <Loader2 size={12} color="#b8ef0b" style={{ animation: 'spin 0.8s linear infinite' }} />
+            : playing
+              ? <Pause size={12} color="#060e16" fill="#060e16" />
+              : <Play size={12} color="#b8ef0b" fill="#b8ef0b" style={{ marginLeft: 1 }} />
+          }
+        </button>
       ) : (
-        <div style={{
-          width: 34, height: 34, borderRadius: 8, flexShrink: 0, marginTop: 2,
-          background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>
-          <Music2 size={14} color="rgba(255,255,255,0.3)" strokeWidth={1.5} />
+        /* Placeholder de même taille pour que la grille reste alignée */
+        <div style={{ width: 30, height: 30, flexShrink: 0, marginTop: 2 }}>
+          {track.cover_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={track.cover_url} alt="" width={30} height={30}
+              style={{ borderRadius: 6, objectFit: 'cover' }} />
+          ) : (
+            <div style={{
+              width: 30, height: 30, borderRadius: 6,
+              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Music2 size={12} color="rgba(255,255,255,0.25)" strokeWidth={1.5} />
+            </div>
+          )}
         </div>
+      )}
+
+      {/* Pochette à côté du bouton play (seulement quand play existe) */}
+      {canPreview && track.cover_url && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={track.cover_url} alt="" width={30} height={30}
+          style={{ borderRadius: 6, flexShrink: 0, marginTop: 2, objectFit: 'cover' }} />
       )}
 
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -99,27 +199,27 @@ function SearchBar({ playlistId, token, onAdded }) {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen]       = useState(false);
+  const [noResults, setNoResults] = useState(false);
   const [adding, setAdding]   = useState(null);
   const [playingId, setPlayingId] = useState(null);
   const [dropStyle, setDropStyle] = useState({});
   const searchTimer = useRef(null);
   const wrapRef  = useRef(null);
   const inputRef = useRef(null);
-  const audioRef = useRef(null);
 
   const stopPreview = useCallback(() => {
-    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    if (_globalAudio && _globalStop === setPlayingId) stopGlobalAudio();
     setPlayingId(null);
   }, []);
 
   const togglePreview = (track) => {
-    if (playingId === track.id) { stopPreview(); return; }
-    stopPreview();
+    if (playingId === track.id) { stopGlobalAudio(); setPlayingId(null); return; }
+    stopGlobalAudio();
     if (!track.preview) return;
     const audio = new Audio(track.preview);
-    audio.onended = () => setPlayingId(null);
+    audio.onended = () => { _globalAudio = null; _globalStop = null; setPlayingId(null); };
     audio.play().catch(() => setPlayingId(null));
-    audioRef.current = audio;
+    registerGlobalAudio(audio, setPlayingId);
     setPlayingId(track.id);
   };
 
@@ -165,6 +265,7 @@ function SearchBar({ playlistId, token, onAdded }) {
 
   const openDropdown = (tracks) => {
     setResults(tracks);
+    setNoResults(tracks.length === 0);
     if (!tracks.length) { setOpen(false); return; }
     setDropStyle(computeDropStyle());
     setOpen(true);
@@ -174,14 +275,17 @@ function SearchBar({ playlistId, token, onAdded }) {
     const val = e.target.value;
     setQuery(val);
     clearTimeout(searchTimer.current);
-    if (val.trim().length < 2) { setResults([]); setOpen(false); return; }
+    if (val.trim().length < 2) { setResults([]); setOpen(false); setNoResults(false); return; }
+    setNoResults(false);
     searchTimer.current = setTimeout(async () => {
       setLoading(true);
       try {
         const res  = await fetch(`/api/music/search?q=${encodeURIComponent(val)}&limit=6`);
         const data = await res.json();
         openDropdown(data.tracks || []);
-      } catch {}
+      } catch {
+        setNoResults(true);
+      }
       setLoading(false);
     }, 400);
   };
@@ -264,6 +368,15 @@ function SearchBar({ playlistId, token, onAdded }) {
         )}
       </div>
 
+      {/* Message aucun résultat */}
+      {noResults && !loading && query.trim().length >= 2 && !open && (
+        <p style={{
+          margin: '8px 0 0', fontSize: 12, color: 'rgba(255,255,255,0.3)', fontStyle: 'italic',
+        }}>
+          Aucun résultat sur Deezer — utilisez &laquo;&nbsp;Ajouter manuellement&nbsp;&raquo; si vous connaissez le titre et l&apos;artiste.
+        </p>
+      )}
+
       {open && results.length > 0 && (
         <div style={{
           ...dropStyle,
@@ -342,10 +455,9 @@ function SuggestionsTab({ playlistId, token, onRefresh, onApproved }) {
   const [loading, setLoading]         = useState(true);
   const [acting, setActing]           = useState(null);
   const [playingId, setPlayingId]     = useState(null);
-  const audioRef = useRef(null);
 
   const stopPreview = useCallback(() => {
-    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    if (_globalAudio && _globalStop === setPlayingId) stopGlobalAudio();
     setPlayingId(null);
   }, []);
 
@@ -353,12 +465,12 @@ function SuggestionsTab({ playlistId, token, onRefresh, onApproved }) {
 
   const togglePreview = (s) => {
     if (!s.preview_url) return;
-    if (playingId === s.id) { stopPreview(); return; }
-    stopPreview();
+    if (playingId === s.id) { stopGlobalAudio(); setPlayingId(null); return; }
+    stopGlobalAudio();
     const audio = new Audio(s.preview_url);
-    audio.onended = () => setPlayingId(null);
+    audio.onended = () => { _globalAudio = null; _globalStop = null; setPlayingId(null); };
     audio.play().catch(() => setPlayingId(null));
-    audioRef.current = audio;
+    registerGlobalAudio(audio, setPlayingId);
     setPlayingId(s.id);
   };
 

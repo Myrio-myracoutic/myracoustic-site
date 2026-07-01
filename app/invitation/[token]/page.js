@@ -357,7 +357,7 @@ function SongSearch({ playlistId, token, onAdded }) {
     searchTimer.current = setTimeout(async () => {
       setLoading(true);
       try {
-        const res   = await fetch(`/api/music/search?q=${encodeURIComponent(val)}&limit=6`);
+        const res   = await fetch(`/api/music/search?q=${encodeURIComponent(val)}&limit=10`);
         const data  = await res.json();
         const tracks = data.tracks || [];
         setResults(tracks);
@@ -394,6 +394,13 @@ function SongSearch({ playlistId, token, onAdded }) {
 
   return (
     <div ref={wrapRef} style={{ position: 'relative', marginTop: 14 }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .song-dd .song-row   { gap: 8px !important; padding: 9px 12px !important; }
+          .song-dd .song-inner { gap: 8px !important; }
+          .song-dd .song-add   { padding: 4px 8px !important; }
+        }
+      `}</style>
       <div style={{
         display: 'flex', alignItems: 'center', gap: 10,
         background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
@@ -408,19 +415,19 @@ function SongSearch({ playlistId, token, onAdded }) {
           type="text" value={query} onChange={handleChange}
           onFocus={() => setTimeout(() => inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 350)}
           placeholder="Rechercher un titre ou un artiste…"
-          style={{ flex: 1, background: 'none', border: 'none', outline: 'none', color: '#fff', fontSize: 14, fontFamily: 'inherit' }}
+          style={{ flex: 1, minWidth: 0, background: 'none', border: 'none', outline: 'none', color: '#fff', fontSize: 14, fontFamily: 'inherit' }}
         />
       </div>
 
       {open && results.length > 0 && typeof document !== 'undefined' && createPortal(
-        <div ref={dropRef} style={{
+        <div ref={dropRef} className="song-dd" style={{
           ...dropStyle,
           background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.12)',
           borderRadius: 10, overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
           maxHeight: '60vh', overflowY: 'auto',
         }}>
           {results.map(track => (
-            <div key={track.id} style={{
+            <div key={track.id} className="song-row" style={{
               display: 'flex', alignItems: 'center', gap: 10,
               padding: '10px 14px', borderBottom: '1px solid rgba(255,255,255,0.04)',
             }}>
@@ -435,7 +442,7 @@ function SongSearch({ playlistId, token, onAdded }) {
                   : <Play size={13} color="#b8ef0b" fill="#b8ef0b" style={{ marginLeft: 1 }} />
                 }
               </button>
-              <button onClick={() => propose(track)} disabled={adding === track.id} className="mc-press" style={{
+              <button onClick={() => propose(track)} disabled={adding === track.id} className="mc-press song-inner" style={{
                 flex: 1, minWidth: 0, background: 'none', border: 'none', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left', padding: 0,
               }}>
@@ -446,7 +453,7 @@ function SongSearch({ playlistId, token, onAdded }) {
                 </div>
                 {adding === track.id
                   ? <Loader2 size={14} color="#b8ef0b" style={{ animation: 'spin 0.8s linear infinite', flexShrink: 0 }} />
-                  : <span style={{
+                  : <span className="song-add" style={{
                       display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0,
                       background: 'rgba(184,239,11,0.12)', border: '1px solid rgba(184,239,11,0.25)',
                       color: '#b8ef0b', borderRadius: 6, padding: '4px 10px',

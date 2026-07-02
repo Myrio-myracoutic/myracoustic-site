@@ -15,10 +15,6 @@ function fmtAmount(v) {
   return parseFloat(v?.value || v || 0);
 }
 
-function normName(s) {
-  return (s || '').toLowerCase().replace(/\s+/g, ' ').trim();
-}
-
 // GET /api/mon-espace/facturation/[eventId]
 export async function GET(request, { params }) {
   const { eventId } = await params;
@@ -60,22 +56,21 @@ export async function GET(request, { params }) {
     } catch { /* PDF indisponible → lien simplement absent */ }
   }
 
-  const quoteNumber  = quote?.number;
-  const clientQonto  = normName(`${ev.clients?.first_name} ${ev.clients?.last_name}`);
-  const eventDateMs  = ev.event_date ? new Date(ev.event_date).getTime() : null;
+  const quoteNumber = quote?.number;
+
+  // Lien fiable : le devis Qonto liste toutes ses factures dans quote.invoice_ids
+  // (acompte ET solde). Les factures de solde n'ont ni quote_id, ni le n° de devis
+  // dans leurs lignes, et leur client_name est toujours vide côté Qonto — les
+  // heuristiques précédentes ne pouvaient donc jamais les rattacher.
+  const invoiceIds = new Set(quote?.invoice_ids || []);
 
   const linked = allInvs.filter(i => {
+    if (invoiceIds.has(i.id)) return true;
+    // Filet de sécurité : ancienne facture référençant le n° de devis dans ses lignes
     if (i.quote_id === ev.qonto_quote_id) return true;
     if (quoteNumber) {
       for (const item of (i.items || [])) {
         if ((item.title || '').includes(quoteNumber)) return true;
-      }
-    }
-    if (i.invoice_type === 'balance' || i.type === 'balance') {
-      const invClient = normName(i.client_name);
-      if (invClient && invClient === clientQonto && eventDateMs && i.due_date) {
-        const dueDiff = Math.abs(new Date(i.due_date).getTime() - eventDateMs);
-        if (dueDiff <= 30 * 24 * 60 * 60 * 1000) return true;
       }
     }
     return false;

@@ -49,6 +49,17 @@ export async function GET(request, { params }) {
   const quote   = qRes.ok   ? (await qRes.json()).quote             : null;
   const allInvs = invRes.ok ? (await invRes.json()).client_invoices : [];
 
+  // Le champ quote_url de Qonto pointe vers le portail privé (portal.qonto.com),
+  // inaccessible au client. Le vrai PDF consultable passe par l'attachment :
+  // on récupère une URL S3 signée (fraîche, valable ~30 min).
+  let quotePdfUrl = null;
+  if (quote?.attachment_id) {
+    try {
+      const aRes = await fetch(`${QONTO_BASE}/attachments/${quote.attachment_id}`, { headers: qHeaders() });
+      if (aRes.ok) quotePdfUrl = (await aRes.json()).attachment?.url || null;
+    } catch { /* PDF indisponible → lien simplement absent */ }
+  }
+
   const quoteNumber  = quote?.number;
   const clientQonto  = normName(`${ev.clients?.first_name} ${ev.clients?.last_name}`);
   const eventDateMs  = ev.event_date ? new Date(ev.event_date).getTime() : null;
@@ -91,7 +102,7 @@ export async function GET(request, { params }) {
       id:     quote.id,
       number: quote.number,
       total:  fmtAmount(quote.total_amount),
-      url:    ev.qonto_quote_url || quote.quote_url || null,
+      url:    quotePdfUrl,   // PDF Qonto (S3 signé), null si indisponible
     } : null,
     invoices,
     event_date: ev.event_date,

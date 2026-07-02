@@ -109,12 +109,20 @@ const TYPE_LABELS = {
 };
 
 function DocRow({ icon: Icon, iconColor, title, subtitle, url, badge, badgeColor, payUrl }) {
+  // Ligne entièrement cliquable quand il y a un document à consulter
+  // (devis, facture payée…) et pas de bouton « Payer » distinct.
+  const clickable = url && !payUrl;
+  const Wrapper = clickable ? 'a' : 'div';
+  const linkProps = clickable
+    ? { href: url, target: '_blank', rel: 'noopener noreferrer' }
+    : {};
   return (
-    <div style={{
+    <Wrapper {...linkProps} style={{
       display: 'flex', alignItems: 'center', gap: 14,
       background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
       borderRadius: 10, padding: '14px 18px', marginBottom: 10,
-      transition: 'border-color 0.2s',
+      transition: 'border-color 0.2s', textDecoration: 'none',
+      cursor: clickable ? 'pointer' : 'default',
     }}
       onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.14)'}
       onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
@@ -148,9 +156,9 @@ function DocRow({ icon: Icon, iconColor, title, subtitle, url, badge, badgeColor
             Payer →
           </a>
         )}
-        {url && !payUrl && <ExternalLink size={15} color="rgba(255,255,255,0.25)" />}
+        {clickable && <ExternalLink size={15} color="rgba(255,255,255,0.4)" />}
       </div>
-    </div>
+    </Wrapper>
   );
 }
 

@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useRef, useCallback, memo } from 'react';
 import { createPortal } from 'react-dom';
-import { Music2, Search, Plus, X, ChevronDown, ChevronUp, Loader2, Play, Pause, Check, ThumbsUp, ThumbsDown, Pencil, Trash2, Gift } from 'lucide-react';
+import { Music2, Search, Plus, X, ChevronDown, ChevronUp, Loader2, Play, Pause, Check, ThumbsUp, ThumbsDown, Pencil, Trash2, Gift, ArrowUp, ArrowDown } from 'lucide-react';
 import { SkeletonPlaylist } from './SkeletonLoader';
 
 // Singleton audio : un seul morceau joue à la fois dans toute la section playlist
@@ -24,7 +24,7 @@ function fmtDuration(s) {
   return `${m}:${sec}`;
 }
 
-const TrackRow = memo(function TrackRow({ track, token, onDelete }) {
+const TrackRow = memo(function TrackRow({ track, token, onDelete, onMove, index, total }) {
   const [note, setNote]         = useState(track.note || '');
   const [saving, setSaving]     = useState(false);
   const [playing, setPlaying]   = useState(false);
@@ -56,47 +56,34 @@ const TrackRow = memo(function TrackRow({ track, token, onDelete }) {
   const canPreview = !!(track.preview_url || track.deezer_id);
 
   const togglePlay = async () => {
-    if (playing) { stopGlobalAudio(); return; }
+    // Déjà en lecture → on arrête
+    if (playing) { stopGlobalAudio(); setPlaying(false); return; }
 
     setLoadingPlay(true);
-    let url = track.preview_url;
 
-    // Rafraîchit l'URL si absente ou en cas d'erreur
-    if (!url && track.deezer_id) {
+    // Toujours récupérer une URL d'extrait fraîche via deezer_id (évite les
+    // URLs Deezer expirées) ; repli sur preview_url si pas de deezer_id.
+    let url = '';
+    if (track.deezer_id) {
       try {
         const res  = await fetch(`/api/music/preview?deezer_id=${encodeURIComponent(track.deezer_id)}`);
         const data = await res.json();
         url = data.preview || '';
       } catch { url = ''; }
     }
+    if (!url) url = track.preview_url || '';
 
-    if (!url) { setLoadingPlay(false); return; }
+    setLoadingPlay(false);
+    if (!url) return;
 
     const audio = new Audio(url);
     audio.onended = () => { _globalAudio = null; _globalStop = null; setPlaying(false); };
-    audio.onerror = async () => {
-      // Si l'URL stockée est expirée, on en récupère une fraîche
-      if (track.deezer_id) {
-        try {
-          const res  = await fetch(`/api/music/preview?deezer_id=${encodeURIComponent(track.deezer_id)}`);
-          const data = await res.json();
-          if (data.preview) {
-            const a2 = new Audio(data.preview);
-            a2.onended = () => { _globalAudio = null; _globalStop = null; setPlaying(false); };
-            a2.play().catch(() => { _globalAudio = null; _globalStop = null; setPlaying(false); });
-            registerGlobalAudio(a2, setPlaying);
-            return;
-          }
-        } catch {}
-      }
-      _globalAudio = null; _globalStop = null; setPlaying(false);
-    };
+    audio.onerror = () => { _globalAudio = null; _globalStop = null; setPlaying(false); };
 
     registerGlobalAudio(audio, setPlaying);
-    audio.play()
-      .then(() => setPlaying(true))
-      .catch(() => { _globalAudio = null; _globalStop = null; setPlaying(false); });
-    setLoadingPlay(false);
+    audio.play().catch(() => { _globalAudio = null; _globalStop = null; setPlaying(false); });
+    // État mis à jour tout de suite → le bouton passe en Pause immédiatement
+    setPlaying(true);
   };
 
   return (
@@ -178,6 +165,35 @@ const TrackRow = memo(function TrackRow({ track, token, onDelete }) {
         />
         {saving && <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)' }}>enregistrement…</span>}
       </div>
+
+      {/* Réordonner : monter / descendre */}
+      {onMove && total > 1 && (() => {
+        const isFirst = index === 0;
+        const isLast  = index === total - 1;
+        const arrowBtn = (dir, disabled, Icon) => (
+          <button
+            onClick={() => onMove(track.id, dir)}
+            disabled={disabled}
+            title={dir === 'up' ? 'Monter' : 'Descendre'}
+            style={{
+              background: 'none', border: 'none', padding: '2px 4px', lineHeight: 0,
+              cursor: disabled ? 'default' : 'pointer',
+              color: disabled ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.4)',
+              transition: 'color 0.15s',
+            }}
+            onMouseEnter={e => { if (!disabled) e.currentTarget.style.color = '#b8ef0b'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = disabled ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.4)'; }}
+          >
+            <Icon size={14} />
+          </button>
+        );
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', flexShrink: 0, marginTop: 2 }}>
+            {arrowBtn('up', isFirst, ArrowUp)}
+            {arrowBtn('down', isLast, ArrowDown)}
+          </div>
+        );
+      })()}
 
       <button
         onClick={() => onDelete(track.id)}
@@ -679,7 +695,40 @@ function PlaylistCard({ playlist, token, onRefresh }) {
     onRefresh();
   };
 
-  const tracks = playlist.playlist_tracks || [];
+  // Ordre local des titres (mise à jour optimiste au clic sur ↑/↓).
+  // Resynchronisé quand la prop change (ajout/suppression/refresh) via le
+  // pattern React « ajuster l'état pendant le rendu » (comparaison d'état,
+  // pas de ref pendant le rendu).
+  const [tracks, setTracks] = useState(playlist.playlist_tracks || []);
+  const [prevTracksProp, setPrevTracksProp] = useState(playlist.playlist_tracks);
+  if (playlist.playlist_tracks !== prevTracksProp) {
+    setPrevTracksProp(playlist.playlist_tracks);
+    setTracks(playlist.playlist_tracks || []);
+  }
+
+  // Miroir dans une ref (mise à jour hors rendu) pour lire l'ordre courant
+  // dans moveTrack sans dépendre d'une closure obsolète.
+  const tracksRef = useRef(tracks);
+  useEffect(() => { tracksRef.current = tracks; }, [tracks]);
+
+  const moveTrack = useCallback((trackId, dir) => {
+    const prev = tracksRef.current;
+    const idx  = prev.findIndex(t => t.id === trackId);
+    if (idx < 0) return;
+    const swap = dir === 'up' ? idx - 1 : idx + 1;
+    if (swap < 0 || swap >= prev.length) return;
+
+    const next = [...prev];
+    [next[idx], next[swap]] = [next[swap], next[idx]];
+    tracksRef.current = next;
+    setTracks(next);   // déplacement instantané à l'écran
+
+    fetch('/api/mon-espace/playlists/tracks/reorder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ playlist_id: playlist.id, orderedIds: next.map(t => t.id) }),
+    }).catch(() => {});
+  }, [token, playlist.id]);
 
   return (
     <div style={{
@@ -859,8 +908,16 @@ function PlaylistCard({ playlist, token, onRefresh }) {
                   Aucun titre pour l'instant — utilisez la recherche ci-dessous.
                 </p>
               )}
-              {tracks.map(track => (
-                <TrackRow key={track.id} track={track} token={token} onDelete={deleteTrack} />
+              {tracks.map((track, i) => (
+                <TrackRow
+                  key={track.id}
+                  track={track}
+                  token={token}
+                  onDelete={deleteTrack}
+                  onMove={moveTrack}
+                  index={i}
+                  total={tracks.length}
+                />
               ))}
               <SearchBar playlistId={playlist.id} token={token} onAdded={onRefresh} />
             </>

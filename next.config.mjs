@@ -10,6 +10,7 @@ const nextConfig = {
       { source: '/entreprises', destination: '/evenement-entreprise', permanent: true },
       { source: '/conditions-generales-de-vente', destination: '/cgv', permanent: true },
       { source: '/politique-de-confidentialite', destination: '/politique-confidentialite', permanent: true },
+      { source: '/contact', destination: '/devis/particulier', permanent: true },
     ];
   },
 };

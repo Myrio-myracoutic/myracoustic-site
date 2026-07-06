@@ -639,14 +639,34 @@ function SuggestionsTab({ playlistId, token, onRefresh, onApproved }) {
   );
 }
 
-function PlaylistCard({ playlist, token, onRefresh }) {
+function PlaylistCard({ playlist, token, onRefresh, isCollaborator }) {
   const [open,      setOpen]      = useState(false);
   const [activeTab, setActiveTab] = useState('playlist');
   const [renaming,  setRenaming]  = useState(false);
   const [newName,   setNewName]   = useState(playlist.name);
   const [saving,    setSaving]    = useState(false);
   const [deleting,  setDeleting]  = useState(false);
+  const [savingVis, setSavingVis] = useState(false);
   const nameInputRef = useRef(null);
+
+  // Interrupteur de visibilité selon le rôle :
+  // - accès partagé (témoin) : cacher aux mariés (is_surprise)
+  // - mariés (propriétaire)   : cacher aux accès partagés (hidden_from_collaborators)
+  const hidden = isCollaborator ? !!playlist.is_surprise : !!playlist.hidden_from_collaborators;
+  const toggleVisibility = async () => {
+    if (savingVis) return;
+    setSavingVis(true);
+    const body = isCollaborator
+      ? { is_surprise: !playlist.is_surprise }
+      : { hidden_from_collaborators: !playlist.hidden_from_collaborators };
+    await fetch(`/api/mon-espace/playlists/${playlist.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(body),
+    });
+    setSavingVis(false);
+    onRefresh();
+  };
 
   const deleteTrack = useCallback(async (trackId) => {
     await fetch(`/api/mon-espace/playlists/tracks/${trackId}`, {
@@ -759,7 +779,7 @@ function PlaylistCard({ playlist, token, onRefresh }) {
             display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, textAlign: 'left',
           }}
         >
-          {playlist.is_surprise
+          {(playlist.is_surprise || playlist.hidden_from_collaborators)
             ? <Gift size={16} color="#a78bfa" strokeWidth={1.5} style={{ flexShrink: 0 }} />
             : <Music2 size={16} color="#b8ef0b" strokeWidth={1.5} style={{ flexShrink: 0 }} />
           }
@@ -787,7 +807,7 @@ function PlaylistCard({ playlist, token, onRefresh }) {
             background: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: '2px 8px',
             flexShrink: 0,
           }}>{tracks.length} titre{tracks.length !== 1 ? 's' : ''}</span>
-          {playlist.is_surprise && (
+          {(playlist.is_surprise || playlist.hidden_from_collaborators) && (
             <span style={{
               background: 'rgba(139,92,246,0.15)', color: '#a78bfa',
               border: '1px solid rgba(139,92,246,0.3)',
@@ -795,7 +815,7 @@ function PlaylistCard({ playlist, token, onRefresh }) {
               flexShrink: 0, fontFamily: 'var(--font-display), sans-serif',
               display: 'flex', alignItems: 'center', gap: 4,
             }}>
-              <Gift size={9} /> Surprise
+              <Gift size={9} /> {playlist.is_surprise ? 'Surprise' : 'Privée'}
             </span>
           )}
           {playlist.pending_suggestions > 0 && (
@@ -864,26 +884,41 @@ function PlaylistCard({ playlist, token, onRefresh }) {
       {open && (
         <div style={{ padding: '0 18px 18px' }}>
 
-          {/* Bandeau surprise — visible uniquement par le collaborateur créateur */}
-          {playlist.is_surprise && (
-            <div style={{
-              background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)',
-              borderRadius: 8, padding: '10px 14px', marginBottom: 14,
-              display: 'flex', alignItems: 'flex-start', gap: 10,
-            }}>
-              <Gift size={16} color="#a78bfa" style={{ flexShrink: 0, marginTop: 1 }} />
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: '#a78bfa', marginBottom: 3 }}>
-                  Playlist surprise
-                </div>
-                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.55)', lineHeight: 1.6 }}>
-                  Cette playlist est <strong style={{ color: 'rgba(255,255,255,0.75)' }}>invisible pour les mariés</strong>.
-                  Seuls vous (le collaborateur qui l'avez créée) et Myracoustic pouvez la voir,
-                  la gérer et la télécharger. Idéal pour préparer une animation ou une entrée musicale surprise !
-                </div>
+          {/* Visibilité de la playlist (rôle-dépendante) */}
+          <div style={{ marginBottom: 14 }}>
+            <button
+              onClick={toggleVisibility}
+              disabled={savingVis}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                background: hidden ? 'rgba(139,92,246,0.12)' : 'rgba(255,255,255,0.04)',
+                border: `1px solid ${hidden ? 'rgba(139,92,246,0.4)' : 'rgba(255,255,255,0.1)'}`,
+                borderRadius: 7, padding: '6px 12px', cursor: savingVis ? 'default' : 'pointer',
+                color: hidden ? '#a78bfa' : 'rgba(255,255,255,0.5)', fontSize: 12, fontFamily: 'inherit',
+                transition: 'all 0.15s',
+              }}
+            >
+              {savingVis
+                ? <Loader2 size={13} style={{ animation: 'spin 0.8s linear infinite' }} />
+                : <Gift size={13} />}
+              <span style={{ fontWeight: hidden ? 700 : 400 }}>
+                {isCollaborator
+                  ? (hidden ? 'Surprise activée — cachée aux mariés' : 'Cacher aux mariés (surprise)')
+                  : (hidden ? 'Cachée aux accès partagés' : 'Cacher aux accès partagés')}
+              </span>
+            </button>
+            {hidden && (
+              <div style={{
+                marginTop: 8, fontSize: 12, color: 'rgba(167,139,250,0.75)',
+                background: 'rgba(139,92,246,0.07)', border: '1px solid rgba(139,92,246,0.15)',
+                borderRadius: 6, padding: '8px 12px', lineHeight: 1.6,
+              }}>
+                {isCollaborator
+                  ? <><strong style={{ color: '#a78bfa' }}>Invisible pour les mariés.</strong> Seuls les accès partagés (témoins) et Myracoustic la voient — parfait pour préparer une surprise.</>
+                  : <><strong style={{ color: '#a78bfa' }}>Invisible pour les accès partagés.</strong> Seuls vous (les mariés) et Myracoustic la voyez.</>}
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Onglets */}
           <div style={{ display: 'flex', gap: 4, marginBottom: 14, borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 0 }}>
@@ -1003,7 +1038,7 @@ function CreatePlaylistForm({ eventId, token, onCreated, isCollaborator, lockSur
       </div>
 
       {/* Toggle surprise — collaborateurs, réservé Prestige */}
-      {isCollaborator && !lockSurprise && (
+      {isCollaborator && (
         <div style={{ marginTop: 10 }}>
           <button
             onClick={() => setIsSurprise(v => !v)}
@@ -1087,7 +1122,7 @@ export default function PlaylistSection({ eventId, token, onSuggestionActed, isC
           </p>
         )}
         {playlists.map(pl => (
-          <PlaylistCard key={pl.id} playlist={pl} token={token} onRefresh={refresh} />
+          <PlaylistCard key={pl.id} playlist={pl} token={token} onRefresh={refresh} isCollaborator={isCollaborator} />
         ))}
         <CreatePlaylistForm eventId={eventId} token={token} onCreated={refresh} isCollaborator={isCollaborator} lockSurprise={lockSurprise} />
       </div>

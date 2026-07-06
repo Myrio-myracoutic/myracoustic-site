@@ -12,7 +12,7 @@ export async function GET(req, { params }) {
     supabaseAdmin
       .from('playlists')
       .select(`
-        id, name, position, tidal_playlist_id, is_surprise, created_by_auth_id,
+        id, name, position, tidal_playlist_id, is_surprise, hidden_from_collaborators, created_by_auth_id,
         playlist_tracks ( id, title, artist, note, position, tidal_id, album, deezer_id, preview_url, cover_url )
       `)
       .eq('event_id', id)

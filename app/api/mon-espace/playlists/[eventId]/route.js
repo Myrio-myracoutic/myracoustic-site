@@ -3,16 +3,15 @@ import { supabaseAdmin } from '@/app/lib/supabase-admin';
 import { verifyEventAccess, verifyPlaylistAccess } from '@/app/lib/event-access';
 
 /**
- * Filtre les playlists selon le rôle de l'utilisateur :
- * - Propriétaire (couple) : ne voit JAMAIS les playlists surprises
- * - Collaborateur : voit uniquement les surprises qu'il a créées lui-même
+ * Filtre les playlists selon le rôle et la visibilité choisie :
+ * - is_surprise               → cachée aux MARIÉS (visible par tous les accès partagés + admin)
+ * - hidden_from_collaborators → cachée aux ACCÈS PARTAGÉS (visible par les mariés + admin)
  * - Admin (via supabaseAdmin) : voit tout
  */
 function filterPlaylists(playlists, access) {
   return playlists.filter(p => {
-    if (!p.is_surprise) return true;                              // Playlist normale → toujours visible
-    if (!access.isCollaborator) return false;                    // Couple → jamais les surprises
-    return p.created_by_auth_id === access.userId;               // Collaborateur → seulement ses créations
+    if (access.isCollaborator) return !p.hidden_from_collaborators; // témoin : tout sauf « caché aux accès partagés »
+    return !p.is_surprise;                                          // couple : tout sauf « caché aux mariés »
   });
 }
 
@@ -28,7 +27,7 @@ export async function GET(request, { params }) {
   const { data: playlists, error } = await supabaseAdmin
     .from('playlists')
     .select(`
-      id, name, position, is_surprise, created_by_auth_id,
+      id, name, position, is_surprise, hidden_from_collaborators, created_by_auth_id,
       playlist_tracks ( id, title, artist, note, position, tidal_id, album, deezer_id, preview_url, cover_url )
     `)
     .eq('event_id', eventId)
@@ -62,7 +61,7 @@ export async function GET(request, { params }) {
   });
 }
 
-// PATCH /api/mon-espace/playlists/[playlistId] — renommer
+// PATCH /api/mon-espace/playlists/[playlistId] — renommer et/ou changer la visibilité
 export async function PATCH(request, { params }) {
   const { eventId: playlistId } = await params;
   const token = request.headers.get('authorization')?.replace('Bearer ', '');
@@ -71,17 +70,47 @@ export async function PATCH(request, { params }) {
   const access = await verifyPlaylistAccess(token, playlistId);
   if (!access) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
 
-  // Pour une playlist surprise, seul le créateur peut la modifier
   const { data: pl } = await supabaseAdmin
-    .from('playlists').select('is_surprise, created_by_auth_id').eq('id', playlistId).single();
-  if (pl?.is_surprise && pl.created_by_auth_id !== access.userId)
-    return NextResponse.json({ error: 'Seul le créateur peut modifier une playlist surprise' }, { status: 403 });
+    .from('playlists')
+    .select('is_surprise, hidden_from_collaborators, created_by_auth_id')
+    .eq('id', playlistId).single();
+  if (!pl) return NextResponse.json({ error: 'Playlist introuvable' }, { status: 404 });
 
-  const { name } = await request.json();
-  if (!name?.trim()) return NextResponse.json({ error: 'Nom requis' }, { status: 400 });
+  // L'utilisateur doit pouvoir VOIR la playlist pour la modifier
+  const canSee = access.isCollaborator ? !pl.hidden_from_collaborators : !pl.is_surprise;
+  if (!canSee) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
+
+  const body = await request.json();
+  const updates = {};
+
+  // Renommage — pour une playlist surprise, réservé au créateur
+  if (body.name !== undefined) {
+    if (!body.name?.trim()) return NextResponse.json({ error: 'Nom requis' }, { status: 400 });
+    if (pl.is_surprise && pl.created_by_auth_id !== access.userId)
+      return NextResponse.json({ error: 'Seul le créateur peut renommer une playlist surprise' }, { status: 403 });
+    updates.name = body.name.trim();
+  }
+
+  // Visibilité — un accès partagé cache aux mariés (is_surprise) ;
+  // les mariés cachent aux accès partagés (hidden_from_collaborators). Exclusifs.
+  if (body.is_surprise !== undefined) {
+    if (!access.isCollaborator)
+      return NextResponse.json({ error: 'Seul un accès partagé peut cacher aux mariés' }, { status: 403 });
+    updates.is_surprise = !!body.is_surprise;
+    if (updates.is_surprise) updates.hidden_from_collaborators = false;
+  }
+  if (body.hidden_from_collaborators !== undefined) {
+    if (access.isCollaborator)
+      return NextResponse.json({ error: 'Seuls les mariés peuvent cacher aux accès partagés' }, { status: 403 });
+    updates.hidden_from_collaborators = !!body.hidden_from_collaborators;
+    if (updates.hidden_from_collaborators) updates.is_surprise = false;
+  }
+
+  if (Object.keys(updates).length === 0)
+    return NextResponse.json({ error: 'Rien à modifier' }, { status: 400 });
 
   const { data, error } = await supabaseAdmin
-    .from('playlists').update({ name: name.trim() }).eq('id', playlistId).select().single();
+    .from('playlists').update(updates).eq('id', playlistId).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ playlist: data });
 }

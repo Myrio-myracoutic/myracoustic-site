@@ -47,11 +47,28 @@ function TidalStatus({ status, onConnect }) {
   );
 }
 
-function PlaylistRow({ playlist, playingId, loadingId, onPlay, onDeleteTidal }) {
+function PlaylistRow({ playlist, playingId, loadingId, onPlay, onDeleteTidal, onReload }) {
   const [open, setOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [savingVis, setSavingVis] = useState(false);
   const tracks = playlist.playlist_tracks || [];
   const tidalCount = tracks.filter(t => t.tidal_id).length;
+
+  const currentVis = playlist.is_surprise
+    ? 'hide_couple'
+    : playlist.hidden_from_collaborators ? 'hide_collaborators' : 'all';
+
+  const changeVisibility = async (v) => {
+    if (v === currentVis || savingVis) return;
+    setSavingVis(true);
+    await fetch(`/api/admin/playlists/${playlist.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ visibility: v }),
+    });
+    setSavingVis(false);
+    onReload();
+  };
 
   const handleDeleteTidal = async () => {
     if (!confirm(`Supprimer la playlist Tidal "${playlist.name}" ? Cette action est irréversible.`)) return;
@@ -108,6 +125,40 @@ function PlaylistRow({ playlist, playingId, loadingId, onPlay, onDeleteTidal }) 
 
       {open && (
         <div style={{ padding: '0 16px 14px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+          {/* Visibilité de la playlist */}
+          <div style={{ margin: '12px 0 4px' }}>
+            <div style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 6 }}>
+              Visibilité {savingVis && <Loader2 size={11} style={{ animation: 'spin 0.8s linear infinite' }} />}
+            </div>
+            <div style={{ display: 'inline-flex', flexWrap: 'wrap', gap: 6 }}>
+              {[
+                { key: 'all',                label: 'Visible par tous' },
+                { key: 'hide_couple',        label: 'Cachée aux mariés' },
+                { key: 'hide_collaborators', label: 'Cachée aux accès partagés' },
+              ].map(opt => {
+                const active = currentVis === opt.key;
+                return (
+                  <button key={opt.key} onClick={() => changeVisibility(opt.key)} disabled={savingVis}
+                    style={{
+                      background: active ? 'rgba(184,239,11,0.14)' : 'rgba(255,255,255,0.04)',
+                      border: `1px solid ${active ? 'rgba(184,239,11,0.4)' : 'rgba(255,255,255,0.1)'}`,
+                      color: active ? '#b8ef0b' : 'rgba(255,255,255,0.5)',
+                      borderRadius: 7, padding: '5px 11px', cursor: savingVis ? 'default' : 'pointer',
+                      fontSize: 12, fontWeight: active ? 700 : 500,
+                      fontFamily: 'var(--font-display), sans-serif',
+                    }}>
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', margin: '8px 0 0', lineHeight: 1.5 }}>
+              {currentVis === 'hide_couple'        && 'Les mariés ne voient pas cette playlist ; les accès partagés (témoins) et vous, oui.'}
+              {currentVis === 'hide_collaborators' && 'Les accès partagés ne voient pas cette playlist ; les mariés et vous, oui.'}
+              {currentVis === 'all'                && 'Visible par les mariés et les accès partagés.'}
+            </p>
+          </div>
+
           {playlist.tidal_playlist_id && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '12px 0 4px', flexWrap: 'wrap' }}>
               <a
@@ -404,7 +455,7 @@ export default function AdminPlaylistSection({ eventId }) {
 
       {/* Liste des playlists */}
       {playlists.map(pl => (
-        <PlaylistRow key={pl.id} playlist={pl} playingId={playingId} loadingId={loadingId} onPlay={playTrack} onDeleteTidal={load} />
+        <PlaylistRow key={pl.id} playlist={pl} playingId={playingId} loadingId={loadingId} onPlay={playTrack} onDeleteTidal={load} onReload={load} />
       ))}
     </div>
   );

@@ -394,6 +394,19 @@ function Configurator({ formule }) {
                   <span style={{ color: 'rgba(255,255,255,0.8)' }}>Formule {formule.name}</span>
                   <span style={{ color: '#fff', fontWeight: 600 }}>{fmtPrice(formule.price)}</span>
                 </div>
+                {/* Rappel du contenu de la formule — la ligne DJ intègre les heures ajoutées */}
+                <div style={{ padding: '0 0 8px', borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: 4 }}>
+                  {POLES.filter(p => formule.specs[p.key] && !/^en option/i.test(formule.specs[p.key])).map(p => (
+                    <div key={p.key} style={{ display: 'flex', alignItems: 'flex-start', gap: 7, fontSize: 12, color: 'rgba(255,255,255,0.45)', padding: '2px 0', lineHeight: 1.5 }}>
+                      <Check size={11} color="var(--lime)" strokeWidth={3} style={{ flexShrink: 0, marginTop: 3 }} />
+                      <span>
+                        {p.key === 'dj' && extraHours > 0
+                          ? `DJ — ${baseHours + extraHours}h de prestation (${baseHours}h incluses + ${extraHours}h ajoutées)`
+                          : `${p.label} — ${formule.specs[p.key]}`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
                 {chosen.map(o => (
                   <div key={o.key} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, padding: '4px 0', color: 'rgba(255,255,255,0.6)' }}>
                     <span>+ {o.label}</span><span>{fmtPrice(o.price)}</span>
@@ -401,7 +414,7 @@ function Configurator({ formule }) {
                 ))}
                 {extraCost > 0 && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, padding: '4px 0', color: 'rgba(255,255,255,0.6)' }}>
-                    <span>+ Heures DJ ({baseHours}h incluses + {extraHours}h = {baseHours + extraHours}h)</span><span>{fmtPrice(extraCost)}</span>
+                    <span>+ Heures DJ supplémentaires ({extraHours}h)</span><span>{fmtPrice(extraCost)}</span>
                   </div>
                 )}
                 <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', marginTop: 8, paddingTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

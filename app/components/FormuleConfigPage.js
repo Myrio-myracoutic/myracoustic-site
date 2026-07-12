@@ -45,10 +45,11 @@ function inclusionsText(f) {
     .map(s => `• ${s}`).join('\n');
 }
 
-/* Bloc + ligne à cocher — même style que le tunnel devis */
-function PackBlock({ icon: Icon, title, badge, badgeColor, children }) {
+/* Bloc + ligne à cocher — même style que le tunnel devis.
+   clip=false pour les blocs contenant un menu déroulant (sinon overflow:hidden le coupe). */
+function PackBlock({ icon: Icon, title, badge, badgeColor, children, clip = true }) {
   return (
-    <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, overflow: 'hidden', marginBottom: 12 }}>
+    <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, overflow: clip ? 'hidden' : 'visible', marginBottom: 12 }}>
       <div style={{ padding: '14px 18px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(255,255,255,0.02)' }}>
         {Icon && <span style={{ color: 'rgba(255,255,255,0.55)', flexShrink: 0 }}><Icon size={15} strokeWidth={1.5} /></span>}
         <span style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 15 }}>{title}</span>
@@ -424,7 +425,7 @@ function Configurator({ formule, onSwitch }) {
                 );
               })}
 
-              <PackBlock icon={MapPin} title="Adresse de facturation" badge="REQUIS" badgeColor="var(--lime)">
+              <PackBlock icon={MapPin} title="Adresse de facturation" badge="REQUIS" badgeColor="var(--lime)" clip={false}>
                 <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <AddressAutocomplete placeholder="Numéro et rue" value={adresse}
                     onChange={setAdresse}

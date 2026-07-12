@@ -21,7 +21,7 @@ export const FORMULES = [
     featured: false,
     accroche: 'Une belle soirée dansante, faite avec exigence.',
     specs: {
-      dj: '5h',
+      dj: '4h · heures supplémentaires en option',
       son: 'Adaptée au nombre d’invités',
       lumiere: 'Piste de danse',
       video: null,
@@ -51,7 +51,7 @@ export const FORMULES = [
     badge: 'Le plus choisi',
     accroche: 'Votre soirée, jusque dans ses moindres émotions.',
     specs: {
-      dj: '7h',
+      dj: '6h · heures supplémentaires en option',
       son: 'Adaptée au nombre d’invités',
       lumiere: 'Piste + mise en lumière de la salle',
       video: 'Vidéoprojecteur / diaporama inclus',

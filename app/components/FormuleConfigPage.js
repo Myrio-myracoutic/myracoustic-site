@@ -2,7 +2,7 @@
 import { useState, useEffect, useMemo, useRef, Fragment } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, ArrowRight, Check, CheckCircle2, Loader2, MapPin, Plus, Minus, SlidersHorizontal, CreditCard, Phone } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, CheckCircle2, Clock, Loader2, MapPin, Plus, Minus, SlidersHorizontal, CreditCard, Phone } from 'lucide-react';
 import { FORMULES, POLES, fmtPrice, EXTRA_HOUR_PRICE } from '../lib/formules';
 import { gtagEvent, gtagBeacon } from '../lib/gtag';
 import AddressAutocomplete from './AddressAutocomplete';
@@ -399,11 +399,7 @@ function Configurator({ formule }) {
                   {POLES.filter(p => formule.specs[p.key] && !/^en option/i.test(formule.specs[p.key])).map(p => (
                     <div key={p.key} style={{ display: 'flex', alignItems: 'flex-start', gap: 7, fontSize: 12, color: 'rgba(255,255,255,0.45)', padding: '2px 0', lineHeight: 1.5 }}>
                       <Check size={11} color="var(--lime)" strokeWidth={3} style={{ flexShrink: 0, marginTop: 3 }} />
-                      <span>
-                        {p.key === 'dj' && extraHours > 0
-                          ? `DJ — ${baseHours + extraHours}h de prestation (${baseHours}h incluses + ${extraHours}h ajoutées)`
-                          : `${p.label} — ${formule.specs[p.key]}`}
-                      </span>
+                      <span>{p.label} — {formule.specs[p.key]}</span>
                     </div>
                   ))}
                 </div>
@@ -422,6 +418,19 @@ function Configurator({ formule }) {
                   <span style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 26, fontWeight: 800, color: 'var(--lime)' }}>{fmtPrice(total)}</span>
                 </div>
               </div>
+
+              {/* Rappel du volume d'heures DJ, sous le récapitulatif */}
+              {allowExtra && (
+                <div style={{ marginTop: 12, display: 'flex', alignItems: 'flex-start', gap: 7, fontSize: 12.5, color: 'rgba(255,255,255,0.55)', lineHeight: 1.6 }}>
+                  <Clock size={13} color="var(--lime)" style={{ flexShrink: 0, marginTop: 3 }} />
+                  <span>
+                    Votre soirée comprend <strong style={{ color: '#fff' }}>{baseHours + extraHours}h de prestation DJ</strong>
+                    {extraHours > 0
+                      ? ` (${baseHours}h incluses + ${extraHours}h ajoutées).`
+                      : '. Si ce n’est pas suffisant, ajoutez des heures supplémentaires dans les options ci-dessus.'}
+                  </span>
+                </div>
+              )}
 
               {/* Conditions de paiement 60 / 40 */}
               <div style={{ background: 'rgba(52,55,144,0.12)', border: '1px solid rgba(52,55,144,0.35)', borderRadius: 12, padding: '18px 20px', marginTop: 14 }}>

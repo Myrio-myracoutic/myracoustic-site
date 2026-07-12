@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useMemo, useRef, Fragment } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, Clock, Loader2, MapPin, Plus, Minus, SlidersHorizontal, CreditCard, Phone } from 'lucide-react';
@@ -122,6 +123,8 @@ function Configurator({ formule }) {
   const [sending, setSending] = useState(false);
   const [done, setDone]     = useState(null);
   const [error, setError]   = useState('');
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const optionsRef = useRef(null);
   const [bookedDates, setBookedDates] = useState(new Set());
   const [availLoading, setAvailLoading] = useState(true);
 
@@ -342,6 +345,7 @@ function Configurator({ formule }) {
                 )}
               </PackBlock>
 
+              <div ref={optionsRef} />
               <PackBlock icon={SlidersHorizontal} title="Vos options" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.4)">
                 {allowExtra && (
                   <div style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
@@ -419,19 +423,6 @@ function Configurator({ formule }) {
                 </div>
               </div>
 
-              {/* Rappel du volume d'heures DJ, sous le récapitulatif */}
-              {allowExtra && (
-                <div style={{ marginTop: 12, display: 'flex', alignItems: 'flex-start', gap: 7, fontSize: 12.5, color: 'rgba(255,255,255,0.55)', lineHeight: 1.6 }}>
-                  <Clock size={13} color="var(--lime)" style={{ flexShrink: 0, marginTop: 3 }} />
-                  <span>
-                    Votre soirée comprend <strong style={{ color: '#fff' }}>{baseHours + extraHours}h de prestation DJ</strong>
-                    {extraHours > 0
-                      ? ` (${baseHours}h incluses + ${extraHours}h ajoutées).`
-                      : '. Si ce n’est pas suffisant, ajoutez des heures supplémentaires dans les options ci-dessus.'}
-                  </span>
-                </div>
-              )}
-
               {/* Conditions de paiement 60 / 40 */}
               <div style={{ background: 'rgba(52,55,144,0.12)', border: '1px solid rgba(52,55,144,0.35)', borderRadius: 12, padding: '18px 20px', marginTop: 14 }}>
                 <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 13, marginBottom: 14 }}>
@@ -469,7 +460,7 @@ function Configurator({ formule }) {
 
               <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                 <button onClick={back} className="btn-secondary"><ArrowLeft size={16} /> Retour</button>
-                <button onClick={submit} disabled={sending || !step3Valid} className="btn-primary" style={{ opacity: sending || !step3Valid ? 0.5 : 1, cursor: sending || !step3Valid ? 'not-allowed' : 'pointer' }}>
+                <button onClick={() => (allowExtra ? setConfirmOpen(true) : submit())} disabled={sending || !step3Valid} className="btn-primary" style={{ opacity: sending || !step3Valid ? 0.5 : 1, cursor: sending || !step3Valid ? 'not-allowed' : 'pointer' }}>
                   {sending ? <><Loader2 size={15} style={{ animation: 'spin 0.8s linear infinite' }} /> Envoi…</> : 'Confirmer et recevoir mon devis →'}
                 </button>
               </div>
@@ -477,6 +468,42 @@ function Configurator({ formule }) {
           )}
         </div>
       </div>
+
+      {/* Modale de confirmation — vérification du volume d'heures avant l'envoi (portal : piège position fixed) */}
+      {confirmOpen && typeof document !== 'undefined' && createPortal(
+        <div onClick={() => setConfirmOpen(false)} style={{
+          position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+        }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 14,
+            padding: '28px 26px', maxWidth: 420, width: '100%', color: '#fff',
+            fontFamily: 'var(--font-body), sans-serif', boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+              <Clock size={20} color="var(--lime)" />
+              <span style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 800, fontSize: 18 }}>Une dernière vérification</span>
+            </div>
+            <p style={{ fontSize: 14.5, lineHeight: 1.7, color: 'rgba(255,255,255,0.75)', margin: '0 0 8px' }}>
+              Votre soirée comprend <strong style={{ color: 'var(--lime)' }}>{baseHours + extraHours}h de prestation DJ</strong>
+              {extraHours > 0 ? ` (${baseHours}h incluses + ${extraHours}h ajoutées)` : ''}.
+            </p>
+            <p style={{ fontSize: 14.5, lineHeight: 1.7, color: 'rgba(255,255,255,0.75)', margin: '0 0 22px' }}>
+              Est-ce suffisant pour couvrir votre soirée, de l’ouverture du bal à la fin ?
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button onClick={() => { setConfirmOpen(false); submit(); }} className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
+                Oui, recevoir mon devis →
+              </button>
+              <button onClick={() => { setConfirmOpen(false); optionsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }} className="btn-secondary" style={{ width: '100%', justifyContent: 'center' }}>
+                Ajouter des heures
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );

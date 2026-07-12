@@ -540,7 +540,7 @@ function Configurator({ formule, onSwitch }) {
               {extraHours > 0 ? ` (${baseHours}h incluses + ${extraHours}h ajoutées)` : ''}.
             </p>
             <p style={{ fontSize: 14.5, lineHeight: 1.7, color: 'rgba(255,255,255,0.75)', margin: '0 0 22px' }}>
-              Est-ce suffisant pour couvrir votre soirée, de l’ouverture du bal à la fin ?
+              Est-ce suffisant pour couvrir votre événement ?
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               <button onClick={() => { setConfirmOpen(false); submit(); }} className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>

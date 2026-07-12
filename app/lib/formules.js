@@ -51,7 +51,7 @@ export const FORMULES = [
     specs: {
       dj: '7h',
       son: 'Adaptée au nombre d’invités',
-      lumiere: 'Piste + mise en lumière de la salle',
+      lumiere: 'Piste + mise en lumière de la salle + fumée lourde incluse',
       video: 'Vidéoprojecteur / diaporama inclus',
       ceremonie: 'Vin d’honneur inclus · cérémonie laïque en option',
       jourJ: 'Installation & technicien inclus',
@@ -59,7 +59,6 @@ export const FORMULES = [
     platform: 'Plateforme complète : invités & RSVP, menu, plan de table, faire-part + infos pratiques, accès collaborateurs',
     options: [
       { key: 'ceremonie',   label: 'Sonorisation cérémonie laïque', price: 190 },
-      { key: 'fumee',       label: 'Machine à fumée lourde',        price: 50 },
       { key: 'etincelles',  label: 'Machines à étincelles froides', price: 100 },
       { key: 'murled2',     label: 'Mur LED 2 m²',                  price: 300 },
       { key: 'murled4',     label: 'Mur LED 4 m²',                  price: 600 },

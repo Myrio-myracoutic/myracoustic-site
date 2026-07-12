@@ -25,7 +25,7 @@ const stepBtn = {
 
 function inclusionsText(f) {
   return ['dj', 'son', 'lumiere', 'video', 'ceremonie', 'jourJ']
-    .map(k => f.specs[k]).filter(Boolean)
+    .map(k => f.specs[k]).filter(s => s && !/^en option/i.test(s))
     .map(s => `• ${s}`).join('\n');
 }
 

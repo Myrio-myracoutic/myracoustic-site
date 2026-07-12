@@ -1,11 +1,11 @@
 'use client';
-import { Headphones, Volume2, Lightbulb, Video, Heart, Wrench, Gift, Minus, Check, CornerDownRight } from 'lucide-react';
+import { Headphones, Volume2, Lightbulb, Video, Sparkles, Heart, Wrench, Gift, Minus, Check, CornerDownRight } from 'lucide-react';
 import { FORMULES, POLES, FORMULES_CHAPEAU, fmtPrice } from '../lib/formules';
 import { SectionLabel } from './AnimatedWave';
 import Reveal from './Reveal';
 
 const POLE_ICON = {
-  dj: Headphones, son: Volume2, lumiere: Lightbulb, video: Video, ceremonie: Heart, jourJ: Wrench,
+  dj: Headphones, son: Volume2, lumiere: Lightbulb, video: Video, effets: Sparkles, ceremonie: Heart, jourJ: Wrench,
 };
 
 function FormuleCard({ f }) {

@@ -8,6 +8,7 @@ export const POLES = [
   { key: 'son',       label: 'Sonorisation' },
   { key: 'lumiere',   label: 'Éclairage' },
   { key: 'video',     label: 'Vidéo' },
+  { key: 'effets',    label: 'Effets spéciaux' },
   { key: 'ceremonie', label: 'Cérémonie & vin d’honneur' },
   { key: 'jourJ',     label: 'Le jour J' },
 ];
@@ -24,6 +25,7 @@ export const FORMULES = [
       son: 'Adaptée au nombre d’invités',
       lumiere: 'Piste de danse',
       video: null,
+      effets: 'En option (fumée lourde, étincelles froides)',
       ceremonie: 'En option (cérémonie laïque, vin d’honneur)',
       jourJ: 'Installation & technicien inclus',
     },
@@ -51,8 +53,9 @@ export const FORMULES = [
     specs: {
       dj: '7h',
       son: 'Adaptée au nombre d’invités',
-      lumiere: 'Piste + mise en lumière de la salle + fumée lourde incluse',
+      lumiere: 'Piste + mise en lumière de la salle',
       video: 'Vidéoprojecteur / diaporama inclus',
+      effets: 'Fumée lourde incluse · étincelles en option',
       ceremonie: 'Vin d’honneur inclus · cérémonie laïque en option',
       jourJ: 'Installation & technicien inclus',
     },
@@ -75,8 +78,9 @@ export const FORMULES = [
     specs: {
       dj: 'Soirée complète',
       son: 'Adaptée au nombre d’invités',
-      lumiere: 'Complet + étincelles + fumée lourde inclus',
+      lumiere: 'Mise en lumière complète',
       video: 'Mur LED 2 m² inclus',
+      effets: 'Fumée lourde + étincelles froides incluses',
       ceremonie: 'Cérémonie laïque + vin d’honneur inclus',
       jourJ: 'Installation + technicien dédié',
     },

@@ -33,7 +33,7 @@ const stepBtn = {
 };
 
 function inclusionsText(f) {
-  return ['dj', 'son', 'lumiere', 'video', 'ceremonie', 'jourJ']
+  return ['dj', 'son', 'lumiere', 'video', 'effets', 'ceremonie', 'jourJ']
     .map(k => f.specs[k]).filter(s => s && !/^en option/i.test(s))
     .map(s => `• ${s}`).join('\n');
 }

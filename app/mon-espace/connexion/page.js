@@ -3,8 +3,7 @@ import { useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { supabase } from '@/app/lib/supabase';
 import Image from 'next/image';
-
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://myracoustic.com';
+import PasswordInput from '@/app/components/PasswordInput';
 
 const inputStyle = {
   width: '100%', boxSizing: 'border-box',
@@ -30,67 +29,12 @@ function ErrorBox({ msg }) {
   );
 }
 
-function MagicLinkForm({ initialError }) {
-  const [email, setEmail] = useState('');
-  const [sent, setSent] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(initialError);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-    const { error: err } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: `${APP_URL}/auth/callback` },
-    });
-    setLoading(false);
-    if (err) { setError('Adresse introuvable ou erreur. Vérifiez votre email.'); return; }
-    setSent(true);
-  };
-
-  if (sent) return (
-    <div style={{ textAlign: 'center', padding: '8px 0' }}>
-      <div style={{ fontSize: 40, marginBottom: 16 }}>✉️</div>
-      <h2 style={{
-        fontFamily: 'var(--font-display), sans-serif', fontSize: 18, fontWeight: 700,
-        color: '#fff', marginBottom: 12,
-      }}>Vérifiez vos emails</h2>
-      <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, lineHeight: 1.7 }}>
-        Un lien de connexion a été envoyé à{' '}
-        <strong style={{ color: '#fff' }}>{email}</strong>.{' '}
-        Cliquez dessus pour accéder à votre espace.
-      </p>
-    </div>
-  );
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <ErrorBox msg={error} />
-      <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 6 }}>
-        Adresse email
-      </label>
-      <input
-        type="email" required placeholder="votre@email.fr"
-        value={email} onChange={e => setEmail(e.target.value)}
-        style={inputStyle}
-      />
-      <button
-        type="submit" disabled={loading}
-        style={{ ...btnPrimary, opacity: loading ? 0.6 : 1, cursor: loading ? 'not-allowed' : 'pointer', marginTop: 4 }}
-      >
-        {loading ? 'Envoi…' : 'Recevoir mon lien de connexion'}
-      </button>
-    </form>
-  );
-}
-
-function PasswordForm() {
+function PasswordForm({ initialError }) {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(initialError);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -99,7 +43,7 @@ function PasswordForm() {
     const { error: err } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (err) {
-      setError('Email ou mot de passe incorrect. Vous pouvez utiliser le lien par email si vous n\'avez pas encore de mot de passe.');
+      setError('Email ou mot de passe incorrect. Utilisez « Mot de passe oublié ? » pour en définir un nouveau.');
       return;
     }
     router.replace('/mon-espace');
@@ -112,16 +56,15 @@ function PasswordForm() {
         Adresse email
       </label>
       <input
-        type="email" required placeholder="votre@email.fr"
+        type="email" required placeholder="votre@email.fr" autoComplete="email"
         value={email} onChange={e => setEmail(e.target.value)}
         style={inputStyle}
       />
       <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 6 }}>
         Mot de passe
       </label>
-      <input
-        type="password" required placeholder="••••••••"
-        value={password} onChange={e => setPassword(e.target.value)}
+      <PasswordInput
+        required value={password} onChange={e => setPassword(e.target.value)}
         style={{ ...inputStyle, marginBottom: 6 }}
       />
       <div style={{ textAlign: 'right', marginBottom: 20 }}>
@@ -142,15 +85,8 @@ function PasswordForm() {
 function ConnexionForm() {
   const params = useSearchParams();
   const initialError = params.get('error') === 'lien_invalide'
-    ? 'Ce lien a expiré. Demandez-en un nouveau ci-dessous.'
+    ? 'Ce lien a expiré. Connectez-vous avec votre mot de passe, ou utilisez « Mot de passe oublié ? ».'
     : '';
-  const [mode, setMode] = useState('magic');
-
-  const tabBase = {
-    flex: 1, padding: '10px 0', fontSize: 13,
-    fontFamily: 'var(--font-display), sans-serif', fontWeight: 600,
-    border: 'none', borderRadius: 6, cursor: 'pointer', transition: 'all 0.15s',
-  };
 
   return (
     <div style={{
@@ -175,36 +111,13 @@ function ConnexionForm() {
       }}>
         <h1 style={{
           fontFamily: 'var(--font-display), sans-serif', fontSize: 22, fontWeight: 700,
-          color: '#fff', marginBottom: 24,
+          color: '#fff', marginBottom: 8,
         }}>Mon espace</h1>
+        <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 13.5, lineHeight: 1.6, marginBottom: 24 }}>
+          Connectez-vous avec l’email et le mot de passe reçus lors de votre demande de devis.
+        </p>
 
-        <div style={{
-          display: 'flex', gap: 4,
-          background: 'rgba(255,255,255,0.05)', borderRadius: 8, padding: 4, marginBottom: 28,
-        }}>
-          <button
-            onClick={() => setMode('magic')}
-            style={{
-              ...tabBase,
-              background: mode === 'magic' ? '#b8ef0b' : 'transparent',
-              color: mode === 'magic' ? '#060e16' : 'rgba(255,255,255,0.4)',
-            }}
-          >
-            Lien par email
-          </button>
-          <button
-            onClick={() => setMode('password')}
-            style={{
-              ...tabBase,
-              background: mode === 'password' ? '#b8ef0b' : 'transparent',
-              color: mode === 'password' ? '#060e16' : 'rgba(255,255,255,0.4)',
-            }}
-          >
-            Mot de passe
-          </button>
-        </div>
-
-        {mode === 'magic' ? <MagicLinkForm initialError={initialError} /> : <PasswordForm />}
+        <PasswordForm initialError={initialError} />
       </div>
     </div>
   );

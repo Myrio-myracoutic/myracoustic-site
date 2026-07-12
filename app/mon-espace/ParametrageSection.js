@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { UserCircle, CreditCard, Users, Plus, Trash2, CheckCircle, Clock, RefreshCw, Receipt, Lock } from 'lucide-react';
 import { supabase } from '@/app/lib/supabase';
+import PasswordInput from '@/app/components/PasswordInput';
 
 const TABS = [
   { id: 'compte',    label: 'Mon compte',      icon: UserCircle },
@@ -114,11 +115,11 @@ function PasswordBlock() {
       <div className="pm-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
         <div>
           <label style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 6 }}>NOUVEAU MOT DE PASSE</label>
-          <input style={inputStyle} type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" autoComplete="new-password" />
+          <PasswordInput style={inputStyle} value={password} onChange={e => setPassword(e.target.value)} autoComplete="new-password" />
         </div>
         <div>
           <label style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 6 }}>CONFIRMER</label>
-          <input style={inputStyle} type="password" value={confirm} onChange={e => setConfirm(e.target.value)} placeholder="••••••••" autoComplete="new-password" />
+          <PasswordInput style={inputStyle} value={confirm} onChange={e => setConfirm(e.target.value)} autoComplete="new-password" />
         </div>
       </div>
       {error && <p style={{ color: '#f87171', fontSize: 13, margin: '0 0 12px' }}>{error}</p>}

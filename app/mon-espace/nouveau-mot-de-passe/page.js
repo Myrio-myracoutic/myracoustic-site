@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/app/lib/supabase';
 import Image from 'next/image';
+import PasswordInput from '@/app/components/PasswordInput';
 
 const inputStyle = {
   width: '100%', boxSizing: 'border-box',
@@ -101,16 +102,16 @@ export default function NouveauMotDePassePage() {
               <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 6 }}>
                 Nouveau mot de passe
               </label>
-              <input
-                type="password" required placeholder="••••••••"
+              <PasswordInput
+                required autoComplete="new-password"
                 value={password} onChange={e => setPassword(e.target.value)}
                 style={inputStyle}
               />
               <label style={{ display: 'block', color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 6 }}>
                 Confirmer le mot de passe
               </label>
-              <input
-                type="password" required placeholder="••••••••"
+              <PasswordInput
+                required autoComplete="new-password"
                 value={confirm} onChange={e => setConfirm(e.target.value)}
                 style={{ ...inputStyle, marginBottom: 20 }}
               />

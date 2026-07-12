@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo, useRef, Fragment } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, ArrowRight, Check, CheckCircle2, Clock, Loader2, MapPin, Plus, Minus, SlidersHorizontal, CreditCard, Phone } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, CheckCircle2, Clock, Loader2, MapPin, Plus, Minus, SlidersHorizontal, Sparkles, CreditCard, Phone } from 'lucide-react';
 import { FORMULES, POLES, fmtPrice, EXTRA_HOUR_PRICE } from '../lib/formules';
 import { gtagEvent, gtagBeacon } from '../lib/gtag';
 import AddressAutocomplete from './AddressAutocomplete';
@@ -390,7 +390,7 @@ function Configurator({ formule, onSwitch }) {
                     </div>
                   </div>
                 )}
-                {formule.options.map(o => {
+                {formule.options.filter(o => !o.category).map(o => {
                   const on = !!sel[o.key];
                   const locked = o.key === 'reception';
                   return (
@@ -400,6 +400,15 @@ function Configurator({ formule, onSwitch }) {
                   );
                 })}
               </PackBlock>
+
+              {formule.options.some(o => o.category === 'effets') && (
+                <PackBlock icon={Sparkles} title="Effets spéciaux" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.4)">
+                  {formule.options.filter(o => o.category === 'effets').map(o => (
+                    <ToggleRow key={o.key} label={o.label} price={o.price} checked={!!sel[o.key]}
+                      onChange={() => toggle(o.key)} note={o.note || ''} />
+                  ))}
+                </PackBlock>
+              )}
 
               <PackBlock icon={MapPin} title="Adresse de facturation" badge="REQUIS" badgeColor="var(--lime)">
                 <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>

@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo, useRef, Fragment } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, Loader2, MapPin, Plus, Minus, SlidersHorizontal, CreditCard, Phone } from 'lucide-react';
-import { FORMULES, fmtPrice, EXTRA_HOUR_PRICE } from '../lib/formules';
+import { FORMULES, POLES, fmtPrice, EXTRA_HOUR_PRICE } from '../lib/formules';
 import { gtagEvent, gtagBeacon } from '../lib/gtag';
 import AddressAutocomplete from './AddressAutocomplete';
 import MiniCal from './MiniCal';
@@ -316,7 +316,29 @@ function Configurator({ formule }) {
           {step === 3 && (
             <>
               <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 24, fontWeight: 800, marginBottom: 6 }}>Personnalisez votre formule</h1>
-              <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.5)', marginBottom: 18 }}>Ajoutez des options (facultatif), puis confirmez pour recevoir votre devis.</p>
+              <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.5)', marginBottom: 18 }}>Voici ce que comprend déjà votre formule. Ajoutez des options (facultatif), puis confirmez pour recevoir votre devis.</p>
+
+              {/* Rappel de ce que la formule comprend — les specs « En option » vivent dans la liste d'options */}
+              <PackBlock icon={CheckCircle2} title={`Formule ${formule.name} — inclus`} badge="INCLUS" badgeColor="var(--lime)">
+                {POLES.filter(p => formule.specs[p.key] && !/^en option/i.test(formule.specs[p.key])).map(p => (
+                  <div key={p.key} style={{ padding: '11px 18px', display: 'flex', alignItems: 'flex-start', gap: 12, borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                    <Check size={14} color="var(--lime)" strokeWidth={3} style={{ flexShrink: 0, marginTop: 3 }} />
+                    <span style={{ fontSize: 13.5, lineHeight: 1.5 }}>
+                      <span style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, color: '#fff' }}>{p.label}</span>
+                      <span style={{ color: 'rgba(255,255,255,0.6)' }}> — {formule.specs[p.key]}</span>
+                    </span>
+                  </div>
+                ))}
+                {formule.platform && (
+                  <div style={{ padding: '11px 18px', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                    <Check size={14} color="var(--lime)" strokeWidth={3} style={{ flexShrink: 0, marginTop: 3 }} />
+                    <span style={{ fontSize: 13.5, lineHeight: 1.5 }}>
+                      <span style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, color: '#fff' }}>Espace en ligne</span>
+                      <span style={{ color: 'rgba(255,255,255,0.6)' }}> — {formule.platform}</span>
+                    </span>
+                  </div>
+                )}
+              </PackBlock>
 
               <PackBlock icon={SlidersHorizontal} title="Vos options" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.4)">
                 {formule.options.map(o => {

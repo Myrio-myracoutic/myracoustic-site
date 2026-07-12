@@ -2,7 +2,7 @@
 import { useState, useEffect, useMemo, useRef, Fragment } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, ArrowRight, Check, CheckCircle2, Loader2, Plus, Minus, SlidersHorizontal, CreditCard, Phone } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, CheckCircle2, Loader2, MapPin, Plus, Minus, SlidersHorizontal, CreditCard, Phone } from 'lucide-react';
 import { FORMULES, fmtPrice, EXTRA_HOUR_PRICE } from '../lib/formules';
 import { gtagEvent, gtagBeacon } from '../lib/gtag';
 import AddressAutocomplete from './AddressAutocomplete';
@@ -114,6 +114,9 @@ function Configurator({ formule }) {
   const [date, setDate]     = useState('');
   const [lieu, setLieu]     = useState('');
   const [guests, setGuests] = useState('');
+  const [adresse, setAdresse] = useState('');
+  const [cp, setCp]         = useState('');
+  const [ville, setVille]   = useState('');
   const [sel, setSel]       = useState({});
   const [extraHours, setExtraHours] = useState(0);
   const [sending, setSending] = useState(false);
@@ -189,6 +192,8 @@ function Configurator({ formule }) {
 
   const step1Valid = firstName.trim() && lastName.trim() && /\S+@\S+\.\S+/.test(email) && phone.trim();
   const step2Valid = date && lieu.trim();
+  /* Adresse de facturation : exigée par Qonto pour créer le devis */
+  const step3Valid = adresse.trim() && cp.trim() && ville.trim();
 
   const goTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
   const next = () => {
@@ -206,6 +211,11 @@ function Configurator({ formule }) {
 
   const submit = async () => {
     if (sending) return;
+    if (!step3Valid) {
+      gtagEvent('funnel_error', { step, step_name: STEP_NAMES[3], error_type: 'adresse_incomplete' });
+      setError('Merci de renseigner votre adresse de facturation.');
+      return;
+    }
     setSending(true); setError('');
     const items = [
       { title: `Formule ${formule.name} — Mariage`, description: inclusionsText(formule), priceHT: formule.price / 1.2 },
@@ -216,7 +226,7 @@ function Configurator({ formule }) {
       const res = await fetch('/api/qonto/devis', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          client: { type: 'individual', firstName: firstName.trim(), lastName: lastName.trim(), email: email.trim().toLowerCase(), phone: phone.trim() },
+          client: { type: 'individual', firstName: firstName.trim(), lastName: lastName.trim(), email: email.trim().toLowerCase(), phone: phone.trim(), adresse: adresse.trim(), cp: cp.trim(), ville: ville.trim() },
           event: { type: 'Mariage', date, lieu: lieu.trim(), formule: formule.key },
           items,
           note: `Formule ${formule.name}${guests ? ` · ${guests} invités` : ''} · personnalisé en ligne · déplacement à confirmer selon le lieu`,
@@ -225,7 +235,7 @@ function Configurator({ formule }) {
       const data = await res.json();
       setSending(false);
       if (!res.ok) {
-        setError(data.error || 'Une erreur est survenue.');
+        setError('Un problème technique nous empêche de générer votre devis en ligne. Réessayez dans quelques minutes, ou appelez-nous au 07 68 53 33 08 — un conseiller établira votre devis avec vous.');
         gtagEvent('funnel_error', { step, step_name: STEP_NAMES[step], error_type: 'soumission_echouee' });
         return;
       }
@@ -233,7 +243,7 @@ function Configurator({ formule }) {
       setDone(data.quoteUrl || true);
     } catch {
       setSending(false);
-      setError('Une erreur est survenue. Réessayez ou contactez-nous.');
+      setError('La connexion a été interrompue. Vérifiez votre réseau et réessayez, ou appelez-nous au 07 68 53 33 08.');
       gtagEvent('funnel_error', { step, step_name: STEP_NAMES[step], error_type: 'erreur_reseau' });
     }
   };
@@ -333,6 +343,22 @@ function Configurator({ formule }) {
                 )}
               </PackBlock>
 
+              <PackBlock icon={MapPin} title="Adresse de facturation" badge="REQUIS" badgeColor="var(--lime)">
+                <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <AddressAutocomplete placeholder="Numéro et rue" value={adresse}
+                    onChange={setAdresse}
+                    onSelect={s => { setAdresse(s.street || s.label); if (s.postcode) setCp(s.postcode); if (s.city) setVille(s.city); }}
+                    inputStyle={input} />
+                  <div style={{ display: 'grid', gridTemplateColumns: '130px 1fr', gap: 12 }}>
+                    <input placeholder="Code postal" value={cp}
+                      onChange={e => setCp(e.target.value.replace(/\D/g, '').slice(0, 5))}
+                      inputMode="numeric" maxLength={5} style={input} />
+                    <input placeholder="Ville" value={ville} onChange={e => setVille(e.target.value)} style={input} />
+                  </div>
+                  <p style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.4)', margin: 0 }}>Nécessaire pour établir votre devis.</p>
+                </div>
+              </PackBlock>
+
               {/* Récapitulatif */}
               <div style={{ marginTop: 22, background: 'var(--card)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '16px 18px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, padding: '4px 0' }}>
@@ -384,9 +410,15 @@ function Configurator({ formule }) {
                 <span>Après envoi, <strong style={{ color: 'rgba(255,255,255,0.8)' }}>un conseiller vous rappelle sous 24h</strong> pour finaliser votre devis.</span>
               </div>
 
+              {!step3Valid && (
+                <p style={{ fontSize: 12, color: 'rgba(249,115,22,0.85)', marginTop: 10 }}>
+                  Adresse de facturation manquante : {[!adresse.trim() && 'numéro et rue', !cp.trim() && 'code postal', !ville.trim() && 'ville'].filter(Boolean).join(' · ')}
+                </p>
+              )}
+
               <div style={{ marginTop: 16, display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                 <button onClick={back} className="btn-secondary"><ArrowLeft size={16} /> Retour</button>
-                <button onClick={submit} disabled={sending} className="btn-primary" style={{ opacity: sending ? 0.6 : 1 }}>
+                <button onClick={submit} disabled={sending || !step3Valid} className="btn-primary" style={{ opacity: sending || !step3Valid ? 0.5 : 1, cursor: sending || !step3Valid ? 'not-allowed' : 'pointer' }}>
                   {sending ? <><Loader2 size={15} style={{ animation: 'spin 0.8s linear infinite' }} /> Envoi…</> : 'Confirmer et recevoir mon devis →'}
                 </button>
               </div>

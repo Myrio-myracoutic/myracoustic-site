@@ -127,6 +127,8 @@ function Configurator({ formule }) {
 
   const allowExtra = formule.key !== 'prestige';
   const hasReception = formule.options.some(o => o.key === 'reception');
+  /* Heures DJ comprises dans la formule ('6h' → 6) — Prestige : soirée complète, pas de compteur */
+  const baseHours = parseInt(formule.specs.dj, 10) || 0;
 
   /* ── Suivi GA4 du tunnel ────────────────────────────────────────── */
   const stepStartRef = useRef(Date.now());
@@ -221,7 +223,7 @@ function Configurator({ formule }) {
       { title: `Formule ${formule.name} — Mariage`, description: inclusionsText(formule), priceHT: formule.price / 1.2 },
       ...chosen.map(o => ({ title: o.label, description: '', priceHT: o.price / 1.2 })),
     ];
-    if (extraCost > 0) items.push({ title: `Heures DJ supplémentaires (${extraHours}h)`, description: `${EXTRA_HOUR_PRICE} €/h`, priceHT: extraCost / 1.2 });
+    if (extraCost > 0) items.push({ title: `Heures DJ supplémentaires (${extraHours}h)`, description: `${EXTRA_HOUR_PRICE} €/h — soit ${baseHours + extraHours}h de prestation DJ au total`, priceHT: extraCost / 1.2 });
     try {
       const res = await fetch('/api/qonto/devis', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -345,7 +347,12 @@ function Configurator({ formule }) {
                   <div style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                     <div>
                       <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14 }}>Heures DJ supplémentaires</div>
-                      <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.4)' }}>{EXTRA_HOUR_PRICE} €/h</div>
+                      <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.4)' }}>{EXTRA_HOUR_PRICE} €/h · {baseHours}h déjà incluses</div>
+                      {extraHours > 0 && (
+                        <div style={{ fontSize: 11.5, color: 'var(--lime)', fontWeight: 600, marginTop: 2 }}>
+                          {baseHours}h + {extraHours}h = {baseHours + extraHours}h de prestation DJ
+                        </div>
+                      )}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <button onClick={() => setExtraHours(h => Math.max(0, h - 1))} style={stepBtn}><Minus size={15} /></button>
@@ -394,7 +401,7 @@ function Configurator({ formule }) {
                 ))}
                 {extraCost > 0 && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, padding: '4px 0', color: 'rgba(255,255,255,0.6)' }}>
-                    <span>+ Heures DJ ({extraHours}h)</span><span>{fmtPrice(extraCost)}</span>
+                    <span>+ Heures DJ ({baseHours}h incluses + {extraHours}h = {baseHours + extraHours}h)</span><span>{fmtPrice(extraCost)}</span>
                   </div>
                 )}
                 <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', marginTop: 8, paddingTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

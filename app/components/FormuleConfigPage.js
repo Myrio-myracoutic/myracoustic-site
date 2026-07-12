@@ -130,7 +130,7 @@ function Configurator({ formule, onSwitch }) {
 
   const allowExtra = formule.key !== 'prestige';
   const hasReception = formule.options.some(o => o.key === 'reception');
-  /* Heures DJ comprises dans la formule ('6h' → 6) — Prestige : soirée complète, pas de compteur */
+  /* Heures DJ comprises dans la formule ('5h' → 5) — Prestige : soirée complète, pas de compteur */
   const baseHours = parseInt(formule.specs.dj, 10) || 0;
 
   /* ── Suivi GA4 du tunnel ────────────────────────────────────────── */

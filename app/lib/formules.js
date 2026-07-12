@@ -20,7 +20,7 @@ export const FORMULES = [
     featured: false,
     accroche: 'Une belle soirée dansante, faite avec exigence.',
     specs: {
-      dj: '6h',
+      dj: '5h',
       son: 'Adaptée au nombre d’invités',
       lumiere: 'Piste de danse',
       video: null,

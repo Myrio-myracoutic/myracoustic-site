@@ -3,13 +3,22 @@ import { useState, useEffect, useMemo, useRef, Fragment } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, ArrowRight, Check, CheckCircle2, Clock, Loader2, MapPin, Plus, Minus, SlidersHorizontal, Sparkles, CreditCard, Phone } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, CheckCircle2, Clock, Lightbulb, Loader2, MapPin, MonitorPlay, Music, Plus, Minus, Sparkles, Volume2, CreditCard, Phone } from 'lucide-react';
 import { FORMULES, POLES, fmtPrice, EXTRA_HOUR_PRICE } from '../lib/formules';
 import { gtagEvent, gtagBeacon } from '../lib/gtag';
 import AddressAutocomplete from './AddressAutocomplete';
 import MiniCal from './MiniCal';
 
 const STEP_NAMES = { 1: 'coordonnees', 2: 'evenement', 3: 'options' };
+
+/* Catégories d'options — ordre d'affichage à l'étape 3 (les heures DJ vivent dans Animation) */
+const OPTION_CATEGORIES = [
+  { key: 'animation',    label: 'Animation',       icon: Music },
+  { key: 'sonorisation', label: 'Sonorisation',    icon: Volume2 },
+  { key: 'eclairage',    label: 'Éclairage',       icon: Lightbulb },
+  { key: 'video',        label: 'Vidéo',           icon: MonitorPlay },
+  { key: 'effets',       label: 'Effets spéciaux', icon: Sparkles },
+];
 
 const input = {
   width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)',
@@ -371,44 +380,42 @@ function Configurator({ formule, onSwitch }) {
               </PackBlock>
 
               <div ref={optionsRef} />
-              <PackBlock icon={SlidersHorizontal} title="Vos options" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.4)">
-                {allowExtra && (
-                  <div style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                    <div>
-                      <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14 }}>Heures DJ supplémentaires</div>
-                      <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.4)' }}>{EXTRA_HOUR_PRICE} €/h · {baseHours}h déjà incluses</div>
-                      {extraHours > 0 && (
-                        <div style={{ fontSize: 11.5, color: 'var(--lime)', fontWeight: 600, marginTop: 2 }}>
-                          {baseHours}h + {extraHours}h = {baseHours + extraHours}h de prestation DJ
+              {OPTION_CATEGORIES.map(cat => {
+                const opts = formule.options.filter(o => o.category === cat.key);
+                const withHours = cat.key === 'animation' && allowExtra;
+                if (opts.length === 0 && !withHours) return null;
+                return (
+                  <PackBlock key={cat.key} icon={cat.icon} title={cat.label} badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.4)">
+                    {withHours && (
+                      <div style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                        <div>
+                          <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14 }}>Heures DJ supplémentaires</div>
+                          <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.4)' }}>{EXTRA_HOUR_PRICE} €/h · {baseHours}h déjà incluses</div>
+                          {extraHours > 0 && (
+                            <div style={{ fontSize: 11.5, color: 'var(--lime)', fontWeight: 600, marginTop: 2 }}>
+                              {baseHours}h + {extraHours}h = {baseHours + extraHours}h de prestation DJ
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <button onClick={() => setExtraHours(h => Math.max(0, h - 1))} style={stepBtn}><Minus size={15} /></button>
-                      <span style={{ width: 24, textAlign: 'center', color: '#fff', fontWeight: 700, fontFamily: 'var(--font-display), sans-serif' }}>{extraHours}</span>
-                      <button onClick={() => setExtraHours(h => Math.min(6, h + 1))} style={stepBtn}><Plus size={15} /></button>
-                    </div>
-                  </div>
-                )}
-                {formule.options.filter(o => !o.category).map(o => {
-                  const on = !!sel[o.key];
-                  const locked = o.key === 'reception';
-                  return (
-                    <ToggleRow key={o.key} label={o.label} price={o.price} checked={on} locked={locked}
-                      onChange={() => toggle(o.key)}
-                      note={locked ? (on ? 'Obligatoire pour votre nombre d’invités' : 'Ajoutée automatiquement dès 150 invités') : ''} />
-                  );
-                })}
-              </PackBlock>
-
-              {formule.options.some(o => o.category === 'effets') && (
-                <PackBlock icon={Sparkles} title="Effets spéciaux" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.4)">
-                  {formule.options.filter(o => o.category === 'effets').map(o => (
-                    <ToggleRow key={o.key} label={o.label} price={o.price} checked={!!sel[o.key]}
-                      onChange={() => toggle(o.key)} note={o.note || ''} />
-                  ))}
-                </PackBlock>
-              )}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <button onClick={() => setExtraHours(h => Math.max(0, h - 1))} style={stepBtn}><Minus size={15} /></button>
+                          <span style={{ width: 24, textAlign: 'center', color: '#fff', fontWeight: 700, fontFamily: 'var(--font-display), sans-serif' }}>{extraHours}</span>
+                          <button onClick={() => setExtraHours(h => Math.min(6, h + 1))} style={stepBtn}><Plus size={15} /></button>
+                        </div>
+                      </div>
+                    )}
+                    {opts.map(o => {
+                      const on = !!sel[o.key];
+                      const locked = o.key === 'reception';
+                      return (
+                        <ToggleRow key={o.key} label={o.label} price={o.price} checked={on} locked={locked}
+                          onChange={() => toggle(o.key)}
+                          note={locked ? (on ? 'Obligatoire pour votre nombre d’invités' : 'Ajoutée automatiquement dès 150 invités') : (o.note || '')} />
+                      );
+                    })}
+                  </PackBlock>
+                );
+              })}
 
               <PackBlock icon={MapPin} title="Adresse de facturation" badge="REQUIS" badgeColor="var(--lime)">
                 <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 12 }}>

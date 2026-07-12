@@ -106,7 +106,7 @@ function Progress({ step }) {
   );
 }
 
-function Configurator({ formule }) {
+function Configurator({ formule, onSwitch }) {
   const [step, setStep]     = useState(1);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName]   = useState('');
@@ -280,7 +280,32 @@ function Configurator({ formule }) {
       <Header />
       <div style={{ maxWidth: 600, margin: '0 auto', padding: '24px 20px 60px' }}>
         <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-          Formule {formule.name} · à partir de {fmtPrice(formule.price)}
+          Votre formule · prix « à partir de »
+        </div>
+        {/* Sélecteur de formule — changer sans perdre ce qui est déjà saisi */}
+        <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+          {FORMULES.map(f => {
+            const active = f.key === formule.key;
+            return (
+              <button key={f.key} type="button"
+                onClick={() => {
+                  if (active) return;
+                  gtagEvent('formule_switch', { profil: 'mariage', from: formule.key, to: f.key, step });
+                  onSwitch(f.key);
+                }}
+                style={{
+                  flex: 1, padding: '10px 6px', borderRadius: 10,
+                  border: `1px solid ${active ? 'var(--lime)' : 'rgba(255,255,255,0.15)'}`,
+                  background: active ? 'rgba(184,239,11,0.1)' : 'rgba(255,255,255,0.04)',
+                  color: active ? 'var(--lime)' : 'rgba(255,255,255,0.65)',
+                  cursor: active ? 'default' : 'pointer',
+                  fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 13,
+                }}>
+                {f.name}
+                <span style={{ display: 'block', fontSize: 11, fontWeight: 600, marginTop: 2, color: active ? 'rgba(184,239,11,0.75)' : 'rgba(255,255,255,0.4)' }}>{fmtPrice(f.price)}</span>
+              </button>
+            );
+          })}
         </div>
         <Progress step={step} />
 
@@ -510,7 +535,15 @@ function Configurator({ formule }) {
 }
 
 export default function FormuleConfigPage({ formuleKey }) {
-  const formule = FORMULES.find(f => f.key === formuleKey);
+  const [selectedKey, setSelectedKey] = useState(formuleKey);
+  const formule = FORMULES.find(f => f.key === selectedKey);
+
+  /* Change de formule en conservant l'état saisi ; l'URL suit sans navigation (pas de remontage) */
+  const switchFormule = (k) => {
+    setSelectedKey(k);
+    window.history.replaceState(null, '', `/devis/mariage/${k}`);
+  };
+
   if (!formule) {
     return (
       <div style={{ minHeight: '100dvh', background: '#060e16', color: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24, textAlign: 'center', fontFamily: 'var(--font-body), sans-serif' }}>
@@ -519,5 +552,5 @@ export default function FormuleConfigPage({ formuleKey }) {
       </div>
     );
   }
-  return <Configurator formule={formule} />;
+  return <Configurator formule={formule} onSwitch={switchFormule} />;
 }

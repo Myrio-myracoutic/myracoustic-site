@@ -32,9 +32,16 @@ const stepBtn = {
   display: 'flex', alignItems: 'center', justifyContent: 'center',
 };
 
+/* Ne garde que ce qui est réellement inclus : retire les segments « … en option »
+   (ex. '6h · heures supplémentaires en option' → '6h'). Chaîne vide si tout est optionnel. */
+function stripOptionMentions(s) {
+  return s.split('·').map(x => x.trim()).filter(x => x && !/en option/i.test(x)).join(' · ');
+}
+
 function inclusionsText(f) {
   return ['dj', 'son', 'lumiere', 'video', 'effets', 'ceremonie', 'jourJ']
     .map(k => f.specs[k]).filter(s => s && !/^en option/i.test(s))
+    .map(stripOptionMentions).filter(Boolean)
     .map(s => `• ${s}`).join('\n');
 }
 
@@ -439,14 +446,16 @@ function Configurator({ formule, onSwitch }) {
                   <span style={{ color: 'rgba(255,255,255,0.8)' }}>Formule {formule.name}</span>
                   <span style={{ color: '#fff', fontWeight: 600 }}>{fmtPrice(formule.price)}</span>
                 </div>
-                {/* Rappel du contenu de la formule — la ligne DJ intègre les heures ajoutées */}
+                {/* Contenu réellement inclus — sans les mentions « en option » (état final, pas brochure) */}
                 <div style={{ padding: '0 0 8px', borderBottom: '1px solid rgba(255,255,255,0.06)', marginBottom: 4 }}>
-                  {POLES.filter(p => formule.specs[p.key] && !/^en option/i.test(formule.specs[p.key])).map(p => (
-                    <div key={p.key} style={{ display: 'flex', alignItems: 'flex-start', gap: 7, fontSize: 12, color: 'rgba(255,255,255,0.45)', padding: '2px 0', lineHeight: 1.5 }}>
-                      <Check size={11} color="var(--lime)" strokeWidth={3} style={{ flexShrink: 0, marginTop: 3 }} />
-                      <span>{p.label} — {formule.specs[p.key]}</span>
-                    </div>
-                  ))}
+                  {POLES.map(p => ({ p, val: formule.specs[p.key] && !/^en option/i.test(formule.specs[p.key]) ? stripOptionMentions(formule.specs[p.key]) : '' }))
+                    .filter(({ val }) => val)
+                    .map(({ p, val }) => (
+                      <div key={p.key} style={{ display: 'flex', alignItems: 'flex-start', gap: 7, fontSize: 12, color: 'rgba(255,255,255,0.45)', padding: '2px 0', lineHeight: 1.5 }}>
+                        <Check size={11} color="var(--lime)" strokeWidth={3} style={{ flexShrink: 0, marginTop: 3 }} />
+                        <span>{p.label} — {val}</span>
+                      </div>
+                    ))}
                 </div>
                 {chosen.map(o => (
                   <div key={o.key} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, padding: '4px 0', color: 'rgba(255,255,255,0.6)' }}>

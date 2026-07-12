@@ -341,17 +341,8 @@ function Configurator({ formule }) {
               </PackBlock>
 
               <PackBlock icon={SlidersHorizontal} title="Vos options" badge="OPTIONNEL" badgeColor="rgba(255,255,255,0.4)">
-                {formule.options.map(o => {
-                  const on = !!sel[o.key];
-                  const locked = o.key === 'reception';
-                  return (
-                    <ToggleRow key={o.key} label={o.label} price={o.price} checked={on} locked={locked}
-                      onChange={() => toggle(o.key)}
-                      note={locked ? (on ? 'Obligatoire pour votre nombre d’invités' : 'Ajoutée automatiquement dès 150 invités') : ''} />
-                  );
-                })}
                 {allowExtra && (
-                  <div style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                  <div style={{ padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                     <div>
                       <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 600, fontSize: 14 }}>Heures DJ supplémentaires</div>
                       <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.4)' }}>{EXTRA_HOUR_PRICE} €/h</div>
@@ -363,6 +354,15 @@ function Configurator({ formule }) {
                     </div>
                   </div>
                 )}
+                {formule.options.map(o => {
+                  const on = !!sel[o.key];
+                  const locked = o.key === 'reception';
+                  return (
+                    <ToggleRow key={o.key} label={o.label} price={o.price} checked={on} locked={locked}
+                      onChange={() => toggle(o.key)}
+                      note={locked ? (on ? 'Obligatoire pour votre nombre d’invités' : 'Ajoutée automatiquement dès 150 invités') : ''} />
+                  );
+                })}
               </PackBlock>
 
               <PackBlock icon={MapPin} title="Adresse de facturation" badge="REQUIS" badgeColor="var(--lime)">

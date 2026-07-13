@@ -406,7 +406,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
 
   /* ── Navigation tunnel ─────────────────────────────────────────── */
   const [profil, setProfil] = useState(forcedProfil || '');
-  const [step,   setStep]   = useState(forcedProfil === 'particulier' ? 0 : forcedProfil === 'professionnel' ? 9 : -1);
+  const [step,   setStep]   = useState(forcedProfil === 'particulier' ? 1 : forcedProfil === 'professionnel' ? 9 : -1);
   const [sent,        setSent]        = useState(false);
   const [qontoLoading, setQontoLoading] = useState(false);
   const [qontoError,   setQontoError]   = useState('');
@@ -417,7 +417,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
 
   /* ── Analytics : un événement par étape du tunnel ──────────────── */
   const STEP_NAMES = {
-    0: 'email', 1: 'calendrier', 2: 'evenement', 3: 'prestations',
+    0: 'coordonnees', 1: 'calendrier', 2: 'evenement', 3: 'prestations',
     4: 'facturation', 5: 'recapitulatif',
     9: 'pro_besoin', 10: 'pro_contact', 19: 'pro_prestations_cible',
     20: 'pro_facturation', 21: 'pro_recapitulatif',
@@ -600,7 +600,16 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
   /* ── Actions ────────────────────────────────────────────────────── */
   const goBack = () => {
     if (step === -1) { router.back(); return; }
-    if (step === 0 || step === 9) {
+    // Parcours particulier réordonné : calendrier(1) → événement(2) → prestations(3) → coordonnées(0) → facturation(4) → récap(5)
+    if (profil === 'particulier') {
+      const prev = { 2: 1, 3: 2, 0: 3, 4: 0, 5: 4 }; // step 1 = première étape → sortie
+      if (step === 1) {
+        if (forcedProfil) { router.back(); return; }
+        setStep(-1); setProfil(''); return;
+      }
+      setStep(prev[step] ?? 1); return;
+    }
+    if (step === 9) {
       if (forcedProfil) { router.back(); return; }
       setStep(-1); setProfil(''); return;
     }
@@ -670,27 +679,17 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
   const validateEmail = async () => {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
       setEmailErr('Adresse invalide.');
-      gtagEvent('funnel_error', { step: 0, step_name: 'email', error_type: 'email_invalide' });
+      gtagEvent('funnel_error', { step: 0, step_name: 'coordonnees', error_type: 'email_invalide' });
       return;
     }
     if (!prenom || !nom || !tel || !/^[0-9+\s().-]{6,}$/.test(tel)) {
-      gtagEvent('funnel_error', { step: 0, step_name: 'email', error_type: 'tel_invalide' });
+      gtagEvent('funnel_error', { step: 0, step_name: 'coordonnees', error_type: 'tel_invalide' });
       return;
     }
     setEmailErr('');
-    setCheckingResume(true);
-    try {
-      const res = await fetch(`/api/devis/progress?email=${encodeURIComponent(email)}`);
-      const { progress } = await res.json();
-      if (progress && progress.step > 0) {
-        gtagEvent('resume_offer_shown', { saved_step: progress.step });
-        setResumeOffer(progress);
-        setCheckingResume(false);
-        return;
-      }
-    } catch {}
-    setCheckingResume(false);
-    goStep(1);
+    // Coordonnées connues : on peut désormais sauvegarder la progression (reprise par email)
+    saveProgress(4);
+    goStep(4);
   };
 
   const estimateKm = async () => {
@@ -1194,8 +1193,8 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
   const renderStep1 = () => (
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
       <div style={{ width: '100%', maxWidth: 480, textAlign: 'center' }}>
-        <MobileStepBar current={1} total={6} />
-        <DesktopStepBar current={1} total={6} />
+        <MobileStepBar current={0} total={6} />
+        <DesktopStepBar current={0} total={6} />
         <h2 className="devis-step-title" style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 8 }}>
           Quelle est la date de votre événement ?
         </h2>
@@ -1307,12 +1306,13 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
   const renderStep0 = () => (
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
       <div style={{ width: '100%', maxWidth: 440, textAlign: 'center' }}>
-        <MobileStepBar current={0} total={6} />
-        <DesktopStepBar current={0} total={6} />
-        <h2 className="devis-step-title" style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(14px,2vw,19px)', fontWeight: 700, marginBottom: 16, textAlign: 'center', whiteSpace: 'nowrap' }}>
-          Réalisez votre devis en moins de 2 minutes
+        <MobileStepBar current={3} total={6} />
+        <DesktopStepBar current={3} total={6} />
+        <h2 className="devis-step-title" style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4, textAlign: 'center' }}>
+          Vos coordonnées
         </h2>
-        <AnimatedWave bars={28} height={48} style={{ maxWidth: 380, margin: '0 auto 24px' }} />
+        <p className="devis-step-sub" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 18, textAlign: 'center' }}>Étape 4 sur 6 · Dernière ligne droite avant votre devis</p>
+        <AnimatedWave bars={28} height={40} style={{ maxWidth: 320, margin: '0 auto 20px' }} />
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
           <input placeholder="Prénom *" value={prenom} onChange={e => setPrenom(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
@@ -1379,8 +1379,8 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
   /* Étape 2 — Événement + lieu */
   const renderStep2 = () => (
     <div style={{ flex: 1, padding: '28px 24px 60px', maxWidth: 900, margin: '0 auto', width: '100%' }}>
-      <MobileStepBar current={2} total={6} />
-      <DesktopStepBar current={2} total={6} />
+      <MobileStepBar current={1} total={6} />
+      <DesktopStepBar current={1} total={6} />
       <h2 className="devis-step-title" style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
         Votre événement
       </h2>
@@ -1516,8 +1516,8 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
   /* Étape 3 — Prestations */
   const renderStep3 = () => (
     <div style={{ flex: 1, padding: '28px 24px 130px', maxWidth: 860, margin: '0 auto', width: '100%' }}>
-      <MobileStepBar current={3} total={6} />
-      <DesktopStepBar current={3} total={6} />
+      <MobileStepBar current={2} total={6} />
+      <DesktopStepBar current={2} total={6} />
       <h2 className="devis-step-title" style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
         Vos prestations
       </h2>
@@ -1807,8 +1807,8 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
           </div>
           <DetailToggle />
         </div>
-        <BtnPrimary onClick={() => { goStep(4); saveProgress(4); }} disabled={needsMaterial === null || (needsMaterial === true && (nb < 50 || !son))}>
-          Valider mon devis →
+        <BtnPrimary onClick={() => goStep(0)} disabled={needsMaterial === null || (needsMaterial === true && (nb < 50 || !son))}>
+          Continuer →
         </BtnPrimary>
       </div>
     </div>
@@ -1822,7 +1822,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
       <h2 className="devis-step-title" style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
         Adresse de facturation
       </h2>
-      <p className="devis-step-sub" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 24 }}>Étape 4 sur 6 · Coordonnées de facturation</p>
+      <p className="devis-step-sub" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 24 }}>Étape 5 sur 6 · Coordonnées de facturation</p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <AddressAutocomplete placeholder="Numéro et rue *" value={adresse}
           onChange={v => setAdresse(v)}
@@ -1931,7 +1931,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
         <h2 className="devis-step-title" style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
           Récapitulatif
         </h2>
-        <p className="devis-step-sub" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 22 }}>Étape 5 sur 6 · Vérifiez et envoyez</p>
+        <p className="devis-step-sub" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 22 }}>Étape 6 sur 6 · Vérifiez et envoyez</p>
 
         {/* Cadeau offert */}
         <div style={{ background: 'rgba(184,239,11,0.07)', border: '1px solid rgba(184,239,11,0.22)', borderRadius: 10, padding: '14px 18px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 12 }}>

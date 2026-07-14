@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Volume2, Lightbulb, Video, Headphones } from 'lucide-react';
 import { AnimatedWave, WaveBullet, SectionLabel } from './components/AnimatedWave';
-import TestimonialCard from './components/TestimonialCard';
+import TestimonialCarousel from './components/TestimonialCarousel';
 import StatItem from './components/StatItem';
 import Reveal from './components/Reveal';
 
@@ -254,9 +254,7 @@ export default function Home() {
               Ils nous ont fait confiance
             </h2>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 18 }}>
-            {TESTIMONIALS.map((t, i) => <TestimonialCard key={i} {...t} />)}
-          </div>
+          <TestimonialCarousel items={TESTIMONIALS} />
         </Reveal>
       </section>
 

@@ -12,6 +12,7 @@ export default function TestimonialCard({ name, event, stars, text }) {
         background: 'var(--card2)', padding: 28, borderRadius: 12,
         border: `1px solid ${hov ? 'var(--lime)' : 'rgba(255,255,255,0.07)'}`,
         transition: 'all 0.25s', transform: hov ? 'translateY(-5px)' : 'none',
+        height: '100%', display: 'flex', flexDirection: 'column', boxSizing: 'border-box',
       }}
     >
       <div style={{ display: 'flex', gap: 3, marginBottom: 16 }}>
@@ -25,7 +26,7 @@ export default function TestimonialCard({ name, event, stars, text }) {
       }}>
         "{text}"
       </p>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginTop: 'auto' }}>
         <div style={{
           width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
           background: 'linear-gradient(135deg,var(--indigo),var(--lime))',

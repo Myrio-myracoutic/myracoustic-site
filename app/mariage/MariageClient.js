@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { AnimatedWave, SectionLabel } from '../components/AnimatedWave';
 import { FAQ_ITEMS } from './faq-data';
-import TestimonialCard from '../components/TestimonialCard';
+import TestimonialCarousel from '../components/TestimonialCarousel';
 import StatItem from '../components/StatItem';
 import Reveal from '../components/Reveal';
 
@@ -229,9 +229,7 @@ export default function MariageClient() {
               Ils ont vécu cet accompagnement avant vous.
             </p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 18 }}>
-            {TESTIMONIALS.map((t, i) => <TestimonialCard key={i} {...t} />)}
-          </div>
+          <TestimonialCarousel items={TESTIMONIALS} />
         </Reveal>
       </section>
 

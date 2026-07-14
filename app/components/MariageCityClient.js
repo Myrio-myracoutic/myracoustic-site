@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Headphones, Mic, Lightbulb, Video } from 'lucide-react';
 import { AnimatedWave, WaveBullet, SectionLabel } from './AnimatedWave';
-import TestimonialCard from './TestimonialCard';
+import TestimonialCarousel from './TestimonialCarousel';
 import StatItem from './StatItem';
 import Reveal from './Reveal';
 
@@ -223,9 +223,7 @@ export default function MariageCityClient({ city }) {
               Ils nous ont confié leur mariage
             </h2>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 18 }}>
-            {TESTIMONIALS.map((t, i) => <TestimonialCard key={i} {...t} />)}
-          </div>
+          <TestimonialCarousel items={TESTIMONIALS} />
         </Reveal>
       </section>
 

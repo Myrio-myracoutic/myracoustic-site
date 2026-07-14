@@ -118,6 +118,8 @@ const INCLUDES = [
 ];
 
 const TESTIMONIALS = [
+  { name: 'Carine et Sébastien', event: 'Mariage', stars: 5,
+    text: "Un immense merci à Myrio et sa femme Virginie qui nous ont clairement sauvé notre mariage. 2 semaines avant notre DJ initial nous a informé qu'il ne s'assurerait pas la prestation (pour des raisons de santé) et Myrio a été incroyable et rassurant. 2 semaines pour se caler avec nous et l'animation a été parfaite. Nous n'aurions pas pu espérer mieux. Vous voulez un évènement réussi en terme d'animation, Travaillez avec Myrio!" },
   { name: 'Treecy et Jerry', event: 'Mariage', stars: 5,
     text: "C'est un dj très professionnel, compréhensif et qui s'adapte à toutes situations. Le rapport qualité prix est au top. Je recommande fortement. Amusement garantie." },
   { name: 'Sandra et Stéphanie', event: 'Mariage', stars: 5,

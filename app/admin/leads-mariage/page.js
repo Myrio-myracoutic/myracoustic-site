@@ -109,7 +109,9 @@ function DevisBuilder({ lead, onClose, onDone }) {
                   return (
                     <div key={p.key} style={{ display: 'flex', gap: 7, fontSize: 12.5, color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>
                       <Check size={13} color="var(--lime)" style={{ flexShrink: 0, marginTop: 2 }} />
-                      <span><span style={{ color: '#fff', fontWeight: 600 }}>{p.label}</span> — {val}</span>
+                      <span>{p.key === 'ceremonie'
+                        ? <span style={{ color: '#fff', fontWeight: 600 }}>{val}</span>
+                        : <><span style={{ color: '#fff', fontWeight: 600 }}>{p.label}</span> — {val}</>}</span>
                     </div>
                   );
                 })}

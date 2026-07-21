@@ -109,7 +109,9 @@ export default function PropositionClient() {
           const raw = formuleDef.specs[p.key];
           if (!raw || /^en option/i.test(raw)) return null;
           const val = raw.split('·').map(s => s.trim()).filter(s => s && !/en option/i.test(s)).join(' · ');
-          return val ? `${p.label} — ${val}` : null;
+          if (!val) return null;
+          // Cérémonie : le libellé nomme 2 choses mais tout n'est pas inclus → on affiche seulement le réel
+          return p.key === 'ceremonie' ? val : `${p.label} — ${val}`;
         }).filter(Boolean),
         ...(formuleDef.platform ? [`Espace en ligne — ${formuleDef.platform}`] : []),
       ]

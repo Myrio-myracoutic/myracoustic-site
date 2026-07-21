@@ -8,11 +8,12 @@ import TestimonialCard from './TestimonialCard';
    - ≤ 4 avis : grille fixe côte à côte sur ordinateur, carrousel sur mobile.
    - > 4 avis : carrousel partout (sinon ça empile trop en hauteur).
    Carrousel = glissé tactile sur mobile, flèches sur ordinateur, points de pagination. */
-export default function TestimonialCarousel({ items }) {
+export default function TestimonialCarousel({ items, force = false }) {
   const trackRef = useRef(null);
   const [active, setActive] = useState(0);
 
-  const forceCarousel = items.length > 4;
+  // force = carrousel imposé (ex. colonne étroite où la grille passerait sur 2 lignes)
+  const forceCarousel = force || items.length > 4;
 
   const stride = () => {
     const el = trackRef.current;

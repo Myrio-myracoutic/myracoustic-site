@@ -1,8 +1,9 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, CheckCircle2, Loader2, ShieldCheck, Phone, Clock } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Loader2, ShieldCheck, Phone, Clock, CalendarX } from 'lucide-react';
 import MiniCal from '@/app/components/MiniCal';
 import AddressAutocomplete from '@/app/components/AddressAutocomplete';
 import TestimonialCarousel from '@/app/components/TestimonialCarousel';
@@ -39,7 +40,13 @@ export default function MariageContactClient() {
   const [error, setError] = useState('');
   const [bookedDates, setBookedDates] = useState(new Set());
   const [availLoading, setAvailLoading] = useState(true);
+  const [bookedNotice, setBookedNotice] = useState('');
   const startedRef = useRef(false);
+
+  const fmtDateFr = (k) => {
+    try { return new Date(k + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); }
+    catch { return k; }
+  };
 
   useEffect(() => {
     const t = new Date();
@@ -130,7 +137,7 @@ export default function MariageContactClient() {
 
           {/* Preuve sociale */}
           <div style={{ marginBottom: 38 }}>
-            <TestimonialCarousel items={TESTIMONIALS} />
+            <TestimonialCarousel items={TESTIMONIALS} force />
           </div>
 
           {/* Formulaire */}
@@ -145,7 +152,7 @@ export default function MariageContactClient() {
 
           <div style={{ marginBottom: 12 }}>
             <label style={label}>Date du mariage</label>
-            <MiniCal selected={date} onSelect={(k) => { touch(); setDate(k); }} bookedDates={bookedDates} loading={availLoading} yearsAhead={2} />
+            <MiniCal selected={date} onSelect={(k) => { touch(); setDate(k); }} onBookedClick={(k) => setBookedNotice(k)} bookedDates={bookedDates} loading={availLoading} yearsAhead={2} />
             <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 8 }}>Les dates déjà réservées sont grisées : si votre date n'est pas disponible, c'est que nous sommes déjà pris ce jour-là.</p>
           </div>
 
@@ -173,6 +180,30 @@ export default function MariageContactClient() {
 
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
+      )}
+
+      {/* Pop-up date réservée */}
+      {bookedNotice && typeof document !== 'undefined' && createPortal(
+        <div onClick={() => setBookedNotice('')} style={{
+          position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+        }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: '#0d1b2a', border: '1px solid rgba(239,68,68,0.35)', borderRadius: 14,
+            padding: '28px 26px', maxWidth: 400, width: '100%', textAlign: 'center', color: '#fff',
+            fontFamily: 'var(--font-body), sans-serif', boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+          }}>
+            <CalendarX size={32} color="#ef4444" style={{ margin: '0 auto 14px' }} />
+            <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 800, fontSize: 18, marginBottom: 10 }}>Date déjà réservée</div>
+            <p style={{ fontSize: 14.5, lineHeight: 1.7, color: 'rgba(255,255,255,0.7)', margin: '0 0 22px' }}>
+              Nous sommes malheureusement <strong style={{ color: '#fff' }}>déjà réservés le {fmtDateFr(bookedNotice)}</strong>. Choisissez une autre date pour que nous puissions vous accompagner sur votre mariage.
+            </p>
+            <button onClick={() => setBookedNotice('')} className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
+              Choisir une autre date
+            </button>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );

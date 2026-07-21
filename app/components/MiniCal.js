@@ -5,7 +5,7 @@ const TODAY = (() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }
 const MONTHS_FR = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 
 /* Calendrier compact avec dates réservées (rouge) + dates déjà demandées (point orange). */
-export default function MiniCal({ selected, onSelect, devisPending = {}, bookedDates = new Set(), yearsAhead = 1, loading = false }) {
+export default function MiniCal({ selected, onSelect, onBookedClick, devisPending = {}, bookedDates = new Set(), yearsAhead = 1, loading = false }) {
   const startYr = TODAY.getFullYear();
   const YEARS   = Array.from({ length: yearsAhead + 1 }, (_, i) => startYr + i);
   const [year,  setYear]  = useState(startYr);
@@ -64,12 +64,19 @@ export default function MiniCal({ selected, onSelect, devisPending = {}, bookedD
           const pCount = avail && !pt && !booked ? (devisPending[k] ?? 0) : 0;
           const trueBlocked = !avail || pt;
           const blocked = trueBlocked || booked;
+          // Dates réservées : cliquables si onBookedClick fourni (pour afficher un message), sinon désactivées.
+          const bookedClickable = booked && !!onBookedClick;
+          const handleClick = () => {
+            if (trueBlocked) return;
+            if (booked) { onBookedClick?.(k); return; }
+            onSelect(k);
+          };
           return (
-            <button key={i} onClick={() => !blocked && onSelect(k)} disabled={blocked} style={{
+            <button key={i} onClick={handleClick} disabled={trueBlocked || (booked && !onBookedClick)} style={{
               background: sel ? 'var(--lime)' : booked ? 'rgba(239,68,68,0.22)' : avail && !pt ? 'rgba(184,239,11,0.07)' : 'transparent',
               color: sel ? '#0d1b2a' : booked ? 'rgba(255,100,100,0.7)' : blocked ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.82)',
               border: `1px solid ${sel ? 'var(--lime)' : booked ? 'rgba(239,68,68,0.6)' : avail && !pt ? 'rgba(184,239,11,0.25)' : 'transparent'}`,
-              borderRadius: 5, padding: '5px 0', fontSize: 12, cursor: trueBlocked ? 'default' : 'pointer',
+              borderRadius: 5, padding: '5px 0', fontSize: 12, cursor: trueBlocked ? 'default' : (booked && !onBookedClick) ? 'default' : 'pointer',
               fontFamily: 'var(--font-display), sans-serif', fontWeight: sel ? 700 : 400, position: 'relative',
             }}>
               {d}

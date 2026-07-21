@@ -2,10 +2,11 @@
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { LayoutDashboard, FileText, Users, LogOut, CalendarDays, UserSearch } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, LogOut, CalendarDays, UserSearch, Heart } from 'lucide-react';
 
 const NAV = [
   { href: '/admin',              icon: LayoutDashboard, label: "Vue d'ensemble",  exact: true },
+  { href: '/admin/leads-mariage', icon: Heart,          label: 'Leads mariage' },
   { href: '/admin/evenements',   icon: FileText,        label: 'Événements' },
   { href: '/admin/planification', icon: CalendarDays,   label: 'Planification' },
   { href: '/admin/prospects',    icon: UserSearch,      label: 'Prospects' },

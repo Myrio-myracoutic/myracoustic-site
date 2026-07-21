@@ -24,4 +24,7 @@ create table if not exists public.devis_proposals (
 
 alter table public.devis_proposals enable row level security;
 
+-- Droits explicites pour le rôle serveur (sinon 403 via l'API).
+grant all privileges on table public.devis_proposals to service_role;
+
 comment on table public.devis_proposals is 'Propositions de devis (admin). status proposee/validee/refusee. Adresse + qonto remplis à la validation (Phase 3).';

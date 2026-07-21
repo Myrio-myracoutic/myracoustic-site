@@ -17,4 +17,8 @@ create table if not exists public.mariage_leads (
 
 alter table public.mariage_leads enable row level security;
 
+-- Le rôle serveur (service_role) doit avoir les droits explicitement : sans ça,
+-- l'API renvoie 403 (permission denied) même si RLS est contournée.
+grant all privileges on table public.mariage_leads to service_role;
+
 comment on table public.mariage_leads is 'Leads du formulaire de contact mariage. status: nouveau/rappele/devis_fait. client_id rempli en Phase 2.';

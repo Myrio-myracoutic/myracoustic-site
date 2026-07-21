@@ -390,6 +390,12 @@ export default function MonEspacePage() {
         const evs = eventsData || [];
         setEvents(evs);
         if (evs.length > 0) setEventId(evs[0].id);
+        else {
+          // Pas d'événement : client avec une proposition de devis à consulter/valider ?
+          const propRes = await fetch('/api/mon-espace/devis-proposal', { headers: { Authorization: `Bearer ${session.access_token}` } });
+          const propData = await propRes.json().catch(() => ({}));
+          if (propData.proposal) { router.replace('/mon-espace/proposition'); return; }
+        }
       } else {
         // Chercher en tant que collaborateur via API (supabaseAdmin reste côté serveur)
         const collabRes = await fetch('/api/mon-espace/collaborateur-auth', {

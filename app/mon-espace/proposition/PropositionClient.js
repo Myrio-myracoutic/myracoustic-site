@@ -4,8 +4,9 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { supabase } from '@/app/lib/supabase';
-import { CheckCircle2, Loader2, MapPin, Clock } from 'lucide-react';
+import { CheckCircle2, Loader2, MapPin, Clock, Check, Plus } from 'lucide-react';
 import AddressAutocomplete from '@/app/components/AddressAutocomplete';
+import { FORMULES, POLES } from '@/app/lib/formules';
 
 const fmtPrice = (n) => Number(n).toLocaleString('fr-FR') + ' €';
 const fmtDate = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
@@ -99,6 +100,21 @@ export default function PropositionClient() {
 
   // Proposition à valider
   const items = proposal.items || [];
+  const formuleDef = proposal.formule ? FORMULES.find(f => f.key === proposal.formule) : null;
+  const baseItem = items.find(it => it.source === 'formule' || /^Formule /i.test(it.title));
+  const extras = items.filter(it => it !== baseItem);
+  const inclusions = formuleDef
+    ? [
+        ...POLES.map(p => {
+          const raw = formuleDef.specs[p.key];
+          if (!raw || /^en option/i.test(raw)) return null;
+          const val = raw.split('·').map(s => s.trim()).filter(s => s && !/en option/i.test(s)).join(' · ');
+          return val ? `${p.label} — ${val}` : null;
+        }).filter(Boolean),
+        ...(formuleDef.platform ? [`Espace en ligne — ${formuleDef.platform}`] : []),
+      ]
+    : [];
+
   return (
     <Shell>
       <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(24px,4vw,32px)', fontWeight: 800, textAlign: 'center', marginBottom: 8 }}>
@@ -111,13 +127,48 @@ export default function PropositionClient() {
 
       {/* Récapitulatif */}
       <div style={{ background: 'var(--card)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '18px 20px', marginBottom: 22 }}>
-        {items.map((it, i) => (
-          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 14, fontSize: 14, padding: '6px 0', borderBottom: i < items.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
-            <span style={{ color: 'rgba(255,255,255,0.8)' }}>{it.title}</span>
-            <span style={{ color: '#fff', fontWeight: 600, whiteSpace: 'nowrap' }}>{fmtPrice(it.price)}</span>
+        {/* Formule de base + tout ce qu'elle comprend */}
+        {baseItem && (
+          <div style={{ paddingBottom: extras.length || inclusions.length ? 14 : 0, borderBottom: extras.length || inclusions.length ? '1px solid rgba(255,255,255,0.08)' : 'none', marginBottom: extras.length || inclusions.length ? 14 : 0 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, fontSize: 15, marginBottom: inclusions.length ? 12 : 0 }}>
+              <span style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, color: '#fff' }}>{baseItem.title}</span>
+              <span style={{ color: '#fff', fontWeight: 700, whiteSpace: 'nowrap' }}>{fmtPrice(baseItem.price)}</span>
+            </div>
+            {inclusions.length > 0 && (
+              <>
+                <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--lime)', marginBottom: 8 }}>Tout ce qui est compris</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {inclusions.map((line, i) => {
+                    const [head, ...rest] = line.split(' — ');
+                    return (
+                      <div key={i} style={{ display: 'flex', gap: 8, fontSize: 12.5, color: 'rgba(255,255,255,0.65)', lineHeight: 1.5 }}>
+                        <Check size={13} color="var(--lime)" style={{ flexShrink: 0, marginTop: 2 }} />
+                        <span><span style={{ color: '#fff', fontWeight: 600 }}>{head}</span>{rest.length ? ` — ${rest.join(' — ')}` : ''}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </div>
-        ))}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.1)', marginTop: 10, paddingTop: 12 }}>
+        )}
+
+        {/* Ajouts / options / sur-mesure */}
+        {extras.length > 0 && (
+          <>
+            <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 8 }}>Ajouté à votre demande</div>
+            {extras.map((it, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 14, fontSize: 14, padding: '5px 0' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'flex-start', gap: 7, color: 'rgba(255,255,255,0.8)' }}>
+                  <Plus size={13} color="var(--lime)" style={{ flexShrink: 0, marginTop: 3 }} />{it.title}
+                </span>
+                <span style={{ color: '#fff', fontWeight: 600, whiteSpace: 'nowrap' }}>{fmtPrice(it.price)}</span>
+              </div>
+            ))}
+          </>
+        )}
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.1)', marginTop: 12, paddingTop: 12 }}>
           <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total TTC</span>
           <span style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 26, fontWeight: 800, color: 'var(--lime)' }}>{fmtPrice(proposal.total)}</span>
         </div>

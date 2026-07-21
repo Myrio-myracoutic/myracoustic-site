@@ -55,7 +55,7 @@ function DevisBuilder({ lead, onClose, onDone }) {
   const save = async () => {
     if (saving) return;
     const clean = items.filter(it => it.title.trim() && Number(it.price) > 0)
-      .map(it => ({ title: it.title.trim(), price: Number(it.price) }));
+      .map(it => ({ title: it.title.trim(), price: Number(it.price), source: it.source }));
     if (clean.length === 0) { setError('Ajoutez au moins une ligne (titre + prix).'); return; }
     setSaving(true); setError('');
     const res = await fetch('/api/admin/devis-proposal', {

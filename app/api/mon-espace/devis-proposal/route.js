@@ -24,7 +24,7 @@ export async function GET(request) {
 
   const { data: proposal } = await supabaseAdmin
     .from('devis_proposals')
-    .select('id, formule_name, items, total, event_date, venue, guests, status, created_at')
+    .select('id, formule, formule_name, items, total, event_date, venue, guests, status, created_at')
     .eq('client_id', client.id)
     .order('created_at', { ascending: false })
     .limit(1)

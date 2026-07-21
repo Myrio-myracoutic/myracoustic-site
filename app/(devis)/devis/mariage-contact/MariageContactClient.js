@@ -148,11 +148,6 @@ export default function MariageContactClient() {
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Phone size={15} color="var(--lime)" /> Un échange humain, pas un robot</span>
           </div>
 
-          {/* Preuve sociale */}
-          <div style={{ marginBottom: 38 }}>
-            <TestimonialCarousel items={TESTIMONIALS} force />
-          </div>
-
           {/* Formulaire */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
             <div><label style={label}>Prénom</label><input value={firstName} onFocus={touch} onChange={e => setFirstName(e.target.value)} placeholder="Prénom" style={input} /></div>

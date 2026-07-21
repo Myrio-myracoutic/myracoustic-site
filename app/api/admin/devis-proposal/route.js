@@ -11,8 +11,11 @@ function fmtDate(d) {
   catch { return d; }
 }
 
-async function sendProposalLink(toEmail, firstName, token, validUntilDate) {
+async function sendProposalLink(toEmail, firstName, token, validUntilDate, isUpdate = false) {
   const link = `${APP_URL}/proposition/${token}`;
+  const intro = isUpdate
+    ? `Suite à votre demande, votre <strong style="color:#b8ef0b;">proposition de devis a été mise à jour</strong>. Cliquez ci-dessous pour découvrir la nouvelle version et la valider.`
+    : `Suite à notre échange, votre <strong style="color:#b8ef0b;">proposition de devis</strong> est prête. Cliquez ci-dessous pour la découvrir — aucun compte à créer, tout est déjà là.`;
   const html = `
 <!DOCTYPE html><html lang="fr"><body style="margin:0;padding:0;background:#060e16;font-family:sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:40px 20px;">
@@ -22,9 +25,7 @@ async function sendProposalLink(toEmail, firstName, token, validUntilDate) {
   </td></tr>
   <tr><td style="padding:40px 40px 32px;">
     <p style="color:rgba(255,255,255,0.6);font-size:15px;margin:0 0 16px;">Bonjour ${firstName},</p>
-    <p style="color:rgba(255,255,255,0.85);font-size:15px;line-height:1.7;margin:0 0 24px;">
-      Suite à notre échange, votre <strong style="color:#b8ef0b;">proposition de devis</strong> est prête. Cliquez ci-dessous pour la découvrir — aucun compte à créer, tout est déjà là.
-    </p>
+    <p style="color:rgba(255,255,255,0.85);font-size:15px;line-height:1.7;margin:0 0 24px;">${intro}</p>
     <table cellpadding="0" cellspacing="0" style="margin:0 auto 24px;">
       <tr><td style="background:#b8ef0b;border-radius:8px;padding:14px 32px;text-align:center;">
         <a href="${link}" style="color:#060e16;font-size:15px;font-weight:700;text-decoration:none;">Voir ma proposition →</a>
@@ -47,17 +48,42 @@ async function sendProposalLink(toEmail, firstName, token, validUntilDate) {
   });
 }
 
-// POST /api/admin/devis-proposal — créer une proposition (pas de compte, lien par token)
+// POST /api/admin/devis-proposal — créer OU modifier une proposition (lien par token, pas de compte)
 export async function POST(request) {
   if (!(await verifyAdminCookie())) {
     return Response.json({ error: 'Non autorisé' }, { status: 401 });
   }
 
-  const { leadId, formule, formuleName, items, total, adminNote } = await request.json();
-  if (!leadId || !Array.isArray(items) || items.length === 0) {
+  const { proposalId, leadId, formule, formuleName, items, total, adminNote } = await request.json();
+  if (!Array.isArray(items) || items.length === 0) {
     return Response.json({ error: 'Données manquantes' }, { status: 400 });
   }
 
+  // ── Modification d'une proposition existante ──
+  if (proposalId) {
+    const { data: existing } = await supabaseAdmin
+      .from('devis_proposals').select('*, mariage_leads(prenom, email)').eq('id', proposalId).maybeSingle();
+    if (!existing) return Response.json({ error: 'Proposition introuvable' }, { status: 404 });
+
+    const validUntilDate = validUntil(existing.event_date);
+    const { error: uErr } = await supabaseAdmin.from('devis_proposals').update({
+      formule: formule || null, formule_name: formuleName || null,
+      items, total: Number(total) || 0, admin_note: adminNote || null,
+      status: 'proposee', valid_until: validUntilDate,
+      qonto_quote_id: null, qonto_quote_url: null, validated_at: null,
+    }).eq('id', proposalId);
+    if (uErr) return Response.json({ error: 'Modification échouée : ' + uErr.message }, { status: 500 });
+
+    const lead = existing.mariage_leads || {};
+    if (lead.email) {
+      try { await sendProposalLink(lead.email.toLowerCase(), lead.prenom, existing.token, validUntilDate, true); }
+      catch (err) { console.error('Proposal link email error:', err.message); }
+    }
+    return Response.json({ ok: true, token: existing.token, updated: true });
+  }
+
+  // ── Création d'une nouvelle proposition ──
+  if (!leadId) return Response.json({ error: 'Lead manquant' }, { status: 400 });
   const { data: lead, error: leadErr } = await supabaseAdmin
     .from('mariage_leads').select('*').eq('id', leadId).maybeSingle();
   if (leadErr || !lead) return Response.json({ error: 'Lead introuvable' }, { status: 404 });

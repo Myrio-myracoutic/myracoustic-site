@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Minus, Trash2, X, FileText, Check, Loader2 } from 'lucide-react';
+import { Plus, Minus, Trash2, X, FileText, Check, Loader2, Heart } from 'lucide-react';
 import { FORMULES, POLES, EXTRA_HOUR_PRICE, fmtPrice } from '@/app/lib/formules';
 
 const fmtDate = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
@@ -13,11 +13,15 @@ const btnSm = { border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(25
 let uid = 0;
 const nextId = () => `l${++uid}`;
 
-function DevisBuilder({ lead, onClose, onDone }) {
-  const [formuleKey, setFormuleKey] = useState('');
-  const [items, setItems] = useState([]);
-  const [hours, setHours] = useState(0);
-  const [note, setNote] = useState('');
+function DevisBuilder({ lead, proposal, onClose, onDone }) {
+  const editing = !!proposal;
+  const [formuleKey, setFormuleKey] = useState(proposal?.formule || '');
+  const [items, setItems] = useState(() => (proposal?.items || []).map(it => ({ ...it, id: nextId() })));
+  const [hours, setHours] = useState(() => {
+    const h = (proposal?.items || []).find(it => it.source === 'hours');
+    return h ? Math.round(Number(h.price) / EXTRA_HOUR_PRICE) : 0;
+  });
+  const [note, setNote] = useState(proposal?.admin_note || '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -25,6 +29,7 @@ function DevisBuilder({ lead, onClose, onDone }) {
   const total = items.reduce((s, it) => s + (Number(it.price) || 0), 0);
 
   const pickFormule = (key) => {
+    if (key === formuleKey) return; // ne pas réinitialiser si on reclique la formule active
     const f = FORMULES.find(x => x.key === key);
     setFormuleKey(key);
     setHours(0);
@@ -61,7 +66,7 @@ function DevisBuilder({ lead, onClose, onDone }) {
     const res = await fetch('/api/admin/devis-proposal', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        leadId: lead.id, formule: formuleKey || null,
+        proposalId: proposal?.id, leadId: lead.id, formule: formuleKey || null,
         formuleName: formule ? formule.name : 'Sur-mesure',
         items: clean, total, adminNote: note.trim(),
       }),
@@ -75,7 +80,7 @@ function DevisBuilder({ lead, onClose, onDone }) {
     <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '40px 20px', overflowY: 'auto' }}>
       <div onClick={e => e.stopPropagation()} style={{ ...card, maxWidth: 640, width: '100%', color: '#fff' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-          <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 19, fontWeight: 800, margin: 0 }}>Faire un devis</h2>
+          <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 19, fontWeight: 800, margin: 0 }}>{editing ? 'Modifier le devis' : 'Faire un devis'}</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: 4 }}><X size={20} /></button>
         </div>
         <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13.5, margin: '0 0 18px' }}>
@@ -181,10 +186,12 @@ function DevisBuilder({ lead, onClose, onDone }) {
           fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 15, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1,
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
         }}>
-          {saving ? <><Loader2 size={16} style={{ animation: 'spin 0.8s linear infinite' }} /> Création…</> : 'Créer et envoyer la proposition →'}
+          {saving ? <><Loader2 size={16} style={{ animation: 'spin 0.8s linear infinite' }} /> Enregistrement…</> : (editing ? 'Enregistrer et renvoyer au client →' : 'Créer et envoyer la proposition →')}
         </button>
         <p style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.35)', textAlign: 'center', marginTop: 10 }}>
-          Le client reçoit un lien par email pour voir sa proposition — sans créer de compte. Son compte ne sera créé que s'il valide le devis.
+          {editing
+            ? 'Le client recevra le devis mis à jour par email et devra le revalider (l\'ancien brouillon Qonto est remplacé).'
+            : 'Le client reçoit un lien par email pour voir sa proposition — sans créer de compte. Son compte ne sera créé que s\'il valide le devis.'}
         </p>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>
@@ -196,7 +203,8 @@ export default function LeadsMariagePage() {
   const router = useRouter();
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [builderLead, setBuilderLead] = useState(null);
+  const [builder, setBuilder] = useState(null); // { lead, proposal? }
+  const [busy, setBusy] = useState(null);
 
   const load = () => {
     setLoading(true);
@@ -206,6 +214,17 @@ export default function LeadsMariagePage() {
       .finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
+
+  const openEspace = async (proposalId) => {
+    if (!window.confirm('Ouvrir l\'espace mariage pour ce client ? À faire une fois l\'acompte reçu.')) return;
+    setBusy(proposalId);
+    const res = await fetch('/api/admin/open-espace', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ proposalId }),
+    });
+    setBusy(null);
+    if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || 'Erreur'); return; }
+    load();
+  };
 
   return (
     <div style={{ padding: '32px 28px', maxWidth: 1100, margin: '0 auto' }}>
@@ -234,20 +253,36 @@ export default function LeadsMariagePage() {
                 </div>
               </div>
               {!l.proposal && (
-                <button onClick={() => setBuilderLead(l)} style={{
+                <button onClick={() => setBuilder({ lead: l })} style={{
                   border: 'none', background: '#b8ef0b', color: '#060e16', borderRadius: 8, padding: '10px 18px',
                   cursor: 'pointer', fontSize: 13.5, fontFamily: 'var(--font-display), sans-serif', fontWeight: 700,
                   display: 'inline-flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap',
                 }}><FileText size={15} /> Faire un devis</button>
               )}
-              {l.proposal && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--lime)', fontSize: 13, fontWeight: 600 }}><Check size={16} /> Proposition envoyée</span>}
+              {l.proposal && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
+                  <button onClick={() => setBuilder({ lead: l, proposal: l.proposal })} style={{
+                    border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.85)',
+                    borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontSize: 13, fontFamily: 'var(--font-display), sans-serif', fontWeight: 700,
+                    display: 'inline-flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap',
+                  }}>Modifier le devis</button>
+                  {l.proposal.status === 'validee' && !l.proposal.event_id && (
+                    <button onClick={() => openEspace(l.proposal.id)} disabled={busy === l.proposal.id} style={{
+                      border: 'none', background: '#b8ef0b', color: '#060e16', borderRadius: 8, padding: '9px 16px',
+                      cursor: busy === l.proposal.id ? 'wait' : 'pointer', fontSize: 13, fontFamily: 'var(--font-display), sans-serif', fontWeight: 700,
+                      display: 'inline-flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap', opacity: busy === l.proposal.id ? 0.6 : 1,
+                    }}><Heart size={14} /> Ouvrir l'espace mariage</button>
+                  )}
+                  {l.proposal.event_id && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--lime)', fontSize: 13, fontWeight: 600 }}><Check size={16} /> Espace ouvert</span>}
+                </div>
+              )}
             </div>
           ))}
         </div>
       )}
 
-      {builderLead && (
-        <DevisBuilder lead={builderLead} onClose={() => setBuilderLead(null)} onDone={() => { setBuilderLead(null); load(); }} />
+      {builder && (
+        <DevisBuilder lead={builder.lead} proposal={builder.proposal} onClose={() => setBuilder(null)} onDone={() => { setBuilder(null); load(); }} />
       )}
     </div>
   );

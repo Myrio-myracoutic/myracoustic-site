@@ -132,13 +132,13 @@ async function findOrCreateClient({ type, firstName, lastName, societe, email, p
 
 export async function POST(request) {
   try {
-    const { client, event, items, draft, note } = await request.json();
+    const { client, event, items, draft, note, expiryDate: expiryOverride } = await request.json();
 
     const clientId = await findOrCreateClient(client);
 
     const today = new Date();
     const issueDate = today.toISOString().slice(0, 10);
-    const expiryDate = new Date(today.getTime() + 30 * 86400000).toISOString().slice(0, 10);
+    const expiryDate = expiryOverride || new Date(today.getTime() + 30 * 86400000).toISOString().slice(0, 10);
 
     /* Cadeau premium offert aux particuliers (remplace l'ancienne remise −15 %) */
     const giftFooter = client?.type === 'individual'

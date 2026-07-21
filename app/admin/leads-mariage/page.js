@@ -181,10 +181,10 @@ function DevisBuilder({ lead, onClose, onDone }) {
           fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 15, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.6 : 1,
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
         }}>
-          {saving ? <><Loader2 size={16} style={{ animation: 'spin 0.8s linear infinite' }} /> Création…</> : 'Créer la proposition & créer le compte client'}
+          {saving ? <><Loader2 size={16} style={{ animation: 'spin 0.8s linear infinite' }} /> Création…</> : 'Créer et envoyer la proposition →'}
         </button>
         <p style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.35)', textAlign: 'center', marginTop: 10 }}>
-          Le client reçoit ses accès par email et retrouve la proposition dans son espace pour la valider.
+          Le client reçoit un lien par email pour voir sa proposition — sans créer de compte. Son compte ne sera créé que s'il valide le devis.
         </p>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       </div>

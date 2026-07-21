@@ -119,3 +119,22 @@ export const PLATFORM_FEATURES = [
 export const EXTRA_HOUR_PRICE = 70; // heure DJ supplémentaire (TTC) — sauf Prestige (soirée complète)
 
 export const fmtPrice = (n) => n.toLocaleString('fr-FR') + ' €';
+
+/* Détail des inclusions d'une formule, en puces — pour la description d'une ligne de devis Qonto.
+   Filtre les mentions « en option » ; la cérémonie n'affiche que ce qui est réellement inclus. */
+export function formuleInclusionsText(key) {
+  const f = FORMULES.find(x => x.key === key);
+  if (!f) return '';
+  const strip = (s) => s.split('·').map(x => x.trim()).filter(x => x && !/en option/i.test(x)).join(' · ');
+  const lines = POLES
+    .map(p => {
+      const raw = f.specs[p.key];
+      if (!raw || /^en option/i.test(raw)) return null;
+      const val = strip(raw);
+      if (!val) return null;
+      return p.key === 'ceremonie' ? val : `${p.label} : ${val}`;
+    })
+    .filter(Boolean);
+  if (f.platform) lines.push(`Espace en ligne : ${f.platform}`);
+  return lines.map(l => `• ${l}`).join('\n');
+}

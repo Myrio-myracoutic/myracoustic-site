@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
 import { ensureAuthUser, setupTempPassword, sendCredentialsEmail } from '@/app/lib/account-access';
 import { installmentsAllowed } from '@/app/lib/devis-validity';
+import { formuleInclusionsText } from '@/app/lib/formules';
 
 const NOTIF_EMAIL = 'contact@myracoustic.com';
 
@@ -70,7 +71,13 @@ export async function POST(request, { params }) {
 
   // 2. Brouillon Qonto (même date de validité que la proposition)
   const origin = new URL(request.url).origin;
-  const items = (p.items || []).map(it => ({ title: it.title, description: '', priceHT: Number(it.price) / 1.2 }));
+  // La ligne de formule détaille ses inclusions dans la description (visible sur le devis Qonto)
+  const formuleDesc = p.formule ? formuleInclusionsText(p.formule) : '';
+  const items = (p.items || []).map(it => ({
+    title: it.title,
+    description: (it.source === 'formule' || /^Formule /i.test(it.title)) ? formuleDesc : '',
+    priceHT: Number(it.price) / 1.2,
+  }));
   let quoteId = null, quoteUrl = null;
   try {
     const qRes = await fetch(`${origin}/api/qonto/devis`, {

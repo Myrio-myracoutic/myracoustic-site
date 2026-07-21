@@ -109,15 +109,28 @@ export default function MariageContactClient() {
       </div>
 
       {done ? (
-        <div style={{ maxWidth: 480, margin: '0 auto', padding: '80px 24px', textAlign: 'center' }}>
-          <CheckCircle2 size={54} color="var(--lime)" style={{ margin: '0 auto 20px' }} />
-          <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 27, fontWeight: 800, marginBottom: 14 }}>
-            Merci {firstName} !
-          </h1>
-          <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 15.5, lineHeight: 1.75, marginBottom: 28 }}>
-            Votre demande est bien enregistrée. <strong style={{ color: '#fff' }}>Un conseiller vous rappelle sous 24h</strong> (jours ouvrés) pour échanger sur votre mariage et construire ensemble la formule qui vous ressemble.
-          </p>
-          <Link href="/mariage" className="btn-secondary">Retour à l'accueil mariage</Link>
+        <div style={{ maxWidth: 620, margin: '0 auto', padding: '64px 20px 70px' }}>
+          <div style={{ maxWidth: 480, margin: '0 auto', textAlign: 'center' }}>
+            <CheckCircle2 size={54} color="var(--lime)" style={{ margin: '0 auto 20px' }} />
+            <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 27, fontWeight: 800, marginBottom: 14 }}>
+              Merci {firstName} !
+            </h1>
+            <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 15.5, lineHeight: 1.75, marginBottom: 28 }}>
+              Votre demande est bien enregistrée. <strong style={{ color: '#fff' }}>Un conseiller vous rappelle sous 24h</strong> (jours ouvrés) pour échanger sur votre mariage et construire ensemble la formule qui vous ressemble.
+            </p>
+            <Link href="/mariage" className="btn-secondary">Retour à l'accueil mariage</Link>
+          </div>
+
+          {/* Preuve sociale pendant l'attente du rappel */}
+          <div style={{ marginTop: 52 }}>
+            <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(20px,3vw,26px)', fontWeight: 800, textAlign: 'center', marginBottom: 6 }}>
+              Ils en parlent mieux que nous
+            </h2>
+            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, textAlign: 'center', marginBottom: 24 }}>
+              En attendant notre appel, découvrez ce que nos mariés ont vécu.
+            </p>
+            <TestimonialCarousel items={TESTIMONIALS} force />
+          </div>
         </div>
       ) : (
         <div style={{ maxWidth: 620, margin: '0 auto', padding: '40px 20px 70px' }}>

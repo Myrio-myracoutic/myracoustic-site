@@ -67,7 +67,7 @@ export async function POST(request) {
     <p>Bonjour ${prenom},</p>
     <p>Merci pour votre demande ! Nous avons bien reçu les informations pour votre mariage${date ? ` du <strong>${fmtDate(date)}</strong>` : ''}.</p>
     <p>Un conseiller Myracoustic vous <strong>rappelle sous 24h (jours ouvrés)</strong> pour échanger sur votre projet et construire ensemble la formule qui vous ressemble.</p>
-    <p>À très vite,<br>Myrio &amp; l'équipe Myracoustic</p>
+    <p>À très vite,<br>L'équipe Myracoustic</p>
   `;
 
   try {

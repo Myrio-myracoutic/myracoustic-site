@@ -199,7 +199,7 @@ export default function PropositionTokenClient({ token }) {
               </div>
             );
           })}
-          {acompte2x && <p style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.45)', margin: '8px 2px 0' }}>Votre demande de paiement en 2 fois sera transmise à Myrio, qui la mettra en place avec vous.</p>}
+          {acompte2x && <p style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.45)', margin: '8px 2px 0' }}>Votre demande de paiement en 2 fois sera transmise à Myracoustic, qui la mettra en place avec vous.</p>}
         </div>
       )}
 

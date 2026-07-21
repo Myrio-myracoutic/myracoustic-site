@@ -51,7 +51,7 @@ function ServiceDetailCard({ icon: Icon, tag, title, desc, items }) {
         </div>
       </div>
       <div style={{ padding: '16px 28px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-        <a href="/devis/mariage" style={{
+        <a href="/devis/mariage-contact" style={{
           background: 'var(--lime)', color: '#0d1b2a',
           padding: '8px 16px', borderRadius: 5, fontSize: 13, fontWeight: 700,
           fontFamily: 'var(--font-display), sans-serif',
@@ -60,7 +60,7 @@ function ServiceDetailCard({ icon: Icon, tag, title, desc, items }) {
           onMouseEnter={(e) => { e.currentTarget.style.background = '#ceff2a'; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; }}
         >
-          Devis →
+          Demander mon devis →
         </a>
       </div>
     </div>
@@ -164,7 +164,7 @@ export default function MariageCityClient({ city }) {
           }}>
             {intro}
           </p>
-          <a href="/devis/mariage" style={{
+          <a href="/devis/mariage-contact" style={{
             background: 'var(--lime)', color: '#0d1b2a',
             padding: '15px 32px', borderRadius: 8, fontSize: 16, fontWeight: 700,
             fontFamily: 'var(--font-display), sans-serif',
@@ -173,7 +173,7 @@ export default function MariageCityClient({ city }) {
             onMouseEnter={(e) => { e.currentTarget.style.background = '#ceff2a'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(0)'; }}
           >
-            Calculer mon devis mariage →
+            Demander mon devis gratuit →
           </a>
         </div>
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 80, zIndex: 2 }}>
@@ -256,7 +256,7 @@ export default function MariageCityClient({ city }) {
         <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 16, marginBottom: 32 }}>
           Calculez votre devis mariage en ligne en moins de 3 minutes.
         </p>
-        <a href="/devis/mariage" style={{
+        <a href="/devis/mariage-contact" style={{
           background: 'var(--lime)', color: '#0d1b2a',
           padding: '16px 40px', borderRadius: 8, fontSize: 17, fontWeight: 700,
           fontFamily: 'var(--font-display), sans-serif',
@@ -265,7 +265,7 @@ export default function MariageCityClient({ city }) {
           onMouseEnter={(e) => { e.currentTarget.style.background = '#ceff2a'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(0)'; }}
         >
-          Calculer mon devis mariage →
+          Demander mon devis gratuit →
         </a>
         </Reveal>
       </section>

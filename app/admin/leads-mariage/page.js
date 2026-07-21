@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Minus, Trash2, X, FileText, Check, Loader2 } from 'lucide-react';
-import { FORMULES, EXTRA_HOUR_PRICE, fmtPrice } from '@/app/lib/formules';
+import { FORMULES, POLES, EXTRA_HOUR_PRICE, fmtPrice } from '@/app/lib/formules';
 
 const fmtDate = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
 
@@ -97,6 +97,31 @@ function DevisBuilder({ lead, onClose, onDone }) {
 
         {formule && (
           <>
+            {/* Ce qui est compris dans la formule */}
+            <div style={{ background: 'rgba(184,239,11,0.05)', border: '1px solid rgba(184,239,11,0.18)', borderRadius: 10, padding: '12px 14px', marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--lime)', marginBottom: 8 }}>Compris dans la formule {formule.name}</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                {POLES.map(p => {
+                  const raw = formule.specs[p.key];
+                  if (!raw || /^en option/i.test(raw)) return null;
+                  const val = raw.split('·').map(s => s.trim()).filter(s => s && !/en option/i.test(s)).join(' · ');
+                  if (!val) return null;
+                  return (
+                    <div key={p.key} style={{ display: 'flex', gap: 7, fontSize: 12.5, color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>
+                      <Check size={13} color="var(--lime)" style={{ flexShrink: 0, marginTop: 2 }} />
+                      <span><span style={{ color: '#fff', fontWeight: 600 }}>{p.label}</span> — {val}</span>
+                    </div>
+                  );
+                })}
+                {formule.platform && (
+                  <div style={{ display: 'flex', gap: 7, fontSize: 12.5, color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>
+                    <Check size={13} color="var(--lime)" style={{ flexShrink: 0, marginTop: 2 }} />
+                    <span><span style={{ color: '#fff', fontWeight: 600 }}>Espace en ligne</span> — {formule.platform}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Options */}
             <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 8 }}>Options</label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))', gap: 7, marginBottom: 14 }}>

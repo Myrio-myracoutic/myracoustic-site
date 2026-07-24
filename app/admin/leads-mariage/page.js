@@ -5,6 +5,7 @@ import { Plus, Minus, Trash2, X, FileText, Check, Loader2, Heart } from 'lucide-
 import { FORMULES, POLES, EXTRA_HOUR_PRICE, fmtPrice } from '@/app/lib/formules';
 import { getTransportFee, getRoadKm, TECH_PRICE } from '@/app/lib/transport';
 import { geocodeAddress } from '@/app/lib/geocode';
+import AddressAutocomplete from '@/app/components/AddressAutocomplete';
 
 const fmtDate = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
 
@@ -82,12 +83,12 @@ function DevisBuilder({ lead, proposal, onClose, onDone }) {
   };
 
   // Déplacement : géocode le lieu du lead → distance routière A/R → forfait du barème grille
-  const addTransport = async (silent = false) => {
+  const addTransport = async (silent = false, coordsArg = null) => {
     if (kmCalc) return;
     setKmCalc(true); if (!silent) setError('');
     try {
-      const sugg = await geocodeAddress(venue || '');
-      const coords = sugg[0]?.coords;
+      let coords = coordsArg;
+      if (!coords) { const sugg = await geocodeAddress(venue || ''); coords = sugg[0]?.coords; }
       const km = coords ? await getRoadKm(coords) : null;
       const fee = getTransportFee(km);
       if (!fee) {
@@ -154,8 +155,11 @@ function DevisBuilder({ lead, proposal, onClose, onDone }) {
           </div>
           <div>
             <label style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 4 }}>Lieu (adresse ou commune)</label>
-            <input value={venue} onChange={e => setVenue(e.target.value)} placeholder="Adresse ou commune de l'événement" style={{ ...inp, width: '100%' }} />
-            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', margin: '5px 0 0' }}>Sert au calcul du déplacement — après correction, cliquez « Calculer le déplacement ».</p>
+            <AddressAutocomplete value={venue}
+              onChange={(v) => setVenue(v)}
+              onSelect={(s) => { setVenue(s.label); if (s.coords) addTransport(false, s.coords); }}
+              placeholder="Adresse ou commune de l'événement" inputStyle={{ ...inp, width: '100%' }} />
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', margin: '5px 0 0' }}>Sélectionnez une adresse proposée : le déplacement se calcule automatiquement.</p>
           </div>
         </div>
 
@@ -293,12 +297,79 @@ function DevisBuilder({ lead, proposal, onClose, onDone }) {
   );
 }
 
+// Création manuelle d'un contact (aucun email envoyé — contact déjà connu de Myrio)
+function NewContactForm({ onClose, onDone }) {
+  const [f, setF] = useState({ prenom: '', nom: '', tel: '', email: '', date: '', guests: '', lieu: '' });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const set = (k) => (e) => setF(s => ({ ...s, [k]: e.target.value }));
+  const valid = f.prenom.trim() && f.nom.trim() && f.tel.trim() && /\S+@\S+\.\S+/.test(f.email);
+
+  const fLabel = { fontSize: 10.5, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 4 };
+
+  const save = async () => {
+    if (saving || !valid) return;
+    setSaving(true); setError('');
+    const res = await fetch('/api/admin/mariage-leads', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...f, date: f.date || null }),
+    });
+    setSaving(false);
+    if (!res.ok) { const d = await res.json().catch(() => ({})); setError(d.error || 'Erreur'); return; }
+    onDone();
+  };
+
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '40px 20px', overflowY: 'auto' }}>
+      <div onClick={e => e.stopPropagation()} style={{ ...card, maxWidth: 520, width: '100%', color: '#fff' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+          <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 19, fontWeight: 800, margin: 0 }}>Nouveau contact</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: 4 }}><X size={20} /></button>
+        </div>
+        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, margin: '0 0 18px' }}>Contact direct (hors formulaire). Aucun email n'est envoyé — il apparaît dans la liste, prêt pour un devis.</p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+          <div><label style={fLabel}>Prénom *</label><input value={f.prenom} onChange={set('prenom')} style={{ ...inp, width: '100%' }} /></div>
+          <div><label style={fLabel}>Nom *</label><input value={f.nom} onChange={set('nom')} style={{ ...inp, width: '100%' }} /></div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+          <div><label style={fLabel}>Téléphone *</label><input type="tel" value={f.tel} onChange={set('tel')} placeholder="06 12 34 56 78" style={{ ...inp, width: '100%' }} /></div>
+          <div><label style={fLabel}>Email *</label><input type="email" value={f.email} onChange={set('email')} placeholder="vous@email.com" style={{ ...inp, width: '100%' }} /></div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+          <div><label style={fLabel}>Date (optionnel)</label><input type="date" value={f.date} onChange={set('date')} style={{ ...inp, width: '100%' }} /></div>
+          <div><label style={fLabel}>Invités (optionnel)</label><input type="number" min={1} value={f.guests} onChange={set('guests')} placeholder="ex. 120" style={{ ...inp, width: '100%' }} /></div>
+        </div>
+        <div style={{ marginBottom: 18 }}><label style={fLabel}>Lieu (optionnel)</label>
+          <AddressAutocomplete value={f.lieu}
+            onChange={(v) => setF(s => ({ ...s, lieu: v }))}
+            onSelect={(s) => setF(sf => ({ ...sf, lieu: s.label }))}
+            placeholder="Adresse ou commune" inputStyle={{ ...inp, width: '100%' }} />
+        </div>
+
+        {error && <p style={{ color: '#ef4444', fontSize: 13, marginBottom: 12 }}>{error}</p>}
+
+        <button onClick={save} disabled={saving || !valid} style={{
+          width: '100%', background: '#b8ef0b', color: '#060e16', border: 'none', borderRadius: 8, padding: '13px 0',
+          fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 15,
+          cursor: saving || !valid ? 'not-allowed' : 'pointer', opacity: saving || !valid ? 0.6 : 1,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        }}>
+          {saving ? <><Loader2 size={16} style={{ animation: 'spin 0.8s linear infinite' }} /> Création…</> : 'Créer le contact'}
+        </button>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    </div>
+  );
+}
+
 export default function LeadsMariagePage() {
   const router = useRouter();
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [builder, setBuilder] = useState(null); // { lead, proposal? }
   const [busy, setBusy] = useState(null);
+  const [newContact, setNewContact] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -322,8 +393,15 @@ export default function LeadsMariagePage() {
 
   return (
     <div style={{ padding: '32px 28px', maxWidth: 1100, margin: '0 auto' }}>
-      <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 26, fontWeight: 800, color: '#fff', margin: '0 0 4px' }}>Leads mariage</h1>
-      <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, margin: '0 0 24px' }}>Demandes du formulaire de contact. Rappelez, puis créez la proposition de devis.</p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap', margin: '0 0 4px' }}>
+        <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 26, fontWeight: 800, color: '#fff', margin: 0 }}>Leads mariage</h1>
+        <button onClick={() => setNewContact(true)} style={{
+          border: 'none', background: '#b8ef0b', color: '#060e16', borderRadius: 8, padding: '9px 16px',
+          cursor: 'pointer', fontSize: 13.5, fontFamily: 'var(--font-display), sans-serif', fontWeight: 700,
+          display: 'inline-flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap',
+        }}><Plus size={15} /> Nouveau contact</button>
+      </div>
+      <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, margin: '0 0 24px' }}>Demandes du formulaire de contact, ou contacts ajoutés à la main. Rappelez, puis créez la proposition de devis.</p>
 
       {loading ? (
         <p style={{ color: 'rgba(255,255,255,0.5)' }}>Chargement…</p>
@@ -377,6 +455,10 @@ export default function LeadsMariagePage() {
 
       {builder && (
         <DevisBuilder lead={builder.lead} proposal={builder.proposal} onClose={() => setBuilder(null)} onDone={() => { setBuilder(null); load(); }} />
+      )}
+
+      {newContact && (
+        <NewContactForm onClose={() => setNewContact(false)} onDone={() => { setNewContact(false); load(); }} />
       )}
     </div>
   );

@@ -35,6 +35,30 @@ export async function GET() {
   return Response.json({ leads: enriched });
 }
 
+// POST /api/admin/mariage-leads — créer un contact à la main (démarchage direct, bouche-à-oreille…)
+// Contact déjà en relation avec Myrio → AUCUN email envoyé (contrairement au formulaire public).
+export async function POST(request) {
+  if (!(await verifyAdminCookie())) {
+    return Response.json({ error: 'Non autorisé' }, { status: 401 });
+  }
+  const { prenom, nom, tel, email, date, guests, lieu, message } = await request.json();
+  if (!prenom?.trim() || !nom?.trim() || !tel?.trim() || !email?.trim()) {
+    return Response.json({ error: 'Prénom, nom, téléphone et email sont requis.' }, { status: 400 });
+  }
+  const { error } = await supabaseAdmin.from('mariage_leads').insert({
+    prenom: prenom.trim(),
+    nom: nom.trim(),
+    tel: tel.trim(),
+    email: email.trim().toLowerCase(),
+    event_date: date || null,
+    guests: guests ? parseInt(guests, 10) || null : null,
+    lieu: lieu?.trim() || null,
+    message: message?.trim() || null,
+  });
+  if (error) return Response.json({ error: error.message }, { status: 500 });
+  return Response.json({ ok: true });
+}
+
 // DELETE /api/admin/mariage-leads — supprimer un lead
 export async function DELETE(request) {
   if (!(await verifyAdminCookie())) {

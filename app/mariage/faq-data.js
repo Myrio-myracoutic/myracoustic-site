@@ -21,4 +21,10 @@ export const FAQ_ITEMS = [
     a: "Nous anticipons les imprévus en testant tout le matériel avant l'arrivée de vos invités et en ayant du matériel de secours. Notre expérience nous permet de gérer les aléas rapidement et discrètement, sans jamais perturber le déroulement de votre soirée." },
   { q: 'Quelle différence entre Myracoustic et un DJ mariage classique ?',
     a: "Un DJ classique gère en général uniquement l'animation musicale de la soirée. Myracoustic est un prestataire complet — sonorisation de cérémonie, éclairage de salle, vidéo et DJ — géré par une seule équipe, avec un espace personnel en ligne pour organiser playlists, invités, menu et programme jusqu'au jour J." },
+  { q: 'Comment sont établis vos tarifs de prestation mariage ?',
+    a: "Chaque mariage est unique : nous construisons une proposition sur mesure selon votre lieu, la durée de la soirée, le nombre d'invités et les prestations souhaitées — DJ, sonorisation de cérémonie, éclairage, vidéo. Après un premier échange sur votre projet, vous recevez un devis clair et détaillé, gratuit et sans engagement." },
+  { q: "Qu'est-ce qui est compris dans une prestation de mariage ?",
+    a: "Une équipe unique pour le son, la lumière, la vidéo et le DJ : matériel professionnel, éclairage de piste, micros sans fil, installation et démontage, technicien présent sur place, et un espace personnel en ligne pour préparer vos playlists, votre programme, vos invités et votre menu jusqu'au jour J." },
+  { q: "Proposez-vous l'éclairage et des effets spéciaux (machine à fumée, étincelles froides) ?",
+    a: "Oui. L'éclairage d'ambiance de la piste est inclus. En option, nous sublimons votre soirée avec la mise en lumière de la salle, une machine à fumée, des machines à étincelles froides pour l'ouverture de bal, ou un mur LED et un vidéoprojecteur pour vos photos et diaporamas." },
 ];

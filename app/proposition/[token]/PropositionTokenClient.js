@@ -171,18 +171,19 @@ export default function PropositionTokenClient({ token }) {
 
       {/* Acompte 60 / solde 40 en grand */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 8 }}>
-        {payCard('Pour réserver votre date', p.acompte, 'Acompte · 60 %', 'var(--lime)')}
+        {payCard('À la signature du devis', p.acompte, 'Acompte · 60 %', 'var(--lime)')}
         {payCard('Solde le jour J', p.solde, '40 %', 'rgba(52,55,144,0.9)')}
       </div>
       <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginBottom: p.installments_allowed ? 14 : 26 }}>
-        L'acompte de <strong style={{ color: 'rgba(255,255,255,0.7)' }}>{fmtPrice(p.acompte)}</strong> réserve définitivement votre date.
+        L'acompte de <strong style={{ color: 'rgba(255,255,255,0.7)' }}>{fmtPrice(p.acompte)}</strong> se règle à la signature de votre devis, et réserve alors votre date.
       </p>
 
       {/* Options de paiement de l'acompte (si événement à plus de 3 mois) */}
       {p.installments_allowed && (
         <div style={{ background: 'rgba(52,55,144,0.1)', border: '1px solid rgba(52,55,144,0.3)', borderRadius: 12, padding: '16px 18px', marginBottom: 26 }}>
           <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 13.5, marginBottom: 12 }}>Comment souhaitez-vous régler l'acompte ?</div>
-          {[[false, 'En 1 fois', `${fmtPrice(p.acompte)} à la signature`], [true, 'En 2 fois', `2 × ${fmtPrice(Math.round(p.acompte / 2))} sur 2 mois`]].map(([val, title, sub]) => {
+          <p style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.5)', margin: '2px 0 12px' }}>Aucun paiement maintenant — indiquez simplement votre préférence, réglable à la signature de votre devis.</p>
+          {[[false, 'En 1 fois',`${fmtPrice(p.acompte)} à la signature`], [true, 'En 2 fois', `2 × ${fmtPrice(Math.round(p.acompte / 2))} sur 2 mois`]].map(([val, title, sub]) => {
             const active = acompte2x === val;
             return (
               <div key={String(val)} onClick={() => setAcompte2x(val)} style={{
@@ -221,8 +222,23 @@ export default function PropositionTokenClient({ token }) {
 
       {error && <p style={{ color: '#ef4444', fontSize: 14, marginBottom: 14 }}>{error}</p>}
 
+      {/* Ce qui se passe ensuite — poser les attentes avant le clic (pas de paiement à cette étape) */}
+      <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, padding: '14px 16px', marginBottom: 16 }}>
+        <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 13, marginBottom: 10 }}>Et ensuite ?</div>
+        {[
+          'Vous validez votre proposition',
+          'Nous vous envoyons votre devis officiel à signer',
+          'Vous réglez l’acompte — votre date est alors réservée',
+        ].map((t, i) => (
+          <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: i < 2 ? 8 : 0 }}>
+            <span style={{ flexShrink: 0, width: 20, height: 20, borderRadius: '50%', background: 'rgba(184,239,11,0.15)', color: 'var(--lime)', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display), sans-serif' }}>{i + 1}</span>
+            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>{t}</span>
+          </div>
+        ))}
+      </div>
+
       <button onClick={validate} disabled={sending || !valid} className="btn-primary" style={{ width: '100%', justifyContent: 'center', opacity: sending || !valid ? 0.5 : 1, cursor: sending || !valid ? 'not-allowed' : 'pointer' }}>
-        {sending ? <><Loader2 size={16} style={{ animation: 'spin 0.8s linear infinite' }} /> Validation…</> : 'Valider et réserver ma date →'}
+        {sending ? <><Loader2 size={16} style={{ animation: 'spin 0.8s linear infinite' }} /> Validation…</> : 'Valider ma proposition →'}
       </button>
       {!valid && <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', textAlign: 'center', marginTop: 10 }}>Renseignez votre adresse de facturation pour valider.</p>}
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>

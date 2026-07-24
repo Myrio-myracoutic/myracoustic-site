@@ -391,6 +391,20 @@ export default function LeadsMariagePage() {
     load();
   };
 
+  const deleteLead = async (l) => {
+    const warn = l.proposal
+      ? `Supprimer le contact ${l.prenom} ${l.nom} ?\n\nUn devis est lié à ce contact : il ne sera pas supprimé, mais disparaîtra de cette liste.`
+      : `Supprimer le contact ${l.prenom} ${l.nom} ?\n\nCette action est définitive.`;
+    if (!window.confirm(warn)) return;
+    setBusy('del-' + l.id);
+    const res = await fetch('/api/admin/mariage-leads', {
+      method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: l.id }),
+    });
+    setBusy(null);
+    if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || 'Erreur'); return; }
+    load();
+  };
+
   return (
     <div style={{ padding: '32px 28px', maxWidth: 1100, margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap', margin: '0 0 4px' }}>
@@ -424,30 +438,37 @@ export default function LeadsMariagePage() {
                   {l.message && <><br /><span style={{ color: 'rgba(255,255,255,0.45)', fontStyle: 'italic' }}>« {l.message} »</span></>}
                 </div>
               </div>
-              {!l.proposal && (
-                <button onClick={() => setBuilder({ lead: l })} style={{
-                  border: 'none', background: '#b8ef0b', color: '#060e16', borderRadius: 8, padding: '10px 18px',
-                  cursor: 'pointer', fontSize: 13.5, fontFamily: 'var(--font-display), sans-serif', fontWeight: 700,
-                  display: 'inline-flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap',
-                }}><FileText size={15} /> Faire un devis</button>
-              )}
-              {l.proposal && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
-                  <button onClick={() => setBuilder({ lead: l, proposal: l.proposal })} style={{
-                    border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.85)',
-                    borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontSize: 13, fontFamily: 'var(--font-display), sans-serif', fontWeight: 700,
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
+                {!l.proposal && (
+                  <button onClick={() => setBuilder({ lead: l })} style={{
+                    border: 'none', background: '#b8ef0b', color: '#060e16', borderRadius: 8, padding: '10px 18px',
+                    cursor: 'pointer', fontSize: 13.5, fontFamily: 'var(--font-display), sans-serif', fontWeight: 700,
                     display: 'inline-flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap',
-                  }}>Modifier le devis</button>
-                  {l.proposal.status === 'validee' && !l.proposal.event_id && (
-                    <button onClick={() => openEspace(l.proposal.id)} disabled={busy === l.proposal.id} style={{
-                      border: 'none', background: '#b8ef0b', color: '#060e16', borderRadius: 8, padding: '9px 16px',
-                      cursor: busy === l.proposal.id ? 'wait' : 'pointer', fontSize: 13, fontFamily: 'var(--font-display), sans-serif', fontWeight: 700,
-                      display: 'inline-flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap', opacity: busy === l.proposal.id ? 0.6 : 1,
-                    }}><Heart size={14} /> Ouvrir l'espace mariage</button>
-                  )}
-                  {l.proposal.event_id && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--lime)', fontSize: 13, fontWeight: 600 }}><Check size={16} /> Espace ouvert</span>}
-                </div>
-              )}
+                  }}><FileText size={15} /> Faire un devis</button>
+                )}
+                {l.proposal && (
+                  <>
+                    <button onClick={() => setBuilder({ lead: l, proposal: l.proposal })} style={{
+                      border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.85)',
+                      borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontSize: 13, fontFamily: 'var(--font-display), sans-serif', fontWeight: 700,
+                      display: 'inline-flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap',
+                    }}>Modifier le devis</button>
+                    {l.proposal.status === 'validee' && !l.proposal.event_id && (
+                      <button onClick={() => openEspace(l.proposal.id)} disabled={busy === l.proposal.id} style={{
+                        border: 'none', background: '#b8ef0b', color: '#060e16', borderRadius: 8, padding: '9px 16px',
+                        cursor: busy === l.proposal.id ? 'wait' : 'pointer', fontSize: 13, fontFamily: 'var(--font-display), sans-serif', fontWeight: 700,
+                        display: 'inline-flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap', opacity: busy === l.proposal.id ? 0.6 : 1,
+                      }}><Heart size={14} /> Ouvrir l'espace mariage</button>
+                    )}
+                    {l.proposal.event_id && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--lime)', fontSize: 13, fontWeight: 600 }}><Check size={16} /> Espace ouvert</span>}
+                  </>
+                )}
+                <button onClick={() => deleteLead(l)} disabled={busy === 'del-' + l.id} title="Supprimer ce contact" style={{
+                  background: 'none', border: 'none', color: 'rgba(255,120,120,0.55)',
+                  cursor: busy === 'del-' + l.id ? 'wait' : 'pointer', fontSize: 12,
+                  fontFamily: 'var(--font-display), sans-serif', display: 'inline-flex', alignItems: 'center', gap: 5, padding: '2px',
+                }}><Trash2 size={13} /> Supprimer</button>
+              </div>
             </div>
           ))}
         </div>

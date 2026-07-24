@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Minus, Trash2, X, FileText, Check, Loader2, Heart } from 'lucide-react';
 import { FORMULES, POLES, EXTRA_HOUR_PRICE, fmtPrice } from '@/app/lib/formules';
+import { getTransportFee, getRoadKm, TECH_PRICE } from '@/app/lib/transport';
+import { geocodeAddress } from '@/app/lib/geocode';
 
 const fmtDate = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—';
 
@@ -24,6 +26,11 @@ function DevisBuilder({ lead, proposal, onClose, onDone }) {
   const [note, setNote] = useState(proposal?.admin_note || '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [kmCalc, setKmCalc] = useState(false);
+  // Infos événement — modifiables (corrigent le devis, le calcul transport et la date de validité)
+  const [eventDate, setEventDate] = useState(lead.event_date || '');
+  const [venue, setVenue] = useState(lead.lieu || '');
+  const [guests, setGuests] = useState(lead.guests ?? '');
 
   const formule = FORMULES.find(f => f.key === formuleKey);
   const total = items.reduce((s, it) => s + (Number(it.price) || 0), 0);
@@ -33,7 +40,16 @@ function DevisBuilder({ lead, proposal, onClose, onDone }) {
     const f = FORMULES.find(x => x.key === key);
     setFormuleKey(key);
     setHours(0);
-    setItems(f ? [{ id: nextId(), title: `Formule ${f.name} — Mariage`, price: f.price, source: 'formule' }] : []);
+    setItems(prev => {
+      // on conserve les lignes indépendantes de la formule : sur-mesure, déplacement, technicien
+      const kept = prev.filter(it => ['custom', 'transport', 'tech'].includes(it.source));
+      const base = f ? [{ id: nextId(), title: `Formule ${f.name} — Mariage`, price: f.price, source: 'formule' }] : [];
+      // technicien conseillé au-delà de 100 invités — ajouté d'office, retirable
+      if (f && Number(guests) > 100 && !kept.some(it => it.source === 'tech')) {
+        base.push({ id: nextId(), title: 'Technicien supplémentaire', price: TECH_PRICE, source: 'tech' });
+      }
+      return [...base, ...kept];
+    });
   };
 
   const hasOption = (k) => items.some(it => it.source === `option:${k}`);
@@ -57,6 +73,42 @@ function DevisBuilder({ lead, proposal, onClose, onDone }) {
   const updateItem = (id, field, value) => setItems(prev => prev.map(it => it.id === id ? { ...it, [field]: value } : it));
   const removeItem = (id) => setItems(prev => prev.filter(it => it.id !== id));
 
+  const hasSource = (src) => items.some(it => it.source === src);
+
+  const toggleTech = () => {
+    setItems(prev => prev.some(it => it.source === 'tech')
+      ? prev.filter(it => it.source !== 'tech')
+      : [...prev, { id: nextId(), title: 'Technicien supplémentaire', price: TECH_PRICE, source: 'tech' }]);
+  };
+
+  // Déplacement : géocode le lieu du lead → distance routière A/R → forfait du barème grille
+  const addTransport = async (silent = false) => {
+    if (kmCalc) return;
+    setKmCalc(true); if (!silent) setError('');
+    try {
+      const sugg = await geocodeAddress(venue || '');
+      const coords = sugg[0]?.coords;
+      const km = coords ? await getRoadKm(coords) : null;
+      const fee = getTransportFee(km);
+      if (!fee) {
+        if (!silent) setError(km ? `Lieu à ${km} km A/R — au-delà de 600 km, à chiffrer à la main.` : 'Lieu introuvable — ajoutez le déplacement en ligne sur-mesure.');
+        setKmCalc(false); return;
+      }
+      setItems(prev => [...prev.filter(it => it.source !== 'transport'),
+        { id: nextId(), title: `Frais de déplacement (${km} km A/R)`, price: fee, source: 'transport' }]);
+    } catch {
+      if (!silent) setError('Erreur de calcul du déplacement.');
+    }
+    setKmCalc(false);
+  };
+
+  // Nouveau devis : pré-calcule le déplacement à l'ouverture (silencieux, retirable ensuite)
+  useEffect(() => {
+    if (editing || !venue) return;
+    addTransport(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const save = async () => {
     if (saving) return;
     const clean = items.filter(it => it.title.trim() && Number(it.price) > 0)
@@ -69,6 +121,7 @@ function DevisBuilder({ lead, proposal, onClose, onDone }) {
         proposalId: proposal?.id, leadId: lead.id, formule: formuleKey || null,
         formuleName: formule ? formule.name : 'Sur-mesure',
         items: clean, total, adminNote: note.trim(),
+        eventDate: eventDate || null, venue: venue.trim() || null, guests: guests || null,
       }),
     });
     setSaving(false);
@@ -83,9 +136,28 @@ function DevisBuilder({ lead, proposal, onClose, onDone }) {
           <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 19, fontWeight: 800, margin: 0 }}>{editing ? 'Modifier le devis' : 'Faire un devis'}</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: 4 }}><X size={20} /></button>
         </div>
-        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13.5, margin: '0 0 18px' }}>
-          {lead.prenom} {lead.nom} · {fmtDate(lead.event_date)} · {lead.guests || '?'} pers. · {lead.lieu || 'lieu ?'}
+        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13.5, margin: '0 0 12px' }}>
+          {lead.prenom} {lead.nom} · 📞 {lead.tel}
         </p>
+
+        {/* Infos événement modifiables — corrigez ici si le client a précisé au téléphone */}
+        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '12px 14px', marginBottom: 18 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+            <div>
+              <label style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 4 }}>Date</label>
+              <input type="date" value={eventDate || ''} onChange={e => setEventDate(e.target.value)} style={{ ...inp, width: '100%' }} />
+            </div>
+            <div>
+              <label style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 4 }}>Nombre d'invités</label>
+              <input type="number" min={1} value={guests} onChange={e => setGuests(e.target.value)} placeholder="ex. 120" style={{ ...inp, width: '100%' }} />
+            </div>
+          </div>
+          <div>
+            <label style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 4 }}>Lieu (adresse ou commune)</label>
+            <input value={venue} onChange={e => setVenue(e.target.value)} placeholder="Adresse ou commune de l'événement" style={{ ...inp, width: '100%' }} />
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', margin: '5px 0 0' }}>Sert au calcul du déplacement — après correction, cliquez « Calculer le déplacement ».</p>
+          </div>
+        </div>
 
         {/* Formule */}
         <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 8 }}>Formule de base</label>
@@ -155,6 +227,28 @@ function DevisBuilder({ lead, proposal, onClose, onDone }) {
             )}
           </>
         )}
+
+        {/* Frais à ne pas oublier : déplacement (pré-calculé) + technicien (au-delà de 100 pers.) */}
+        <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 8 }}>Frais à ne pas oublier</label>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 18, flexWrap: 'wrap' }}>
+          <button onClick={toggleTech} style={{
+            ...btnSm,
+            border: `1px solid ${hasSource('tech') ? 'var(--lime)' : 'rgba(255,255,255,0.15)'}`,
+            background: hasSource('tech') ? 'rgba(184,239,11,0.1)' : 'rgba(255,255,255,0.05)',
+            color: hasSource('tech') ? 'var(--lime)' : 'rgba(255,255,255,0.8)',
+          }}>
+            {hasSource('tech') ? '✓ ' : '+ '}Technicien (100 €){Number(guests) > 100 && !hasSource('tech') ? ' · conseillé' : ''}
+          </button>
+          <button onClick={() => addTransport(false)} disabled={kmCalc} style={{
+            ...btnSm,
+            border: `1px solid ${hasSource('transport') ? 'var(--lime)' : 'rgba(255,255,255,0.15)'}`,
+            background: hasSource('transport') ? 'rgba(184,239,11,0.1)' : 'rgba(255,255,255,0.05)',
+            color: hasSource('transport') ? 'var(--lime)' : 'rgba(255,255,255,0.8)',
+            opacity: kmCalc ? 0.6 : 1,
+          }}>
+            {kmCalc ? 'Calcul…' : (hasSource('transport') ? '✓ Déplacement — recalculer' : '+ Calculer le déplacement')}
+          </button>
+        </div>
 
         {/* Lignes du devis (éditables) */}
         <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 8 }}>Lignes du devis (modifiables)</label>

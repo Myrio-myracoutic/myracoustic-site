@@ -1424,12 +1424,12 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
             <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13 }}>
               Vous organisez un <strong style={{ color: '#fff' }}>mariage</strong> ? Nous avons un parcours dédié, plus complet.
             </span>
-            <a href="/devis/mariage" style={{
+            <a href="/mariage" style={{
               background: 'var(--lime)', color: '#0d1b2a', padding: '8px 16px', borderRadius: 6,
               fontSize: 13, fontWeight: 700, fontFamily: 'var(--font-display), sans-serif',
               textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0,
             }}>
-              Découvrir nos formules mariage →
+              Découvrir notre offre mariage →
             </a>
           </div>
         </div>

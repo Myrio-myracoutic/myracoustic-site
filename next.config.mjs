@@ -11,6 +11,9 @@ const nextConfig = {
       { source: '/conditions-generales-de-vente', destination: '/cgv', permanent: true },
       { source: '/politique-de-confidentialite', destination: '/politique-confidentialite', permanent: true },
       { source: '/contact', destination: '/devis/particulier', permanent: true },
+      // Ancien tunnel formules mariage (obsolète, remplacé par le modèle lead → appel) → page mariage
+      { source: '/devis/mariage', destination: '/mariage', permanent: true },
+      { source: '/devis/mariage/:formule', destination: '/mariage', permanent: true },
     ];
   },
 };

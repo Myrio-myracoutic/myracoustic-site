@@ -54,7 +54,7 @@ export async function POST(request) {
     return Response.json({ error: 'Non autorisé' }, { status: 401 });
   }
 
-  const { proposalId, leadId, formule, formuleName, items, total, adminNote } = await request.json();
+  const { proposalId, leadId, formule, formuleName, items, total, adminNote, eventDate, venue, guests } = await request.json();
   if (!Array.isArray(items) || items.length === 0) {
     return Response.json({ error: 'Données manquantes' }, { status: 400 });
   }
@@ -65,14 +65,25 @@ export async function POST(request) {
       .from('devis_proposals').select('*, mariage_leads(prenom, email)').eq('id', proposalId).maybeSingle();
     if (!existing) return Response.json({ error: 'Proposition introuvable' }, { status: 404 });
 
-    const validUntilDate = validUntil(existing.event_date);
+    // Corrections éventuelles de l'admin (date/lieu/invités) — repli sur les valeurs existantes
+    const evDate = eventDate || existing.event_date;
+    const evVenue = venue || existing.venue;
+    const evGuests = guests || existing.guests;
+    const validUntilDate = validUntil(evDate);
     const { error: uErr } = await supabaseAdmin.from('devis_proposals').update({
       formule: formule || null, formule_name: formuleName || null,
       items, total: Number(total) || 0, admin_note: adminNote || null,
+      event_date: evDate, venue: evVenue, guests: evGuests,
       status: 'proposee', valid_until: validUntilDate,
       qonto_quote_id: null, qonto_quote_url: null, validated_at: null,
     }).eq('id', proposalId);
     if (uErr) return Response.json({ error: 'Modification échouée : ' + uErr.message }, { status: 500 });
+
+    // Report des corrections sur le lead (cohérence de la liste admin)
+    if (existing.lead_id) {
+      await supabaseAdmin.from('mariage_leads')
+        .update({ event_date: evDate, lieu: evVenue, guests: evGuests }).eq('id', existing.lead_id);
+    }
 
     const lead = existing.mariage_leads || {};
     if (lead.email) {
@@ -88,7 +99,11 @@ export async function POST(request) {
     .from('mariage_leads').select('*').eq('id', leadId).maybeSingle();
   if (leadErr || !lead) return Response.json({ error: 'Lead introuvable' }, { status: 404 });
 
-  const validUntilDate = validUntil(lead.event_date);
+  // Corrections éventuelles de l'admin (date/lieu/invités) — repli sur les valeurs du lead
+  const evDate = eventDate || lead.event_date;
+  const evVenue = venue || lead.lieu;
+  const evGuests = guests || lead.guests;
+  const validUntilDate = validUntil(evDate);
 
   const { data: proposal, error: pErr } = await supabaseAdmin
     .from('devis_proposals')
@@ -96,13 +111,14 @@ export async function POST(request) {
       lead_id: leadId,
       formule: formule || null, formule_name: formuleName || null,
       items, total: Number(total) || 0,
-      event_date: lead.event_date, venue: lead.lieu, guests: lead.guests,
+      event_date: evDate, venue: evVenue, guests: evGuests,
       admin_note: adminNote || null, status: 'proposee', valid_until: validUntilDate,
     })
     .select('id, token').single();
   if (pErr) return Response.json({ error: 'Création proposition échouée : ' + pErr.message }, { status: 500 });
 
-  await supabaseAdmin.from('mariage_leads').update({ status: 'devis_fait' }).eq('id', leadId);
+  await supabaseAdmin.from('mariage_leads')
+    .update({ status: 'devis_fait', event_date: evDate, lieu: evVenue, guests: evGuests }).eq('id', leadId);
 
   try {
     await sendProposalLink(lead.email.toLowerCase(), lead.prenom, proposal.token, validUntilDate);

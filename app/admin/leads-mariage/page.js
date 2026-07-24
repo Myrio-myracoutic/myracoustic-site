@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Minus, Trash2, X, FileText, Check, Loader2, Heart } from 'lucide-react';
+import { Plus, Minus, Trash2, X, FileText, Check, Loader2, Heart, Mail } from 'lucide-react';
 import { FORMULES, POLES, EXTRA_HOUR_PRICE, fmtPrice } from '@/app/lib/formules';
 import { getTransportFee, getRoadKm, TECH_PRICE } from '@/app/lib/transport';
 import { geocodeAddress } from '@/app/lib/geocode';
@@ -391,6 +391,16 @@ export default function LeadsMariagePage() {
     load();
   };
 
+  const sendReminder = async (proposalId) => {
+    setBusy('rem-' + proposalId);
+    const res = await fetch('/api/admin/devis-reminder', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ proposalId }),
+    });
+    setBusy(null);
+    if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || 'Erreur'); return; }
+    alert('Relance envoyée par email au client.');
+  };
+
   const deleteLead = async (l) => {
     const warn = l.proposal
       ? `Supprimer le contact ${l.prenom} ${l.nom} ?\n\nUn devis est lié à ce contact : il ne sera pas supprimé, mais disparaîtra de cette liste.`
@@ -435,6 +445,11 @@ export default function LeadsMariagePage() {
                 <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', lineHeight: 1.7 }}>
                   📞 {l.tel} · ✉️ {l.email}<br />
                   📅 {fmtDate(l.event_date)} · 👥 {l.guests || '?'} pers. · 📍 {l.lieu || '—'}
+                  {l.proposal?.valid_until && (
+                    <><br /><span style={{ color: new Date(l.proposal.valid_until + 'T23:59:59') < new Date() ? '#f59e0b' : 'rgba(184,239,11,0.75)', fontWeight: 600 }}>
+                      {new Date(l.proposal.valid_until + 'T23:59:59') < new Date() ? '⚠️ Devis expiré le ' : '🗓️ Devis valable jusqu’au '}{fmtDate(l.proposal.valid_until)}
+                    </span></>
+                  )}
                   {l.message && <><br /><span style={{ color: 'rgba(255,255,255,0.45)', fontStyle: 'italic' }}>« {l.message} »</span></>}
                 </div>
               </div>
@@ -453,6 +468,14 @@ export default function LeadsMariagePage() {
                       borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontSize: 13, fontFamily: 'var(--font-display), sans-serif', fontWeight: 700,
                       display: 'inline-flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap',
                     }}>Modifier le devis</button>
+                    {l.proposal.status === 'proposee' && (
+                      <button onClick={() => sendReminder(l.proposal.id)} disabled={busy === 'rem-' + l.proposal.id} title="Envoyer un email de relance avant expiration" style={{
+                        border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.85)',
+                        borderRadius: 8, padding: '8px 16px', cursor: busy === 'rem-' + l.proposal.id ? 'wait' : 'pointer', fontSize: 13,
+                        fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 7,
+                        whiteSpace: 'nowrap', opacity: busy === 'rem-' + l.proposal.id ? 0.6 : 1,
+                      }}><Mail size={14} /> Relancer par email</button>
+                    )}
                     {l.proposal.status === 'validee' && !l.proposal.event_id && (
                       <button onClick={() => openEspace(l.proposal.id)} disabled={busy === l.proposal.id} style={{
                         border: 'none', background: '#b8ef0b', color: '#060e16', borderRadius: 8, padding: '9px 16px',

@@ -1,10 +1,17 @@
+'use client';
+
 import Script from 'next/script';
+import { usePathname } from 'next/navigation';
 import { CONSENT_COOKIE } from '../lib/consent';
 
 const CLARITY_ID = process.env.NEXT_PUBLIC_CLARITY_ID;
 
 export default function Clarity() {
+  const pathname = usePathname();
+
   if (!CLARITY_ID) return null;
+  // Ne pas enregistrer le back-office : inutile d'analyser les sessions admin.
+  if (pathname && pathname.startsWith('/admin')) return null;
 
   return (
     <Script id="clarity-init" strategy="afterInteractive">

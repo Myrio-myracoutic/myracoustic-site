@@ -408,6 +408,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
   const [profil, setProfil] = useState(forcedProfil || '');
   const [step,   setStep]   = useState(forcedProfil === 'particulier' ? 1 : forcedProfil === 'professionnel' ? 9 : -1);
   const [sent,        setSent]        = useState(false);
+  const [pendingReview, setPendingReview] = useState(false); /* devis parti en brouillon (infos manquantes) → à finaliser par Myrio */
   const [qontoLoading, setQontoLoading] = useState(false);
   const [qontoError,   setQontoError]   = useState('');
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -852,6 +853,11 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
       });
       if (kmFee > 0) items.push({ title: 'Frais de déplacement', description: `${km} km aller-retour`, priceHT: kmFee / 1.2 });
 
+      /* Devis auto-envoyé UNIQUEMENT si les infos sont complètes (lieu + date +
+         distance calculée). Sinon → brouillon Qonto que Myrio finalise à la main,
+         car un frais de déplacement faux/absent partirait au client. */
+      const needsReview = !lieu.trim() || !date || km == null;
+
       const res = await fetch('/api/qonto/devis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -859,16 +865,34 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
           client: { type: 'individual', firstName: prenom, lastName: nom, email, phone: tel, adresse, cp, ville },
           event: { type: eventType, date, lieu, km },
           items,
+          draft: needsReview,
           note: [
             !lieu.trim() && 'Lieu à définir — calculer et ajouter les frais de déplacement avant envoi',
+            lieu.trim() && km == null && 'Distance non calculée — vérifier les frais de déplacement avant envoi',
             !date && 'Date à définir — confirmer avec le client lors du rappel',
           ].filter(Boolean).join(' / ') || undefined,
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Erreur');
+
+      /* Brouillon à finaliser → alerte immédiate à Myrio (le devis ne part pas seul au client) */
+      if (needsReview) {
+        const missing = [!lieu.trim() && 'le lieu', lieu.trim() && km == null && 'la distance', !date && 'la date'].filter(Boolean).join(', ');
+        fetch('/api/contact/devis-a-finaliser', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            prenom, nom, email, tel, eventType, date, lieu, missing,
+            total: `${totalBrut.toLocaleString('fr-FR')} € TTC`,
+            quoteUrl: data.quoteUrl,
+          }),
+        }).catch(() => {});
+      }
+
+      setPendingReview(needsReview);
       setSent(true);
-      gtagEvent('generate_lead', { profil: 'particulier', hors_zone: false, currency: 'EUR', value: totalBrut });
+      gtagEvent('generate_lead', { profil: 'particulier', hors_zone: false, needs_review: needsReview, currency: 'EUR', value: totalBrut });
       fetch('/api/devis/progress', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
@@ -1177,9 +1201,9 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
         </p>
         <div className="gate-profile-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
           <ProfileCard icon={Building2} title="Professionnel"
-            onClick={() => router.push('/professionnel')} />
+            onClick={() => router.push('/devis/professionnel')} />
           <ProfileCard icon={PartyPopper} title="Particulier"
-            onClick={() => router.push('/particulier')} />
+            onClick={() => router.push('/devis/particulier')} />
         </div>
         <p style={{ color: 'var(--lime)', fontSize: 12, fontWeight: 600, marginTop: 20 }}>
           Devis gratuit, sans engagement
@@ -1859,7 +1883,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
           <AnimatedWave bars={32} height={56} style={{ maxWidth: 420, margin: '0 auto 24px' }} />
           <div style={{ fontSize: 52, marginBottom: 16, color: 'var(--lime)' }}><PartyPopper size={52} strokeWidth={1.5} /></div>
           <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(20px,3vw,32px)', fontWeight: 700, marginBottom: 10 }}>
-            {isHorsZone ? 'Votre demande a bien été reçue !' : 'Votre devis a été envoyé !'}
+            {isHorsZone || pendingReview ? 'Votre demande a bien été reçue !' : 'Votre devis a été envoyé !'}
           </h2>
           {isHorsZone ? (
             <>
@@ -1868,6 +1892,15 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
               </p>
               <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 24 }}>
                 Un conseiller vous recontacte sous 24 à 48h avec un devis sur mesure incluant les frais de déplacement.
+              </p>
+            </>
+          ) : pendingReview ? (
+            <>
+              <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 15, lineHeight: 1.8, marginBottom: 8 }}>
+                Il nous manque un dernier détail pour finaliser votre devis en toute exactitude.
+              </p>
+              <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 24 }}>
+                Un conseiller le complète et vous l'envoie sous 24h, prêt à signer en ligne.
               </p>
             </>
           ) : (

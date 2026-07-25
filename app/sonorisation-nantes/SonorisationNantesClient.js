@@ -223,6 +223,13 @@ export default function SonorisationNantesClient() {
               href="/evenement-entreprise"
               cta="Découvrir l'offre Entreprises →"
             />
+            <AudienceCard
+              tag="Mariage"
+              title="DJ & prestation de mariage"
+              desc="Une équipe unique — son, lumière, vidéo et DJ — pour la cérémonie, le vin d'honneur et la soirée dansante de votre mariage à Nantes."
+              href="/dj-mariage-nantes"
+              cta="Découvrir le DJ mariage à Nantes →"
+            />
           </div>
         </Reveal>
       </section>

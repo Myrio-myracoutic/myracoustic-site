@@ -22,6 +22,8 @@ const CITY_LINKS = [
   { href: '/sonorisation-rennes',      label: 'Rennes' },
   { href: '/dj-mariage-nantes',        label: 'DJ Mariage Nantes' },
   { href: '/dj-mariage-angers',        label: 'DJ Mariage Angers' },
+  { href: '/dj-mariage-rennes',        label: 'DJ Mariage Rennes' },
+  { href: '/dj-mariage-saint-nazaire', label: 'DJ Mariage Saint-Nazaire' },
 ];
 
 const LEGAL_LINKS = [

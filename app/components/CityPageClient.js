@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Volume2, Lightbulb, Monitor, Music } from 'lucide-react';
 import { AnimatedWave, WaveBullet, SectionLabel } from './AnimatedWave';
 import Reveal from './Reveal';
+import { CITIES } from '../lib/cities';
 
 function PillarCard({ icon: Icon, title, desc }) {
   return (
@@ -79,6 +80,7 @@ const PILLARS = [
 
 export default function CityPageClient({ city }) {
   const { nom, distance, temps, zones, intro, faq } = city;
+  const cityMeta = CITIES.find((c) => c.nom === nom);
 
   return (
     <div style={{ paddingTop: 70 }}>
@@ -206,6 +208,13 @@ export default function CityPageClient({ city }) {
               desc={`Sonorisation professionnelle, éclairage, écran LED et régie technique pour vos séminaires, conventions et galas à ${nom} et environs.`}
               href="/evenement-entreprise"
               cta="Découvrir l'offre Entreprises →"
+            />
+            <AudienceCard
+              tag="Mariage"
+              title="DJ & prestation de mariage"
+              desc={`Une équipe unique — son, lumière, vidéo et DJ — pour la cérémonie, le vin d'honneur et la soirée dansante de votre mariage à ${nom}.`}
+              href={cityMeta ? `/dj-mariage-${cityMeta.slug}` : '/mariage'}
+              cta={`Découvrir le DJ mariage à ${nom} →`}
             />
           </div>
         </Reveal>

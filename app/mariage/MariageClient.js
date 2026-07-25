@@ -6,6 +6,7 @@ import { FAQ_ITEMS } from './faq-data';
 import TestimonialCarousel from '../components/TestimonialCarousel';
 import StatItem from '../components/StatItem';
 import Reveal from '../components/Reveal';
+import { CITIES } from '../lib/cities';
 
 function TimelineStep({ index, total, when, title, text, highlight }) {
   return (
@@ -250,6 +251,31 @@ export default function MariageClient() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {FAQ_ITEMS.map((item, i) => <FaqItem key={i} {...item} />)}
+          </div>
+        </Reveal>
+      </section>
+
+      {/* ── DJ MARIAGE PAR VILLE ────────────────────────────────── */}
+      <section style={{ padding: 'clamp(48px,6vw,72px) 32px', background: '#060e16', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <Reveal style={{ maxWidth: 1000, margin: '0 auto', textAlign: 'center' }}>
+          <SectionLabel style={{ justifyContent: 'center' }}>Votre DJ mariage local</SectionLabel>
+          <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(20px,2.5vw,30px)', fontWeight: 700, marginBottom: 24 }}>
+            DJ mariage près de chez vous
+          </h2>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center' }}>
+            {CITIES.map((c) => (
+              <a key={c.slug} href={`/dj-mariage-${c.slug}`} style={{
+                display: 'inline-block', padding: '10px 18px', borderRadius: 8,
+                border: '1px solid rgba(255,255,255,0.15)', background: 'transparent',
+                color: 'rgba(255,255,255,0.7)', fontFamily: 'var(--font-display), sans-serif',
+                fontSize: 14, fontWeight: 600, textDecoration: 'none', transition: 'all 0.2s',
+              }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--lime)'; e.currentTarget.style.color = 'var(--lime)'; e.currentTarget.style.background = 'rgba(184,239,11,0.08)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; e.currentTarget.style.color = 'rgba(255,255,255,0.7)'; e.currentTarget.style.background = 'transparent'; }}
+              >
+                DJ mariage {c.nom}
+              </a>
+            ))}
           </div>
         </Reveal>
       </section>

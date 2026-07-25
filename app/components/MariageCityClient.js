@@ -6,6 +6,26 @@ import { AnimatedWave, WaveBullet, SectionLabel } from './AnimatedWave';
 import TestimonialCarousel from './TestimonialCarousel';
 import StatItem from './StatItem';
 import Reveal from './Reveal';
+import { CITIES } from '../lib/cities';
+
+/* Lien-pastille pour le maillage interne (villes & services liés) */
+function ChipLink({ href, children }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <a href={href}
+      onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
+      style={{
+        display: 'inline-block', padding: '10px 18px', borderRadius: 8,
+        border: `1px solid ${hov ? 'var(--lime)' : 'rgba(255,255,255,0.15)'}`,
+        background: hov ? 'rgba(184,239,11,0.08)' : 'transparent',
+        color: hov ? 'var(--lime)' : 'rgba(255,255,255,0.7)',
+        fontFamily: 'var(--font-display), sans-serif', fontSize: 14, fontWeight: 600,
+        textDecoration: 'none', transition: 'all 0.2s',
+      }}>
+      {children}
+    </a>
+  );
+}
 
 function BulletItem({ children }) {
   return (
@@ -129,6 +149,10 @@ const TESTIMONIALS = [
 export default function MariageCityClient({ city }) {
   const { nom, distance, temps, intro, faq } = city;
 
+  /* Maillage interne : ville courante + autres villes */
+  const current = CITIES.find((c) => c.nom === nom);
+  const otherCities = CITIES.filter((c) => c.nom !== nom);
+
   return (
     <div style={{ paddingTop: 70 }}>
 
@@ -238,6 +262,23 @@ export default function MariageCityClient({ city }) {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {faq.map((item, i) => <FaqItem key={i} {...item} />)}
+          </div>
+        </Reveal>
+      </section>
+
+      {/* ── MAILLAGE : villes & services liés ───────────────────── */}
+      <section style={{ padding: 'clamp(48px,6vw,72px) 32px', background: '#060e16', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <Reveal style={{ maxWidth: 1000, margin: '0 auto', textAlign: 'center' }}>
+          <SectionLabel style={{ justifyContent: 'center' }}>Myracoustic près de chez vous</SectionLabel>
+          <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(20px,2.5vw,30px)', fontWeight: 700, marginBottom: 24 }}>
+            Explorez nos prestations
+          </h2>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center' }}>
+            <ChipLink href="/mariage">Toutes nos prestations mariage</ChipLink>
+            {current && <ChipLink href={`/sonorisation-${current.slug}`}>Sonorisation à {nom}</ChipLink>}
+            {otherCities.map((c) => (
+              <ChipLink key={c.slug} href={`/dj-mariage-${c.slug}`}>DJ mariage {c.nom}</ChipLink>
+            ))}
           </div>
         </Reveal>
       </section>

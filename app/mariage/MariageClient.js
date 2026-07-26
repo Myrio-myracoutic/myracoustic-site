@@ -7,6 +7,7 @@ import TestimonialCarousel from '../components/TestimonialCarousel';
 import StatItem from '../components/StatItem';
 import Reveal from '../components/Reveal';
 import { CITIES } from '../lib/cities';
+import { gtagEvent } from '../lib/gtag';
 
 function TimelineStep({ index, total, when, title, text, highlight }) {
   return (
@@ -154,7 +155,7 @@ export default function MariageClient() {
           }}>
             Le jour où tout se joue. Nous orchestrons le son, la lumière et l&apos;émotion de votre cérémonie à la dernière danse — pour que vous n&apos;ayez qu&apos;à vivre l&apos;instant.
           </p>
-          <a href="/devis/mariage-contact" style={{
+          <a href="/devis/mariage-contact" onClick={() => gtagEvent('funnel_step', { profil: 'mariage', step_name: 'mariage_cta' })} style={{
             background: 'var(--lime)', color: '#0d1b2a',
             padding: '15px 32px', borderRadius: 8, fontSize: 16, fontWeight: 700,
             fontFamily: 'var(--font-display), sans-serif',
@@ -244,7 +245,7 @@ export default function MariageClient() {
           </div>
           <TestimonialCarousel items={TESTIMONIALS} />
           <Reveal style={{ textAlign: 'center', marginTop: 44 }}>
-            <a href="/devis/mariage-contact" style={{
+            <a href="/devis/mariage-contact" onClick={() => gtagEvent('funnel_step', { profil: 'mariage', step_name: 'mariage_cta' })} style={{
               background: 'var(--lime)', color: '#0d1b2a',
               padding: '15px 34px', borderRadius: 8, fontSize: 16, fontWeight: 700,
               fontFamily: 'var(--font-display), sans-serif',
@@ -325,7 +326,7 @@ export default function MariageClient() {
         <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 16, marginBottom: 32 }}>
           Trois formules claires, un conseiller vous rappelle sous 24h pour finaliser votre devis.
         </p>
-        <a href="/devis/mariage-contact" style={{
+        <a href="/devis/mariage-contact" onClick={() => gtagEvent('funnel_step', { profil: 'mariage', step_name: 'mariage_cta' })} style={{
           background: 'var(--lime)', color: '#0d1b2a',
           padding: '16px 40px', borderRadius: 8, fontSize: 17, fontWeight: 700,
           fontFamily: 'var(--font-display), sans-serif',

@@ -7,7 +7,7 @@ import { ArrowLeft, CheckCircle2, Loader2, ShieldCheck, Phone, Clock, CalendarX 
 import MiniCal from '@/app/components/MiniCal';
 import AddressAutocomplete from '@/app/components/AddressAutocomplete';
 import TestimonialCarousel from '@/app/components/TestimonialCarousel';
-import { gtagEvent } from '@/app/lib/gtag';
+import { gtagEvent, gtagBeacon } from '@/app/lib/gtag';
 
 /* Avis mariage — mêmes témoignages que la page /mariage */
 const TESTIMONIALS = [
@@ -42,6 +42,7 @@ export default function MariageContactClient() {
   const [availLoading, setAvailLoading] = useState(true);
   const [bookedNotice, setBookedNotice] = useState('');
   const startedRef = useRef(false);
+  const submittedRef = useRef(false);
 
   const fmtDateFr = (k) => {
     try { return new Date(k + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); }
@@ -57,6 +58,21 @@ export default function MariageContactClient() {
       .then(d => { if (d.bookedDates) setBookedDates(new Set(d.bookedDates)); })
       .catch(() => {})
       .finally(() => setAvailLoading(false));
+  }, []);
+
+  /* Abandon : formulaire commencé (form_start) mais quitté sans envoyer */
+  useEffect(() => {
+    const fireAbandon = () => {
+      if (!startedRef.current || submittedRef.current) return;
+      gtagBeacon('funnel_abandon', { profil: 'mariage', step_name: 'formulaire_contact' });
+    };
+    const onVisibility = () => { if (document.visibilityState === 'hidden') fireAbandon(); };
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('beforeunload', fireAbandon);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('beforeunload', fireAbandon);
+    };
   }, []);
 
   const touch = () => {
@@ -85,6 +101,7 @@ export default function MariageContactClient() {
         setError("Un problème technique nous empêche d'enregistrer votre demande. Réessayez, ou appelez-nous au 07 68 53 33 08.");
         return;
       }
+      submittedRef.current = true;
       gtagEvent('generate_lead', { profil: 'mariage', method: 'formulaire_contact' });
       setDone(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });

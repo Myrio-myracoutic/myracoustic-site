@@ -131,6 +131,15 @@ export default function MariageClient() {
 
         <div style={{ maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 2 }}>
           <SectionLabel>Mariage</SectionLabel>
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 18,
+            padding: '6px 14px', borderRadius: 20,
+            border: '1px solid rgba(184,239,11,0.3)', background: 'rgba(184,239,11,0.06)',
+          }}>
+            <span style={{ color: 'var(--lime)', fontSize: 13, fontWeight: 700, fontFamily: 'var(--font-display), sans-serif' }}>★ 5/5 sur Google</span>
+            <span style={{ color: 'rgba(255,255,255,0.3)' }}>·</span>
+            <span style={{ color: 'rgba(255,255,255,0.72)', fontSize: 13, fontFamily: 'var(--font-display), sans-serif' }}>200+ mariages animés</span>
+          </div>
           <h1 style={{
             fontFamily: 'var(--font-display), sans-serif',
             fontSize: 'clamp(42px,7vw,96px)', fontWeight: 700,
@@ -154,8 +163,11 @@ export default function MariageClient() {
             onMouseEnter={(e) => { e.currentTarget.style.background = '#ceff2a'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(0)'; }}
           >
-            Demander mon devis gratuit →
+            Vérifier la disponibilité de ma date →
           </a>
+          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 13, marginTop: 14, fontFamily: 'var(--font-display), sans-serif' }}>
+            Gratuit · sans engagement · réponse sous 24h
+          </p>
         </div>
 
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 80, zIndex: 2 }}>
@@ -231,6 +243,22 @@ export default function MariageClient() {
             </p>
           </div>
           <TestimonialCarousel items={TESTIMONIALS} />
+          <Reveal style={{ textAlign: 'center', marginTop: 44 }}>
+            <a href="/devis/mariage-contact" style={{
+              background: 'var(--lime)', color: '#0d1b2a',
+              padding: '15px 34px', borderRadius: 8, fontSize: 16, fontWeight: 700,
+              fontFamily: 'var(--font-display), sans-serif',
+              textDecoration: 'none', display: 'inline-block', transition: 'all 0.2s',
+            }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = '#ceff2a'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+            >
+              Vérifier la disponibilité de ma date →
+            </a>
+            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginTop: 12 }}>
+              Votre date part vite — vérifiez si elle est encore libre.
+            </p>
+          </Reveal>
         </Reveal>
       </section>
 
@@ -306,7 +334,7 @@ export default function MariageClient() {
           onMouseEnter={(e) => { e.currentTarget.style.background = '#ceff2a'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(0)'; }}
         >
-          Demander mon devis gratuit →
+          Vérifier la disponibilité de ma date →
         </a>
         </Reveal>
       </section>

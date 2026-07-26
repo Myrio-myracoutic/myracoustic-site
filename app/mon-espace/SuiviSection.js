@@ -283,10 +283,18 @@ function FacturationTab({ ev, token }) {
 
       {/* Résumé paiements si plusieurs factures */}
       {data.invoices?.length > 0 && (() => {
-        const total    = data.quote?.total || 0;
-        const paid     = data.invoices.filter(i => i.status === 'paid').reduce((s, i) => s + i.amount, 0);
-        const remaining = Math.max(0, total - paid);
-        if (remaining <= 0 || total <= 0) return null;
+        // Reste à régler = ce qui reste vraiment dû d'après les FACTURES réelles
+        // (et non le devis d'origine, qui peut être inférieur si une option a été
+        //  ajoutée sur la facture de solde). On additionne :
+        //  - les factures émises non payées (montant réellement facturé)
+        //  - la part du devis pas encore facturée (si le solde n'est pas encore émis)
+        const total          = data.quote?.total || 0;
+        const invoiced       = data.invoices.reduce((s, i) => s + i.amount, 0);
+        const paid           = data.invoices.filter(i => i.status === 'paid').reduce((s, i) => s + i.amount, 0);
+        const unpaidInvoiced = invoiced - paid;
+        const notYetInvoiced = Math.max(0, total - invoiced);
+        const remaining      = unpaidInvoiced + notYetInvoiced;
+        if (remaining <= 0) return null;
         return (
           <div style={{
             marginTop: 6, padding: '12px 16px',

@@ -107,6 +107,24 @@ export async function GET(request) {
       console.error('Progress pending dates error:', err.message);
     }
 
+    // Dates des leads mariage : signalées dès l'envoi du formulaire, avant tout
+    // devis. On n'inclut que les leads pas encore convertis (client_id vide)
+    // pour ne pas compter deux fois une date déjà représentée par un devis Qonto.
+    try {
+      const { data: leadRows } = await supabaseAdmin
+        .from('mariage_leads')
+        .select('event_date')
+        .is('client_id', null)
+        .gte('event_date', start)
+        .lte('event_date', end);
+      for (const row of (leadRows || [])) {
+        const d = row.event_date ? String(row.event_date).slice(0, 10) : null;
+        if (d) pendingDates[d] = (pendingDates[d] ?? 0) + 1;
+      }
+    } catch (err) {
+      console.error('Mariage leads pending dates error:', err.message);
+    }
+
     return NextResponse.json({ bookedDates: [...bookedDates], pendingDates });
 
   } catch (err) {

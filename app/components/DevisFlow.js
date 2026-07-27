@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Building2, Calendar, PartyPopper, Volume2, Headphones, Lightbulb, Mic, Video, Wrench, MapPin, Mail, Send, Search, AlertTriangle, Car, SlidersHorizontal, Users, CreditCard, User, Heart, Gift, Check, ClipboardList, X } from 'lucide-react';
 import { AnimatedWave } from './AnimatedWave';
-import { gtagEvent, gtagBeacon } from '../lib/gtag';
+import { gtagEvent, gtagBeacon, gtagSetUserData } from '../lib/gtag';
 
 /* ════════════════════════════════════════════════════════════════════
    TARIFS — source : docs/grilles-tarifaires.md
@@ -826,6 +826,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Erreur');
         setSent(true);
+        gtagSetUserData({ email, phone: tel, firstName: prenom, lastName: nom, street: adresse, city: ville, postalCode: cp });
         gtagEvent('generate_lead', { profil: 'particulier', hors_zone: true, currency: 'EUR', value: totalBrut });
         fetch('/api/devis/progress', {
           method: 'DELETE',
@@ -892,6 +893,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
 
       setPendingReview(needsReview);
       setSent(true);
+      gtagSetUserData({ email, phone: tel, firstName: prenom, lastName: nom, street: adresse, city: ville, postalCode: cp });
       gtagEvent('generate_lead', { profil: 'particulier', hors_zone: false, needs_review: needsReview, currency: 'EUR', value: totalBrut });
       fetch('/api/devis/progress', {
         method: 'DELETE',
@@ -970,6 +972,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Erreur');
         setSent(true);
+        gtagSetUserData({ email: cibleEmail, phone: cibleTel, firstName: ciblePrenom, lastName: cibleNom });
         gtagEvent('generate_lead', { profil: 'professionnel', hors_zone: true, currency: 'EUR', value: cibleTotalHT });
         return;
       }
@@ -1001,6 +1004,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Erreur');
       setSent(true);
+      gtagSetUserData({ email: cibleEmail, phone: cibleTel, firstName: ciblePrenom, lastName: cibleNom });
       gtagEvent('generate_lead', { profil: 'professionnel', hors_zone: false, currency: 'EUR', value: cibleTotalHT });
     } catch {
       setQontoError('Erreur lors de l\'envoi — veuillez réessayer.');
@@ -1024,6 +1028,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Erreur');
       setSent(true);
+      gtagSetUserData({ email: proEmail, phone: proTel, firstName: proPrenom, lastName: proNom });
       gtagEvent('generate_lead', { profil: 'professionnel', contact_only: true });
     } catch {
       setQontoError('Erreur lors de l\'envoi — veuillez réessayer.');

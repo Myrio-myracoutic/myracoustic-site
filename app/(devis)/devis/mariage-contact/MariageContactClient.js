@@ -7,7 +7,7 @@ import { ArrowLeft, CheckCircle2, Loader2, ShieldCheck, Phone, Clock, CalendarX 
 import MiniCal from '@/app/components/MiniCal';
 import AddressAutocomplete from '@/app/components/AddressAutocomplete';
 import TestimonialCarousel from '@/app/components/TestimonialCarousel';
-import { gtagEvent, gtagBeacon } from '@/app/lib/gtag';
+import { gtagEvent, gtagBeacon, gtagSetUserData } from '@/app/lib/gtag';
 
 /* Avis mariage — mêmes témoignages que la page /mariage */
 const TESTIMONIALS = [
@@ -102,6 +102,7 @@ export default function MariageContactClient() {
         return;
       }
       submittedRef.current = true;
+      gtagSetUserData({ email, phone, firstName, lastName });
       gtagEvent('generate_lead', { profil: 'mariage', method: 'formulaire_contact' });
       setDone(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });

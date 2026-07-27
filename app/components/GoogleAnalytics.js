@@ -11,10 +11,10 @@ export default function GoogleAnalytics() {
         {`
           window.dataLayer = window.dataLayer || [];
           window.gtag = function(){dataLayer.push(arguments);};
-          gtag('consent', 'default', { ad_storage: 'denied', analytics_storage: 'denied' });
+          gtag('consent', 'default', { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', analytics_storage: 'denied' });
           var m = document.cookie.match(/(?:^|; )${CONSENT_COOKIE}=([^;]*)/);
           if (m && m[1] === 'granted') {
-            gtag('consent', 'update', { ad_storage: 'granted', analytics_storage: 'granted' });
+            gtag('consent', 'update', { ad_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted', analytics_storage: 'granted' });
           }
         `}
       </Script>

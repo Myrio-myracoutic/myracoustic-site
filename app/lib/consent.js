@@ -18,9 +18,12 @@ export function setConsent(value) {
   const domain = cookieDomain();
   document.cookie = `${CONSENT_COOKIE}=${value}; path=/; max-age=${maxAge}; SameSite=Lax${domain ? `; domain=${domain}` : ''}`;
   if (typeof window !== 'undefined' && window.gtag) {
+    const g = value === 'granted' ? 'granted' : 'denied';
     window.gtag('consent', 'update', {
-      ad_storage: value === 'granted' ? 'granted' : 'denied',
-      analytics_storage: value === 'granted' ? 'granted' : 'denied',
+      ad_storage: g,
+      ad_user_data: g,
+      ad_personalization: g,
+      analytics_storage: g,
     });
   }
   if (typeof window !== 'undefined' && window.clarity) {

@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, CheckCircle2, Loader2, ShieldCheck, Phone, Clock, CalendarX } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Loader2, ShieldCheck, Phone, Clock, CalendarX, AlertTriangle } from 'lucide-react';
 import MiniCal from '@/app/components/MiniCal';
 import AddressAutocomplete from '@/app/components/AddressAutocomplete';
 import TestimonialCarousel from '@/app/components/TestimonialCarousel';
@@ -39,6 +39,7 @@ export default function MariageContactClient() {
   const [done, setDone] = useState(false);
   const [error, setError] = useState('');
   const [bookedDates, setBookedDates] = useState(new Set());
+  const [pendingDates, setPendingDates] = useState({});
   const [availLoading, setAvailLoading] = useState(true);
   const [bookedNotice, setBookedNotice] = useState('');
   const startedRef = useRef(false);
@@ -55,7 +56,7 @@ export default function MariageContactClient() {
     const end = new Date(t.getFullYear() + 2, t.getMonth(), t.getDate()).toISOString().slice(0, 10);
     fetch(`/api/availability?start=${start}&end=${end}`, { cache: 'no-store' })
       .then(r => r.json())
-      .then(d => { if (d.bookedDates) setBookedDates(new Set(d.bookedDates)); })
+      .then(d => { if (d.bookedDates) setBookedDates(new Set(d.bookedDates)); if (d.pendingDates) setPendingDates(d.pendingDates); })
       .catch(() => {})
       .finally(() => setAvailLoading(false));
   }, []);
@@ -178,8 +179,14 @@ export default function MariageContactClient() {
 
           <div style={{ marginBottom: 12 }}>
             <label style={label}>Date du mariage</label>
-            <MiniCal selected={date} onSelect={(k) => { touch(); setDate(k); }} onBookedClick={(k) => setBookedNotice(k)} bookedDates={bookedDates} loading={availLoading} yearsAhead={2} />
+            <MiniCal selected={date} onSelect={(k) => { touch(); setDate(k); }} onBookedClick={(k) => setBookedNotice(k)} devisPending={pendingDates} bookedDates={bookedDates} loading={availLoading} yearsAhead={2} />
             <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 8 }}>Les dates déjà réservées sont grisées : si votre date n'est pas disponible, c'est que nous sommes déjà pris ce jour-là.</p>
+            {date && (pendingDates[date] ?? 0) > 0 && (
+              <p style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12, color: '#f59e0b', marginTop: 8 }}>
+                <AlertTriangle size={13} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
+                <span><strong>{pendingDates[date]} devis déjà demandé{pendingDates[date] > 1 ? 's' : ''}</strong> pour cette date — répondez rapidement à notre appel pour être prioritaire.</span>
+              </p>
+            )}
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>

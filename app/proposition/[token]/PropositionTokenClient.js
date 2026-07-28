@@ -9,6 +9,15 @@ import { FORMULES, POLES } from '@/app/lib/formules';
 const fmtPrice = (n) => Number(n).toLocaleString('fr-FR') + ' €';
 const fmtDate = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
 
+// Compte à rebours lisible : « 2 j 04 h 12 min » ou « 04:12:37 » le dernier jour.
+const fmtCountdown = (ms) => {
+  if (ms <= 0) return '';
+  const s = Math.floor(ms / 1000);
+  const d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+  if (d > 0) return `${d} j ${String(h).padStart(2, '0')} h ${String(m).padStart(2, '0')} min`;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+};
+
 const input = {
   width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)',
   borderRadius: 8, padding: '12px 14px', color: '#fff', fontSize: 15, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box',
@@ -37,6 +46,12 @@ export default function PropositionTokenClient({ token }) {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
+  const [nowMs, setNowMs] = useState(Date.now());
+
+  useEffect(() => {
+    const id = setInterval(() => setNowMs(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     fetch(`/api/proposition/${token}`)
@@ -104,6 +119,14 @@ export default function PropositionTokenClient({ token }) {
     ...(formuleDef.platform ? [`Espace en ligne — ${formuleDef.platform}`] : []),
   ] : [];
 
+  // Réduction « du moment » : active tant que le chrono tourne (recalcul en direct côté client).
+  const disc = p.discount;
+  const discEndMs = disc ? new Date(disc.until + 'T23:59:59').getTime() : 0;
+  const discountLive = !!disc && nowMs <= discEndMs;
+  const effTotal = discountLive ? p.total - disc.amount : p.total;
+  const acompte = Math.round(effTotal * 0.6);
+  const solde = effTotal - acompte;
+
   const payCard = (title, amount, pct, accent) => (
     <div style={{ flex: 1, background: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: '18px 16px', borderLeft: `3px solid ${accent}` }}>
       <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, marginBottom: 6, fontFamily: 'var(--font-display), sans-serif', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{title}</div>
@@ -124,6 +147,19 @@ export default function PropositionTokenClient({ token }) {
         <p style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--lime)', background: 'rgba(184,239,11,0.08)', border: '1px solid rgba(184,239,11,0.2)', borderRadius: 20, padding: '5px 14px', margin: '0 auto 28px', width: 'fit-content', display: 'flex', justifyContent: 'center' }}>
           <CalendarClock size={14} /> Offre valable jusqu'au {fmtDate(p.valid_until)}
         </p>
+      )}
+
+      {/* Chrono de la réduction du moment — visible uniquement tant que la réduction est active */}
+      {discountLive && (
+        <div style={{ background: 'linear-gradient(135deg, rgba(184,239,11,0.14), rgba(184,239,11,0.06))', border: '1px solid rgba(184,239,11,0.35)', borderRadius: 12, padding: '14px 18px', margin: '0 0 24px', textAlign: 'center' }}>
+          <div style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.85)', marginBottom: 6 }}>
+            🎁 Réduction du moment&nbsp;: <strong style={{ color: 'var(--lime)' }}>{disc.type === 'percent' ? `−${disc.value} %` : `−${fmtPrice(disc.amount)}`}</strong>
+          </div>
+          <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 800, fontSize: 22, color: '#fff', letterSpacing: '0.02em' }}>
+            {fmtCountdown(discEndMs - nowMs)}
+          </div>
+          <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>avant la fin de votre réduction</div>
+        </div>
       )}
 
       {/* Récapitulatif détaillé */}
@@ -163,19 +199,28 @@ export default function PropositionTokenClient({ token }) {
             ))}
           </>
         )}
+        {discountLive && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, fontSize: 14, padding: '6px 0 0', color: 'var(--lime)' }}>
+            <span style={{ fontWeight: 600 }}>🎁 Réduction du moment</span>
+            <span style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>−{fmtPrice(disc.amount)}</span>
+          </div>
+        )}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.1)', marginTop: 12, paddingTop: 12 }}>
           <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total TTC</span>
-          <span style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 26, fontWeight: 800, color: 'var(--lime)' }}>{fmtPrice(p.total)}</span>
+          <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 10 }}>
+            {discountLive && <span style={{ fontSize: 17, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textDecoration: 'line-through' }}>{fmtPrice(p.total)}</span>}
+            <span style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 26, fontWeight: 800, color: 'var(--lime)' }}>{fmtPrice(effTotal)}</span>
+          </span>
         </div>
       </div>
 
       {/* Acompte 60 / solde 40 en grand */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 8 }}>
-        {payCard('À la signature du devis', p.acompte, 'Acompte · 60 %', 'var(--lime)')}
-        {payCard('Solde le jour J', p.solde, '40 %', 'rgba(52,55,144,0.9)')}
+        {payCard('À la signature du devis', acompte, 'Acompte · 60 %', 'var(--lime)')}
+        {payCard('Solde le jour J', solde, '40 %', 'rgba(52,55,144,0.9)')}
       </div>
       <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginBottom: p.installments_allowed ? 14 : 26 }}>
-        L'acompte de <strong style={{ color: 'rgba(255,255,255,0.7)' }}>{fmtPrice(p.acompte)}</strong> se règle à la signature de votre devis, et réserve alors votre date.
+        L'acompte de <strong style={{ color: 'rgba(255,255,255,0.7)' }}>{fmtPrice(acompte)}</strong> se règle à la signature de votre devis, et réserve alors votre date.
       </p>
 
       {/* Options de paiement de l'acompte (si événement à plus de 3 mois) */}
@@ -183,7 +228,7 @@ export default function PropositionTokenClient({ token }) {
         <div style={{ background: 'rgba(52,55,144,0.1)', border: '1px solid rgba(52,55,144,0.3)', borderRadius: 12, padding: '16px 18px', marginBottom: 26 }}>
           <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 13.5, marginBottom: 12 }}>Comment souhaitez-vous régler l'acompte ?</div>
           <p style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.5)', margin: '2px 0 12px' }}>Aucun paiement maintenant — indiquez simplement votre préférence, réglable à la signature de votre devis.</p>
-          {[[false, 'En 1 fois',`${fmtPrice(p.acompte)} à la signature`], [true, 'En 2 fois', `2 × ${fmtPrice(Math.round(p.acompte / 2))} sur 2 mois`]].map(([val, title, sub]) => {
+          {[[false, 'En 1 fois',`${fmtPrice(acompte)} à la signature`], [true, 'En 2 fois', `2 × ${fmtPrice(Math.round(acompte / 2))} sur 2 mois`]].map(([val, title, sub]) => {
             const active = acompte2x === val;
             return (
               <div key={String(val)} onClick={() => setAcompte2x(val)} style={{

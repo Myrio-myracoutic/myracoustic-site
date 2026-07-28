@@ -132,7 +132,7 @@ async function findOrCreateClient({ type, firstName, lastName, societe, email, p
 
 export async function POST(request) {
   try {
-    const { client, event, items, draft, note, expiryDate: expiryOverride } = await request.json();
+    const { client, event, items, draft, note, expiryDate: expiryOverride, discountPct } = await request.json();
 
     const clientId = await findOrCreateClient(client);
 
@@ -172,6 +172,8 @@ export async function POST(request) {
       terms_and_conditions: 'Acompte de 60 % à la signature du devis — Solde de 40 % le jour de la prestation.',
       header: headerParts.join(' · '),
       footer: giftFooter,
+      // Remise native Qonto (ex. réduction « du moment ») — en pourcentage du devis
+      ...(Number(discountPct) > 0 ? { discount: { type: 'percentage', value: String(discountPct) } } : {}),
       items: validItems.map(item => ({
         title: item.title,
         description: item.description || '',

@@ -1,8 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Minus, Trash2, X, FileText, Check, Loader2, Heart, Mail, CalendarClock } from 'lucide-react';
+import { Plus, Minus, Trash2, X, FileText, Check, Loader2, Heart, Mail, CalendarClock, Percent } from 'lucide-react';
 import { FORMULES, POLES, EXTRA_HOUR_PRICE, fmtPrice } from '@/app/lib/formules';
+import { discountEuros, discountLabel } from '@/app/lib/discount';
 import { getTransportFee, getRoadKm, TECH_PRICE } from '@/app/lib/transport';
 import { geocodeAddress } from '@/app/lib/geocode';
 import AddressAutocomplete from '@/app/components/AddressAutocomplete';
@@ -363,6 +364,111 @@ function NewContactForm({ onClose, onDone }) {
   );
 }
 
+// Réduction « du moment » : montant (€ ou %) + date limite → email au client + chrono sur sa proposition
+function DiscountModal({ proposal, onClose, onDone }) {
+  const existing = !!proposal.discount_type;
+  const [type, setType] = useState(proposal.discount_type || 'amount');
+  const [value, setValue] = useState(proposal.discount_value || '');
+  const [until, setUntil] = useState(proposal.discount_until || '');
+  const [saving, setSaving] = useState(false);
+  const [removing, setRemoving] = useState(false);
+  const [error, setError] = useState('');
+  const todayStr = new Date().toISOString().slice(0, 10);
+
+  const euros = discountEuros(proposal.total, type, value);
+  const newTotal = Number(proposal.total) - euros;
+  const valid = Number(value) > 0 && until && (type !== 'percent' || Number(value) < 100) && euros > 0;
+
+  const save = async () => {
+    if (saving || !valid) return;
+    setSaving(true); setError('');
+    const res = await fetch('/api/admin/devis-discount', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ proposalId: proposal.id, discountType: type, discountValue: Number(value), discountUntil: until }),
+    });
+    setSaving(false);
+    if (!res.ok) { const d = await res.json().catch(() => ({})); setError(d.error || 'Erreur'); return; }
+    onDone();
+  };
+
+  const remove = async () => {
+    if (removing) return;
+    if (!window.confirm('Retirer la réduction ? Le client repassera au prix plein (aucun email envoyé).')) return;
+    setRemoving(true); setError('');
+    const res = await fetch('/api/admin/devis-discount', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ proposalId: proposal.id, remove: true }),
+    });
+    setRemoving(false);
+    if (!res.ok) { const d = await res.json().catch(() => ({})); setError(d.error || 'Erreur'); return; }
+    onDone();
+  };
+
+  const typeBtn = (key, txt) => (
+    <button onClick={() => setType(key)} style={{
+      ...btnSm, flex: 1,
+      border: `1px solid ${type === key ? 'var(--lime)' : 'rgba(255,255,255,0.15)'}`,
+      background: type === key ? 'rgba(184,239,11,0.1)' : 'rgba(255,255,255,0.05)',
+      color: type === key ? 'var(--lime)' : 'rgba(255,255,255,0.8)',
+    }}>{txt}</button>
+  );
+  const fLabel = { fontSize: 10.5, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 4 };
+
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '40px 20px', overflowY: 'auto' }}>
+      <div onClick={e => e.stopPropagation()} style={{ ...card, maxWidth: 480, width: '100%', color: '#fff' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+          <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 19, fontWeight: 800, margin: 0 }}>{existing ? 'Modifier la réduction' : 'Proposer une réduction'}</h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: 4 }}><X size={20} /></button>
+        </div>
+        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, margin: '0 0 18px' }}>Un email part au client pour lui annoncer sa réduction, avec un compte à rebours sur sa proposition. Il repasse au prix plein après la date limite.</p>
+
+        <label style={fLabel}>Type</label>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>{typeBtn('amount', 'Montant (€)')}{typeBtn('percent', 'Pourcentage (%)')}</div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 16 }}>
+          <div>
+            <label style={fLabel}>{type === 'percent' ? 'Réduction (%)' : 'Réduction (€)'}</label>
+            <input type="number" min={1} value={value} onChange={e => setValue(e.target.value)} placeholder={type === 'percent' ? 'ex. 10' : 'ex. 150'} style={{ ...inp, width: '100%' }} />
+          </div>
+          <div>
+            <label style={fLabel}>Valable jusqu'au</label>
+            <input type="date" min={todayStr} value={until} onChange={e => setUntil(e.target.value)} style={{ ...inp, width: '100%' }} />
+          </div>
+        </div>
+
+        {euros > 0 && (
+          <div style={{ background: 'rgba(184,239,11,0.06)', border: '1px solid rgba(184,239,11,0.2)', borderRadius: 10, padding: '12px 14px', marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>Nouveau prix client</span>
+            <span style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', textDecoration: 'line-through' }}>{fmtPrice(proposal.total)}</span>
+              <span style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 20, fontWeight: 800, color: 'var(--lime)' }}>{fmtPrice(newTotal)}</span>
+            </span>
+          </div>
+        )}
+
+        {error && <p style={{ color: '#ef4444', fontSize: 13, marginBottom: 12 }}>{error}</p>}
+
+        <button onClick={save} disabled={saving || !valid} style={{
+          width: '100%', background: '#b8ef0b', color: '#060e16', border: 'none', borderRadius: 8, padding: '13px 0',
+          fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 15,
+          cursor: saving || !valid ? 'not-allowed' : 'pointer', opacity: saving || !valid ? 0.6 : 1,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        }}>
+          {saving ? <><Loader2 size={16} style={{ animation: 'spin 0.8s linear infinite' }} /> Envoi…</> : (existing ? 'Mettre à jour et prévenir le client →' : 'Enregistrer et prévenir le client →')}
+        </button>
+        {existing && (
+          <button onClick={remove} disabled={removing} style={{
+            width: '100%', background: 'none', border: 'none', color: 'rgba(255,120,120,0.7)', marginTop: 10,
+            cursor: removing ? 'wait' : 'pointer', fontSize: 12.5, fontFamily: 'var(--font-display), sans-serif', fontWeight: 700,
+          }}>{removing ? 'Retrait…' : 'Retirer la réduction'}</button>
+        )}
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    </div>
+  );
+}
+
 export default function LeadsMariagePage() {
   const router = useRouter();
   const [leads, setLeads] = useState([]);
@@ -371,6 +477,7 @@ export default function LeadsMariagePage() {
   const [busy, setBusy] = useState(null);
   const [newContact, setNewContact] = useState(false);
   const [validityEdit, setValidityEdit] = useState(null); // { id, value }
+  const [discountFor, setDiscountFor] = useState(null); // proposal
   const todayStr = new Date().toISOString().slice(0, 10);
 
   const load = () => {
@@ -484,6 +591,11 @@ export default function LeadsMariagePage() {
                     else { text = '🗓️ Devis valable jusqu’au ' + fmtDate(vu); }
                     return <><br /><span style={{ color, fontWeight: 600 }}>{text}</span></>;
                   })()}
+                  {l.proposal?.discount_type && (
+                    <><br /><span style={{ color: 'var(--lime)', fontWeight: 600 }}>
+                      🎁 Réduction {discountLabel(l.proposal.discount_type, l.proposal.discount_value)}{l.proposal.discount_until ? ` jusqu’au ${fmtDate(l.proposal.discount_until)}` : ''}
+                    </span></>
+                  )}
                   {l.message && <><br /><span style={{ color: 'rgba(255,255,255,0.45)', fontStyle: 'italic' }}>« {l.message} »</span></>}
                 </div>
               </div>
@@ -531,6 +643,15 @@ export default function LeadsMariagePage() {
                         }}><CalendarClock size={14} /> Modifier la validité</button>
                       )
                     )}
+                    {l.proposal.status === 'proposee' && (
+                      <button onClick={() => setDiscountFor(l.proposal)} title="Proposer une réduction du moment (email + chrono)" style={{
+                        border: `1px solid ${l.proposal.discount_type ? 'var(--lime)' : 'rgba(255,255,255,0.18)'}`,
+                        background: l.proposal.discount_type ? 'rgba(184,239,11,0.1)' : 'rgba(255,255,255,0.05)',
+                        color: l.proposal.discount_type ? 'var(--lime)' : 'rgba(255,255,255,0.85)',
+                        borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontSize: 13, fontFamily: 'var(--font-display), sans-serif', fontWeight: 700,
+                        display: 'inline-flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap',
+                      }}><Percent size={14} /> {l.proposal.discount_type ? 'Réduction en cours' : 'Proposer une réduction'}</button>
+                    )}
                     {l.proposal.status === 'validee' && !l.proposal.event_id && (
                       <button onClick={() => openEspace(l.proposal.id)} disabled={busy === l.proposal.id} style={{
                         border: 'none', background: '#b8ef0b', color: '#060e16', borderRadius: 8, padding: '9px 16px',
@@ -559,6 +680,10 @@ export default function LeadsMariagePage() {
 
       {newContact && (
         <NewContactForm onClose={() => setNewContact(false)} onDone={() => { setNewContact(false); load(); }} />
+      )}
+
+      {discountFor && (
+        <DiscountModal proposal={discountFor} onClose={() => setDiscountFor(null)} onDone={() => { setDiscountFor(null); load(); }} />
       )}
     </div>
   );

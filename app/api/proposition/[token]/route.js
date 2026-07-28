@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/app/lib/supabase-admin';
 import { ensureAuthUser, setupTempPassword, sendCredentialsEmail } from '@/app/lib/account-access';
 import { installmentsAllowed } from '@/app/lib/devis-validity';
 import { formuleInclusionsText } from '@/app/lib/formules';
+import { discountEuros, discountActive } from '@/app/lib/discount';
 
 const NOTIF_EMAIL = 'contact@myracoustic.com';
 
@@ -22,12 +23,18 @@ export async function GET(_req, { params }) {
   if (!p) return NextResponse.json({ error: 'Proposition introuvable' }, { status: 404 });
 
   const lead = p.mariage_leads || {};
-  const acompte = Math.round(Number(p.total) * 0.6);
-  const solde = Number(p.total) - acompte;
+  // Réduction « du moment » : active seulement jusqu'à discount_until inclus (sinon prix plein).
+  const dActive = discountActive(p.discount_until);
+  const dEuros = dActive ? discountEuros(p.total, p.discount_type, p.discount_value) : 0;
+  const netTotal = Number(p.total) - dEuros;
+  const acompte = Math.round(netTotal * 0.6);
+  const solde = netTotal - acompte;
 
   return NextResponse.json({
     proposal: {
       formule: p.formule, formule_name: p.formule_name, items: p.items, total: Number(p.total),
+      net_total: netTotal,
+      discount: dEuros > 0 ? { amount: dEuros, until: p.discount_until, type: p.discount_type, value: Number(p.discount_value) } : null,
       event_date: p.event_date, venue: p.venue, guests: p.guests, status: p.status,
       valid_until: p.valid_until, acompte, solde,
       installments_allowed: installmentsAllowed(p.event_date),
@@ -78,6 +85,14 @@ export async function POST(request, { params }) {
     description: (it.source === 'formule' || /^Formule /i.test(it.title)) ? formuleDesc : '',
     priceHT: Number(it.price) / 1.2,
   }));
+  // Réduction honorée uniquement si elle est encore active au moment de la validation.
+  // Transmise à Qonto comme remise NATIVE (pourcentage) — surtout pas une ligne négative :
+  // le endpoint Qonto filtre les lignes à prix <= 0. Un % s'applique pareil en HT et TTC,
+  // donc la baisse en euros tombe juste.
+  const dActive = discountActive(p.discount_until);
+  const dEuros = dActive ? discountEuros(p.total, p.discount_type, p.discount_value) : 0;
+  const discountPct = dEuros > 0 ? Number(((dEuros / Number(p.total)) * 100).toFixed(2)) : 0;
+  const netTotal = Number(p.total) - dEuros;
   let quoteId = null, quoteUrl = null;
   try {
     const qRes = await fetch(`${origin}/api/qonto/devis`, {
@@ -88,7 +103,8 @@ export async function POST(request, { params }) {
         client: { type: 'individual', firstName: lead.prenom, lastName: lead.nom, email, phone: lead.tel || '', adresse: adresse.trim(), cp: cp.trim(), ville: ville.trim() },
         event: { type: 'Mariage', date: p.event_date, lieu: p.venue, formule: p.formule },
         items,
-        note: `Formule ${p.formule_name || 'sur-mesure'} · validé en ligne par le client${acompte2x ? ' · DEMANDE acompte en 2 fois' : ''}`,
+        discountPct,
+        note: `Formule ${p.formule_name || 'sur-mesure'} · validé en ligne par le client${dEuros > 0 ? ` · réduction du moment -${dEuros} €` : ''}${acompte2x ? ' · DEMANDE acompte en 2 fois' : ''}`,
       }),
     });
     const qData = await qRes.json();
@@ -122,7 +138,7 @@ export async function POST(request, { params }) {
         to: [{ email: NOTIF_EMAIL }],
         subject: `Devis validé — ${lead.prenom} ${lead.nom} · à envoyer pour signature`,
         htmlContent: `<h2>Proposition validée par le client</h2>
-          <p><strong>${lead.prenom} ${lead.nom}</strong> (${email}) a validé sa proposition (${p.total} € TTC).</p>
+          <p><strong>${lead.prenom} ${lead.nom}</strong> (${email}) a validé sa proposition (${netTotal} € TTC${dEuros > 0 ? ` — réduction du moment de ${dEuros} € appliquée` : ''}).</p>
           <p>${quoteId ? 'Un <strong>brouillon Qonto</strong> a été créé : ouvrez Qonto et envoyez-le pour signature.' : '⚠️ Brouillon Qonto NON créé automatiquement — à faire à la main.'}</p>
           <p>Adresse de facturation : ${adresse}, ${cp} ${ville}</p>
           ${acompte2x ? '<p style="color:#b8860b"><strong>⚠️ Le client demande à régler l\'acompte en 2 fois (sur 2 mois).</strong></p>' : ''}`,

@@ -16,7 +16,7 @@ export async function GET() {
   // Proposition liée (complète, pour l'affichage + la modification)
   const { data: props } = await supabaseAdmin
     .from('devis_proposals')
-    .select('id, lead_id, client_id, status, total, formule, formule_name, items, admin_note, valid_until');
+    .select('id, lead_id, client_id, status, total, formule, formule_name, items, admin_note, valid_until, discount_type, discount_value, discount_until');
   const byLead = {};
   for (const p of props || []) if (p.lead_id) byLead[p.lead_id] = p;
 

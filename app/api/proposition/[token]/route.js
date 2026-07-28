@@ -91,7 +91,7 @@ export async function POST(request, { params }) {
   // donc la baisse en euros tombe juste.
   const dActive = discountActive(p.discount_until);
   const dEuros = dActive ? discountEuros(p.total, p.discount_type, p.discount_value) : 0;
-  const discountPct = dEuros > 0 ? Number(((dEuros / Number(p.total)) * 100).toFixed(2)) : 0;
+  const discountPct = dEuros > 0 ? Number(((dEuros / Number(p.total)) * 100).toFixed(4)) : 0;
   const netTotal = Number(p.total) - dEuros;
   let quoteId = null, quoteUrl = null;
   try {

@@ -9,13 +9,13 @@ import { FORMULES, POLES } from '@/app/lib/formules';
 const fmtPrice = (n) => Number(n).toLocaleString('fr-FR') + ' €';
 const fmtDate = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
 
-// Compte à rebours lisible : « 2 j 04 h 12 min » ou « 04:12:37 » le dernier jour.
+// Compte à rebours lisible, avec les secondes qui défilent toujours (effet d'urgence).
 const fmtCountdown = (ms) => {
   if (ms <= 0) return '';
   const s = Math.floor(ms / 1000);
   const d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
-  if (d > 0) return `${d} j ${String(h).padStart(2, '0')} h ${String(m).padStart(2, '0')} min`;
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+  const p = (n) => String(n).padStart(2, '0');
+  return d > 0 ? `${d} j ${p(h)} h ${p(m)} min ${p(sec)} s` : `${p(h)}:${p(m)}:${p(sec)}`;
 };
 
 const input = {
@@ -153,12 +153,12 @@ export default function PropositionTokenClient({ token }) {
       {discountLive && (
         <div style={{ background: 'linear-gradient(135deg, rgba(184,239,11,0.14), rgba(184,239,11,0.06))', border: '1px solid rgba(184,239,11,0.35)', borderRadius: 12, padding: '14px 18px', margin: '0 0 24px', textAlign: 'center' }}>
           <div style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.85)', marginBottom: 6 }}>
-            🎁 Réduction du moment&nbsp;: <strong style={{ color: 'var(--lime)' }}>{disc.type === 'percent' ? `−${disc.value} %` : `−${fmtPrice(disc.amount)}`}</strong>
+            🎁 Notre cadeau pour votre mariage&nbsp;: <strong style={{ color: 'var(--lime)' }}>{disc.type === 'percent' ? `−${disc.value} %` : `−${fmtPrice(disc.amount)}`}</strong>
           </div>
           <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 800, fontSize: 22, color: '#fff', letterSpacing: '0.02em' }}>
             {fmtCountdown(discEndMs - nowMs)}
           </div>
-          <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>avant la fin de votre réduction</div>
+          <div style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>pour en profiter</div>
         </div>
       )}
 
@@ -201,7 +201,7 @@ export default function PropositionTokenClient({ token }) {
         )}
         {discountLive && (
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, fontSize: 14, padding: '6px 0 0', color: 'var(--lime)' }}>
-            <span style={{ fontWeight: 600 }}>🎁 Réduction du moment</span>
+            <span style={{ fontWeight: 600 }}>🎁 Notre cadeau pour votre mariage</span>
             <span style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>−{fmtPrice(disc.amount)}</span>
           </div>
         )}

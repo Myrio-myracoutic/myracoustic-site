@@ -23,7 +23,7 @@ async function sendDiscountEmail(toEmail, firstName, token, label, newTotal, unt
   </td></tr>
   <tr><td style="padding:40px 40px 32px;">
     <p style="color:rgba(255,255,255,0.6);font-size:15px;margin:0 0 16px;">Bonjour ${firstName},</p>
-    <p style="color:rgba(255,255,255,0.85);font-size:15px;line-height:1.7;margin:0 0 20px;">Votre projet nous tient à cœur. Pour vous accompagner, nous avons le plaisir de vous offrir une <strong style="color:#b8ef0b;">attention particulière</strong> sur votre proposition&nbsp;:</p>
+    <p style="color:rgba(255,255,255,0.85);font-size:15px;line-height:1.7;margin:0 0 20px;">Votre projet nous tient à cœur. Pour vous accompagner, nous avons le plaisir de vous offrir un <strong style="color:#b8ef0b;">cadeau pour votre mariage</strong>&nbsp;:</p>
     <table cellpadding="0" cellspacing="0" style="margin:0 auto 20px;"><tr><td style="background:rgba(184,239,11,0.1);border:1px solid rgba(184,239,11,0.3);border-radius:10px;padding:16px 28px;text-align:center;">
       <div style="color:#b8ef0b;font-size:22px;font-weight:800;">${label}</div>
       <div style="color:rgba(255,255,255,0.85);font-size:15px;margin-top:4px;">votre proposition passe à <strong>${fmtPrice(newTotal)}</strong></div>
@@ -45,7 +45,7 @@ async function sendDiscountEmail(toEmail, firstName, token, label, newTotal, unt
       sender: { name: 'Myracoustic', email: SENDER_EMAIL },
       to: [{ email: toEmail, name: firstName }],
       replyTo: { email: SENDER_EMAIL, name: 'Myracoustic' },
-      subject: `${firstName}, une attention particulière sur votre mariage`,
+      subject: `${firstName}, un cadeau pour votre mariage 🤍`,
       htmlContent: html,
     }),
   });

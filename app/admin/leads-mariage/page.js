@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Minus, Trash2, X, FileText, Check, Loader2, Heart, Mail } from 'lucide-react';
+import { Plus, Minus, Trash2, X, FileText, Check, Loader2, Heart, Mail, CalendarClock } from 'lucide-react';
 import { FORMULES, POLES, EXTRA_HOUR_PRICE, fmtPrice } from '@/app/lib/formules';
 import { getTransportFee, getRoadKm, TECH_PRICE } from '@/app/lib/transport';
 import { geocodeAddress } from '@/app/lib/geocode';
@@ -370,6 +370,8 @@ export default function LeadsMariagePage() {
   const [builder, setBuilder] = useState(null); // { lead, proposal? }
   const [busy, setBusy] = useState(null);
   const [newContact, setNewContact] = useState(false);
+  const [validityEdit, setValidityEdit] = useState(null); // { id, value }
+  const todayStr = new Date().toISOString().slice(0, 10);
 
   const load = () => {
     setLoading(true);
@@ -388,6 +390,20 @@ export default function LeadsMariagePage() {
     });
     setBusy(null);
     if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || 'Erreur'); return; }
+    load();
+  };
+
+  const saveValidity = async (proposalId) => {
+    const value = validityEdit?.value;
+    if (!value) return;
+    setBusy('val-' + proposalId);
+    const res = await fetch('/api/admin/devis-proposal', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ proposalId, validUntil: value }),
+    });
+    setBusy(null);
+    if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || 'Erreur'); return; }
+    setValidityEdit(null);
     load();
   };
 
@@ -433,8 +449,21 @@ export default function LeadsMariagePage() {
         <p style={{ color: 'rgba(255,255,255,0.5)' }}>Aucun lead pour le moment.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {leads.map(l => (
-            <div key={l.id} style={{ ...card, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
+          {leads.map(l => {
+            const vu = l.proposal?.valid_until;
+            let daysUntil = null;
+            if (vu) {
+              const today = new Date(); today.setHours(0, 0, 0, 0);
+              const vuDate = new Date(vu + 'T00:00:00');
+              daysUntil = Math.round((vuDate - today) / 86400000);
+            }
+            // Proposition en attente qui expire aujourd'hui/demain (ou déjà expirée) → fiche orange « à relancer d'urgence »
+            const needsAction = l.proposal?.status === 'proposee' && daysUntil !== null && daysUntil <= 1;
+            return (
+            <div key={l.id} style={{ ...card,
+              border: needsAction ? '1px solid rgba(245,158,11,0.5)' : card.border,
+              background: needsAction ? 'rgba(245,158,11,0.07)' : card.background,
+              display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6, flexWrap: 'wrap' }}>
                   <span style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 16, color: '#fff' }}>{l.prenom} {l.nom}</span>
@@ -445,11 +474,16 @@ export default function LeadsMariagePage() {
                 <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', lineHeight: 1.7 }}>
                   📞 {l.tel} · ✉️ {l.email}<br />
                   📅 {fmtDate(l.event_date)} · 👥 {l.guests || '?'} pers. · 📍 {l.lieu || '—'}
-                  {l.proposal?.valid_until && (
-                    <><br /><span style={{ color: new Date(l.proposal.valid_until + 'T23:59:59') < new Date() ? '#f59e0b' : 'rgba(184,239,11,0.75)', fontWeight: 600 }}>
-                      {new Date(l.proposal.valid_until + 'T23:59:59') < new Date() ? '⚠️ Devis expiré le ' : '🗓️ Devis valable jusqu’au '}{fmtDate(l.proposal.valid_until)}
-                    </span></>
-                  )}
+                  {vu && (() => {
+                    const prop = l.proposal.status === 'proposee';
+                    let color = 'rgba(184,239,11,0.75)', text;
+                    if (prop && daysUntil < 0) { color = '#f59e0b'; text = '⚠️ Devis expiré le ' + fmtDate(vu); }
+                    else if (prop && daysUntil === 0) { color = '#f59e0b'; text = '⏰ Devis expire aujourd’hui — à relancer d’urgence'; }
+                    else if (prop && daysUntil === 1) { color = '#f59e0b'; text = '⏰ Devis expire demain — à relancer d’urgence'; }
+                    else if (daysUntil < 0) { color = 'rgba(255,255,255,0.4)'; text = 'Devis expiré le ' + fmtDate(vu); }
+                    else { text = '🗓️ Devis valable jusqu’au ' + fmtDate(vu); }
+                    return <><br /><span style={{ color, fontWeight: 600 }}>{text}</span></>;
+                  })()}
                   {l.message && <><br /><span style={{ color: 'rgba(255,255,255,0.45)', fontStyle: 'italic' }}>« {l.message} »</span></>}
                 </div>
               </div>
@@ -476,6 +510,27 @@ export default function LeadsMariagePage() {
                         whiteSpace: 'nowrap', opacity: busy === 'rem-' + l.proposal.id ? 0.6 : 1,
                       }}><Mail size={14} /> Relancer par email</button>
                     )}
+                    {l.proposal.status === 'proposee' && (
+                      validityEdit?.id === l.proposal.id ? (
+                        <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                          <input type="date" value={validityEdit.value} min={todayStr}
+                            onChange={e => setValidityEdit({ id: l.proposal.id, value: e.target.value })}
+                            style={{ ...inp, padding: '6px 8px', fontSize: 12.5 }} />
+                          <button onClick={() => saveValidity(l.proposal.id)} disabled={busy === 'val-' + l.proposal.id} style={{
+                            border: 'none', background: '#b8ef0b', color: '#060e16', borderRadius: 7, padding: '7px 13px',
+                            cursor: busy === 'val-' + l.proposal.id ? 'wait' : 'pointer', fontSize: 12.5,
+                            fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, opacity: busy === 'val-' + l.proposal.id ? 0.6 : 1,
+                          }}>OK</button>
+                          <button onClick={() => setValidityEdit(null)} title="Annuler" style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: 4 }}><X size={16} /></button>
+                        </div>
+                      ) : (
+                        <button onClick={() => setValidityEdit({ id: l.proposal.id, value: l.proposal.valid_until || todayStr })} title="Repousser la date de validité (le client attend des retours)" style={{
+                          border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.85)',
+                          borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontSize: 13, fontFamily: 'var(--font-display), sans-serif', fontWeight: 700,
+                          display: 'inline-flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap',
+                        }}><CalendarClock size={14} /> Modifier la validité</button>
+                      )
+                    )}
                     {l.proposal.status === 'validee' && !l.proposal.event_id && (
                       <button onClick={() => openEspace(l.proposal.id)} disabled={busy === l.proposal.id} style={{
                         border: 'none', background: '#b8ef0b', color: '#060e16', borderRadius: 8, padding: '9px 16px',
@@ -493,7 +548,8 @@ export default function LeadsMariagePage() {
                 }}><Trash2 size={13} /> Supprimer</button>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

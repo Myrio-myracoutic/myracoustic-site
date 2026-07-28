@@ -48,6 +48,26 @@ async function sendProposalLink(toEmail, firstName, token, validUntilDate, isUpd
   });
 }
 
+// PATCH /api/admin/devis-proposal — repousser seulement la date de validité (le client attend des retours,
+// ça ne veut pas dire qu'il refuse). Aucun email envoyé, le devis n'est pas régénéré.
+export async function PATCH(request) {
+  if (!(await verifyAdminCookie())) {
+    return Response.json({ error: 'Non autorisé' }, { status: 401 });
+  }
+  const { proposalId, validUntil: newValidUntil } = await request.json();
+  if (!proposalId || !newValidUntil || !/^\d{4}-\d{2}-\d{2}$/.test(newValidUntil)) {
+    return Response.json({ error: 'Données manquantes' }, { status: 400 });
+  }
+  const today = new Date().toISOString().slice(0, 10);
+  if (newValidUntil < today) {
+    return Response.json({ error: 'La date doit être aujourd’hui ou plus tard.' }, { status: 400 });
+  }
+  const { error } = await supabaseAdmin
+    .from('devis_proposals').update({ valid_until: newValidUntil }).eq('id', proposalId);
+  if (error) return Response.json({ error: 'Modification échouée : ' + error.message }, { status: 500 });
+  return Response.json({ ok: true });
+}
+
 // POST /api/admin/devis-proposal — créer OU modifier une proposition (lien par token, pas de compte)
 export async function POST(request) {
   if (!(await verifyAdminCookie())) {

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-export default function TestimonialCard({ name, event, stars, text }) {
+export default function TestimonialCard({ name, event, stars, text, source, date }) {
   const [hov, setHov] = useState(false);
   return (
     <div
@@ -43,6 +43,13 @@ export default function TestimonialCard({ name, event, stars, text }) {
           <div style={{ color: 'rgba(255,255,255,0.38)', fontSize: 12, marginTop: 2 }}>
             {event}
           </div>
+          {(source || date) && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 3 }}>
+              {source && <span>Avis <span style={{ color: 'rgba(255,255,255,0.55)', fontWeight: 600 }}>{source}</span></span>}
+              {source && date && <span>·</span>}
+              {date && <span>{date}</span>}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -149,15 +149,15 @@ const INCLUDES = [
 ];
 
 const TESTIMONIALS = [
-  { name: 'Elsa', event: "Mariage d'Alexis & Ozanne", stars: 5,
+  { name: 'Elsa', event: "Mariage d'Alexis & Ozanne", stars: 5, source: 'Google', date: 'Juillet 2026',
     text: "Myrio est un dj exceptionnel, il s'adapte parfaitement à son public et est bienveillant. Nous sommes ravis de notre mariage! Merci Myrio !!!!" },
-  { name: 'Virginie.G',  event: 'Anniversaire · 90 personnes', stars: 5,
+  { name: 'Virginie.G',  event: 'Anniversaire · 90 personnes', stars: 5, source: 'Bark',
     text: "J'ai fais appel à Myracoustic pour un anniversaire et nous avions été très satisfait de sa prestation. Personne a l'écoute, ambiance au top. Je recommande++++" },
-  { name: 'Treecy et Jerry', event: 'Mariage', stars: 5,
+  { name: 'Treecy et Jerry', event: 'Mariage', stars: 5, source: 'Google', date: 'Mai 2026',
     text: "C'est un dj très professionnel, compréhensif et qui s'adapte à toutes situations. Le rapport qualité prix est au top. Je recommande fortement. Amusement garantie." },
-  { name: 'Sandra et Stéphanie', event: 'Mariage', stars: 5,
+  { name: 'Sandra et Stéphanie', event: 'Mariage', stars: 5, source: 'mariages.net',
     text: "Myrio a été à l'écoute de nos envies, on a tout calé ensemble. Ces propositions ont été pertinentes. Nous l'avions déjà vu comme dj dans des soirées repas d'entreprise et comme nous l'avions apprécié nous l'avons contacté pour notre mariage. Il est en plus super bien équipé en matériel du coup ça facilite pour faire des animations tout au long de la soirée." },
-  { name: 'Patricia.A', event: 'Anniversaire intergénérationnel', stars: 5,
+  { name: 'Patricia.A', event: 'Anniversaire intergénérationnel', stars: 5, source: 'Google', date: 'Mai 2026',
     text: "Une soirée comme on en rêve pour réunir plusieurs générations : tout le monde a dansé, des plus jeunes aux plus grands. Merci à Myrio pour cette ambiance chaleureuse du début à la fin !" },
 ];
 

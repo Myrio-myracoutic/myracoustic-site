@@ -11,6 +11,8 @@ import { gtagEvent, gtagBeacon, gtagSetUserData } from '@/app/lib/gtag';
 
 /* Avis mariage — mêmes témoignages que la page /mariage */
 const TESTIMONIALS = [
+  { name: 'Elsa', event: "Mariage d'Alexis & Ozanne", stars: 5,
+    text: "Myrio est un dj exceptionnel, il s'adapte parfaitement à son public et est bienveillant. Nous sommes ravis de notre mariage! Merci Myrio !!!!" },
   { name: 'Carine et Sébastien', event: 'Mariage', stars: 5,
     text: "Un immense merci à Myrio et sa femme Virginie qui nous ont clairement sauvé notre mariage. 2 semaines avant notre DJ initial nous a informé qu'il ne s'assurerait pas la prestation (pour des raisons de santé) et Myrio a été incroyable et rassurant. 2 semaines pour se caler avec nous et l'animation a été parfaite. Nous n'aurions pas pu espérer mieux. Vous voulez un évènement réussi en terme d'animation, Travaillez avec Myrio!" },
   { name: 'Treecy et Jerry', event: 'Mariage', stars: 5,

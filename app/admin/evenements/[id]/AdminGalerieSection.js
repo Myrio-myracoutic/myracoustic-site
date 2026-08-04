@@ -1,10 +1,9 @@
 'use client';
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { Camera, Eye, EyeOff, Upload, Trash2, Loader, ChevronDown, ChevronUp, Video, Check } from 'lucide-react';
+import { Camera, Upload, Trash2, Loader, ChevronDown, ChevronUp, Video, Check } from 'lucide-react';
 
 export default function AdminGalerieSection({ eventId }) {
   const [photos,    setPhotos]    = useState([]);
-  const [published, setPublished] = useState(false);
   const [loading,   setLoading]   = useState(true);
   const [open,      setOpen]      = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -23,7 +22,6 @@ export default function AdminGalerieSection({ eventId }) {
     const gallery = await galleryRes.json();
     const event   = await eventRes.json();
     setPhotos(gallery.photos || []);
-    setPublished(!!gallery.published);
     setDriveVideoUrl(event.drive_video_url || '');
     setSavedVideoUrl(event.drive_video_url || '');
     setLoading(false);
@@ -43,15 +41,6 @@ export default function AdminGalerieSection({ eventId }) {
     if (fileRef.current) fileRef.current.value = '';
     if (data.errors?.length) alert('Certains fichiers ont échoué :\n' + data.errors.join('\n'));
     load();
-  };
-
-  const togglePublish = async () => {
-    const next = !published;
-    setPublished(next);
-    await fetch(`/api/admin/events/${eventId}/gallery`, {
-      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ published: next }),
-    });
   };
 
   const remove = async (photoId) => {
@@ -82,7 +71,6 @@ export default function AdminGalerieSection({ eventId }) {
           <Camera size={15} color="#b8ef0b" />
           <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>Galerie &amp; vidéos</h2>
           <span style={{ fontSize: 10, background: 'rgba(184,239,11,0.12)', color: '#b8ef0b', border: '1px solid rgba(184,239,11,0.25)', borderRadius: 10, padding: '1px 7px', fontWeight: 700 }}>{photos.length}</span>
-          {published && <span style={{ fontSize: 10, background: 'rgba(34,197,94,0.12)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.25)', borderRadius: 10, padding: '1px 7px', fontWeight: 700 }}>Publiée</span>}
           {savedVideoUrl && <span style={{ fontSize: 10, background: 'rgba(184,239,11,0.12)', color: '#b8ef0b', border: '1px solid rgba(184,239,11,0.25)', borderRadius: 10, padding: '1px 7px', fontWeight: 700 }}>Vidéo liée</span>}
         </div>
         {open ? <ChevronUp size={15} color="rgba(255,255,255,0.3)" /> : <ChevronDown size={15} color="rgba(255,255,255,0.3)" />}
@@ -122,10 +110,6 @@ export default function AdminGalerieSection({ eventId }) {
               {uploading ? 'Envoi…' : 'Ajouter des photos'}
             </button>
             <input ref={fileRef} type="file" accept="image/*" multiple onChange={onFiles} style={{ display: 'none' }} />
-            <button onClick={togglePublish} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: published ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.05)', border: `1px solid ${published ? 'rgba(34,197,94,0.3)' : 'rgba(255,255,255,0.1)'}`, borderRadius: 8, padding: '8px 14px', cursor: 'pointer', color: published ? '#22c55e' : 'rgba(255,255,255,0.4)', fontSize: 12, fontWeight: 600, fontFamily: 'var(--font-display), sans-serif' }}>
-              {published ? <Eye size={14} /> : <EyeOff size={14} />}
-              {published ? 'Visible (couple + invités)' : 'Masquée'}
-            </button>
           </div>
 
           {photos.length === 0 ? (
@@ -144,7 +128,7 @@ export default function AdminGalerieSection({ eventId }) {
           )}
 
           <p style={{ marginTop: 14, fontSize: 11, color: 'rgba(255,255,255,0.3)', lineHeight: 1.6 }}>
-            Téléversez les photos puis activez « Visible » pour les partager avec le couple et ses invités. Astuce : compressez en HD web pour limiter le stockage.
+            Les photos sont visibles immédiatement dans l'espace client, dès leur ajout. Astuce : compressez en HD web pour limiter le stockage.
           </p>
         </div>
       )}

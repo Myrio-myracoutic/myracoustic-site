@@ -12,17 +12,13 @@ function extOf(name = '', type = '') {
   return (type.split('/')[1] || 'jpg').toLowerCase();
 }
 
-// GET — liste des photos (URLs signées) + état de publication
+// GET — liste des photos (URLs signées), visibles dès qu'elles existent
 export async function GET(req, { params }) {
   if (!(await verifyAdminCookie())) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
   const { id } = await params;
 
-  const [{ data: ev }, photos] = await Promise.all([
-    supabaseAdmin.from('events').select('gallery_published').eq('id', id).single(),
-    getEventGallery(id),
-  ]);
-
-  return NextResponse.json({ photos, published: !!ev?.gallery_published });
+  const photos = await getEventGallery(id);
+  return NextResponse.json({ photos, published: photos.length > 0 });
 }
 
 // POST — téléverser une ou plusieurs photos
@@ -59,20 +55,6 @@ export async function POST(req, { params }) {
   }
 
   return NextResponse.json({ ok: true, uploaded, errors });
-}
-
-// PATCH — publier / dépublier la galerie
-export async function PATCH(req, { params }) {
-  if (!(await verifyAdminCookie())) return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
-  const { id } = await params;
-  const { published } = await req.json();
-
-  const { error } = await supabaseAdmin
-    .from('events')
-    .update({ gallery_published: !!published })
-    .eq('id', id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ ok: true, published: !!published });
 }
 
 // DELETE — supprimer une photo (?photoId=...)

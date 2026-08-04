@@ -1,5 +1,6 @@
 import { verifyAdminCookie } from '@/app/lib/admin-auth';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
+import { getCalendarClient, getCalendarId } from '@/lib/google-calendar';
 
 // GET /api/admin/mariage-leads — leads du formulaire de contact mariage
 export async function GET() {
@@ -9,7 +10,7 @@ export async function GET() {
 
   const { data: leads, error } = await supabaseAdmin
     .from('mariage_leads')
-    .select('id, created_at, prenom, nom, tel, email, event_date, guests, lieu, message, status, client_id')
+    .select('id, created_at, prenom, nom, tel, email, event_date, guests, lieu, message, status, client_id, call_scheduled_at, call_google_event_id, call_cancelled_at')
     .order('created_at', { ascending: false });
   if (error) return Response.json({ error: error.message }, { status: 500 });
 
@@ -57,6 +58,39 @@ export async function POST(request) {
   });
   if (error) return Response.json({ error: error.message }, { status: 500 });
   return Response.json({ ok: true });
+}
+
+// PATCH /api/admin/mariage-leads — actions ponctuelles sur un lead (pour l'instant : annuler un appel réservé)
+export async function PATCH(request) {
+  if (!(await verifyAdminCookie())) {
+    return Response.json({ error: 'Non autorisé' }, { status: 401 });
+  }
+  const { id, cancelCall } = await request.json();
+  if (!id) return Response.json({ error: 'id manquant' }, { status: 400 });
+
+  if (cancelCall) {
+    const { data: lead } = await supabaseAdmin
+      .from('mariage_leads').select('call_google_event_id').eq('id', id).maybeSingle();
+
+    if (lead?.call_google_event_id) {
+      try {
+        const calendar = getCalendarClient();
+        await calendar.events.delete({ calendarId: getCalendarId(), eventId: lead.call_google_event_id });
+      } catch (err) {
+        // Tolère "déjà supprimé" (404/410) — on efface quand même côté base.
+        console.error('Calendar delete error:', err.message);
+      }
+    }
+
+    const { error } = await supabaseAdmin
+      .from('mariage_leads')
+      .update({ call_cancelled_at: new Date().toISOString() })
+      .eq('id', id);
+    if (error) return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ ok: true });
+  }
+
+  return Response.json({ error: 'Action inconnue' }, { status: 400 });
 }
 
 // DELETE /api/admin/mariage-leads — supprimer un lead

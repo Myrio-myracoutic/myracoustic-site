@@ -524,6 +524,22 @@ export default function LeadsMariagePage() {
     alert('Relance envoyée par email au client.');
   };
 
+  const cancelCall = async (leadId) => {
+    if (!confirm('Annuler ce rendez-vous téléphonique ?')) return;
+    setBusy('cancel-' + leadId);
+    const res = await fetch('/api/admin/mariage-leads', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: leadId, cancelCall: true }),
+    });
+    setBusy(null);
+    if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || 'Erreur'); return; }
+    load();
+  };
+
+  const fmtCallDateTime = (iso) => {
+    if (!iso) return '';
+    return new Date(iso).toLocaleString('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+  };
+
   const deleteLead = async (l) => {
     const warn = l.proposal
       ? `Supprimer le contact ${l.prenom} ${l.nom} ?\n\nUn devis est lié à ce contact : il ne sera pas supprimé, mais disparaîtra de cette liste.`
@@ -596,10 +612,23 @@ export default function LeadsMariagePage() {
                       🎁 Réduction {discountLabel(l.proposal.discount_type, l.proposal.discount_value)}{l.proposal.discount_until ? ` jusqu’au ${fmtDate(l.proposal.discount_until)}` : ''}
                     </span></>
                   )}
+                  {l.call_scheduled_at && !l.call_cancelled_at && (
+                    <><br /><span style={{ color: 'var(--lime)', fontWeight: 600 }}>
+                      📞 Appel prévu le {fmtCallDateTime(l.call_scheduled_at)}
+                    </span></>
+                  )}
                   {l.message && <><br /><span style={{ color: 'rgba(255,255,255,0.45)', fontStyle: 'italic' }}>« {l.message} »</span></>}
                 </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
+                {l.call_scheduled_at && !l.call_cancelled_at && (
+                  <button onClick={() => cancelCall(l.id)} disabled={busy === 'cancel-' + l.id} title="Annuler le rendez-vous téléphonique" style={{
+                    border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)', color: '#ef4444',
+                    borderRadius: 8, padding: '8px 16px', cursor: busy === 'cancel-' + l.id ? 'wait' : 'pointer', fontSize: 13,
+                    fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, whiteSpace: 'nowrap',
+                    opacity: busy === 'cancel-' + l.id ? 0.6 : 1,
+                  }}>Annuler le rendez-vous</button>
+                )}
                 {!l.proposal && (
                   <button onClick={() => setBuilder({ lead: l })} style={{
                     border: 'none', background: '#b8ef0b', color: '#060e16', borderRadius: 8, padding: '10px 18px',

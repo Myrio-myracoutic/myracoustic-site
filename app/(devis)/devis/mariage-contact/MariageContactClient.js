@@ -7,6 +7,7 @@ import { ArrowLeft, CheckCircle2, Loader2, ShieldCheck, Phone, Clock, CalendarX,
 import MiniCal from '@/app/components/MiniCal';
 import AddressAutocomplete from '@/app/components/AddressAutocomplete';
 import TestimonialCarousel from '@/app/components/TestimonialCarousel';
+import CallSlotPicker from './CallSlotPicker';
 import { gtagEvent, gtagBeacon, gtagSetUserData } from '@/app/lib/gtag';
 
 /* Avis mariage — mêmes témoignages que la page /mariage */
@@ -40,7 +41,9 @@ export default function MariageContactClient() {
   const [lieu, setLieu] = useState('');
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
-  const [done, setDone] = useState(false);
+  const [step, setStep] = useState('form'); // 'form' | 'slot' | 'done'
+  const [leadId, setLeadId] = useState(null);
+  const [confirmedSlot, setConfirmedSlot] = useState(null); // { date, time }
   const [error, setError] = useState('');
   const [bookedDates, setBookedDates] = useState(new Set());
   const [pendingDates, setPendingDates] = useState({});
@@ -106,10 +109,18 @@ export default function MariageContactClient() {
         setError("Un problème technique nous empêche d'enregistrer votre demande. Réessayez, ou appelez-nous au 07 68 53 33 08.");
         return;
       }
+      const data = await res.json().catch(() => ({}));
       submittedRef.current = true;
       gtagSetUserData({ email, phone, firstName, lastName });
       gtagEvent('generate_lead', { profil: 'mariage', method: 'formulaire_contact' });
-      setDone(true);
+      if (data.leadId) {
+        setLeadId(data.leadId);
+        setStep('slot');
+      } else {
+        // Pas d'id (insertion du lead a échoué côté serveur) : pas de créneau possible,
+        // message générique "sous 24h" comme avant.
+        setStep('done');
+      }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch {
       setSending(false);
@@ -131,7 +142,16 @@ export default function MariageContactClient() {
         <Image src="/logo.png" alt="Myracoustic" width={110} height={37} style={{ height: 34, width: 'auto' }} priority />
       </div>
 
-      {done ? (
+      {step === 'slot' ? (
+        <div style={{ maxWidth: 620, margin: '0 auto', padding: '56px 20px 70px' }}>
+          <CallSlotPicker
+            leadId={leadId}
+            firstName={firstName}
+            onBooked={(slot) => { setConfirmedSlot(slot); setStep('done'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            onFallback={() => { setStep('done'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+          />
+        </div>
+      ) : step === 'done' ? (
         <div style={{ maxWidth: 620, margin: '0 auto', padding: '64px 20px 70px' }}>
           <div style={{ maxWidth: 480, margin: '0 auto', textAlign: 'center' }}>
             <CheckCircle2 size={54} color="var(--lime)" style={{ margin: '0 auto 20px' }} />
@@ -139,7 +159,9 @@ export default function MariageContactClient() {
               Merci {firstName} !
             </h1>
             <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 15.5, lineHeight: 1.75, marginBottom: 28 }}>
-              Votre demande est bien enregistrée. <strong style={{ color: '#fff' }}>Un conseiller vous rappelle sous 24h</strong> (jours ouvrés) pour échanger sur votre mariage et construire ensemble la formule qui vous ressemble.
+              {confirmedSlot
+                ? <>Votre demande est bien enregistrée. <strong style={{ color: '#fff' }}>Nous vous appelons le {fmtDateFr(confirmedSlot.date)} à {confirmedSlot.time}</strong> pour échanger sur votre mariage et construire ensemble la formule qui vous ressemble.</>
+                : <>Votre demande est bien enregistrée. <strong style={{ color: '#fff' }}>Un conseiller vous rappelle sous 24h</strong> (jours ouvrés) pour échanger sur votre mariage et construire ensemble la formule qui vous ressemble.</>}
             </p>
             <Link href="/mariage" className="btn-secondary">Retour à l'accueil mariage</Link>
           </div>

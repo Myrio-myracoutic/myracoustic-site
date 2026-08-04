@@ -31,8 +31,11 @@ export async function POST(request) {
   }
 
   // 1. Enregistrer le lead (côté serveur, service role)
+  // leadId permet au front d'enchaîner sur la réservation d'un créneau d'appel ;
+  // reste null si l'insertion échoue (le front saute alors cette étape).
+  let leadId = null;
   try {
-    await supabaseAdmin.from('mariage_leads').insert({
+    const { data: inserted } = await supabaseAdmin.from('mariage_leads').insert({
       prenom: prenom.trim(),
       nom: nom.trim(),
       tel: tel.trim(),
@@ -41,7 +44,8 @@ export async function POST(request) {
       guests: guests ? parseInt(guests, 10) || null : null,
       lieu: lieu?.trim() || null,
       message: message?.trim() || null,
-    });
+    }).select('id').single();
+    leadId = inserted?.id || null;
   } catch (err) {
     console.error('Lead insert error:', err.message);
     // On continue quand même : la notification email est prioritaire pour ne pas perdre le lead.
@@ -96,5 +100,5 @@ export async function POST(request) {
     console.error('Brevo confirm error:', err.message);
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, leadId });
 }

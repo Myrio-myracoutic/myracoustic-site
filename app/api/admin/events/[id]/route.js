@@ -200,6 +200,7 @@ export async function PATCH(req, { params }) {
   if (body.venue            !== undefined) updates.venue            = body.venue;
   if (body.venue_cp         !== undefined) updates.venue_cp         = body.venue_cp;
   if (body.venue_city       !== undefined) updates.venue_city       = body.venue_city;
+  if (body.drive_video_url  !== undefined) updates.drive_video_url  = body.drive_video_url || null;
 
   const { data, error } = await supabaseAdmin
     .from('events')

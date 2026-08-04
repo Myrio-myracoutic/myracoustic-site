@@ -57,6 +57,7 @@ export default function AdminDevisDetail() {
   const [venueCP,      setVenueCP]     = useState('');
   const [venueCity,    setVenueCity]   = useState('');
   const [formule,      setFormule]     = useState('');
+  const [driveVideoUrl, setDriveVideoUrl] = useState('');
   const [saving,       setSaving]      = useState(false);
   const [saved,        setSaved]       = useState(false);
   const [previewing,   setPreviewing]  = useState(false);
@@ -76,6 +77,7 @@ export default function AdminDevisDetail() {
         setVenueCP(data.venue_cp || '');
         setVenueCity(data.venue_city || '');
         setFormule(data.formule || '');
+        setDriveVideoUrl(data.drive_video_url || '');
         setLoading(false);
       }
     });
@@ -106,7 +108,7 @@ export default function AdminDevisDetail() {
     const res = await fetch(`/api/admin/events/${params.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status, admin_notes: notes, client_message: clientMessage, event_type: eventType || null, event_date: eventDate || null, venue: venue || null, venue_cp: venueCP || null, venue_city: venueCity || null, formule: formule || null }),
+      body: JSON.stringify({ status, admin_notes: notes, client_message: clientMessage, event_type: eventType || null, event_date: eventDate || null, venue: venue || null, venue_cp: venueCP || null, venue_city: venueCity || null, formule: formule || null, drive_video_url: driveVideoUrl || null }),
     });
     if (res.ok) { setEv(await res.json()); setSaved(true); setTimeout(() => setSaved(false), 3000); }
     setSaving(false);
@@ -234,6 +236,16 @@ export default function AdminDevisDetail() {
               {ev.guests} personnes
             </div>
           )}
+          {/* Vidéos (Google Drive) */}
+          <div>
+            <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', display: 'block', marginBottom: 5 }}>VIDÉOS (LIEN GOOGLE DRIVE)</label>
+            <input value={driveVideoUrl} onChange={e => setDriveVideoUrl(e.target.value)} placeholder="https://drive.google.com/drive/folders/…"
+              style={{ width: '100%', boxSizing: 'border-box', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 7, padding: '8px 12px', color: '#fff', fontSize: 13, fontFamily: 'inherit', outline: 'none' }}
+            />
+            <p style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.3)', marginTop: 5, lineHeight: 1.5 }}>
+              Partagez le dossier Drive (« Tous les utilisateurs disposant du lien »), puis collez le lien ici. Un bouton apparaîtra dans l'espace client.
+            </p>
+          </div>
         </div>
       </Card>
 

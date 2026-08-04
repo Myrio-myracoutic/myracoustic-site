@@ -121,6 +121,8 @@ export default function AdminDevisDetail() {
 
   const c = ev.clients;
   const st = STATUSES[status] || STATUSES.devis_envoye;
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const eventIsPast = ev.event_date && ev.event_date <= todayStr;
 
   return (
     <div style={{ padding: '36px 36px 60px', maxWidth: 980, margin: '0 auto' }}>
@@ -247,18 +249,21 @@ export default function AdminDevisDetail() {
                 </button>
               ))}
             </div>
-            {ev.status === 'termine' && (
+            {eventIsPast && ev.status !== 'annule' && (
               <div style={{ marginTop: 14, padding: '12px 14px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 9 }}>
-                <button onClick={handleResendAvis} disabled={resendingAvis} title="Renvoyer l'email « merci + avis »" style={{
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>
+                  Demande d'avis <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>· automatique 1 jour après l'événement</span>
+                </div>
+                <button onClick={handleResendAvis} disabled={resendingAvis} title="Envoyer ou renvoyer la demande d'avis" style={{
                   border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.85)',
                   borderRadius: 8, padding: '8px 16px', cursor: resendingAvis ? 'wait' : 'pointer', fontSize: 13,
                   fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 7,
                   whiteSpace: 'nowrap', opacity: resendingAvis ? 0.6 : 1,
-                }}><Mail size={14} /> {resendingAvis ? 'Envoi…' : 'Renvoyer l\'email d\'avis'}</button>
+                }}><Mail size={14} /> {resendingAvis ? 'Envoi…' : (ev.avis_email_sent_at ? "Renvoyer la demande d'avis" : "Envoyer la demande d'avis maintenant")}</button>
                 <div style={{ marginTop: 10, fontSize: 12, color: 'rgba(255,255,255,0.4)', lineHeight: 1.7 }}>
                   {ev.avis_email_sent_at
                     ? <>Envoyé le {fmtDateTime(ev.avis_email_sent_at)}</>
-                    : <>Pas encore envoyé</>}
+                    : <>Pas encore envoyé — partira automatiquement demain matin si rien n'est fait</>}
                   {ev.avis_google_clicked_at && <><br />✓ Avis Google cliqué le {fmtDateTime(ev.avis_google_clicked_at)}</>}
                   {ev.avis_mariagenet_clicked_at && <><br />✓ Avis Mariages.net cliqué le {fmtDateTime(ev.avis_mariagenet_clicked_at)}</>}
                   {ev.avis_email_sent_at && !ev.avis_google_clicked_at && !ev.avis_mariagenet_clicked_at && <><br />Aucun clic enregistré pour l'instant</>}

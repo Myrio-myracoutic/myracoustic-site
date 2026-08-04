@@ -1,7 +1,9 @@
-/* Email "merci + avis" envoyé au passage du statut événement à 'termine'.
-   Utilisé par le changement de statut (automatique) et par le bouton admin (relance manuelle).
-   Simplifié le 2026-08-04 : un seul CTA d'avis (Google), Mariages.net en lien discret,
-   invitation à recommander ajoutée, liens d'avis trackés via /api/track/avis. */
+/* Email de demande d'avis, indépendant de la galerie et du statut de l'événement.
+   Envoyé automatiquement 1 jour après event_date (cron), ou à la demande via le
+   bouton de relance manuelle admin. Toujours adressé au client directement
+   (pas de routage facturation : c'est une demande personnelle, pas une notice de facturation).
+   Un seul CTA d'avis (Google), Mariages.net en lien discret, invitation à recommander,
+   liens trackés via /api/track/avis. */
 
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
 
@@ -31,16 +33,10 @@ function buildAvisEmail({ firstName, eventType, eventId }) {
     <h2 style="color:#ffffff;font-size:20px;font-weight:700;margin:0 0 24px;line-height:1.3;">Merci pour votre confiance</h2>
     <p style="color:rgba(255,255,255,0.8);font-size:15px;line-height:1.8;margin:0 0 32px;">
       C'était un plaisir de sublimer votre <strong style="color:#b8ef0b;">${eventType || 'événement'}</strong>.<br/>
-      Nous espérons que cette journée a été inoubliable. Votre galerie photos est maintenant disponible dans votre espace.
+      Nous espérons que cette journée a été inoubliable.
     </p>
 
-    <table cellpadding="0" cellspacing="0" style="margin:0 auto 32px;">
-      <tr><td style="background:#b8ef0b;border-radius:8px;padding:14px 32px;text-align:center;">
-        <a href="${APP_URL}/mon-espace" style="color:#060e16;font-size:15px;font-weight:700;text-decoration:none;">Voir ma galerie →</a>
-      </td></tr>
-    </table>
-
-    <table cellpadding="0" cellspacing="0" style="width:100%;margin:0;border-top:1px solid rgba(255,255,255,0.07);padding-top:28px;">
+    <table cellpadding="0" cellspacing="0" style="width:100%;margin:0;">
       <tr><td>
         <p style="color:rgba(255,255,255,0.5);font-size:13px;font-weight:700;margin:0 0 16px;text-transform:uppercase;letter-spacing:0.06em;">
           Votre avis nous aide à grandir
@@ -75,25 +71,17 @@ function buildAvisEmail({ firstName, eventType, eventId }) {
 </body></html>`;
 }
 
-export async function sendAvisEmail({ toEmail, firstName, eventType, eventId, billingEmail }) {
+export async function sendAvisEmail({ toEmail, firstName, eventType, eventId }) {
   const html = buildAvisEmail({ firstName, eventType, eventId });
-
-  const isBillingStatus = billingEmail && billingEmail !== toEmail;
-  const recipients = isBillingStatus ? [{ email: billingEmail }] : [{ email: toEmail, name: firstName }];
-  const cc = isBillingStatus ? [{ email: toEmail, name: firstName }] : undefined;
-  const subject = isBillingStatus
-    ? '[Facturation] Merci pour votre confiance — retour sur votre événement'
-    : 'Merci pour votre confiance — retour sur votre événement';
 
   const res = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'api-key': process.env.BREVO_API_KEY },
     body: JSON.stringify({
       sender: { name: 'Myracoustic', email: SENDER },
-      to: recipients,
-      ...(cc ? { cc } : {}),
+      to: [{ email: toEmail, name: firstName }],
       replyTo: { email: SENDER, name: 'Myracoustic' },
-      subject,
+      subject: 'Merci pour votre confiance — votre avis compte pour nous',
       htmlContent: html,
     }),
   });

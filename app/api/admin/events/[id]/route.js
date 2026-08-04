@@ -1,6 +1,5 @@
 import { verifyAdminCookie } from '@/app/lib/admin-auth';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
-import { sendAvisEmail } from '@/app/lib/send-avis-email';
 
 const APP_URL          = process.env.NEXT_PUBLIC_APP_URL || 'https://myracoustic.com';
 const SENDER           = 'contact@myracoustic.com';
@@ -30,6 +29,14 @@ const EMAIL_CONFIGS = {
     cta:     'Préparer mon événement →',
     ctaUrl:  `${APP_URL}/mon-espace`,
     note:    'Le solde sera réglé selon les conditions de votre devis.',
+  },
+  termine: {
+    subject: 'Votre galerie photos est disponible',
+    heading: 'Votre galerie est prête !',
+    body:    (eventType) => `C'était un plaisir de sublimer votre <strong style="color:#b8ef0b;">${eventType || 'événement'}</strong>.<br/>Les photos de votre événement sont maintenant disponibles dans votre espace.`,
+    cta:     'Voir ma galerie →',
+    ctaUrl:  `${APP_URL}/mon-espace`,
+    note:    null,
   },
   annule: {
     subject: 'Annulation de votre réservation Myracoustic',
@@ -81,8 +88,7 @@ function buildStatusEmail(firstName, status, eventType) {
 }
 
 // Statuts où la facturation est impliquée → envoyer à l'email de facturation
-// ('termine' géré séparément par sendAvisEmail, cf. plus bas)
-const BILLING_STATUSES = new Set(['confirme']);
+const BILLING_STATUSES = new Set(['confirme', 'termine']);
 
 async function sendStatusEmail(toEmail, firstName, status, eventType, billingEmail) {
   const cfg = EMAIL_CONFIGS[status];
@@ -213,23 +219,13 @@ export async function PATCH(req, { params }) {
 
   // Envoie l'email si le statut a changé
   if (body.status && body.status !== previousStatus && current?.clients?.email) {
-    if (body.status === 'termine') {
-      await sendAvisEmail({
-        toEmail: current.clients.email.toLowerCase(),
-        firstName: current.clients.first_name || 'Client',
-        eventType: current.event_type,
-        eventId: id,
-        billingEmail: current.billing_email || null,
-      }).catch(e => console.error('sendAvisEmail error:', e.message));
-    } else {
-      await sendStatusEmail(
-        current.clients.email,
-        current.clients.first_name || 'Client',
-        body.status,
-        current.event_type,
-        current.billing_email || null,
-      ).catch(e => console.error('sendStatusEmail error:', e.message));
-    }
+    await sendStatusEmail(
+      current.clients.email,
+      current.clients.first_name || 'Client',
+      body.status,
+      current.event_type,
+      current.billing_email || null,
+    ).catch(e => console.error('sendStatusEmail error:', e.message));
   }
 
   return Response.json(data);

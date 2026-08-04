@@ -7,7 +7,7 @@ import AdminMenuSection from './AdminMenuSection';
 import AdminPlanTableSection from './AdminPlanTableSection';
 import AdminProgrammeSection from './AdminProgrammeSection';
 import AdminGalerieSection from './AdminGalerieSection';
-import { Eye } from 'lucide-react';
+import { Eye, Mail } from 'lucide-react';
 
 const STATUSES = {
   devis_envoye: { label: 'Devis envoyé',  color: '#f59e0b' },
@@ -27,6 +27,11 @@ const EVENT_TYPES = [
 function fmtDate(d) {
   if (!d) return '—';
   return new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function fmtDateTime(iso) {
+  if (!iso) return null;
+  return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
 }
 
 function Card({ title, children }) {
@@ -55,6 +60,7 @@ export default function AdminDevisDetail() {
   const [saving,       setSaving]      = useState(false);
   const [saved,        setSaved]       = useState(false);
   const [previewing,   setPreviewing]  = useState(false);
+  const [resendingAvis, setResendingAvis] = useState(false);
 
   const reload = () => fetch(`/api/admin/events/${params.id}`)
     .then(r => { if (r.status === 401) { router.replace('/admin/login'); return null; } return r.json(); })
@@ -83,6 +89,15 @@ export default function AdminDevisDetail() {
     setPreviewing(false);
     if (data.url) window.open(data.url, '_blank');
     else alert(data.error || 'Impossible de générer le lien.');
+  };
+
+  const handleResendAvis = async () => {
+    setResendingAvis(true);
+    const res = await fetch(`/api/admin/events/${params.id}/resend-avis`, { method: 'POST' });
+    setResendingAvis(false);
+    if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || 'Erreur'); return; }
+    alert('Email « merci + avis » renvoyé au client.');
+    reload();
   };
 
   const handleSave = async () => {
@@ -232,6 +247,24 @@ export default function AdminDevisDetail() {
                 </button>
               ))}
             </div>
+            {ev.status === 'termine' && (
+              <div style={{ marginTop: 14, padding: '12px 14px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 9 }}>
+                <button onClick={handleResendAvis} disabled={resendingAvis} title="Renvoyer l'email « merci + avis »" style={{
+                  border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.85)',
+                  borderRadius: 8, padding: '8px 16px', cursor: resendingAvis ? 'wait' : 'pointer', fontSize: 13,
+                  fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 7,
+                  whiteSpace: 'nowrap', opacity: resendingAvis ? 0.6 : 1,
+                }}><Mail size={14} /> {resendingAvis ? 'Envoi…' : 'Renvoyer l\'email d\'avis'}</button>
+                <div style={{ marginTop: 10, fontSize: 12, color: 'rgba(255,255,255,0.4)', lineHeight: 1.7 }}>
+                  {ev.avis_email_sent_at
+                    ? <>Envoyé le {fmtDateTime(ev.avis_email_sent_at)}</>
+                    : <>Pas encore envoyé</>}
+                  {ev.avis_google_clicked_at && <><br />✓ Avis Google cliqué le {fmtDateTime(ev.avis_google_clicked_at)}</>}
+                  {ev.avis_mariagenet_clicked_at && <><br />✓ Avis Mariages.net cliqué le {fmtDateTime(ev.avis_mariagenet_clicked_at)}</>}
+                  {ev.avis_email_sent_at && !ev.avis_google_clicked_at && !ev.avis_mariagenet_clicked_at && <><br />Aucun clic enregistré pour l'instant</>}
+                </div>
+              </div>
+            )}
           </div>
           <div style={{ marginBottom: 20 }}>
             <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, color: 'rgba(255,255,255,0.4)', marginBottom: 8 }}>

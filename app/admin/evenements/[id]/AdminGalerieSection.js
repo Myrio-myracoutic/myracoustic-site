@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { Camera, Eye, EyeOff, Upload, Trash2, Loader, ChevronDown, ChevronUp } from 'lucide-react';
+import { Camera, Eye, EyeOff, Upload, Trash2, Loader, ChevronDown, ChevronUp, Video, Check } from 'lucide-react';
 
 export default function AdminGalerieSection({ eventId }) {
   const [photos,    setPhotos]    = useState([]);
@@ -10,11 +10,22 @@ export default function AdminGalerieSection({ eventId }) {
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef(null);
 
+  const [driveVideoUrl, setDriveVideoUrl] = useState('');
+  const [savedVideoUrl, setSavedVideoUrl] = useState('');
+  const [savingVideo,   setSavingVideo]   = useState(false);
+  const [videoSaved,    setVideoSaved]    = useState(false);
+
   const load = useCallback(async () => {
-    const res  = await fetch(`/api/admin/events/${eventId}/gallery`);
-    const data = await res.json();
-    setPhotos(data.photos || []);
-    setPublished(!!data.published);
+    const [galleryRes, eventRes] = await Promise.all([
+      fetch(`/api/admin/events/${eventId}/gallery`),
+      fetch(`/api/admin/events/${eventId}`),
+    ]);
+    const gallery = await galleryRes.json();
+    const event   = await eventRes.json();
+    setPhotos(gallery.photos || []);
+    setPublished(!!gallery.published);
+    setDriveVideoUrl(event.drive_video_url || '');
+    setSavedVideoUrl(event.drive_video_url || '');
     setLoading(false);
   }, [eventId]);
 
@@ -49,6 +60,19 @@ export default function AdminGalerieSection({ eventId }) {
     await fetch(`/api/admin/events/${eventId}/gallery?photoId=${photoId}`, { method: 'DELETE' });
   };
 
+  const saveVideoUrl = async () => {
+    setSavingVideo(true);
+    const res = await fetch(`/api/admin/events/${eventId}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ drive_video_url: driveVideoUrl || null }),
+    });
+    setSavingVideo(false);
+    if (!res.ok) { alert('Enregistrement échoué'); return; }
+    setSavedVideoUrl(driveVideoUrl);
+    setVideoSaved(true);
+    setTimeout(() => setVideoSaved(false), 2500);
+  };
+
   if (loading) return null;
 
   return (
@@ -56,15 +80,42 @@ export default function AdminGalerieSection({ eventId }) {
       <button onClick={() => setOpen(o => !o)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'none', border: 'none', cursor: 'pointer' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Camera size={15} color="#b8ef0b" />
-          <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>Galerie photos</h2>
+          <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 }}>Galerie &amp; vidéos</h2>
           <span style={{ fontSize: 10, background: 'rgba(184,239,11,0.12)', color: '#b8ef0b', border: '1px solid rgba(184,239,11,0.25)', borderRadius: 10, padding: '1px 7px', fontWeight: 700 }}>{photos.length}</span>
           {published && <span style={{ fontSize: 10, background: 'rgba(34,197,94,0.12)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.25)', borderRadius: 10, padding: '1px 7px', fontWeight: 700 }}>Publiée</span>}
+          {savedVideoUrl && <span style={{ fontSize: 10, background: 'rgba(184,239,11,0.12)', color: '#b8ef0b', border: '1px solid rgba(184,239,11,0.25)', borderRadius: 10, padding: '1px 7px', fontWeight: 700 }}>Vidéo liée</span>}
         </div>
         {open ? <ChevronUp size={15} color="rgba(255,255,255,0.3)" /> : <ChevronDown size={15} color="rgba(255,255,255,0.3)" />}
       </button>
 
       {open && (
         <div style={{ marginTop: 16 }}>
+          {/* ── Vidéo (lien Google Drive) ─────────────────────────── */}
+          <div style={{ marginBottom: 22, paddingBottom: 20, borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'rgba(255,255,255,0.3)', marginBottom: 8 }}>
+              <Video size={13} /> VIDÉOS (LIEN GOOGLE DRIVE)
+            </label>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <input value={driveVideoUrl} onChange={e => setDriveVideoUrl(e.target.value)} placeholder="https://drive.google.com/drive/folders/…"
+                style={{ flex: '1 1 320px', minWidth: 220, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 7, padding: '8px 12px', color: '#fff', fontSize: 13, fontFamily: 'inherit', outline: 'none' }}
+              />
+              {driveVideoUrl !== savedVideoUrl && (
+                <button onClick={saveVideoUrl} disabled={savingVideo} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(184,239,11,0.1)', border: '1px solid rgba(184,239,11,0.3)', borderRadius: 8, padding: '8px 14px', cursor: savingVideo ? 'wait' : 'pointer', color: '#b8ef0b', fontSize: 12, fontWeight: 700, fontFamily: 'var(--font-display), sans-serif', whiteSpace: 'nowrap' }}>
+                  {savingVideo ? <Loader size={14} style={{ animation: 'spin 0.8s linear infinite' }} /> : 'Enregistrer'}
+                </button>
+              )}
+              {videoSaved && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: '#22c55e', fontSize: 12, fontWeight: 600 }}>
+                  <Check size={14} /> Enregistré
+                </span>
+              )}
+            </div>
+            <p style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.3)', marginTop: 6, lineHeight: 1.5 }}>
+              Partagez le dossier Drive (« Tous les utilisateurs disposant du lien »), puis collez le lien ici. Un bouton apparaît dans l'espace client, indépendamment de la galerie photo.
+            </p>
+          </div>
+
+          {/* ── Photos ─────────────────────────────────────────────── */}
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
             <button onClick={() => fileRef.current?.click()} disabled={uploading} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(184,239,11,0.1)', border: '1px solid rgba(184,239,11,0.3)', borderRadius: 8, padding: '8px 14px', cursor: 'pointer', color: '#b8ef0b', fontSize: 12, fontWeight: 700, fontFamily: 'var(--font-display), sans-serif' }}>
               {uploading ? <Loader size={14} style={{ animation: 'spin 0.8s linear infinite' }} /> : <Upload size={14} />}

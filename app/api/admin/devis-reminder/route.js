@@ -25,5 +25,7 @@ export async function POST(request) {
   } catch (e) {
     return Response.json({ error: 'Envoi échoué : ' + e.message }, { status: 500 });
   }
+  // Marque l'envoi pour que le rappel automatique (pg_cron) ne relance pas une seconde fois le même jour.
+  await supabaseAdmin.from('devis_proposals').update({ reminder_sent_at: new Date().toISOString() }).eq('id', proposalId);
   return Response.json({ ok: true });
 }

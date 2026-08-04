@@ -89,7 +89,8 @@ export async function POST(request) {
   const newValidUntil = (!p.valid_until || p.valid_until < discountUntil) ? discountUntil : p.valid_until;
 
   const { error } = await supabaseAdmin.from('devis_proposals').update({
-    discount_type: discountType, discount_value: value, discount_until: discountUntil, valid_until: newValidUntil,
+    discount_type: discountType, discount_value: value, discount_until: discountUntil,
+    valid_until: newValidUntil, reminder_sent_at: null,
   }).eq('id', proposalId);
   if (error) return Response.json({ error: 'Enregistrement échoué : ' + error.message }, { status: 500 });
 

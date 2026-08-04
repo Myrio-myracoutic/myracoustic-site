@@ -63,7 +63,7 @@ export async function PATCH(request) {
     return Response.json({ error: 'La date doit être aujourd’hui ou plus tard.' }, { status: 400 });
   }
   const { error } = await supabaseAdmin
-    .from('devis_proposals').update({ valid_until: newValidUntil }).eq('id', proposalId);
+    .from('devis_proposals').update({ valid_until: newValidUntil, reminder_sent_at: null }).eq('id', proposalId);
   if (error) return Response.json({ error: 'Modification échouée : ' + error.message }, { status: 500 });
   return Response.json({ ok: true });
 }
@@ -94,7 +94,7 @@ export async function POST(request) {
       formule: formule || null, formule_name: formuleName || null,
       items, total: Number(total) || 0, admin_note: adminNote || null,
       event_date: evDate, venue: evVenue, guests: evGuests,
-      status: 'proposee', valid_until: validUntilDate,
+      status: 'proposee', valid_until: validUntilDate, reminder_sent_at: null,
       qonto_quote_id: null, qonto_quote_url: null, validated_at: null,
     }).eq('id', proposalId);
     if (uErr) return Response.json({ error: 'Modification échouée : ' + uErr.message }, { status: 500 });

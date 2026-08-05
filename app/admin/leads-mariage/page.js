@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Minus, Trash2, X, FileText, Check, Loader2, Heart, Mail, CalendarClock, Percent } from 'lucide-react';
+import { Plus, Minus, Trash2, X, FileText, Check, Loader2, Heart, Mail, CalendarClock, Percent, PhoneCall, AlertTriangle } from 'lucide-react';
 import { FORMULES, POLES, EXTRA_HOUR_PRICE, fmtPrice } from '@/app/lib/formules';
 import { discountEuros, discountLabel } from '@/app/lib/discount';
 import { getTransportFee, getRoadKm, TECH_PRICE } from '@/app/lib/transport';
@@ -469,6 +469,104 @@ function DiscountModal({ proposal, onClose, onDone }) {
   );
 }
 
+// Programmer ou reprogrammer un appel pour un lead (admin) — même action serveur
+// (PATCH { setCall }) dans les deux cas, seuls le titre et le lead diffèrent.
+function CallSlotModal({ lead, mode, onClose, onDone }) {
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const maxStr = new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10);
+  const [date, setDate] = useState(todayStr);
+  const [slots, setSlots] = useState([]);
+  const [slotsLoading, setSlotsLoading] = useState(true);
+  const [slotsError, setSlotsError] = useState(false);
+  const [time, setTime] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const loadSlots = (d) => {
+    setSlotsLoading(true); setSlotsError(false); setTime(null);
+    fetch(`/api/admin/call-availability?date=${d}`)
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(data => setSlots(data.slots || []))
+      .catch(() => setSlotsError(true))
+      .finally(() => setSlotsLoading(false));
+  };
+  useEffect(() => { setError(''); loadSlots(date); }, [date]);
+
+  const confirm = async () => {
+    if (!time || saving) return;
+    setSaving(true); setError('');
+    const res = await fetch('/api/admin/mariage-leads', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: lead.id, setCall: { date, time } }),
+    });
+    setSaving(false);
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      setError(d.error === 'slot_taken' ? 'Ce créneau vient d\'être pris — choisissez-en un autre.' : (d.error || 'Erreur'));
+      if (d.error === 'slot_taken') loadSlots(date);
+      return;
+    }
+    onDone();
+  };
+
+  const fLabel = { fontSize: 10.5, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 4 };
+
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '40px 20px', overflowY: 'auto' }}>
+      <div onClick={e => e.stopPropagation()} style={{ ...card, maxWidth: 480, width: '100%', color: '#fff' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+          <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 19, fontWeight: 800, margin: 0 }}>
+            {mode === 'reschedule' ? 'Modifier le rendez-vous' : 'Programmer un appel'}
+          </h2>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: 4 }}><X size={20} /></button>
+        </div>
+        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, margin: '0 0 18px' }}>
+          {lead.prenom} {lead.nom} · 📞 {lead.tel}
+          {mode === 'reschedule' && ' — l\'ancien créneau sera libéré et l\'événement Google remplacé.'}
+        </p>
+
+        <label style={fLabel}>Jour</label>
+        <input type="date" min={todayStr} max={maxStr} value={date} onChange={e => setDate(e.target.value)} style={{ ...inp, width: '100%', marginBottom: 16 }} />
+
+        <label style={fLabel}>Créneau</label>
+        {slotsLoading ? (
+          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, margin: '8px 0 0' }}>Chargement…</p>
+        ) : slotsError ? (
+          <p style={{ color: '#f59e0b', fontSize: 13, margin: '8px 0 0', display: 'flex', alignItems: 'center', gap: 6 }}><AlertTriangle size={14} /> Impossible de charger les créneaux.</p>
+        ) : slots.length === 0 ? (
+          <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, fontStyle: 'italic', margin: '8px 0 0' }}>Aucun créneau disponible ce jour-là.</p>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(72px, 1fr))', gap: 7, marginTop: 8 }}>
+            {slots.map(t => (
+              <button key={t} onClick={() => setTime(t)} style={{
+                ...btnSm, padding: '8px 0', textAlign: 'center',
+                border: `1px solid ${time === t ? 'var(--lime)' : 'rgba(255,255,255,0.15)'}`,
+                background: time === t ? 'rgba(184,239,11,0.12)' : 'rgba(255,255,255,0.05)',
+                color: time === t ? 'var(--lime)' : 'rgba(255,255,255,0.8)',
+              }}>{t}</button>
+            ))}
+          </div>
+        )}
+
+        {error && <p style={{ color: '#ef4444', fontSize: 13, margin: '16px 0 0' }}>{error}</p>}
+
+        <button onClick={confirm} disabled={!time || saving} style={{
+          width: '100%', marginTop: 20, background: '#b8ef0b', color: '#060e16', border: 'none', borderRadius: 8, padding: '13px 0',
+          fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 15,
+          cursor: !time || saving ? 'not-allowed' : 'pointer', opacity: !time || saving ? 0.6 : 1,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+        }}>
+          {saving ? <><Loader2 size={16} style={{ animation: 'spin 0.8s linear infinite' }} /> Enregistrement…</> : 'Confirmer le rendez-vous'}
+        </button>
+        <p style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.35)', textAlign: 'center', marginTop: 10 }}>
+          Le client reçoit un email de confirmation avec le jour et l'heure.
+        </p>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    </div>
+  );
+}
+
 export default function LeadsMariagePage() {
   const router = useRouter();
   const [leads, setLeads] = useState([]);
@@ -478,6 +576,7 @@ export default function LeadsMariagePage() {
   const [newContact, setNewContact] = useState(false);
   const [validityEdit, setValidityEdit] = useState(null); // { id, value }
   const [discountFor, setDiscountFor] = useState(null); // proposal
+  const [callSlotFor, setCallSlotFor] = useState(null); // { lead, mode: 'schedule' | 'reschedule' }
   const todayStr = new Date().toISOString().slice(0, 10);
 
   const load = () => {
@@ -621,13 +720,26 @@ export default function LeadsMariagePage() {
                 </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
-                {l.call_scheduled_at && !l.call_cancelled_at && (
-                  <button onClick={() => cancelCall(l.id)} disabled={busy === 'cancel-' + l.id} title="Annuler le rendez-vous téléphonique" style={{
-                    border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)', color: '#ef4444',
-                    borderRadius: 8, padding: '8px 16px', cursor: busy === 'cancel-' + l.id ? 'wait' : 'pointer', fontSize: 13,
-                    fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, whiteSpace: 'nowrap',
-                    opacity: busy === 'cancel-' + l.id ? 0.6 : 1,
-                  }}>Annuler le rendez-vous</button>
+                {l.call_scheduled_at && !l.call_cancelled_at ? (
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button onClick={() => setCallSlotFor({ lead: l, mode: 'reschedule' })} title="Choisir un autre jour/créneau" style={{
+                      border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.85)',
+                      borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontSize: 13,
+                      fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, whiteSpace: 'nowrap',
+                    }}>Modifier</button>
+                    <button onClick={() => cancelCall(l.id)} disabled={busy === 'cancel-' + l.id} title="Annuler le rendez-vous téléphonique" style={{
+                      border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)', color: '#ef4444',
+                      borderRadius: 8, padding: '8px 16px', cursor: busy === 'cancel-' + l.id ? 'wait' : 'pointer', fontSize: 13,
+                      fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, whiteSpace: 'nowrap',
+                      opacity: busy === 'cancel-' + l.id ? 0.6 : 1,
+                    }}>Annuler le rendez-vous</button>
+                  </div>
+                ) : (
+                  <button onClick={() => setCallSlotFor({ lead: l, mode: 'schedule' })} title="Programmer un appel avec ce contact" style={{
+                    border: '1px solid rgba(184,239,11,0.35)', background: 'rgba(184,239,11,0.08)', color: 'var(--lime)',
+                    borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontSize: 13, fontFamily: 'var(--font-display), sans-serif', fontWeight: 700,
+                    display: 'inline-flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap',
+                  }}><PhoneCall size={14} /> Programmer un appel</button>
                 )}
                 {!l.proposal && (
                   <button onClick={() => setBuilder({ lead: l })} style={{
@@ -713,6 +825,10 @@ export default function LeadsMariagePage() {
 
       {discountFor && (
         <DiscountModal proposal={discountFor} onClose={() => setDiscountFor(null)} onDone={() => { setDiscountFor(null); load(); }} />
+      )}
+
+      {callSlotFor && (
+        <CallSlotModal lead={callSlotFor.lead} mode={callSlotFor.mode} onClose={() => setCallSlotFor(null)} onDone={() => { setCallSlotFor(null); load(); }} />
       )}
     </div>
   );

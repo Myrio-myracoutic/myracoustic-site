@@ -81,7 +81,7 @@ export default function CallSlotPicker({ leadId, firstName, onBooked, onFallback
           Choisissez votre créneau d'appel
         </h1>
         <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 15, lineHeight: 1.7 }}>
-          Merci {firstName} ! Un dernier pas : dites-nous quand vous appeler pour parler de votre mariage — 15 minutes suffisent.
+          Merci {firstName} ! Un dernier pas : dites-nous quand vous appeler pour parler de votre mariage.
         </p>
       </div>
 

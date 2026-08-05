@@ -19,6 +19,7 @@ function emptyDays() {
 export default function PlanningAppelsPage() {
   const router = useRouter();
   const [days, setDays] = useState(emptyDays());
+  const [slotDuration, setSlotDuration] = useState(15);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -39,6 +40,7 @@ export default function PlanningAppelsPage() {
           enabled: !!byWeekday[weekday]?.length,
           ranges: byWeekday[weekday]?.length ? byWeekday[weekday] : [{ id: nextId(), start: '09:00', end: '18:00' }],
         })));
+        setSlotDuration(data.slotDurationMinutes || 15);
         setLoading(false);
       });
   }, [router]);
@@ -64,7 +66,10 @@ export default function PlanningAppelsPage() {
 
   const save = async () => {
     setSaving(true); setError(''); setSaved(false);
-    const payload = { days: days.map(d => ({ weekday: d.weekday, enabled: d.enabled, ranges: d.ranges.map(r => ({ start: r.start, end: r.end })) })) };
+    const payload = {
+      days: days.map(d => ({ weekday: d.weekday, enabled: d.enabled, ranges: d.ranges.map(r => ({ start: r.start, end: r.end })) })),
+      slotDurationMinutes: Number(slotDuration),
+    };
     const res = await fetch('/api/admin/call-schedule', {
       method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
     });
@@ -87,10 +92,20 @@ export default function PlanningAppelsPage() {
         <Phone size={20} color="#b8ef0b" />
         <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 22, fontWeight: 800, color: '#fff', margin: 0 }}>Planning appels</h1>
       </div>
-      <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13.5, lineHeight: 1.6, marginBottom: 28 }}>
-        Jours et horaires où les créneaux de 15 min proposés aux leads mariage (page « choisir un créneau d'appel ») sont ouverts.
+      <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13.5, lineHeight: 1.6, marginBottom: 20 }}>
+        Jours et horaires où des créneaux d'appel sont proposés aux leads mariage (page « choisir un créneau d'appel »).
         Un jour de prestation dans l'agenda Google bloque automatiquement tous les créneaux de ce jour-là, quel que soit ce planning.
       </p>
+
+      <div style={{ ...card, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 14 }}>
+        <label style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, color: '#fff', fontSize: 14 }}>
+          Durée d'un créneau
+        </label>
+        <input type="number" min={5} max={240} step={5} value={slotDuration}
+          onChange={e => setSlotDuration(e.target.value)}
+          style={{ ...inp, width: 80 }} />
+        <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>minutes</span>
+      </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {days.map(d => (

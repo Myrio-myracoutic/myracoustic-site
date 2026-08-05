@@ -2,11 +2,9 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
 import { getCalendarClient, getCalendarId } from '@/lib/google-calendar';
 import { addMinutesToTime, parisLocalToUtcISO } from '@/lib/paris-time';
-import { getAvailableSlots, isDateInBookingWindow } from '@/lib/call-slots';
+import { getAvailableSlots, isDateInBookingWindow, getSlotDurationMinutes } from '@/lib/call-slots';
 
 export const dynamic = 'force-dynamic';
-
-const SLOT_MINUTES = 15;
 
 function fmtDate(d) {
   if (!d) return '';
@@ -14,7 +12,8 @@ function fmtDate(d) {
   catch { return d; }
 }
 
-// POST /api/call-bookings — { leadId, date, time } → réserve un créneau d'appel de 15 min.
+// POST /api/call-bookings — { leadId, date, time } → réserve un créneau d'appel
+// (durée réglable dans /admin/planning-appels).
 export async function POST(request) {
   const { leadId, date, time } = await request.json();
 
@@ -32,10 +31,11 @@ export async function POST(request) {
   }
 
   const isoStart = parisLocalToUtcISO(date, time);
+  const slotMinutes = await getSlotDurationMinutes();
 
   const { data: updated, error: updateErr } = await supabaseAdmin
     .from('mariage_leads')
-    .update({ call_scheduled_at: isoStart, call_duration_minutes: SLOT_MINUTES })
+    .update({ call_scheduled_at: isoStart, call_duration_minutes: slotMinutes })
     .eq('id', leadId)
     .is('call_scheduled_at', null)
     .select('id, prenom, nom, tel, email, event_date, lieu, guests, message')
@@ -57,7 +57,7 @@ export async function POST(request) {
   try {
     const calendar = getCalendarClient();
     const calId = getCalendarId();
-    const endTime = addMinutesToTime(time, SLOT_MINUTES);
+    const endTime = addMinutesToTime(time, slotMinutes);
     const description = [
       `Tél : ${updated.tel}`,
       `Email : ${updated.email}`,

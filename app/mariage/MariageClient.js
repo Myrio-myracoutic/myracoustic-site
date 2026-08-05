@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { Sparkles } from 'lucide-react';
 import { AnimatedWave, SectionLabel } from '../components/AnimatedWave';
 import { FAQ_ITEMS } from './faq-data';
 import TestimonialCarousel from '../components/TestimonialCarousel';
+import TestimonialCard from '../components/TestimonialCard';
 import StatItem from '../components/StatItem';
 import Reveal from '../components/Reveal';
 import { CITIES } from '../lib/cities';
@@ -108,6 +110,12 @@ const TESTIMONIALS = [
   { name: 'Sandra et Stéphanie', event: 'Mariage', stars: 5, source: 'mariages.net',
     text: "Myrio a été à l'écoute de nos envies, on a tout calé ensemble. Ces propositions ont été pertinentes. Nous l'avions déjà vu comme dj dans des soirées repas d'entreprise et comme nous l'avions apprécié nous l'avons contacté pour notre mariage. Il est en plus super bien équipé en matériel du coup ça facilite pour faire des animations tout au long de la soirée." },
 ];
+
+const ENGAGEMENT = {
+  icon: Sparkles,
+  title: "Votre soirée, pas notre catalogue",
+  text: "Depuis votre espace personnel, vous construisez la musique et le déroulé de votre soirée avec nous — playlist, enchaînement des temps forts, ambiance. On vous conseille, on ne vous impose rien.",
+};
 
 export default function MariageClient() {
   return (
@@ -230,6 +238,51 @@ export default function MariageClient() {
             ))}
           </div>
         </div>
+      </section>
+
+      {/* ── NOTRE ENGAGEMENT ────────────────────────────────────── */}
+      <section style={{ padding: 'clamp(56px,7vw,88px) 32px' }}>
+        <Reveal style={{ maxWidth: 1280, margin: '0 auto' }}>
+          <div style={{ maxWidth: 640, margin: '0 auto 44px', textAlign: 'center' }}>
+            <SectionLabel style={{ justifyContent: 'center' }}>Notre engagement</SectionLabel>
+            <h2 style={{
+              fontFamily: 'var(--font-display), sans-serif',
+              fontSize: 'clamp(24px,3.5vw,42px)', fontWeight: 700, marginBottom: 12,
+            }}>
+              Ce qui ne change jamais
+            </h2>
+          </div>
+          {/* Notre promesse */}
+          <div style={{ maxWidth: 640, margin: '0 auto', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div style={{
+              width: 44, height: 44, borderRadius: '50%', background: 'rgba(184,239,11,0.12)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16,
+            }}>
+              <ENGAGEMENT.icon size={20} color="var(--lime)" />
+            </div>
+            <h3 style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 19, marginBottom: 10 }}>
+              {ENGAGEMENT.title}
+            </h3>
+            <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 15, lineHeight: 1.75 }}>
+              {ENGAGEMENT.text}
+            </p>
+          </div>
+
+          {/* Preuve vécue — vrai avis client, pas une promesse : phrase de transition
+              explicite puis le même composant que la section Témoignages plus bas
+              (étoiles, avatar, badge « Avis Google ») pour qu'on le reconnaisse
+              immédiatement comme un témoignage réel, pas un argument marketing. */}
+          <p style={{
+            textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: 13.5,
+            fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em',
+            margin: '44px 0 20px',
+          }}>
+            Un client en parle mieux que nous
+          </p>
+          <div style={{ maxWidth: 420, margin: '0 auto' }}>
+            <TestimonialCard {...TESTIMONIALS[2]} />
+          </div>
+        </Reveal>
       </section>
 
       {/* ── TÉMOIGNAGES ─────────────────────────────────────────── */}

@@ -67,12 +67,33 @@ export async function POST(request) {
     </table>
     ${message ? `<p><strong>Message :</strong><br>${message.replace(/\n/g, '<br>')}</p>` : ''}
   `;
-  const confirmHtml = `
-    <p>Bonjour ${prenom},</p>
-    <p>Merci pour votre demande ! Nous avons bien reçu les informations pour votre mariage${date ? ` du <strong>${fmtDate(date)}</strong>` : ''}.</p>
-    <p>Un conseiller Myracoustic vous <strong>rappelle sous 24h (jours ouvrés)</strong> pour échanger sur votre projet et construire ensemble la formule qui vous ressemble.</p>
-    <p>À très vite,<br>L'équipe Myracoustic</p>
-  `;
+  const confirmHtml = `<!DOCTYPE html><html lang="fr"><body style="margin:0;padding:0;background:#060e16;font-family:sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:40px 20px;">
+<table width="560" cellpadding="0" cellspacing="0" style="background:#0d1b2a;border-radius:12px;overflow:hidden;">
+
+  <tr><td style="padding:32px 40px 24px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.07);">
+    <img src="https://myracoustic.com/logo.png" alt="Myracoustic" height="60" style="height:60px;display:block;margin:0 auto 10px;" />
+    <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.25);letter-spacing:0.5px;font-style:italic;">De la vibration sonore à la magie lumineuse</p>
+  </td></tr>
+
+  <tr><td style="padding:40px 40px 32px;">
+    <p style="color:rgba(255,255,255,0.6);font-size:15px;margin:0 0 8px;">Bonjour ${prenom},</p>
+    <h2 style="color:#ffffff;font-size:20px;font-weight:700;margin:0 0 24px;line-height:1.3;">Merci pour votre demande !</h2>
+    <p style="color:rgba(255,255,255,0.8);font-size:15px;line-height:1.8;margin:0 0 16px;">
+      Nous avons bien reçu les informations pour votre <strong style="color:#b8ef0b;">mariage${date ? ` du ${fmtDate(date)}` : ''}</strong>.
+    </p>
+    <p style="color:rgba(255,255,255,0.8);font-size:15px;line-height:1.8;margin:0;">
+      Un conseiller Myracoustic vous <strong>rappelle sous 24h (jours ouvrés)</strong> pour échanger sur votre projet et construire ensemble la formule qui vous ressemble.
+    </p>
+  </td></tr>
+
+  <tr><td style="padding:24px 40px;border-top:1px solid rgba(255,255,255,0.07);text-align:center;">
+    <p style="color:rgba(255,255,255,0.35);font-size:13px;font-weight:600;margin:0 0 6px;">Myracoustic — Son, Lumière, Vidéo &amp; DJ</p>
+    <p style="color:rgba(255,255,255,0.2);font-size:11px;margin:0;line-height:1.7;">07 68 53 33 08 · contact@myracoustic.com · myracoustic.com</p>
+  </td></tr>
+
+</table></td></tr></table>
+</body></html>`;
 
   try {
     await sendEmail({

@@ -1,7 +1,13 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Trash2, Mail, MousePointerClick, Send, FileText, ChevronDown } from 'lucide-react';
+import { Trash2, Mail, MousePointerClick, Send, FileText, ChevronDown, ExternalLink } from 'lucide-react';
+
+const QUOTE_STATUS_LABEL = {
+  pending_approval: { label: 'En attente', color: '#f59e0b' },
+  approved:          { label: 'Accepté',   color: '#22c55e' },
+  canceled:          { label: 'Annulé',    color: 'rgba(255,255,255,0.35)' },
+};
 
 const STEP_LABELS = ['Calendrier', 'Identité', 'Événement', 'Prestations', 'Facturation', 'Récapitulatif'];
 const TOTAL_STEPS = 5;
@@ -109,11 +115,15 @@ export default function ProspectsPage() {
   const [sending,   setSending]   = useState(null);
   const [sent,      setSent]      = useState({});
   const [expanded,  setExpanded]  = useState(null);
+  const [quotes,    setQuotes]    = useState([]);
 
   const load = () => {
     fetch('/api/admin/prospects')
       .then(r => { if (r.status === 401) { router.replace('/admin/login'); return null; } return r.json(); })
       .then(d => { if (d) { setProspects(d.prospects || []); setLoading(false); } });
+    fetch('/api/admin/qonto-quotes')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setQuotes(d.quotes || []); });
   };
 
   useEffect(() => { load(); }, []);
@@ -287,6 +297,77 @@ export default function ProspectsPage() {
 
                 {/* Panneau détail du devis */}
                 {expanded === p.email && <ProspectDetail d={d} />}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── Devis Qonto (tunnel particulier) ─────────────────────────
+          Brouillons à finaliser + devis envoyés, avec statut réel (vérifié
+          par cron horaire — Qonto n'a pas de webhook pour les devis). */}
+      <div style={{ marginTop: 44, marginBottom: 20 }}>
+        <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 19, fontWeight: 800, color: '#fff', margin: '0 0 4px' }}>
+          Devis Qonto (particulier)
+        </h2>
+        <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, margin: 0 }}>
+          {quotes.length} devis suivi{quotes.length !== 1 ? 's' : ''} — brouillons à finaliser et statut réel des devis envoyés.
+        </p>
+      </div>
+
+      {quotes.length === 0 ? (
+        <div style={{
+          background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.06)',
+          borderRadius: 14, padding: '40px 24px', textAlign: 'center',
+          color: 'rgba(255,255,255,0.2)', fontSize: 14,
+        }}>
+          Aucun devis Qonto suivi pour le moment.
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {quotes.map(q => {
+            const st = QUOTE_STATUS_LABEL[q.qonto_status] || { label: q.qonto_status, color: 'rgba(255,255,255,0.4)' };
+            const needsAction = q.kind === 'brouillon' && q.qonto_status === 'pending_approval';
+            return (
+              <div key={q.id} style={{
+                background: '#0d1b2a',
+                border: `1px solid ${needsAction ? 'rgba(245,158,11,0.4)' : 'rgba(255,255,255,0.07)'}`,
+                borderRadius: 12, padding: '14px 20px',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap',
+              }}>
+                <div style={{ minWidth: 180 }}>
+                  <div style={{ fontSize: 14.5, fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>
+                    {q.client_first_name || ''} {q.client_last_name || ''}
+                  </div>
+                  <div style={{ fontSize: 12.5, color: '#b8ef0b' }}>{q.client_email}</div>
+                </div>
+                <div style={{ minWidth: 140 }}>
+                  <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>{q.event_type || '—'}</div>
+                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>{fmtDate(q.event_date)}</div>
+                </div>
+                <span style={{
+                  fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20,
+                  background: needsAction ? 'rgba(245,158,11,0.15)' : 'rgba(255,255,255,0.06)',
+                  color: needsAction ? '#f59e0b' : 'rgba(255,255,255,0.5)',
+                }}>
+                  {q.kind === 'brouillon' ? 'Brouillon à finaliser' : 'Envoyé au client'}
+                </span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: st.color }}>
+                  {st.label}
+                </span>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>
+                  {timeAgo(q.created_at)}
+                </div>
+                {q.qonto_quote_url && (
+                  <a href={q.qonto_quote_url} target="_blank" rel="noreferrer" style={{
+                    display: 'flex', alignItems: 'center', gap: 5, padding: '6px 12px',
+                    background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)',
+                    borderRadius: 7, color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: 600,
+                    textDecoration: 'none', fontFamily: 'var(--font-display), sans-serif',
+                  }}>
+                    <ExternalLink size={12} /> Ouvrir dans Qonto
+                  </a>
+                )}
               </div>
             );
           })}

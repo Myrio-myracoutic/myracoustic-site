@@ -195,6 +195,25 @@ export async function POST(request) {
     const quoteId = qData.quote.id;
     const quoteUrl = qData.quote.quote_url;
 
+    // Suivi de TOUS les devis (brouillon comme envoyé) — un brouillon n'a pas encore de
+    // compte client Supabase (client_id obligatoire sur events), donc pas moyen de le tracer
+    // autrement. Permet aussi le polling du statut Qonto (pas de webhook devis, voir cron).
+    try {
+      await supabaseAdmin.from('qonto_quotes_tracking').insert({
+        qonto_quote_id: quoteId,
+        qonto_quote_url: quoteUrl,
+        kind: draft ? 'brouillon' : 'auto_envoye',
+        client_email: client.email,
+        client_first_name: client.firstName,
+        client_last_name: client.lastName,
+        event_type: event?.type || null,
+        event_date: event?.date || null,
+        venue: event?.lieu || null,
+      });
+    } catch (trackErr) {
+      console.error('Qonto quote tracking insert error:', trackErr.message);
+    }
+
     if (!draft) {
       const sendRes = await fetch(`${QONTO_BASE}/quotes/${quoteId}/send`, {
         method: 'POST',
@@ -278,7 +297,7 @@ export async function POST(request) {
 
         // Enregistrer l'événement
         if (supabaseClientId) {
-          await supabaseAdmin.from('events').insert({
+          const { data: newEvent } = await supabaseAdmin.from('events').insert({
             client_id: supabaseClientId,
             event_date: event?.date || null,
             event_type: event?.type || null,
@@ -286,7 +305,13 @@ export async function POST(request) {
             formule: event?.formule || null,
             qonto_quote_id: quoteId,
             qonto_quote_url: quoteUrl,
-          });
+          }).select('id').single();
+
+          if (newEvent) {
+            await supabaseAdmin.from('qonto_quotes_tracking')
+              .update({ linked_event_id: newEvent.id })
+              .eq('qonto_quote_id', quoteId);
+          }
         }
       } catch (sbErr) {
         console.error('Supabase espace client error:', sbErr.message);

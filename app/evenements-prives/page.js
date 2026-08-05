@@ -2,17 +2,17 @@ import PrivesClient from './PrivesClient';
 import { FAQ_ITEMS } from './faq-data';
 
 export const metadata = {
-  title: "Sonorisation Mariage & DJ à Nantes",
+  title: "Anniversaire, Fête & Soirée Privée à Nantes — Myracoustic",
   description:
-    "Mariage, anniversaire, fête de famille à Nantes et en Pays de la Loire : Myracoustic crée l'ambiance sonore et visuelle parfaite pour vos événements privés.",
+    "Anniversaire, fête de famille, soirée privée à Nantes et en Pays de la Loire : Myracoustic crée l'ambiance sonore et visuelle parfaite pour votre événement.",
   alternates: {
     canonical: '/evenements-prives',
   },
   openGraph: {
     url: '/evenements-prives',
-    title: "Sonorisation Mariage & DJ à Nantes — Myracoustic",
+    title: "Anniversaire, Fête & Soirée Privée à Nantes — Myracoustic",
     description:
-      "Mariage, anniversaire, fête de famille à Nantes et en Pays de la Loire : Myracoustic crée l'ambiance sonore et visuelle parfaite pour vos événements privés.",
+      "Anniversaire, fête de famille, soirée privée à Nantes et en Pays de la Loire : Myracoustic crée l'ambiance sonore et visuelle parfaite pour votre événement.",
     images: [{ url: '/particuliers-hero.jpg', width: 1500, height: 780, alt: 'Événement privé Myracoustic' }],
   },
   twitter: {

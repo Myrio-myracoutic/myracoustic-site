@@ -716,6 +716,11 @@ export default function LeadsMariagePage() {
                       📞 Appel prévu le {fmtCallDateTime(l.call_scheduled_at)}
                     </span></>
                   )}
+                  {l.proposal?.viewed_count > 0 && (
+                    <><br /><span style={{ color: 'rgba(255,255,255,0.5)' }}>
+                      👁️ Devis consulté {l.proposal.viewed_count} fois · dernière fois le {fmtCallDateTime(l.proposal.last_viewed_at)}
+                    </span></>
+                  )}
                   {l.message && <><br /><span style={{ color: 'rgba(255,255,255,0.45)', fontStyle: 'italic' }}>« {l.message} »</span></>}
                 </div>
               </div>

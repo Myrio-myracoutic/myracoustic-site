@@ -22,6 +22,18 @@ export async function GET(_req, { params }) {
   const p = await getProposal(token);
   if (!p) return NextResponse.json({ error: 'Proposition introuvable' }, { status: 404 });
 
+  // Suivi de consultation : combien de fois le prospect revient sur sa proposition
+  // (signal d'intérêt pour l'admin) — best-effort, une panne n'empêche jamais l'affichage.
+  try {
+    await supabaseAdmin.from('devis_proposals').update({
+      viewed_count: (p.viewed_count || 0) + 1,
+      first_viewed_at: p.first_viewed_at || new Date().toISOString(),
+      last_viewed_at: new Date().toISOString(),
+    }).eq('id', p.id);
+  } catch (err) {
+    console.error('proposal view tracking error:', err.message);
+  }
+
   const lead = p.mariage_leads || {};
   // Réduction « du moment » : active seulement jusqu'à discount_until inclus (sinon prix plein).
   const dActive = discountActive(p.discount_until);

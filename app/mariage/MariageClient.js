@@ -117,7 +117,31 @@ const ENGAGEMENT = {
   text: "Depuis votre espace personnel, vous construisez la musique et le déroulé de votre soirée avec nous — playlist, enchaînement des temps forts, ambiance. On vous conseille, on ne vous impose rien.",
 };
 
-export default function MariageClient() {
+function AvailabilityLine({ availability }) {
+  if (!availability) {
+    return (
+      <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginTop: 12 }}>
+        Votre date part vite — vérifiez si elle est encore libre.
+      </p>
+    );
+  }
+  const { available, untilLabel } = availability;
+  let text;
+  if (available === 0) {
+    text = `Tous les samedis sont réservés d'ici ${untilLabel} — contactez-nous, d'autres jours restent parfois envisageables.`;
+  } else if (available === 1) {
+    text = `Plus qu'un seul samedi disponible d'ici ${untilLabel} — vérifiez si c'est le vôtre.`;
+  } else {
+    text = `Encore ${available} samedis disponibles d'ici ${untilLabel} — vérifiez si le vôtre en fait partie.`;
+  }
+  return (
+    <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginTop: 12 }}>
+      {text}
+    </p>
+  );
+}
+
+export default function MariageClient({ availability }) {
   return (
     <div style={{ paddingTop: 70 }}>
 
@@ -313,9 +337,7 @@ export default function MariageClient() {
             >
               Vérifier la disponibilité de ma date →
             </a>
-            <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginTop: 12 }}>
-              Votre date part vite — vérifiez si elle est encore libre.
-            </p>
+            <AvailabilityLine availability={availability} />
           </Reveal>
         </Reveal>
       </section>

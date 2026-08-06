@@ -23,6 +23,12 @@ Next.js 16 App Router, JavaScript SANS TypeScript, React 19, Supabase, hébergé
   (crashs silencieux) : les étapes de `DevisFlow` sont des fonctions de rendu, l'état vit dans le parent.
 - Liens Qonto côté client : PDF devis = attachment S3 (valide 30 min), facture = pay.qonto.com.
   Jamais portal.qonto.com (portail privé).
+- Blocage d'une journée dans Google Calendar : toujours utiliser `blockCalendarDay()`
+  (`lib/google-calendar.js`), jamais un `events.insert` maison. Un événement all-day doit avoir
+  `end.date` = lendemain de `start.date` (convention exclusive) — mettre la même date pour start/end,
+  ou pire un horaire précis sur un seul jour (RDV 15h-16h au lieu de journée entière), fait qu'aucune
+  date n'est bloquée sur `/api/availability`. Bug réel du 06/08/2026 : un mariage confirmé saisi
+  à la main comme un simple RDV n'a rien bloqué → un devis envoyé à un autre prospect pour la même date.
 
 ## Conventions
 - Couleurs uniquement via les variables de `app/globals.css`

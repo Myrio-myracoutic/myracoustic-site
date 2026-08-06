@@ -1,7 +1,7 @@
-import { google } from 'googleapis';
 import { NextResponse } from 'next/server';
 import { parseDateFromHeader } from '@/lib/parse-date-fr';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
+import { blockCalendarDay } from '@/lib/google-calendar';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,27 +33,6 @@ async function getInvoiceDetails(invoiceId) {
   if (!qRes.ok) return { date: null, quoteId };
   const qData = await qRes.json();
   return { date: parseDateFromHeader(qData.quote?.header), quoteId };
-}
-
-async function createCalendarEvent(eventDate, clientName, invoiceNumber) {
-  const auth = new google.auth.OAuth2(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-  );
-  auth.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });
-  const calendar = google.calendar({ version: 'v3', auth });
-
-  await calendar.events.insert({
-    calendarId: process.env.GOOGLE_CALENDAR_ID || 'primary',
-    requestBody: {
-      summary: `🎵 Prestation Myracoustic — ${clientName}`,
-      description: `Facture ${invoiceNumber} — Acompte réglé. Date confirmée.`,
-      start: { date: eventDate },
-      end: { date: eventDate },
-      status: 'confirmed',
-      transparency: 'opaque',
-    },
-  });
 }
 
 export async function POST(request) {
@@ -101,7 +80,11 @@ export async function POST(request) {
       return NextResponse.json({ ok: true });
     }
 
-    await createCalendarEvent(eventDate, clientName, invoiceNumber);
+    await blockCalendarDay({
+      date: eventDate,
+      summary: `🎵 Prestation Myracoustic — ${clientName}`,
+      description: `Facture ${invoiceNumber} — Acompte réglé. Date confirmée.`,
+    });
     console.log(`Agenda mis à jour : ${eventDate} — ${clientName}`);
 
     return NextResponse.json({ ok: true });

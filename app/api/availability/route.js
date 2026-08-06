@@ -77,10 +77,14 @@ export async function GET(request) {
 
       const cur = new Date(s);
       const fin = new Date(e || s);
-      while (cur < fin) {
+      // do-while (pas while) : un événement ponctuel qui démarre et finit le même
+      // jour (ex. saisi comme un RDV de 15h à 16h au lieu d'une journée entière)
+      // doit quand même bloquer ce jour-là — sinon cur === fin dès le départ et
+      // la boucle ne bloque jamais rien.
+      do {
         bookedDates.add(cur.toISOString().slice(0, 10));
         cur.setDate(cur.getDate() + 1);
-      }
+      } while (cur < fin);
     }
 
     // Dates des devis Qonto en attente de signature

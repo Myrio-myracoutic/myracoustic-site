@@ -1,41 +1,51 @@
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
-import { sendDevisReminder } from '@/app/lib/send-devis-reminder';
+import { sendQuoteReminderEmail, urgencyForDaysLeft, daysUntil } from '@/app/lib/send-quote-reminder-email';
 
-/* Rappel automatique J-1 avant expiration d'une proposition de devis (status 'proposee'),
-   une seule fois par échéance — reminder_sent_at est remis à null dès que valid_until
-   est recalculé (nouvelle proposition, report de date, réduction du moment). */
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://myracoustic.com';
+const STAGE_FOR_URGENCY = { j7: 1, j3: 2, j1: 3 };
+
+/* Rappel automatique avant expiration d'une proposition de devis (status 'proposee') :
+   3 paliers honnêtes basés sur la vraie date d'expiration — J-7, J-3, J-1 — jamais
+   plus d'un envoi par exécution et par proposition. reminder_stage (+ reminder_sent_at)
+   est remis à 0/null dès que valid_until est recalculé (nouvelle proposition, report
+   de date, réduction du moment) — voir devis-discount et devis-proposal. */
 export async function runDevisReminders() {
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowStr = tomorrow.toISOString().slice(0, 10);
-
   const { data: proposals, error } = await supabaseAdmin
     .from('devis_proposals')
-    .select('id, token, valid_until, mariage_leads(prenom, email)')
+    .select('id, token, valid_until, reminder_stage, mariage_leads(prenom, email)')
     .eq('status', 'proposee')
-    .eq('valid_until', tomorrowStr)
-    .is('reminder_sent_at', null);
+    .lt('reminder_stage', 3);
 
   if (error) return { sent: 0, error: error.message };
 
   const results = [];
   for (const p of proposals || []) {
     const lead = p.mariage_leads || {};
-    if (!lead.email || !p.token) continue;
+    if (!lead.email || !p.token || !p.valid_until) continue;
+
+    const daysLeft = daysUntil(p.valid_until);
+    if (daysLeft < 0) continue; // déjà expiré, plus aucun rappel utile
+
+    const urgency = urgencyForDaysLeft(daysLeft);
+    const stage = STAGE_FOR_URGENCY[urgency];
+    if (!urgency || stage <= p.reminder_stage) continue; // rien à envoyer pour l'instant / déjà fait
+
     try {
-      await sendDevisReminder({
+      await sendQuoteReminderEmail({
         email: lead.email.toLowerCase(),
         prenom: lead.prenom,
-        token: p.token,
+        link: `${APP_URL}/proposition/${p.token}`,
         validUntil: p.valid_until,
+        urgency,
+        daysLeft,
       });
       await supabaseAdmin
         .from('devis_proposals')
-        .update({ reminder_sent_at: new Date().toISOString() })
+        .update({ reminder_stage: stage, reminder_sent_at: new Date().toISOString() })
         .eq('id', p.id);
-      results.push({ proposal: p.id, status: 'sent' });
+      results.push({ proposal: p.id, urgency, status: 'sent' });
     } catch (e) {
-      results.push({ proposal: p.id, status: 'error', error: e.message });
+      results.push({ proposal: p.id, urgency, status: 'error', error: e.message });
     }
   }
 

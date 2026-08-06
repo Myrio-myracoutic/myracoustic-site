@@ -212,6 +212,9 @@ export async function POST(request) {
         event_type: event?.type || null,
         event_date: event?.date || null,
         venue: event?.lieu || null,
+        // Sert au rappel avant expiration — uniquement pertinent pour un devis réellement
+        // envoyé au client (un brouillon n'a encore rien reçu, pas de compte à rebours).
+        expiry_date: draft ? null : expiryDate,
       }).select('id').single();
       trackingId = tracking?.id || null;
     } catch (trackErr) {

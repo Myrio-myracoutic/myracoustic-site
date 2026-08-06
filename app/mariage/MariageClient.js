@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Download } from 'lucide-react';
 import { AnimatedWave, SectionLabel } from '../components/AnimatedWave';
 import { FAQ_ITEMS } from './faq-data';
 import TestimonialCarousel from '../components/TestimonialCarousel';
@@ -360,6 +360,40 @@ export default function MariageClient({ availability }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {FAQ_ITEMS.map((item, i) => <FaqItem key={i} {...item} />)}
           </div>
+        </Reveal>
+      </section>
+
+      {/* ── AIMANT : GUIDE GRATUIT ──────────────────────────────── */}
+      <section style={{ padding: '0 32px 56px' }}>
+        <Reveal style={{
+          maxWidth: 900, margin: '0 auto', display: 'flex', flexWrap: 'wrap',
+          alignItems: 'center', justifyContent: 'space-between', gap: 20,
+          background: 'rgba(184,239,11,0.05)', border: '1px solid rgba(184,239,11,0.2)',
+          borderRadius: 14, padding: '24px 28px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div style={{
+              flexShrink: 0, width: 44, height: 44, borderRadius: '50%',
+              background: 'rgba(184,239,11,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Download size={19} color="var(--lime)" />
+            </div>
+            <div>
+              <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 15.5, marginBottom: 3 }}>
+                Pas encore décidé ? Téléchargez notre guide gratuit
+              </div>
+              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13.5 }}>
+                7 questions à poser à tout prestataire DJ de mariage avant de signer.
+              </div>
+            </div>
+          </div>
+          <a href="/guide-dj-mariage" style={{
+            flexShrink: 0, background: 'var(--lime)', color: '#0d1b2a',
+            padding: '11px 22px', borderRadius: 8, fontSize: 13.5, fontWeight: 700,
+            fontFamily: 'var(--font-display), sans-serif', textDecoration: 'none', whiteSpace: 'nowrap',
+          }}>
+            Recevoir le guide →
+          </a>
         </Reveal>
       </section>
 

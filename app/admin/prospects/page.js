@@ -146,6 +146,7 @@ export default function ProspectsPage() {
   const [expanded,  setExpanded]  = useState(null);
   const [quotes,    setQuotes]    = useState([]);
   const [proLeads,  setProLeads]  = useState([]);
+  const [guideSignups, setGuideSignups] = useState([]);
   const [callBusy,  setCallBusy]  = useState(null);
   const [callSlotFor, setCallSlotFor] = useState(null); // { kind, id, mode, contactLabel, patchUrl }
 
@@ -159,6 +160,9 @@ export default function ProspectsPage() {
     fetch('/api/admin/pro-contacts')
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d) setProLeads(d.leads || []); });
+    fetch('/api/admin/lead-magnet')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setGuideSignups(d.signups || []); });
   };
 
   const fmtCallDateTime = (iso) => {
@@ -524,6 +528,67 @@ export default function ProspectsPage() {
               </button>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* ── Guide téléchargé (aimant public) ─────────────────────── */}
+      <div style={{ marginTop: 44, marginBottom: 20 }}>
+        <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 19, fontWeight: 800, color: '#fff', margin: '0 0 4px' }}>
+          Guide téléchargé (aimant public)
+        </h2>
+        <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, margin: 0 }}>
+          {guideSignups.length} email{guideSignups.length !== 1 ? 's' : ''} capté{guideSignups.length !== 1 ? 's' : ''} via le guide « 7 questions avant de choisir son DJ de mariage ».
+        </p>
+      </div>
+
+      {guideSignups.length === 0 ? (
+        <div style={{
+          background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.06)',
+          borderRadius: 14, padding: '40px 24px', textAlign: 'center',
+          color: 'rgba(255,255,255,0.2)', fontSize: 14,
+        }}>
+          Aucun téléchargement pour le moment.
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {guideSignups.map(s => {
+            const seqLabel = s.sequence_stopped_at
+              ? { label: 'Désinscrit', color: 'rgba(255,255,255,0.35)' }
+              : s.sequence_step >= 5
+                ? { label: 'Séquence terminée', color: '#22c55e' }
+                : { label: `${s.sequence_step}/5 envoyés`, color: 'rgba(255,255,255,0.5)' };
+            return (
+              <div key={s.id} style={{
+                background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.07)',
+                borderRadius: 12, padding: '14px 20px',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap',
+              }}>
+                <div style={{ minWidth: 180 }}>
+                  <div style={{ fontSize: 14.5, fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>
+                    {s.first_name || '—'}
+                  </div>
+                  <div style={{ fontSize: 12.5, color: '#b8ef0b' }}>{s.email}</div>
+                </div>
+                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>
+                  Téléchargé {timeAgo(s.created_at)}
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 700, color: seqLabel.color }}>
+                  {seqLabel.label}
+                </span>
+                <button
+                  onClick={() => deleteEntry('/api/admin/lead-magnet', s.id, `la fiche de ${s.first_name || s.email}`)}
+                  title="Supprimer cette fiche"
+                  style={{
+                    display: 'flex', alignItems: 'center', padding: '7px 10px',
+                    background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.15)',
+                    borderRadius: 7, color: '#ef4444', cursor: 'pointer',
+                  }}
+                >
+                  <Trash2 size={13} />
+                </button>
+              </div>
+            );
+          })}
         </div>
       )}
 

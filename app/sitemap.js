@@ -5,6 +5,7 @@ export default function sitemap() {
     { path: '/evenement-entreprise',      priority: 0.9, changeFrequency: 'monthly' },
     { path: '/evenements-prives',         priority: 0.9, changeFrequency: 'monthly' },
     { path: '/mariage',                   priority: 0.9, changeFrequency: 'monthly' },
+    { path: '/guide-dj-mariage',          priority: 0.6, changeFrequency: 'monthly' },
     { path: '/sonorisation-nantes',       priority: 0.8, changeFrequency: 'monthly' },
     { path: '/sonorisation-angers',       priority: 0.8, changeFrequency: 'monthly' },
     { path: '/sonorisation-saint-nazaire', priority: 0.8, changeFrequency: 'monthly' },

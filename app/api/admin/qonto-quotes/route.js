@@ -57,3 +57,15 @@ export async function PATCH(request) {
 
   return Response.json({ error: 'Action inconnue' }, { status: 400 });
 }
+
+// DELETE /api/admin/qonto-quotes — supprimer une entrée du suivi
+export async function DELETE(request) {
+  if (!(await verifyAdminCookie())) {
+    return Response.json({ error: 'Non autorisé' }, { status: 401 });
+  }
+  const { id } = await request.json();
+  if (!id) return Response.json({ error: 'id manquant' }, { status: 400 });
+  const { error } = await supabaseAdmin.from('qonto_quotes_tracking').delete().eq('id', id);
+  if (error) return Response.json({ error: error.message }, { status: 500 });
+  return Response.json({ ok: true });
+}

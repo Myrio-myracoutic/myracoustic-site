@@ -189,6 +189,16 @@ export default function ProspectsPage() {
     load();
   };
 
+  const deleteEntry = async (patchUrl, id, label) => {
+    if (!confirm(`Supprimer ${label} ?`)) return;
+    await fetch(patchUrl, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    });
+    load();
+  };
+
   const handleRelance = async (email) => {
     setSending(email);
     const res = await fetch('/api/admin/prospects/relance', {
@@ -432,6 +442,17 @@ export default function ProspectsPage() {
                   onReschedule={() => setCallSlotFor({ kind: 'devis', id: q.id, mode: 'reschedule', contactLabel: `${q.client_first_name || ''} ${q.client_last_name || ''} · 📞 ${q.client_phone || '—'}`, patchUrl: '/api/admin/qonto-quotes' })}
                   onCancel={() => cancelCall('/api/admin/qonto-quotes', q.id)}
                 />
+                <button
+                  onClick={() => deleteEntry('/api/admin/qonto-quotes', q.id, `le devis de ${q.client_first_name || ''} ${q.client_last_name || ''}`)}
+                  title="Supprimer ce suivi de devis"
+                  style={{
+                    display: 'flex', alignItems: 'center', padding: '7px 10px',
+                    background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.15)',
+                    borderRadius: 7, color: '#ef4444', cursor: 'pointer',
+                  }}
+                >
+                  <Trash2 size={13} />
+                </button>
               </div>
             );
           })}
@@ -490,6 +511,17 @@ export default function ProspectsPage() {
                 onReschedule={() => setCallSlotFor({ kind: 'pro_contact', id: l.id, mode: 'reschedule', contactLabel: `${l.prenom} ${l.nom} · 📞 ${l.tel}`, patchUrl: '/api/admin/pro-contacts' })}
                 onCancel={() => cancelCall('/api/admin/pro-contacts', l.id)}
               />
+              <button
+                onClick={() => deleteEntry('/api/admin/pro-contacts', l.id, `la demande de ${l.prenom} ${l.nom}`)}
+                title="Supprimer cette demande"
+                style={{
+                  display: 'flex', alignItems: 'center', padding: '7px 10px',
+                  background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.15)',
+                  borderRadius: 7, color: '#ef4444', cursor: 'pointer',
+                }}
+              >
+                <Trash2 size={13} />
+              </button>
             </div>
           ))}
         </div>

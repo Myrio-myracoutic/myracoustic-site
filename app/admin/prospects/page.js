@@ -1,7 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Trash2, Mail, MousePointerClick, Send, FileText, ChevronDown, ExternalLink } from 'lucide-react';
+import { Trash2, Mail, MousePointerClick, Send, FileText, ChevronDown, ExternalLink, PhoneCall } from 'lucide-react';
+import CallSlotModal from '@/app/components/CallSlotModal';
 
 const QUOTE_STATUS_LABEL = {
   pending_approval: { label: 'En attente', color: '#f59e0b' },
@@ -108,6 +109,34 @@ function timeAgo(iso) {
   return `il y a ${d} jour${d > 1 ? 's' : ''}`;
 }
 
+/* Boutons de planning d'appel — partagés entre les devis Qonto et les contacts pro simples. */
+function CallControls({ scheduledAt, cancelledAt, busy, onSchedule, onReschedule, onCancel }) {
+  if (scheduledAt && !cancelledAt) {
+    return (
+      <div style={{ display: 'flex', gap: 8 }}>
+        <button onClick={onReschedule} title="Choisir un autre jour/créneau" style={{
+          border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.85)',
+          borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontSize: 12,
+          fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, whiteSpace: 'nowrap',
+        }}>Modifier</button>
+        <button onClick={onCancel} disabled={busy} title="Annuler le rendez-vous téléphonique" style={{
+          border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)', color: '#ef4444',
+          borderRadius: 8, padding: '6px 14px', cursor: busy ? 'wait' : 'pointer', fontSize: 12,
+          fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, whiteSpace: 'nowrap',
+          opacity: busy ? 0.6 : 1,
+        }}>Annuler</button>
+      </div>
+    );
+  }
+  return (
+    <button onClick={onSchedule} title="Programmer un appel avec ce contact" style={{
+      border: '1px solid rgba(184,239,11,0.35)', background: 'rgba(184,239,11,0.08)', color: 'var(--lime)',
+      borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font-display), sans-serif', fontWeight: 700,
+      display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap',
+    }}><PhoneCall size={13} /> Programmer un appel</button>
+  );
+}
+
 export default function ProspectsPage() {
   const router    = useRouter();
   const [prospects, setProspects] = useState([]);
@@ -116,6 +145,9 @@ export default function ProspectsPage() {
   const [sent,      setSent]      = useState({});
   const [expanded,  setExpanded]  = useState(null);
   const [quotes,    setQuotes]    = useState([]);
+  const [proLeads,  setProLeads]  = useState([]);
+  const [callBusy,  setCallBusy]  = useState(null);
+  const [callSlotFor, setCallSlotFor] = useState(null); // { kind, id, mode, contactLabel, patchUrl }
 
   const load = () => {
     fetch('/api/admin/prospects')
@@ -124,6 +156,25 @@ export default function ProspectsPage() {
     fetch('/api/admin/qonto-quotes')
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d) setQuotes(d.quotes || []); });
+    fetch('/api/admin/pro-contacts')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setProLeads(d.leads || []); });
+  };
+
+  const fmtCallDateTime = (iso) => {
+    if (!iso) return '';
+    return new Date(iso).toLocaleString('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+  };
+
+  const cancelCall = async (patchUrl, id) => {
+    if (!confirm('Annuler ce rendez-vous téléphonique ?')) return;
+    setCallBusy('cancel-' + id);
+    const res = await fetch(patchUrl, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, cancelCall: true }),
+    });
+    setCallBusy(null);
+    if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || 'Erreur'); return; }
+    load();
   };
 
   useEffect(() => { load(); }, []);
@@ -340,6 +391,11 @@ export default function ProspectsPage() {
                     {q.client_first_name || ''} {q.client_last_name || ''}
                   </div>
                   <div style={{ fontSize: 12.5, color: '#b8ef0b' }}>{q.client_email}</div>
+                  {q.call_scheduled_at && !q.call_cancelled_at && (
+                    <div style={{ fontSize: 11.5, color: 'var(--lime)', fontWeight: 600, marginTop: 2 }}>
+                      📞 Appel prévu le {fmtCallDateTime(q.call_scheduled_at)}
+                    </div>
+                  )}
                 </div>
                 <div style={{ minWidth: 140 }}>
                   <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>{q.event_type || '—'}</div>
@@ -368,10 +424,86 @@ export default function ProspectsPage() {
                     <ExternalLink size={12} /> Ouvrir dans Qonto
                   </a>
                 )}
+                <CallControls
+                  scheduledAt={q.call_scheduled_at}
+                  cancelledAt={q.call_cancelled_at}
+                  busy={callBusy === 'cancel-' + q.id}
+                  onSchedule={() => setCallSlotFor({ kind: 'devis', id: q.id, mode: 'schedule', contactLabel: `${q.client_first_name || ''} ${q.client_last_name || ''} · 📞 ${q.client_phone || '—'}`, patchUrl: '/api/admin/qonto-quotes' })}
+                  onReschedule={() => setCallSlotFor({ kind: 'devis', id: q.id, mode: 'reschedule', contactLabel: `${q.client_first_name || ''} ${q.client_last_name || ''} · 📞 ${q.client_phone || '—'}`, patchUrl: '/api/admin/qonto-quotes' })}
+                  onCancel={() => cancelCall('/api/admin/qonto-quotes', q.id)}
+                />
               </div>
             );
           })}
         </div>
+      )}
+
+      {/* ── Demandes de contact professionnel (formulaire simple, sans devis) ──── */}
+      <div style={{ marginTop: 44, marginBottom: 20 }}>
+        <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 19, fontWeight: 800, color: '#fff', margin: '0 0 4px' }}>
+          Demandes de contact professionnel
+        </h2>
+        <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13, margin: 0 }}>
+          {proLeads.length} demande{proLeads.length !== 1 ? 's' : ''} — formulaire de contact pro simple (sans prix affiché).
+        </p>
+      </div>
+
+      {proLeads.length === 0 ? (
+        <div style={{
+          background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.06)',
+          borderRadius: 14, padding: '40px 24px', textAlign: 'center',
+          color: 'rgba(255,255,255,0.2)', fontSize: 14,
+        }}>
+          Aucune demande de contact pro pour le moment.
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {proLeads.map(l => (
+            <div key={l.id} style={{
+              background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.07)',
+              borderRadius: 12, padding: '14px 20px',
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap',
+            }}>
+              <div style={{ minWidth: 180 }}>
+                <div style={{ fontSize: 14.5, fontWeight: 600, color: 'rgba(255,255,255,0.85)' }}>
+                  {l.prenom} {l.nom} · {l.societe}
+                </div>
+                <div style={{ fontSize: 12.5, color: '#b8ef0b' }}>{l.email} · 📞 {l.tel}</div>
+                {l.call_scheduled_at && !l.call_cancelled_at && (
+                  <div style={{ fontSize: 11.5, color: 'var(--lime)', fontWeight: 600, marginTop: 2 }}>
+                    📞 Appel prévu le {fmtCallDateTime(l.call_scheduled_at)}
+                  </div>
+                )}
+              </div>
+              <div style={{ minWidth: 140 }}>
+                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>{l.event_type || '—'}</div>
+                <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>{l.event_date ? fmtDate(l.event_date) : 'Date non précisée'}</div>
+              </div>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>
+                {timeAgo(l.created_at)}
+              </div>
+              <CallControls
+                scheduledAt={l.call_scheduled_at}
+                cancelledAt={l.call_cancelled_at}
+                busy={callBusy === 'cancel-' + l.id}
+                onSchedule={() => setCallSlotFor({ kind: 'pro_contact', id: l.id, mode: 'schedule', contactLabel: `${l.prenom} ${l.nom} · 📞 ${l.tel}`, patchUrl: '/api/admin/pro-contacts' })}
+                onReschedule={() => setCallSlotFor({ kind: 'pro_contact', id: l.id, mode: 'reschedule', contactLabel: `${l.prenom} ${l.nom} · 📞 ${l.tel}`, patchUrl: '/api/admin/pro-contacts' })}
+                onCancel={() => cancelCall('/api/admin/pro-contacts', l.id)}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {callSlotFor && (
+        <CallSlotModal
+          id={callSlotFor.id}
+          mode={callSlotFor.mode}
+          contactLabel={callSlotFor.contactLabel}
+          patchUrl={callSlotFor.patchUrl}
+          onClose={() => setCallSlotFor(null)}
+          onDone={() => { setCallSlotFor(null); load(); }}
+        />
       )}
     </div>
   );

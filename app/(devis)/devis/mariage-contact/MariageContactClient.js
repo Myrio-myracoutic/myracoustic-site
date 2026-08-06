@@ -7,7 +7,7 @@ import { ArrowLeft, CheckCircle2, Loader2, ShieldCheck, Phone, Clock, CalendarX,
 import MiniCal from '@/app/components/MiniCal';
 import AddressAutocomplete from '@/app/components/AddressAutocomplete';
 import TestimonialCarousel from '@/app/components/TestimonialCarousel';
-import CallSlotPicker from './CallSlotPicker';
+import CallSlotPicker from '@/app/components/CallSlotPicker';
 import { gtagEvent, gtagBeacon, gtagSetUserData } from '@/app/lib/gtag';
 
 /* Avis mariage — mêmes témoignages que la page /mariage */
@@ -145,7 +145,8 @@ export default function MariageContactClient() {
       {step === 'slot' ? (
         <div style={{ maxWidth: 620, margin: '0 auto', padding: '56px 20px 70px' }}>
           <CallSlotPicker
-            leadId={leadId}
+            kind="mariage"
+            refId={leadId}
             firstName={firstName}
             onBooked={(slot) => { setConfirmedSlot(slot); setStep('done'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
             onFallback={() => { setStep('done'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}

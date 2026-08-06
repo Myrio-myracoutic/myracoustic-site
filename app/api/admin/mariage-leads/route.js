@@ -1,8 +1,7 @@
 import { verifyAdminCookie } from '@/app/lib/admin-auth';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
 import { isDateInBookingWindow, ADMIN_BOOKING_WINDOW_DAYS } from '@/lib/call-slots';
-import { bookCallSlot, deleteCallGoogleEvent } from '@/app/lib/call-booking';
-import { sendCallCancelEmail } from '@/app/lib/send-call-confirm-email';
+import { bookCallSlot, deleteCallGoogleEvent, cancelCallSlot } from '@/app/lib/call-booking';
 
 // GET /api/admin/mariage-leads — leads du formulaire de contact mariage
 export async function GET() {
@@ -74,24 +73,8 @@ export async function PATCH(request) {
   if (!id) return Response.json({ error: 'id manquant' }, { status: 400 });
 
   if (cancelCall) {
-    const { data: lead } = await supabaseAdmin
-      .from('mariage_leads').select('call_google_event_id, prenom, email, call_scheduled_at').eq('id', id).maybeSingle();
-    await deleteCallGoogleEvent(lead?.call_google_event_id);
-
-    const { error } = await supabaseAdmin
-      .from('mariage_leads')
-      .update({ call_cancelled_at: new Date().toISOString() })
-      .eq('id', id);
-    if (error) return Response.json({ error: error.message }, { status: 500 });
-
-    // Email d'annulation : best-effort, l'annulation est déjà actée en base quoi qu'il arrive.
-    if (lead?.email && lead?.call_scheduled_at) {
-      try {
-        await sendCallCancelEmail({ toEmail: lead.email, firstName: lead.prenom });
-      } catch (err) {
-        console.error('call cancel email error:', err.message);
-      }
-    }
+    const result = await cancelCallSlot({ kind: 'mariage', refId: id });
+    if (result.error) return Response.json({ error: result.error }, { status: result.status });
     return Response.json({ ok: true });
   }
 
@@ -111,7 +94,7 @@ export async function PATCH(request) {
     const isReschedule = !!lead?.call_scheduled_at && !lead?.call_cancelled_at;
     await deleteCallGoogleEvent(lead?.call_google_event_id);
 
-    const result = await bookCallSlot({ leadId: id, date, time, requireEmptySlot: false, windowDays: ADMIN_BOOKING_WINDOW_DAYS, isReschedule });
+    const result = await bookCallSlot({ kind: 'mariage', refId: id, date, time, requireEmptySlot: false, windowDays: ADMIN_BOOKING_WINDOW_DAYS, isReschedule });
     if (result.error) return Response.json({ error: result.error }, { status: result.status });
     return Response.json({ ok: true });
   }

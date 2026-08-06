@@ -197,19 +197,23 @@ export async function POST(request) {
 
     // Suivi de TOUS les devis (brouillon comme envoyé) — un brouillon n'a pas encore de
     // compte client Supabase (client_id obligatoire sur events), donc pas moyen de le tracer
-    // autrement. Permet aussi le polling du statut Qonto (pas de webhook devis, voir cron).
+    // autrement. Permet aussi le polling du statut Qonto (pas de webhook devis, voir cron) et
+    // sert de point d'accroche au planning d'appel (client_phone + colonnes call_*).
+    let trackingId = null;
     try {
-      await supabaseAdmin.from('qonto_quotes_tracking').insert({
+      const { data: tracking } = await supabaseAdmin.from('qonto_quotes_tracking').insert({
         qonto_quote_id: quoteId,
         qonto_quote_url: quoteUrl,
         kind: draft ? 'brouillon' : 'auto_envoye',
         client_email: client.email,
         client_first_name: client.firstName,
         client_last_name: client.lastName,
+        client_phone: client.phone || null,
         event_type: event?.type || null,
         event_date: event?.date || null,
         venue: event?.lieu || null,
-      });
+      }).select('id').single();
+      trackingId = tracking?.id || null;
     } catch (trackErr) {
       console.error('Qonto quote tracking insert error:', trackErr.message);
     }
@@ -318,7 +322,7 @@ export async function POST(request) {
       }
     }
 
-    return NextResponse.json({ quoteId, quoteUrl });
+    return NextResponse.json({ quoteId, quoteUrl, trackingId });
   } catch (err) {
     console.error('Qonto devis error:', err.message);
     return NextResponse.json({ error: 'Erreur lors de la création du devis' }, { status: 500 });

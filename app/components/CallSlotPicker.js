@@ -4,6 +4,12 @@ import { Loader2, Phone, AlertTriangle } from 'lucide-react';
 
 const JOURS_FR = ['dim', 'lun', 'mar', 'mer', 'jeu', 'ven', 'sam'];
 
+const DEFAULT_SUBTITLE = {
+  mariage: (firstName) => `Merci ${firstName} ! Un dernier pas : dites-nous quand vous appeler pour parler de votre mariage.`,
+  devis: (firstName) => `Merci ${firstName} ! Dites-nous quand vous appeler pour finaliser votre devis.`,
+  pro_contact: (firstName) => `Merci ${firstName} ! Dites-nous quand vous appeler pour échanger sur votre projet.`,
+};
+
 /* Liste des 8 jours réservables (aujourd'hui + 7), en date locale (pas UTC —
    toISOString() décalerait la date près de minuit selon le fuseau du visiteur). */
 function nextDays(count) {
@@ -22,7 +28,9 @@ function fmtDateFr(k) {
   catch { return k; }
 }
 
-export default function CallSlotPicker({ leadId, firstName, onBooked, onFallback }) {
+/* kind : 'mariage' (défaut), 'devis' (particulier/pro ciblé) ou 'pro_contact' —
+   détermine quelle fiche Supabase reçoit le créneau (voir app/lib/call-booking.js). */
+export default function CallSlotPicker({ kind = 'mariage', refId, firstName, subtitle, onBooked, onFallback }) {
   const days = nextDays(8);
   const [selectedDate, setSelectedDate] = useState(days[0].key);
   const [slots, setSlots] = useState([]);
@@ -53,7 +61,7 @@ export default function CallSlotPicker({ leadId, firstName, onBooked, onFallback
     try {
       const res = await fetch('/api/call-bookings', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ leadId, date: selectedDate, time }),
+        body: JSON.stringify({ kind, refId, date: selectedDate, time }),
       });
       if (res.ok) {
         onBooked({ date: selectedDate, time });
@@ -73,6 +81,8 @@ export default function CallSlotPicker({ leadId, firstName, onBooked, onFallback
     }
   };
 
+  const displaySubtitle = subtitle || (DEFAULT_SUBTITLE[kind] || DEFAULT_SUBTITLE.mariage)(firstName);
+
   return (
     <div style={{ maxWidth: 560, margin: '0 auto' }}>
       <div style={{ textAlign: 'center', marginBottom: 28 }}>
@@ -81,7 +91,7 @@ export default function CallSlotPicker({ leadId, firstName, onBooked, onFallback
           Choisissez votre créneau d'appel
         </h1>
         <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 15, lineHeight: 1.7 }}>
-          Merci {firstName} ! Un dernier pas : dites-nous quand vous appeler pour parler de votre mariage.
+          {displaySubtitle}
         </p>
       </div>
 

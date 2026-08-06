@@ -52,7 +52,7 @@ async function sendBrevoEmail({ toEmail, firstName, subject, html }) {
 
 /* Programmation ou modification d'un créneau — isReschedule adapte le titre/objet
    pour que le client comprenne que ça remplace un précédent horaire, pas un doublon. */
-export async function sendCallConfirmEmail({ toEmail, firstName, tel, slotLabel, isReschedule = false }) {
+export async function sendCallConfirmEmail({ toEmail, firstName, tel, slotLabel, isReschedule = false, topic = 'de votre mariage' }) {
   const title = isReschedule ? 'Votre rendez-vous a été modifié 📞' : 'Votre appel est confirmé 📞';
   const subject = isReschedule ? `Votre rendez-vous est modifié — ${slotLabel}` : `Votre appel est confirmé — ${slotLabel}`;
   const html = emailShell(`
@@ -64,7 +64,7 @@ export async function sendCallConfirmEmail({ toEmail, firstName, tel, slotLabel,
       </td></tr>
     </table>
     <p style="color:rgba(255,255,255,0.8);font-size:15px;line-height:1.8;margin:0;">
-      Un conseiller Myracoustic vous appellera au <strong>${tel}</strong> pour échanger sur votre projet de mariage. Merci d'être disponible à ce moment-là.
+      Un conseiller Myracoustic vous appellera au <strong>${tel}</strong> pour échanger ${topic}. Merci d'être disponible à ce moment-là.
     </p>
   `);
   await sendBrevoEmail({ toEmail, firstName, subject, html });

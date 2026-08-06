@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/app/lib/supabase-admin';
 
 const NOTIF_EMAIL = process.env.GOOGLE_CALENDAR_ID || 'contact@myracoustic.com';
 
@@ -11,6 +12,20 @@ export async function POST(request) {
 
   if (!prenom || !nom || !societe || !email || !tel || !type || !personnes) {
     return NextResponse.json({ error: 'Champs requis manquants' }, { status: 400 });
+  }
+
+  // Persisté pour pouvoir y rattacher un planning d'appel (voir CallSlotPicker côté tunnel) —
+  // avant le 06/08 cette demande n'existait qu'en email, sans fiche pour Myrio à reprogrammer/annuler.
+  let leadId = null;
+  try {
+    const { data: lead } = await supabaseAdmin.from('pro_contact_leads').insert({
+      prenom, nom, societe, email, tel, poste: poste || null,
+      event_type: type, personnes, event_date: date || null,
+      budget: budget || null, lieu: lieu || null, description: description || null,
+    }).select('id').single();
+    leadId = lead?.id || null;
+  } catch (dbErr) {
+    console.error('pro_contact_leads insert error:', dbErr.message);
   }
 
   const lines = [
@@ -80,7 +95,7 @@ export async function POST(request) {
       console.error('Brevo confirmation error:', err.message);
     }
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, leadId });
   } catch (err) {
     console.error('Brevo error:', err.message);
     return NextResponse.json({ error: 'Erreur lors de l\'envoi' }, { status: 500 });

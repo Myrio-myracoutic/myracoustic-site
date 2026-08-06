@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Building2, Calendar, PartyPopper, Volume2, Headphones, Lightbulb, Mic, Video, Wrench, MapPin, Mail, Send, Search, AlertTriangle, Car, SlidersHorizontal, Users, CreditCard, User, Heart, Gift, Check, ClipboardList, X } from 'lucide-react';
 import { AnimatedWave } from './AnimatedWave';
+import CallSlotPicker from './CallSlotPicker';
 import { gtagEvent, gtagBeacon, gtagSetUserData } from '../lib/gtag';
 
 /* ════════════════════════════════════════════════════════════════════
@@ -409,6 +410,8 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
   const [step,   setStep]   = useState(forcedProfil === 'particulier' ? 1 : forcedProfil === 'professionnel' ? 9 : -1);
   const [sent,        setSent]        = useState(false);
   const [pendingReview, setPendingReview] = useState(false); /* devis parti en brouillon (infos manquantes) → à finaliser par Myrio */
+  const [callTrackingId, setCallTrackingId] = useState(null); /* id qonto_quotes_tracking / pro_contact_leads renvoyé à la soumission */
+  const [callDone, setCallDone] = useState(false); /* créneau choisi (ou étape ignorée) → affiche l'écran Merci */
   const [qontoLoading, setQontoLoading] = useState(false);
   const [qontoError,   setQontoError]   = useState('');
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -810,7 +813,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
             }),
           });
           const qData = await qRes.json();
-          if (qRes.ok) quoteUrl = qData.quoteUrl;
+          if (qRes.ok) { quoteUrl = qData.quoteUrl; setCallTrackingId(qData.trackingId || null); }
         } catch {}
 
         const res = await fetch('/api/contact/hors-zone', {
@@ -892,6 +895,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
       }
 
       setPendingReview(needsReview);
+      setCallTrackingId(data.trackingId || null);
       setSent(true);
       gtagSetUserData({ email, phone: tel, firstName: prenom, lastName: nom, street: adresse, city: ville, postalCode: cp });
       gtagEvent('generate_lead', { profil: 'particulier', hors_zone: false, needs_review: needsReview, currency: 'EUR', value: totalBrut });
@@ -956,7 +960,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
             }),
           });
           const qData = await qRes.json();
-          if (qRes.ok) quoteUrl = qData.quoteUrl;
+          if (qRes.ok) { quoteUrl = qData.quoteUrl; setCallTrackingId(qData.trackingId || null); }
         } catch {}
 
         const res = await fetch('/api/contact/hors-zone', {
@@ -1003,6 +1007,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Erreur');
+      setCallTrackingId(data.trackingId || null);
       setSent(true);
       gtagSetUserData({ email: cibleEmail, phone: cibleTel, firstName: ciblePrenom, lastName: cibleNom });
       gtagEvent('generate_lead', { profil: 'professionnel', hors_zone: false, currency: 'EUR', value: cibleTotalHT });
@@ -1027,6 +1032,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Erreur');
+      setCallTrackingId(data.leadId || null);
       setSent(true);
       gtagSetUserData({ email: proEmail, phone: proTel, firstName: proPrenom, lastName: proNom });
       gtagEvent('generate_lead', { profil: 'professionnel', contact_only: true });
@@ -1882,6 +1888,18 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
   const renderStep5 = () => {
     const isHorsZone = km && getTransportFee(km) === null;
 
+    if (sent && callTrackingId && !callDone) return (
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
+        <CallSlotPicker
+          kind="devis"
+          refId={callTrackingId}
+          firstName={prenom}
+          onBooked={() => setCallDone(true)}
+          onFallback={() => setCallDone(true)}
+        />
+      </div>
+    );
+
     if (sent) return (
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
         <div style={{ textAlign: 'center', maxWidth: 520 }}>
@@ -2527,6 +2545,18 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
   const renderStep21 = () => {
     const cibleIsHorsZone = cibleKm && getTransportFee(cibleKm) === null;
 
+    if (sent && callTrackingId && !callDone) return (
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
+        <CallSlotPicker
+          kind="devis"
+          refId={callTrackingId}
+          firstName={ciblePrenom}
+          onBooked={() => setCallDone(true)}
+          onFallback={() => setCallDone(true)}
+        />
+      </div>
+    );
+
     if (sent) return (
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
         <div style={{ textAlign: 'center', maxWidth: 480 }}>
@@ -2760,6 +2790,18 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
   );
 
   const renderStep11 = () => {
+    if (sent && callTrackingId && !callDone) return (
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
+        <CallSlotPicker
+          kind="pro_contact"
+          refId={callTrackingId}
+          firstName={proPrenom}
+          onBooked={() => setCallDone(true)}
+          onFallback={() => setCallDone(true)}
+        />
+      </div>
+    );
+
     if (sent) return (
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
         <div style={{ textAlign: 'center', maxWidth: 480 }}>
@@ -2800,8 +2842,31 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
             </select>
             <input placeholder="Effectif estimé *" value={proPersonnes} onChange={e => setProPersonnes(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
           </div>
+
+          <div>
+            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 10 }}>Date envisagée (facultatif)</div>
+            <MiniCal selected={proDate} onSelect={setProDate} devisPending={pendingDates} bookedDates={bookedDates} yearsAhead={2} loading={availabilityLoading} />
+            {proDate && (
+              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 12, color: 'var(--lime)', fontFamily: 'var(--font-display), sans-serif' }}>
+                  <Check size={13} style={{ verticalAlign: '-2px' }} />{' '}{new Date(proDate + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                </span>
+                <button onClick={() => setProDate('')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.35)', fontSize: 12, textDecoration: 'underline', cursor: 'pointer', fontFamily: 'inherit' }}>
+                  Effacer
+                </button>
+              </div>
+            )}
+            {proDate && (pendingDates[proDate] ?? 0) > 0 && (
+              <div style={{ marginTop: 8, padding: '10px 12px', background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.28)', borderRadius: 8, fontSize: 12, color: '#f97316', lineHeight: 1.6, display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                <AlertTriangle size={13} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} /> <span><strong>{pendingDates[proDate]} devis déjà demandé{pendingDates[proDate] > 1 ? 's' : ''}</strong> pour cette date — un conseiller vous recontacte rapidement pour confirmer.</span>
+              </div>
+            )}
+          </div>
+
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <input placeholder="Date souhaitée" value={proDate} onChange={e => setProDate(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
+            <AddressAutocomplete placeholder="Lieu prévu (ville, salle, adresse)" value={proLieu}
+              onChange={setProLieu}
+              onSelect={s => setProLieu(s.label)} />
             <select value={proBudget} onChange={e => setProBudget(e.target.value)}
               style={{ ...IS, cursor: 'pointer', color: proBudget ? 'white' : 'rgba(255,255,255,0.35)', appearance: 'none' }}
               onFocus={fo} onBlur={bl}>
@@ -2811,7 +2876,6 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
               ))}
             </select>
           </div>
-          <input placeholder="Lieu prévu (ville, salle, adresse)" value={proLieu} onChange={e => setProLieu(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
           <textarea placeholder="Décrivez votre projet et vos besoins…"
             value={proDesc} onChange={e => setProDesc(e.target.value)} rows={4}
             style={{ ...IS, resize: 'vertical', lineHeight: 1.65 }}

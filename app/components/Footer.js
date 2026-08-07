@@ -141,6 +141,26 @@ export default function Footer() {
             <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, marginBottom: 9, display: 'flex', alignItems: 'center', gap: 7 }}>
               <Mail size={13} strokeWidth={1.8} /> contact@myracoustic.com
             </p>
+            <a
+              href="https://www.instagram.com/myracoustic.com_off/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Myracoustic sur Instagram"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 7,
+                color: 'rgba(255,255,255,0.45)', fontSize: 14, marginTop: 4,
+                textDecoration: 'none', transition: 'color 0.2s',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--lime)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.45)'; }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <rect x="2" y="2" width="20" height="20" rx="5" />
+                <circle cx="12" cy="12" r="4.2" />
+                <circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none" />
+              </svg>
+              Instagram
+            </a>
           </div>
         </div>
 

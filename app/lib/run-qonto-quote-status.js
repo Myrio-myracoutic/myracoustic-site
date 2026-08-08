@@ -1,6 +1,6 @@
 /* Qonto n'a pas de webhook pour les devis (seulement pour les factures payées) — on
-   interroge donc périodiquement le statut des devis encore en attente (cron horaire,
-   voir app/api/cron/qonto-quote-status). Comble le trou de mesure identifié le 05/08 :
+   interroge donc périodiquement le statut des devis encore en attente (cron toutes les
+   10 min, voir app/api/cron/qonto-quote-status). Comble le trou de mesure identifié le 05/08 :
    jusque-là, un devis accepté par le client ne se voyait nulle part avant le paiement. */
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
 

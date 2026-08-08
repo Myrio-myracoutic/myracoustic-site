@@ -370,7 +370,7 @@ export default function ProspectsPage() {
 
       {/* ── Devis Qonto (tunnel particulier) ─────────────────────────
           Brouillons à finaliser + devis envoyés, avec statut réel (vérifié
-          par cron horaire — Qonto n'a pas de webhook pour les devis). */}
+          toutes les 10 min — Qonto n'a pas de webhook pour les devis). */}
       <div style={{ marginTop: 44, marginBottom: 20 }}>
         <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 19, fontWeight: 800, color: '#fff', margin: '0 0 4px' }}>
           Devis Qonto (particulier)

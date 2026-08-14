@@ -14,25 +14,22 @@ function qHeaders() {
   };
 }
 
+/* Les factures Qonto ne portent aucun champ `quote_id` (vérifié le 14/08/2026 en interrogeant
+   l'API en direct — contrairement à ce qu'on supposait ici avant, ce qui empêchait tout
+   rattachement à un événement Supabase et donc le blocage automatique de l'agenda). En revanche
+   la facture reprend le même en-tête que le devis d'origine ("Événement : ... · Date : ... ·
+   Lieu : ..."), et porte l'email du client — on s'appuie sur ces deux infos à la place. */
 async function getInvoiceDetails(invoiceId) {
   const res = await fetch(`${QONTO_BASE}/client_invoices/${invoiceId}`, { headers: qHeaders() });
-  if (!res.ok) return { date: null, quoteId: null };
+  if (!res.ok) return { date: null, clientEmail: null };
   const data = await res.json();
   const inv = data.client_invoice;
-  const quoteId = inv?.quote_id || null;
 
-  // Priorité 1 : champ performance_start_date de la facture
-  if (inv?.performance_start_date) {
-    return { date: inv.performance_start_date.slice(0, 10), quoteId };
-  }
+  const date = inv?.performance_start_date
+    ? inv.performance_start_date.slice(0, 10)
+    : parseDateFromHeader(inv?.header);
 
-  // Priorité 2 : date dans l'en-tête du devis lié
-  if (!quoteId) return { date: null, quoteId: null };
-
-  const qRes = await fetch(`${QONTO_BASE}/quotes/${quoteId}`, { headers: qHeaders() });
-  if (!qRes.ok) return { date: null, quoteId };
-  const qData = await qRes.json();
-  return { date: parseDateFromHeader(qData.quote?.header), quoteId };
+  return { date, clientEmail: inv?.client?.email || null };
 }
 
 export async function POST(request) {
@@ -53,22 +50,35 @@ export async function POST(request) {
     const clientName = payload.data?.client_name || payload.data?.client?.name || 'Client';
     const invoiceNumber = payload.data?.number || invoiceId;
 
-    const { date: eventDate, quoteId } = await getInvoiceDetails(invoiceId);
+    const { date: eventDate, clientEmail } = await getInvoiceDetails(invoiceId);
 
-    // Mise à jour automatique du statut Supabase
-    if (quoteId) {
+    // Mise à jour automatique du statut Supabase — rattachement par email client (+ date
+    // d'événement si connue pour désambiguïser un client ayant plusieurs événements).
+    if (clientEmail) {
       try {
-        const { data: sbEvent } = await supabaseAdmin
-          .from('events')
-          .select('id, status')
-          .eq('qonto_quote_id', quoteId)
+        const { data: client } = await supabaseAdmin
+          .from('clients')
+          .select('id')
+          .eq('email', clientEmail.toLowerCase())
           .maybeSingle();
 
-        if (sbEvent) {
-          // Acompte payé → confirme ; solde payé (déjà confirme) → termine
-          const newStatus = sbEvent.status === 'confirme' ? 'termine' : 'confirme';
-          await supabaseAdmin.from('events').update({ status: newStatus }).eq('id', sbEvent.id);
-          console.log(`Statut événement mis à jour : ${sbEvent.status} → ${newStatus} (quote ${quoteId})`);
+        if (client) {
+          let eventsQuery = supabaseAdmin
+            .from('events')
+            .select('id, status')
+            .eq('client_id', client.id)
+            .neq('status', 'annule');
+          if (eventDate) eventsQuery = eventsQuery.eq('event_date', eventDate);
+
+          const { data: matches } = await eventsQuery.order('created_at', { ascending: false }).limit(1);
+          const sbEvent = matches?.[0];
+
+          if (sbEvent) {
+            // Acompte payé → confirme ; solde payé (déjà confirme) → termine
+            const newStatus = sbEvent.status === 'confirme' ? 'termine' : 'confirme';
+            await supabaseAdmin.from('events').update({ status: newStatus }).eq('id', sbEvent.id);
+            console.log(`Statut événement mis à jour : ${sbEvent.status} → ${newStatus} (client ${clientEmail})`);
+          }
         }
       } catch (sbErr) {
         console.error('Supabase status update error:', sbErr.message);

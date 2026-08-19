@@ -68,7 +68,7 @@ export async function GET(request) {
     // exclurait silencieusement les événements pas encore confirmés dont on a quand même besoin
     // pour résoudre la verticale des paiements qui leur sont liés).
     supabaseAdmin.from('events').select('id, vertical, confirmed_at'),
-    supabaseAdmin.from('qonto_payments').select('amount, paid_at, event_id').lt('paid_at', windowEndISO.slice(0, 10)),
+    supabaseAdmin.from('qonto_payments').select('amount, paid_at, event_id, vertical').lt('paid_at', windowEndISO.slice(0, 10)),
     // Source de vérité du CA signé — table synchronisée depuis Qonto directement (voir
     // lib/qonto-sync.js). Petite table, pas de filtre de date nécessaire au chargement.
     supabaseAdmin.from('qonto_signed_quotes').select('amount, vertical, approved_at'),
@@ -101,7 +101,7 @@ export async function GET(request) {
     // CA encaissé
     for (const p of payments || []) {
       if (!inRange(p.paid_at, range)) continue;
-      const vertical = eventVerticalById.get(p.event_id);
+      const vertical = p.vertical || eventVerticalById.get(p.event_id);
       const amount = Number(p.amount) || 0;
       b.global.ca_encaisse += amount;
       if (vertical) b[vertical].ca_encaisse += amount;
@@ -232,7 +232,7 @@ export async function GET(request) {
     if (q.vertical) previsionnel[q.vertical].signe += montant;
   }
   for (const p of payments || []) {
-    const vertical = eventVerticalById.get(p.event_id);
+    const vertical = p.vertical || eventVerticalById.get(p.event_id);
     const amount = Number(p.amount) || 0;
     previsionnel.global.encaisse += amount;
     if (vertical) previsionnel[vertical].encaisse += amount;

@@ -13,10 +13,12 @@ import { getPeriodRanges, deltaPct, DATA_START_DATE } from '@/app/lib/period-ran
      qonto_quotes_tracking où kind='auto_envoye' (particulier/pro — un brouillon jamais envoyé
      ne compte pas), sur created_at.
    - Client converti = events.confirmed_at non nul dans la période, filtré par vertical.
-   - CA signé = devis_proposals.montant_final (mariage, sur validated_at) +
-     qonto_quotes_tracking.total_ttc où qonto_status='approved' (particulier/pro, sur created_at —
-     seule date disponible, pas de colonne "approuvé le" côté Qonto : approximation assumée,
-     signalée dans la réponse).
+   - CA signé = qonto_signed_quotes (source de vérité = Qonto directement, tout devis avec
+     `approved_at` réellement rempli — PAS juste status='approved', qui peut inclure des devis
+     jamais confirmés par le client, découverte du 19/08/2026). Couvre aussi bien les devis créés
+     via le site que ceux créés à la main dans Qonto (la majorité en réalité) — contrairement à
+     devis_proposals/qonto_quotes_tracking qui ne voient que ce qui passe par le site. Synchronisé
+     par lib/qonto-sync.js (cron 15 min, table qonto_signed_quotes).
    - CA encaissé = somme qonto_payments.amount sur paid_at, jamais confondu avec le CA signé. */
 
 function inRange(dateStr, range) {
@@ -54,7 +56,7 @@ export async function GET(request) {
   const [
     { data: events },
     { data: payments },
-    { data: proposals },
+    { data: signedQuotes },
     { data: allProposals },
     { data: mariageLeads },
     { data: progress },
@@ -67,7 +69,9 @@ export async function GET(request) {
     // pour résoudre la verticale des paiements qui leur sont liés).
     supabaseAdmin.from('events').select('id, vertical, confirmed_at'),
     supabaseAdmin.from('qonto_payments').select('amount, paid_at, event_id').lt('paid_at', windowEndISO.slice(0, 10)),
-    supabaseAdmin.from('devis_proposals').select('montant_final, validated_at').eq('status', 'validee').lt('validated_at', windowEndISO),
+    // Source de vérité du CA signé — table synchronisée depuis Qonto directement (voir
+    // lib/qonto-sync.js). Petite table, pas de filtre de date nécessaire au chargement.
+    supabaseAdmin.from('qonto_signed_quotes').select('amount, vertical, approved_at'),
     // Version non filtrée (tous statuts) pour compter "devis envoyés" + suivi de cohorte —
     // petite table, pas de souci de volume à charger en entier.
     supabaseAdmin.from('devis_proposals').select('id, created_at, status'),
@@ -103,22 +107,12 @@ export async function GET(request) {
       if (vertical) b[vertical].ca_encaisse += amount;
     }
 
-    // CA signé — mariage
-    for (const p of proposals || []) {
-      if (!inRange(p.validated_at, range)) continue;
-      const montant = Number(p.montant_final) || 0;
-      b.mariage.ca_signe += montant;
-      b.global.ca_signe += montant;
-    }
-
-    // CA signé — particulier/pro (devis Qonto acceptés)
-    for (const q of quotesTracking || []) {
-      if (q.event_type === 'Mariage') continue; // fuite déjà filtrée en amont, sécurité supplémentaire
-      if (q.qonto_status !== 'approved' || !inRange(q.created_at, range)) continue;
-      const vertical = q.client_kind === 'company' ? 'professionnel' : 'particulier';
-      const montant = Number(q.total_ttc) || 0;
-      b[vertical].ca_signe += montant;
-      b.global.ca_signe += montant;
+    // CA signé — source unique Qonto (qonto_signed_quotes), sur approved_at réel
+    for (const q of signedQuotes || []) {
+      if (!inRange(q.approved_at, range)) continue;
+      const montant = Number(q.amount) || 0;
+      b.global.ca_signe += montant; // toujours compté au global, même si verticale indéterminée
+      if (q.vertical) b[q.vertical].ca_signe += montant;
     }
 
     // Devis envoyés — mariage (toute proposition créée = envoyée par l'admin)
@@ -232,17 +226,10 @@ export async function GET(request) {
   // réalité si un client a payé plus que son devis d'origine (rare) ou si un remboursement a eu
   // lieu (non géré aujourd'hui), sinon c'est une vraie soustraction de deux totaux réels.
   const previsionnel = { global: { signe: 0, encaisse: 0 }, mariage: { signe: 0, encaisse: 0 }, particulier: { signe: 0, encaisse: 0 }, professionnel: { signe: 0, encaisse: 0 } };
-  for (const p of proposals || []) {
-    const montant = Number(p.montant_final) || 0;
-    previsionnel.mariage.signe += montant;
+  for (const q of signedQuotes || []) {
+    const montant = Number(q.amount) || 0;
     previsionnel.global.signe += montant;
-  }
-  for (const q of quotesTracking || []) {
-    if (q.event_type === 'Mariage' || q.qonto_status !== 'approved') continue;
-    const vertical = q.client_kind === 'company' ? 'professionnel' : 'particulier';
-    const montant = Number(q.total_ttc) || 0;
-    previsionnel[vertical].signe += montant;
-    previsionnel.global.signe += montant;
+    if (q.vertical) previsionnel[q.vertical].signe += montant;
   }
   for (const p of payments || []) {
     const vertical = eventVerticalById.get(p.event_id);
@@ -273,8 +260,9 @@ export async function GET(request) {
     },
     monthlyTrend,
     previsionnel,
+    caSigneVerticaleIndeterminee: Math.round((signedQuotes || []).filter(q => !q.vertical).reduce((s, q) => s + (Number(q.amount) || 0), 0)),
     caveats: {
-      ca_signe_particulier_pro: "Basé sur la date de création du devis, faute de date d'acceptation exacte côté Qonto — peut décaler légèrement un devis d'une période à l'autre.",
+      ca_signe: "Synchronisé directement depuis Qonto (devis avec date d'acceptation réelle), toute origine confondue — plus complet que ce qui passe uniquement par le site.",
       ca_encaisse: "N'inclut que les paiements effectivement reçus (acompte et/ou solde) — pas les devis signés en attente de paiement.",
       monthly_trend: "Convertis = statut à ce jour (peut encore évoluer pour les devis récents dont la réponse du client est en attente).",
       previsionnel: "Vue sur l'ensemble des contrats actifs à ce jour, sans filtre de période — le CA signé inclut des prestations dont la date est encore loin (ex. mariages 2027).",

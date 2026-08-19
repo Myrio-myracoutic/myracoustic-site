@@ -218,6 +218,37 @@ function KpiDashboard() {
 
           <div style={{ marginTop: 28, paddingTop: 24, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
             <h3 style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.6)', margin: '0 0 4px', fontFamily: 'var(--font-display), sans-serif' }}>
+              Prévisionnel — {VERTICAL_TABS.find(t => t.key === vertical).label}
+            </h3>
+            <p style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.25)', margin: '0 0 16px' }}>
+              Vue sur l'ensemble des contrats actifs à ce jour, sans filtre de période (semaine/mois/année n'a pas de sens ici).
+            </p>
+            {(() => {
+              const p = kpis.previsionnel[vertical];
+              return (
+                <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 12 }}>
+                  <div style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 10, padding: '14px 18px', flex: '1 1 160px' }}>
+                    <p style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.35)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 6px' }}>Total signé</p>
+                    <p style={{ fontSize: 22, fontWeight: 800, color: '#fff', margin: 0, fontFamily: 'var(--font-display), sans-serif' }}>{fmtEuro(p.signe)}</p>
+                  </div>
+                  <div style={{ background: 'rgba(111,207,122,0.06)', borderRadius: 10, padding: '14px 18px', flex: '1 1 160px', border: '1px solid rgba(111,207,122,0.15)' }}>
+                    <p style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.35)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 6px' }}>Déjà encaissé</p>
+                    <p style={{ fontSize: 22, fontWeight: 800, color: '#6fcf7a', margin: 0, fontFamily: 'var(--font-display), sans-serif' }}>{fmtEuro(p.encaisse)}</p>
+                  </div>
+                  <div style={{ background: 'rgba(184,239,11,0.06)', borderRadius: 10, padding: '14px 18px', flex: '1 1 160px', border: '1px solid rgba(184,239,11,0.18)' }}>
+                    <p style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.35)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 6px' }}>Reste à encaisser</p>
+                    <p style={{ fontSize: 22, fontWeight: 800, color: 'var(--lime)', margin: 0, fontFamily: 'var(--font-display), sans-serif' }}>{fmtEuro(p.resteAEncaisser)}</p>
+                  </div>
+                </div>
+              );
+            })()}
+            {kpis.previsionnel[vertical].incomplet && (
+              <p style={{ fontSize: 11.5, color: '#f2b84b', margin: '0 0 20px', display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                ⚠️ L'encaissé dépasse le signé connu ici — pas un vrai dépassement : des contrats antérieurs au 05/08 (avant la mise en place du suivi) ont un encaissement bien réel et compté, mais leur montant "signé" d'origine n'a jamais été enregistré. Rien d'inventé, juste incomplet pour ces anciens dossiers.
+              </p>
+            )}
+
+            <h3 style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.6)', margin: '20px 0 4px', fontFamily: 'var(--font-display), sans-serif' }}>
               Devis envoyés par mois, par verticale
             </h3>
             <p style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.25)', margin: '0 0 16px' }}>

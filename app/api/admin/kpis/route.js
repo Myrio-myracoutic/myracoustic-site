@@ -225,6 +225,42 @@ export async function GET(request) {
     return row;
   });
 
+  // ── Prévisionnel : vue "pipeline total", volontairement PAS filtrée par période (semaine/
+  // mois/année n'a pas de sens ici — c'est l'ensemble des contrats actifs, peu importe quand ils
+  // ont été signés). Total signé = tout ce qui a été validé/accepté à ce jour (jamais annulé/
+  // refusé). Reste à encaisser = signé moins déjà encaissé — peut légèrement diverger de la
+  // réalité si un client a payé plus que son devis d'origine (rare) ou si un remboursement a eu
+  // lieu (non géré aujourd'hui), sinon c'est une vraie soustraction de deux totaux réels.
+  const previsionnel = { global: { signe: 0, encaisse: 0 }, mariage: { signe: 0, encaisse: 0 }, particulier: { signe: 0, encaisse: 0 }, professionnel: { signe: 0, encaisse: 0 } };
+  for (const p of proposals || []) {
+    const montant = Number(p.montant_final) || 0;
+    previsionnel.mariage.signe += montant;
+    previsionnel.global.signe += montant;
+  }
+  for (const q of quotesTracking || []) {
+    if (q.event_type === 'Mariage' || q.qonto_status !== 'approved') continue;
+    const vertical = q.client_kind === 'company' ? 'professionnel' : 'particulier';
+    const montant = Number(q.total_ttc) || 0;
+    previsionnel[vertical].signe += montant;
+    previsionnel.global.signe += montant;
+  }
+  for (const p of payments || []) {
+    const vertical = eventVerticalById.get(p.event_id);
+    const amount = Number(p.amount) || 0;
+    previsionnel.global.encaisse += amount;
+    if (vertical) previsionnel[vertical].encaisse += amount;
+  }
+  for (const v of Object.keys(previsionnel)) {
+    const signe = Math.round(previsionnel[v].signe);
+    const encaisse = Math.round(previsionnel[v].encaisse);
+    // Peut arriver que l'encaissé dépasse le signé connu : pas un vrai dépassement, mais des
+    // contrats antérieurs au système de suivi (avant le 05/08) dont le montant "signé" n'a jamais
+    // été enregistré — leur encaissement, lui, est bien réel et compté. Jamais affiché en négatif,
+    // ce serait trompeur ; le vrai signé/encaissé restent visibles pour comprendre l'écart.
+    const resteAEncaisser = Math.max(0, signe - encaisse);
+    previsionnel[v] = { signe, encaisse, resteAEncaisser, incomplet: encaisse > signe };
+  }
+
   return Response.json({
     period,
     range: { start: ranges.current.start.toISOString().slice(0, 10), end: new Date(ranges.current.end.getTime() - 86400000).toISOString().slice(0, 10), label: ranges.current.label },
@@ -236,10 +272,12 @@ export async function GET(request) {
       professionnel: withDeltas('professionnel'),
     },
     monthlyTrend,
+    previsionnel,
     caveats: {
       ca_signe_particulier_pro: "Basé sur la date de création du devis, faute de date d'acceptation exacte côté Qonto — peut décaler légèrement un devis d'une période à l'autre.",
       ca_encaisse: "N'inclut que les paiements effectivement reçus (acompte et/ou solde) — pas les devis signés en attente de paiement.",
       monthly_trend: "Convertis = statut à ce jour (peut encore évoluer pour les devis récents dont la réponse du client est en attente).",
+      previsionnel: "Vue sur l'ensemble des contrats actifs à ce jour, sans filtre de période — le CA signé inclut des prestations dont la date est encore loin (ex. mariages 2027).",
     },
   });
 }

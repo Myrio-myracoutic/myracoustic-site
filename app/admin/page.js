@@ -71,6 +71,153 @@ function fmtDate(d) {
   return new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+function fmtEuro(n) {
+  return `${Math.round(n).toLocaleString('fr-FR')} €`;
+}
+
+function DeltaBadge({ pct, label }) {
+  if (pct === null || pct === undefined) {
+    return <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>{label} : pas d'historique</span>;
+  }
+  const positive = pct >= 0;
+  const color = pct === 0 ? 'rgba(255,255,255,0.35)' : positive ? '#6fcf7a' : '#ef6f79';
+  const arrow = pct === 0 ? '' : positive ? '▲' : '▼';
+  return (
+    <span style={{ fontSize: 11, color }}>
+      {arrow} {Math.abs(pct)}% <span style={{ color: 'rgba(255,255,255,0.3)' }}>{label}</span>
+    </span>
+  );
+}
+
+function KpiCard({ label, value, deltaPrevPct, deltaYearPct, previousYearAvailable, sub }) {
+  return (
+    <div style={{
+      background: '#0d1b2a', borderRadius: 14, padding: '20px 22px',
+      border: '1px solid rgba(255,255,255,0.06)', flex: '1 1 200px',
+    }}>
+      <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 8px' }}>{label}</p>
+      <p style={{ fontSize: 30, fontWeight: 800, color: '#fff', margin: '0 0 8px', fontFamily: 'var(--font-display), sans-serif', lineHeight: 1 }}>{value}</p>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <DeltaBadge pct={deltaPrevPct} label="vs période préc." />
+        {previousYearAvailable
+          ? <DeltaBadge pct={deltaYearPct} label="vs année préc." />
+          : <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)' }}>vs année préc. : pas encore d'historique</span>}
+      </div>
+      {sub && <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', margin: '8px 0 0' }}>{sub}</p>}
+    </div>
+  );
+}
+
+const VERTICAL_TABS = [
+  { key: 'global', label: 'Global' },
+  { key: 'mariage', label: 'Mariage' },
+  { key: 'particulier', label: 'Particulier' },
+  { key: 'professionnel', label: 'Pro' },
+];
+const PERIOD_TABS = [
+  { key: 'week', label: 'Semaine' },
+  { key: 'month', label: 'Mois' },
+  { key: 'year', label: 'Année' },
+];
+
+function TabButton({ active, onClick, children }) {
+  return (
+    <button onClick={onClick} style={{
+      padding: '7px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer',
+      fontFamily: 'var(--font-display), sans-serif',
+      background: active ? '#b8ef0b' : 'rgba(255,255,255,0.05)',
+      color: active ? '#060e16' : 'rgba(255,255,255,0.6)',
+      border: active ? 'none' : '1px solid rgba(255,255,255,0.1)',
+    }}>
+      {children}
+    </button>
+  );
+}
+
+function KpiDashboard() {
+  const [period, setPeriod] = useState('month');
+  const [vertical, setVertical] = useState('global');
+  const [kpis, setKpis] = useState(null);
+
+  useEffect(() => {
+    setKpis(null);
+    fetch(`/api/admin/kpis?period=${period}`)
+      .then(r => r.json())
+      .then(d => setKpis(d));
+  }, [period]);
+
+  return (
+    <div style={{ background: '#0d1b2a', borderRadius: 14, padding: '24px 28px', border: '1px solid rgba(255,255,255,0.06)', marginBottom: 28 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+        <h2 style={{ fontSize: 15, fontWeight: 700, color: 'rgba(255,255,255,0.85)', margin: 0, fontFamily: 'var(--font-display), sans-serif' }}>
+          Indicateurs clés {kpis ? `— ${kpis.range.label}` : ''}
+        </h2>
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {PERIOD_TABS.map(t => <TabButton key={t.key} active={period === t.key} onClick={() => setPeriod(t.key)}>{t.label}</TabButton>)}
+          </div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {VERTICAL_TABS.map(t => <TabButton key={t.key} active={vertical === t.key} onClick={() => setVertical(t.key)}>{t.label}</TabButton>)}
+          </div>
+        </div>
+      </div>
+
+      {!kpis ? (
+        <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>Chargement…</p>
+      ) : (
+        <>
+          <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: vertical === 'global' ? 24 : 0 }}>
+            {(() => {
+              const k = kpis.kpis[vertical];
+              const pya = kpis.previousYearAvailable;
+              return (
+                <>
+                  <KpiCard label="CA signé" value={fmtEuro(k.ca_signe.value)} deltaPrevPct={k.ca_signe.deltaPrevPct} deltaYearPct={k.ca_signe.deltaYearPct} previousYearAvailable={pya} sub="Devis validés/acceptés" />
+                  <KpiCard label="CA encaissé" value={fmtEuro(k.ca_encaisse.value)} deltaPrevPct={k.ca_encaisse.deltaPrevPct} deltaYearPct={k.ca_encaisse.deltaYearPct} previousYearAvailable={pya} sub="Paiements réellement reçus" />
+                  <KpiCard label="Clients confirmés" value={k.clients_confirmes.value} deltaPrevPct={k.clients_confirmes.deltaPrevPct} deltaYearPct={k.clients_confirmes.deltaYearPct} previousYearAvailable={pya} />
+                  <KpiCard label="Prospects entrants" value={k.prospects_entrants.value} deltaPrevPct={k.prospects_entrants.deltaPrevPct} deltaYearPct={k.prospects_entrants.deltaYearPct} previousYearAvailable={pya} />
+                  <KpiCard label="Taux de conversion" value={k.taux_conversion.value !== null ? `${k.taux_conversion.value}%` : '—'} deltaPrevPct={k.taux_conversion.deltaPrevPct} deltaYearPct={null} previousYearAvailable={false} sub={k.taux_conversion.caveat} />
+                </>
+              );
+            })()}
+          </div>
+
+          {vertical === 'global' && (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                    <th style={{ textAlign: 'left', padding: '8px 10px', color: 'rgba(255,255,255,0.35)', fontWeight: 600 }}>Verticale</th>
+                    <th style={{ textAlign: 'right', padding: '8px 10px', color: 'rgba(255,255,255,0.35)', fontWeight: 600 }}>CA signé</th>
+                    <th style={{ textAlign: 'right', padding: '8px 10px', color: 'rgba(255,255,255,0.35)', fontWeight: 600 }}>CA encaissé</th>
+                    <th style={{ textAlign: 'right', padding: '8px 10px', color: 'rgba(255,255,255,0.35)', fontWeight: 600 }}>Clients</th>
+                    <th style={{ textAlign: 'right', padding: '8px 10px', color: 'rgba(255,255,255,0.35)', fontWeight: 600 }}>Prospects</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {['mariage', 'particulier', 'professionnel'].map(v => {
+                    const k = kpis.kpis[v];
+                    const vLabel = VERTICAL_TABS.find(t => t.key === v).label;
+                    return (
+                      <tr key={v} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                        <td style={{ padding: '9px 10px', color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>{vLabel}</td>
+                        <td style={{ padding: '9px 10px', textAlign: 'right', color: 'rgba(255,255,255,0.7)' }}>{fmtEuro(k.ca_signe.value)}</td>
+                        <td style={{ padding: '9px 10px', textAlign: 'right', color: 'rgba(255,255,255,0.7)' }}>{fmtEuro(k.ca_encaisse.value)}</td>
+                        <td style={{ padding: '9px 10px', textAlign: 'right', color: 'rgba(255,255,255,0.7)' }}>{k.clients_confirmes.value}</td>
+                        <td style={{ padding: '9px 10px', textAlign: 'right', color: 'rgba(255,255,255,0.7)' }}>{k.prospects_entrants.value}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 function daysUntil(d) {
   if (!d) return null;
   const diff = Math.round((new Date(d + 'T12:00:00') - new Date()) / (1000 * 60 * 60 * 24));
@@ -114,6 +261,8 @@ export default function AdminDashboard() {
           {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
         </p>
       </div>
+
+      <KpiDashboard />
 
       {/* Cartes stats */}
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 28 }}>

@@ -21,7 +21,7 @@ function qHeaders() {
    Lieu : ..."), et porte l'email du client — on s'appuie sur ces deux infos à la place. */
 async function getInvoiceDetails(invoiceId) {
   const res = await fetch(`${QONTO_BASE}/client_invoices/${invoiceId}`, { headers: qHeaders() });
-  if (!res.ok) return { date: null, clientEmail: null };
+  if (!res.ok) return { date: null, clientEmail: null, amount: null, invoiceType: null, paidAt: null };
   const data = await res.json();
   const inv = data.client_invoice;
 
@@ -29,7 +29,13 @@ async function getInvoiceDetails(invoiceId) {
     ? inv.performance_start_date.slice(0, 10)
     : parseDateFromHeader(inv?.header);
 
-  return { date, clientEmail: inv?.client?.email || null };
+  return {
+    date,
+    clientEmail: inv?.client?.email || null,
+    amount: inv?.total_amount?.value ? Number(inv.total_amount.value) : null,
+    invoiceType: inv?.invoice_type || null,
+    paidAt: inv?.paid_at ? inv.paid_at.slice(0, 10) : null,
+  };
 }
 
 export async function POST(request) {
@@ -50,7 +56,7 @@ export async function POST(request) {
     const clientName = payload.data?.client_name || payload.data?.client?.name || 'Client';
     const invoiceNumber = payload.data?.number || invoiceId;
 
-    const { date: eventDate, clientEmail } = await getInvoiceDetails(invoiceId);
+    const { date: eventDate, clientEmail, amount, invoiceType, paidAt } = await getInvoiceDetails(invoiceId);
 
     // Mise à jour automatique du statut Supabase — rattachement par email client (+ date
     // d'événement si connue pour désambiguïser un client ayant plusieurs événements).
@@ -65,7 +71,7 @@ export async function POST(request) {
         if (client) {
           let eventsQuery = supabaseAdmin
             .from('events')
-            .select('id, status')
+            .select('id, status, confirmed_at')
             .eq('client_id', client.id)
             .neq('status', 'annule');
           if (eventDate) eventsQuery = eventsQuery.eq('event_date', eventDate);
@@ -76,8 +82,23 @@ export async function POST(request) {
           if (sbEvent) {
             // Acompte payé → confirme ; solde payé (déjà confirme) → termine
             const newStatus = sbEvent.status === 'confirme' ? 'termine' : 'confirme';
-            await supabaseAdmin.from('events').update({ status: newStatus }).eq('id', sbEvent.id);
+            const updates = { status: newStatus };
+            if (!sbEvent.confirmed_at) updates.confirmed_at = new Date().toISOString();
+            await supabaseAdmin.from('events').update(updates).eq('id', sbEvent.id);
             console.log(`Statut événement mis à jour : ${sbEvent.status} → ${newStatus} (client ${clientEmail})`);
+
+            // CA encaissé réel — registre séparé du CA signé, jamais recalculé depuis Qonto à l'affichage.
+            if (amount !== null) {
+              const { error: payErr } = await supabaseAdmin.from('qonto_payments').upsert({
+                qonto_invoice_id: invoiceId,
+                event_id: sbEvent.id,
+                invoice_type: invoiceType,
+                amount,
+                paid_at: paidAt || new Date().toISOString().slice(0, 10),
+                source: 'webhook',
+              }, { onConflict: 'qonto_invoice_id' });
+              if (payErr) console.error('qonto_payments upsert error:', payErr.message);
+            }
           }
         }
       } catch (sbErr) {

@@ -149,6 +149,8 @@ export async function POST(request) {
     if (validItems.length === 0) {
       return NextResponse.json({ error: 'Aucun article dans le devis' }, { status: 400 });
     }
+    // Montant TTC "signé" pour le suivi KPI — même formule que celle envoyée à Qonto (vat_rate 0.2 par item).
+    const totalTTC = Math.round(validItems.reduce((s, i) => s + Number(i.priceHT), 0) * 1.2 * 100) / 100;
 
     const eventDateFr = event?.date
       ? new Date(event.date + 'T12:00:00').toLocaleDateString('fr-FR', {
@@ -215,6 +217,8 @@ export async function POST(request) {
         // Sert au rappel avant expiration — uniquement pertinent pour un devis réellement
         // envoyé au client (un brouillon n'a encore rien reçu, pas de compte à rebours).
         expiry_date: draft ? null : expiryDate,
+        total_ttc: totalTTC,
+        client_kind: client.type,
       }).select('id').single();
       trackingId = tracking?.id || null;
     } catch (trackErr) {
@@ -312,6 +316,7 @@ export async function POST(request) {
             formule: event?.formule || null,
             qonto_quote_id: quoteId,
             qonto_quote_url: quoteUrl,
+            vertical: client.type === 'company' ? 'professionnel' : 'particulier',
           }).select('id').single();
 
           if (newEvent) {

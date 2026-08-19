@@ -10,9 +10,12 @@ export async function GET() {
     return Response.json({ error: 'Non autorisé' }, { status: 401 });
   }
 
+  // .neq() exclut aussi les lignes à event_type NULL en SQL — on veut les garder (particulier/pro
+  // sans type renseigné), donc filtre explicite is.null OR neq plutôt qu'un simple .neq().
   const { data, error } = await supabaseAdmin
     .from('qonto_quotes_tracking')
     .select('*')
+    .or('event_type.is.null,event_type.neq.Mariage')
     .order('created_at', { ascending: false })
     .limit(100);
   if (error) return Response.json({ error: error.message }, { status: 500 });

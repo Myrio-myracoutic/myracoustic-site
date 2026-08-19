@@ -56,6 +56,7 @@ export async function POST(request) {
   const { data: ev, error: eErr } = await supabaseAdmin.from('events').insert({
     client_id: p.client_id, event_type: 'Mariage', event_date: p.event_date,
     venue: p.venue, guests: p.guests, formule: p.formule || null, status: 'confirme',
+    vertical: 'mariage', confirmed_at: new Date().toISOString(),
     // Relie l'événement au devis Qonto → l'onglet Facturation du client affiche le devis + factures
     qonto_quote_id: p.qonto_quote_id || null, qonto_quote_url: p.qonto_quote_url || null,
   }).select('id').single();

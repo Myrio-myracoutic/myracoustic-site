@@ -128,6 +128,7 @@ export async function POST(request, { params }) {
   await supabaseAdmin.from('devis_proposals').update({
     status: 'validee', client_id: clientId, adresse: adresse.trim(), cp: cp.trim(), ville: ville.trim(),
     acompte_2x: !!acompte2x, qonto_quote_id: quoteId, qonto_quote_url: quoteUrl, validated_at: new Date().toISOString(),
+    montant_final: netTotal,
   }).eq('id', p.id);
   await supabaseAdmin.from('mariage_leads').update({ status: 'devis_valide', client_id: clientId }).eq('id', p.lead_id);
 

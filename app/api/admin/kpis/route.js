@@ -12,7 +12,9 @@ import { getPeriodRanges, deltaPct, DATA_START_DATE } from '@/app/lib/period-ran
    - Devis envoyé = devis_proposals (mariage, toute proposition créée = envoyée par l'admin) +
      qonto_quotes_tracking où kind='auto_envoye' (particulier/pro — un brouillon jamais envoyé
      ne compte pas), sur created_at.
-   - Client converti = events.confirmed_at non nul dans la période, filtré par vertical.
+   - Client converti = qonto_signed_quotes (même source que le CA signé), sur approved_at, filtré
+     par vertical — pas events.confirmed_at, qui ne couvre que les clients ayant une fiche dans
+     notre base (certains clients réels, signés directement dans Qonto, n'en ont pas).
    - CA signé = qonto_signed_quotes (source de vérité = Qonto directement, tout devis avec
      `approved_at` réellement rempli — PAS juste status='approved', qui peut inclure des devis
      jamais confirmés par le client, découverte du 19/08/2026). Couvre aussi bien les devis créés
@@ -91,11 +93,15 @@ export async function GET(request) {
   function bucketFor(range) {
     const b = { global: emptyBucket(), mariage: emptyBucket(), particulier: emptyBucket(), professionnel: emptyBucket() };
 
-    // Clients confirmés
-    for (const e of events || []) {
-      if (!e.vertical || !inRange(e.confirmed_at, range)) continue;
-      b[e.vertical].clients_confirmes++;
+    // Clients confirmés — même source que le CA signé (qonto_signed_quotes), pas events.
+    // events ne couvre que les clients qui ont une fiche dans notre base ; des clients réels
+    // signés directement dans Qonto (ex. Commune de Carolles, SCI Buffon) n'en ont pas et
+    // seraient sinon invisibles ici alors qu'ils comptent bien dans le CA signé — demande de
+    // Myrio le 19/08 pour que les deux chiffres restent cohérents entre eux.
+    for (const q of signedQuotes || []) {
+      if (!inRange(q.approved_at, range)) continue;
       b.global.clients_confirmes++;
+      if (q.vertical) b[q.vertical].clients_confirmes++;
     }
 
     // CA encaissé

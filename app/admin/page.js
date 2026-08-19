@@ -172,6 +172,7 @@ function KpiDashboard() {
               const pya = kpis.previousYearAvailable;
               return (
                 <>
+                  <KpiCard label="Devis envoyés" value={k.devis_envoyes.value} deltaPrevPct={k.devis_envoyes.deltaPrevPct} deltaYearPct={k.devis_envoyes.deltaYearPct} previousYearAvailable={pya} sub="Propositions/devis chiffrés envoyés au client" />
                   <KpiCard label="CA signé" value={fmtEuro(k.ca_signe.value)} deltaPrevPct={k.ca_signe.deltaPrevPct} deltaYearPct={k.ca_signe.deltaYearPct} previousYearAvailable={pya} sub="Devis validés/acceptés" />
                   <KpiCard label="CA encaissé" value={fmtEuro(k.ca_encaisse.value)} deltaPrevPct={k.ca_encaisse.deltaPrevPct} deltaYearPct={k.ca_encaisse.deltaYearPct} previousYearAvailable={pya} sub="Paiements réellement reçus" />
                   <KpiCard label="Clients confirmés" value={k.clients_confirmes.value} deltaPrevPct={k.clients_confirmes.deltaPrevPct} deltaYearPct={k.clients_confirmes.deltaYearPct} previousYearAvailable={pya} />
@@ -188,6 +189,7 @@ function KpiDashboard() {
                 <thead>
                   <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
                     <th style={{ textAlign: 'left', padding: '8px 10px', color: 'rgba(255,255,255,0.35)', fontWeight: 600 }}>Verticale</th>
+                    <th style={{ textAlign: 'right', padding: '8px 10px', color: 'rgba(255,255,255,0.35)', fontWeight: 600 }}>Devis envoyés</th>
                     <th style={{ textAlign: 'right', padding: '8px 10px', color: 'rgba(255,255,255,0.35)', fontWeight: 600 }}>CA signé</th>
                     <th style={{ textAlign: 'right', padding: '8px 10px', color: 'rgba(255,255,255,0.35)', fontWeight: 600 }}>CA encaissé</th>
                     <th style={{ textAlign: 'right', padding: '8px 10px', color: 'rgba(255,255,255,0.35)', fontWeight: 600 }}>Clients</th>
@@ -201,6 +203,7 @@ function KpiDashboard() {
                     return (
                       <tr key={v} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                         <td style={{ padding: '9px 10px', color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>{vLabel}</td>
+                        <td style={{ padding: '9px 10px', textAlign: 'right', color: 'rgba(255,255,255,0.7)' }}>{k.devis_envoyes.value}</td>
                         <td style={{ padding: '9px 10px', textAlign: 'right', color: 'rgba(255,255,255,0.7)' }}>{fmtEuro(k.ca_signe.value)}</td>
                         <td style={{ padding: '9px 10px', textAlign: 'right', color: 'rgba(255,255,255,0.7)' }}>{fmtEuro(k.ca_encaisse.value)}</td>
                         <td style={{ padding: '9px 10px', textAlign: 'right', color: 'rgba(255,255,255,0.7)' }}>{k.clients_confirmes.value}</td>
@@ -212,6 +215,45 @@ function KpiDashboard() {
               </table>
             </div>
           )}
+
+          <div style={{ marginTop: 28, paddingTop: 24, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            <h3 style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.6)', margin: '0 0 4px', fontFamily: 'var(--font-display), sans-serif' }}>
+              Devis envoyés par mois, par verticale
+            </h3>
+            <p style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.25)', margin: '0 0 16px' }}>
+              Suivi de cohorte réel : pour les devis envoyés un mois donné, combien ont été convertis à ce jour — peu importe quand la conversion a eu lieu. Les mois récents sont encore susceptibles d'évoluer (réponse du client en attente).
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
+              {VERTICAL_TABS.filter(t => t.key !== 'global').map(t => (
+                <div key={t.key}>
+                  <p style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: 'rgba(255,255,255,0.4)', margin: '0 0 8px' }}>{t.label}</p>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                        <th style={{ textAlign: 'left', padding: '5px 6px', color: 'rgba(255,255,255,0.3)', fontWeight: 600 }}>Mois</th>
+                        <th style={{ textAlign: 'right', padding: '5px 6px', color: 'rgba(255,255,255,0.3)', fontWeight: 600 }}>Envoyés</th>
+                        <th style={{ textAlign: 'right', padding: '5px 6px', color: 'rgba(255,255,255,0.3)', fontWeight: 600 }}>Convertis</th>
+                        <th style={{ textAlign: 'right', padding: '5px 6px', color: 'rgba(255,255,255,0.3)', fontWeight: 600 }}>Taux</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {kpis.monthlyTrend.map(row => {
+                        const m = row[t.key];
+                        return (
+                          <tr key={row.month} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                            <td style={{ padding: '6px', color: 'rgba(255,255,255,0.6)' }}>{row.label}</td>
+                            <td style={{ padding: '6px', textAlign: 'right', color: 'rgba(255,255,255,0.7)' }}>{m.envoyes}</td>
+                            <td style={{ padding: '6px', textAlign: 'right', color: 'rgba(255,255,255,0.7)' }}>{m.convertis}</td>
+                            <td style={{ padding: '6px', textAlign: 'right', color: m.taux === null ? 'rgba(255,255,255,0.2)' : 'var(--lime)', fontWeight: 600 }}>{m.taux !== null ? `${m.taux}%` : '—'}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ))}
+            </div>
+          </div>
         </>
       )}
     </div>

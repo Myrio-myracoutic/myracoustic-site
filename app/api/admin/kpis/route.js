@@ -9,14 +9,15 @@ import { getPeriodRanges, deltaPct, DATA_START_DATE } from '@/app/lib/period-ran
    - Prospect mariage = ligne mariage_leads. Particulier/pro = email distinct entre
      devis_particulier_progress et qonto_quotes_tracking (filtré par client_kind), dédupliqué.
      lead_magnet_signups et brouillons jamais envoyés exclus (trop froids).
+   - Devis envoyé = devis_proposals (mariage, toute proposition créée = envoyée par l'admin) +
+     qonto_quotes_tracking où kind='auto_envoye' (particulier/pro — un brouillon jamais envoyé
+     ne compte pas), sur created_at.
    - Client converti = events.confirmed_at non nul dans la période, filtré par vertical.
    - CA signé = devis_proposals.montant_final (mariage, sur validated_at) +
      qonto_quotes_tracking.total_ttc où qonto_status='approved' (particulier/pro, sur created_at —
      seule date disponible, pas de colonne "approuvé le" côté Qonto : approximation assumée,
      signalée dans la réponse).
    - CA encaissé = somme qonto_payments.amount sur paid_at, jamais confondu avec le CA signé. */
-
-const VERTICALS = ['mariage', 'particulier', 'professionnel'];
 
 function inRange(dateStr, range) {
   if (!dateStr) return false;
@@ -25,7 +26,7 @@ function inRange(dateStr, range) {
 }
 
 function emptyBucket() {
-  return { ca_signe: 0, ca_encaisse: 0, clients_confirmes: 0, prospects_entrants: 0 };
+  return { ca_signe: 0, ca_encaisse: 0, clients_confirmes: 0, prospects_entrants: 0, devis_envoyes: 0 };
 }
 
 export async function GET(request) {
@@ -40,28 +41,43 @@ export async function GET(request) {
   }
 
   const ranges = getPeriodRanges(period);
-  // Fenêtre de chargement : depuis le début réel des données jusqu'à la fin de la période courante.
-  // previousYear n'est de toute façon jamais "available" avant qu'un an complet se soit écoulé
-  // depuis DATA_START_DATE — pas besoin de charger plus loin en arrière pour l'instant.
-  const windowStartISO = DATA_START_DATE.toISOString();
   const windowEndISO = ranges.current.end.toISOString();
+  // Bornes des tables de prospects (mariage_leads, devis_particulier_progress,
+  // qonto_quotes_tracking, pro_contact_leads) : ces tables n'existent que depuis
+  // DATA_START_DATE, aucune ligne ne peut exister avant — floor légitime.
+  // events / qonto_payments / devis_proposals : PAS de floor ici. Ces tables ont été
+  // rétro-remplies avec de vraies dates Qonto antérieures à la création des tables
+  // (ex. paiements réels d'avril 2026) — un floor sur created_at exclurait à tort du
+  // vrai CA passé. Seule la borne haute (fin de la période courante) s'applique.
+  const prospectWindowStartISO = DATA_START_DATE.toISOString();
 
   const [
     { data: events },
     { data: payments },
     { data: proposals },
+    { data: allProposals },
     { data: mariageLeads },
     { data: progress },
     { data: quotesTracking },
+    { data: allQuotes },
     { data: proContacts },
   ] = await Promise.all([
-    supabaseAdmin.from('events').select('id, vertical, confirmed_at').gte('created_at', windowStartISO).lt('created_at', windowEndISO),
-    supabaseAdmin.from('qonto_payments').select('amount, paid_at, event_id').gte('paid_at', windowStartISO.slice(0, 10)).lt('paid_at', windowEndISO.slice(0, 10)),
-    supabaseAdmin.from('devis_proposals').select('montant_final, validated_at').eq('status', 'validee').gte('validated_at', windowStartISO).lt('validated_at', windowEndISO),
-    supabaseAdmin.from('mariage_leads').select('created_at').gte('created_at', windowStartISO).lt('created_at', windowEndISO),
-    supabaseAdmin.from('devis_particulier_progress').select('email, created_at').gte('created_at', windowStartISO).lt('created_at', windowEndISO),
-    supabaseAdmin.from('qonto_quotes_tracking').select('client_email, client_kind, qonto_status, total_ttc, created_at, event_type').neq('qonto_status', 'canceled').gte('created_at', windowStartISO).lt('created_at', windowEndISO),
-    supabaseAdmin.from('pro_contact_leads').select('email, created_at').gte('created_at', windowStartISO).lt('created_at', windowEndISO),
+    // Pas de filtre de date ici : petite table, et confirmed_at est nullable (un .lt() SQL
+    // exclurait silencieusement les événements pas encore confirmés dont on a quand même besoin
+    // pour résoudre la verticale des paiements qui leur sont liés).
+    supabaseAdmin.from('events').select('id, vertical, confirmed_at'),
+    supabaseAdmin.from('qonto_payments').select('amount, paid_at, event_id').lt('paid_at', windowEndISO.slice(0, 10)),
+    supabaseAdmin.from('devis_proposals').select('montant_final, validated_at').eq('status', 'validee').lt('validated_at', windowEndISO),
+    // Version non filtrée (tous statuts) pour compter "devis envoyés" + suivi de cohorte —
+    // petite table, pas de souci de volume à charger en entier.
+    supabaseAdmin.from('devis_proposals').select('id, created_at, status'),
+    supabaseAdmin.from('mariage_leads').select('created_at').gte('created_at', prospectWindowStartISO).lt('created_at', windowEndISO),
+    supabaseAdmin.from('devis_particulier_progress').select('email, created_at').gte('created_at', prospectWindowStartISO).lt('created_at', windowEndISO),
+    supabaseAdmin.from('qonto_quotes_tracking').select('client_email, client_kind, qonto_status, total_ttc, created_at, event_type').neq('qonto_status', 'canceled').gte('created_at', prospectWindowStartISO).lt('created_at', windowEndISO),
+    // Version non filtrée (tous statuts, y compris annulés/brouillons) pour "devis envoyés" +
+    // suivi de cohorte — un devis annulé compte comme envoyé mais pas comme converti.
+    supabaseAdmin.from('qonto_quotes_tracking').select('id, created_at, kind, qonto_status, client_kind, event_type'),
+    supabaseAdmin.from('pro_contact_leads').select('email, created_at').gte('created_at', prospectWindowStartISO).lt('created_at', windowEndISO),
   ]);
 
   // events.vertical n'est connu qu'après création de l'événement — pour le CA encaissé on a
@@ -103,6 +119,20 @@ export async function GET(request) {
       const montant = Number(q.total_ttc) || 0;
       b[vertical].ca_signe += montant;
       b.global.ca_signe += montant;
+    }
+
+    // Devis envoyés — mariage (toute proposition créée = envoyée par l'admin)
+    for (const p of allProposals || []) {
+      if (!inRange(p.created_at, range)) continue;
+      b.mariage.devis_envoyes++;
+      b.global.devis_envoyes++;
+    }
+    // Devis envoyés — particulier/pro (kind='auto_envoye' seulement, un brouillon n'a rien reçu)
+    for (const q of allQuotes || []) {
+      if (q.event_type === 'Mariage' || q.kind !== 'auto_envoye' || !inRange(q.created_at, range)) continue;
+      const vertical = q.client_kind === 'company' ? 'professionnel' : 'particulier';
+      b[vertical].devis_envoyes++;
+      b.global.devis_envoyes++;
     }
 
     // Prospects entrants — mariage
@@ -150,11 +180,50 @@ export async function GET(request) {
     return {
       ca_signe: { value: Math.round(c.ca_signe), deltaPrevPct: deltaPct(c.ca_signe, p.ca_signe), deltaYearPct: py ? deltaPct(c.ca_signe, py.ca_signe) : null },
       ca_encaisse: { value: Math.round(c.ca_encaisse), deltaPrevPct: deltaPct(c.ca_encaisse, p.ca_encaisse), deltaYearPct: py ? deltaPct(c.ca_encaisse, py.ca_encaisse) : null },
+      devis_envoyes: { value: c.devis_envoyes, deltaPrevPct: deltaPct(c.devis_envoyes, p.devis_envoyes), deltaYearPct: py ? deltaPct(c.devis_envoyes, py.devis_envoyes) : null },
       clients_confirmes: { value: c.clients_confirmes, deltaPrevPct: deltaPct(c.clients_confirmes, p.clients_confirmes), deltaYearPct: py ? deltaPct(c.clients_confirmes, py.clients_confirmes) : null },
       prospects_entrants: { value: c.prospects_entrants, deltaPrevPct: deltaPct(c.prospects_entrants, p.prospects_entrants), deltaYearPct: py ? deltaPct(c.prospects_entrants, py.prospects_entrants) : null },
       taux_conversion: { value: tauxConversion, deltaPrevPct: (tauxConversion !== null && tauxPrev !== null) ? deltaPct(tauxConversion, tauxPrev) : null, caveat: 'Taux de flux sur la période — pas un suivi de cohorte individuelle.' },
     };
   }
+
+  // ── Tableau mensuel (6 derniers mois) : suivi de cohorte réel — pour les devis envoyés dans
+  // un mois M, quelle proportion a ÉTÉ (ou sera un jour) convertie, peu importe quand la
+  // conversion a eu lieu. Plus précis que "taux_conversion" ci-dessus (qui compare deux
+  // compteurs de la même période, pas un vrai suivi individuel).
+  const monthKeys = [];
+  { const now = new Date(); // toujours ancré sur le mois réel, indépendamment de l'onglet période sélectionné
+    const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+    for (let i = 5; i >= 0; i--) {
+      const m = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() - i, 1));
+      monthKeys.push(m.toISOString().slice(0, 7));
+    } }
+
+  function monthKeyOf(dateStr) { return dateStr ? dateStr.slice(0, 7) : null; }
+
+  const monthlyTrend = monthKeys.map(key => {
+    const row = { month: key, label: new Date(key + '-01T00:00:00Z').toLocaleDateString('fr-FR', { month: 'short', year: '2-digit', timeZone: 'UTC' }) };
+    for (const v of ['mariage', 'particulier', 'professionnel']) {
+      let envoyes = 0, convertis = 0;
+      if (v === 'mariage') {
+        for (const p of allProposals || []) {
+          if (monthKeyOf(p.created_at) !== key) continue;
+          envoyes++;
+          if (p.status === 'validee') convertis++;
+        }
+      } else {
+        for (const q of allQuotes || []) {
+          if (q.event_type === 'Mariage' || q.kind !== 'auto_envoye' || monthKeyOf(q.created_at) !== key) continue;
+          const qv = q.client_kind === 'company' ? 'professionnel' : 'particulier';
+          if (qv !== v) continue;
+          envoyes++;
+          if (q.qonto_status === 'approved') convertis++;
+        }
+      }
+      row[v] = { envoyes, convertis, taux: envoyes > 0 ? Math.round((convertis / envoyes) * 1000) / 10 : null };
+    }
+    return row;
+  });
 
   return Response.json({
     period,
@@ -166,9 +235,11 @@ export async function GET(request) {
       particulier: withDeltas('particulier'),
       professionnel: withDeltas('professionnel'),
     },
+    monthlyTrend,
     caveats: {
       ca_signe_particulier_pro: "Basé sur la date de création du devis, faute de date d'acceptation exacte côté Qonto — peut décaler légèrement un devis d'une période à l'autre.",
       ca_encaisse: "N'inclut que les paiements effectivement reçus (acompte et/ou solde) — pas les devis signés en attente de paiement.",
+      monthly_trend: "Convertis = statut à ce jour (peut encore évoluer pour les devis récents dont la réponse du client est en attente).",
     },
   });
 }

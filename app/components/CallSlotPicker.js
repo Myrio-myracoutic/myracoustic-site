@@ -29,8 +29,10 @@ function fmtDateFr(k) {
 }
 
 /* kind : 'mariage' (défaut), 'devis' (particulier/pro ciblé) ou 'pro_contact' —
-   détermine quelle fiche Supabase reçoit le créneau (voir app/lib/call-booking.js). */
-export default function CallSlotPicker({ kind = 'mariage', refId, firstName, subtitle, onBooked, onFallback }) {
+   détermine quelle fiche Supabase reçoit le créneau (voir app/lib/call-booking.js).
+   token : si fourni (page /rendez-vous/[token]), réserve via cette fiche identifiée par jeton
+   plutôt que par refId direct — même mécanisme que le lien envoyé par email. */
+export default function CallSlotPicker({ kind = 'mariage', refId, token, firstName, subtitle, onBooked, onFallback }) {
   const days = nextDays(8);
   const [selectedDate, setSelectedDate] = useState(days[0].key);
   const [slots, setSlots] = useState([]);
@@ -59,9 +61,9 @@ export default function CallSlotPicker({ kind = 'mariage', refId, firstName, sub
     if (bookingTime) return;
     setBookingTime(time); setBookError('');
     try {
-      const res = await fetch('/api/call-bookings', {
+      const res = await fetch(token ? `/api/rendez-vous/${token}` : '/api/call-bookings', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ kind, refId, date: selectedDate, time }),
+        body: JSON.stringify(token ? { date: selectedDate, time } : { kind, refId, date: selectedDate, time }),
       });
       if (res.ok) {
         onBooked({ date: selectedDate, time });
@@ -146,14 +148,16 @@ export default function CallSlotPicker({ kind = 'mariage', refId, firstName, sub
 
       {bookError && <p style={{ color: '#ef4444', fontSize: 13.5, marginTop: 14, textAlign: 'center' }}>{bookError}</p>}
 
-      <div style={{ textAlign: 'center', marginTop: 30 }}>
-        <button onClick={onFallback} style={{
-          background: 'none', border: 'none', color: 'rgba(255,255,255,0.35)', fontSize: 13,
-          textDecoration: 'underline', cursor: 'pointer', fontFamily: 'inherit',
-        }}>
-          Continuer sans choisir de créneau — on vous rappelle sous 24h
-        </button>
-      </div>
+      {onFallback && (
+        <div style={{ textAlign: 'center', marginTop: 30 }}>
+          <button onClick={onFallback} style={{
+            background: 'none', border: 'none', color: 'rgba(255,255,255,0.35)', fontSize: 13,
+            textDecoration: 'underline', cursor: 'pointer', fontFamily: 'inherit',
+          }}>
+            Continuer sans choisir de créneau — on vous rappelle sous 24h
+          </button>
+        </div>
+      )}
 
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>

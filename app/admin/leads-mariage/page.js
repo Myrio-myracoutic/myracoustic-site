@@ -537,6 +537,16 @@ export default function LeadsMariagePage() {
     load();
   };
 
+  const sendBookingLink = async (leadId) => {
+    setBusy('link-' + leadId);
+    const res = await fetch('/api/admin/mariage-leads', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: leadId, sendBookingLink: true }),
+    });
+    setBusy(null);
+    if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || 'Erreur'); return; }
+    alert('Email envoyé — le contact peut choisir lui-même son créneau.');
+  };
+
   const fmtCallDateTime = (iso) => {
     if (!iso) return '';
     return new Date(iso).toLocaleString('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
@@ -643,11 +653,19 @@ export default function LeadsMariagePage() {
                     }}>Annuler le rendez-vous</button>
                   </div>
                 ) : (
-                  <button onClick={() => setCallSlotFor({ lead: l, mode: 'schedule' })} title="Programmer un appel avec ce contact" style={{
-                    border: '1px solid rgba(184,239,11,0.35)', background: 'rgba(184,239,11,0.08)', color: 'var(--lime)',
-                    borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontSize: 13, fontFamily: 'var(--font-display), sans-serif', fontWeight: 700,
-                    display: 'inline-flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap',
-                  }}><PhoneCall size={14} /> Programmer un appel</button>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button onClick={() => setCallSlotFor({ lead: l, mode: 'schedule' })} title="Programmer un appel avec ce contact" style={{
+                      border: '1px solid rgba(184,239,11,0.35)', background: 'rgba(184,239,11,0.08)', color: 'var(--lime)',
+                      borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontSize: 13, fontFamily: 'var(--font-display), sans-serif', fontWeight: 700,
+                      display: 'inline-flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap',
+                    }}><PhoneCall size={14} /> Programmer un appel</button>
+                    <button onClick={() => sendBookingLink(l.id)} disabled={busy === 'link-' + l.id} title="Envoyer un email pour que le contact choisisse lui-même son créneau" style={{
+                      border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.7)',
+                      borderRadius: 8, padding: '8px 16px', cursor: busy === 'link-' + l.id ? 'wait' : 'pointer', fontSize: 13,
+                      fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, whiteSpace: 'nowrap',
+                      opacity: busy === 'link-' + l.id ? 0.6 : 1,
+                    }}>Envoyer le lien</button>
+                  </div>
                 )}
                 {!l.proposal && (
                   <button onClick={() => setBuilder({ lead: l })} style={{

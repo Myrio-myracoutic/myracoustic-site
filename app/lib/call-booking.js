@@ -7,11 +7,14 @@
    Trois "kind" possibles selon d'où vient la fiche à rappeler — un seul moteur de réservation,
    pas une copie par tunnel (leçon du bug de calendrier du 06/08 : un copier-coller de la logique
    de blocage de journée avait déjà causé un vrai bug de production, voir site/CLAUDE.md). */
+import crypto from 'crypto';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
 import { getCalendarClient, getCalendarId } from '@/lib/google-calendar';
 import { addMinutesToTime, parisLocalToUtcISO } from '@/lib/paris-time';
 import { getAvailableSlots, getSlotDurationMinutes } from '@/lib/call-slots';
-import { sendCallConfirmEmail, sendCallCancelEmail, fmtSlotDateTime } from '@/app/lib/send-call-confirm-email';
+import { sendCallConfirmEmail, sendCallCancelEmail, sendBookingLinkEmail, fmtSlotDateTime } from '@/app/lib/send-call-confirm-email';
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://myracoustic.com';
 
 function fmtDate(d) {
   if (!d) return '';
@@ -78,6 +81,59 @@ const SOURCES = {
     cancelSelect: 'call_google_event_id, prenom, email, call_scheduled_at',
   },
 };
+
+/* Jeton public de la fiche (lien "choisir/modifier mon créneau", envoyé par email — jamais
+   l'id brut de la fiche dans une URL publique). Généré à la demande et persisté au premier
+   besoin, pas de backfill : la grande majorité des fiches n'auront jamais ce lien envoyé. */
+export async function ensureCallToken({ kind = 'mariage', refId }) {
+  const src = SOURCES[kind];
+  if (!src) return null;
+
+  const { data: row } = await supabaseAdmin.from(src.table).select('call_token').eq('id', refId).maybeSingle();
+  if (row?.call_token) return row.call_token;
+
+  const token = crypto.randomBytes(20).toString('hex');
+  const { error } = await supabaseAdmin.from(src.table).update({ call_token: token }).eq('id', refId);
+  if (error) { console.error('ensureCallToken error:', error.message); return null; }
+  return token;
+}
+
+/* Retrouve à quelle fiche (kind + id) correspond un jeton public — cherche dans les 3 tables,
+   un jeton donné n'appartient qu'à une seule d'entre elles (contrainte unique par table, et
+   l'espace aléatoire de crypto.randomBytes(20) rend une collision inter-tables non plausible). */
+export async function resolveCallToken(token) {
+  if (!token) return null;
+  for (const [kind, src] of Object.entries(SOURCES)) {
+    const { data: row } = await supabaseAdmin.from(src.table).select(src.select + ', call_scheduled_at, call_cancelled_at').eq('call_token', token).maybeSingle();
+    if (row) return { kind, refId: row.id, row };
+  }
+  return null;
+}
+
+/* Envoie au prospect un email avec son lien personnel de prise de créneau — pour les cas où
+   on préfère le laisser choisir plutôt que fixer un horaire soi-même ou l'appeler à l'aveugle. */
+export async function sendBookingLinkForLead({ kind = 'mariage', refId }) {
+  const src = SOURCES[kind];
+  if (!src) return { error: 'invalid_kind', status: 400 };
+
+  const { data: row } = await supabaseAdmin.from(src.table).select(src.select).eq('id', refId).maybeSingle();
+  if (!row) return { error: 'not_found', status: 404 };
+
+  const token = await ensureCallToken({ kind, refId });
+  if (!token) return { error: 'token_generation_failed', status: 500 };
+
+  try {
+    await sendBookingLinkEmail({
+      toEmail: src.email(row),
+      firstName: src.firstName(row),
+      topic: src.topic,
+      bookingUrl: `${APP_URL}/rendez-vous/${token}`,
+    });
+  } catch (err) {
+    return { error: err.message, status: 500 };
+  }
+  return { ok: true };
+}
 
 // Supprime l'événement Google d'un appel (best-effort, tolère déjà supprimé) — utilisé
 // à l'annulation ET juste avant une reprogrammation (l'ancien créneau ne doit plus apparaître).
@@ -152,7 +208,9 @@ export async function bookCallSlot({ kind = 'mariage', refId, date, time, requir
   }
 
   // Email de confirmation du créneau : best-effort, comme l'événement Google ci-dessus.
+  // Inclut toujours un lien pour que le client modifie lui-même le créneau si besoin.
   try {
+    const token = await ensureCallToken({ kind, refId });
     await sendCallConfirmEmail({
       toEmail: src.email(updated),
       firstName: src.firstName(updated),
@@ -160,6 +218,7 @@ export async function bookCallSlot({ kind = 'mariage', refId, date, time, requir
       slotLabel: fmtSlotDateTime(date, time),
       isReschedule,
       topic: src.topic,
+      modifyUrl: token ? `${APP_URL}/rendez-vous/${token}` : null,
     });
   } catch (err) {
     console.error('call booking confirm email error:', err.message);

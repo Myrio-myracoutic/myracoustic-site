@@ -1,7 +1,7 @@
 import { verifyAdminCookie } from '@/app/lib/admin-auth';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
 import { isDateInBookingWindow, ADMIN_BOOKING_WINDOW_DAYS } from '@/lib/call-slots';
-import { bookCallSlot, deleteCallGoogleEvent, cancelCallSlot } from '@/app/lib/call-booking';
+import { bookCallSlot, deleteCallGoogleEvent, cancelCallSlot, sendBookingLinkForLead } from '@/app/lib/call-booking';
 
 // GET /api/admin/mariage-leads — leads du formulaire de contact mariage
 export async function GET() {
@@ -69,11 +69,17 @@ export async function PATCH(request) {
   if (!(await verifyAdminCookie())) {
     return Response.json({ error: 'Non autorisé' }, { status: 401 });
   }
-  const { id, cancelCall, setCall } = await request.json();
+  const { id, cancelCall, setCall, sendBookingLink } = await request.json();
   if (!id) return Response.json({ error: 'id manquant' }, { status: 400 });
 
   if (cancelCall) {
     const result = await cancelCallSlot({ kind: 'mariage', refId: id });
+    if (result.error) return Response.json({ error: result.error }, { status: result.status });
+    return Response.json({ ok: true });
+  }
+
+  if (sendBookingLink) {
+    const result = await sendBookingLinkForLead({ kind: 'mariage', refId: id });
     if (result.error) return Response.json({ error: result.error }, { status: result.status });
     return Response.json({ ok: true });
   }

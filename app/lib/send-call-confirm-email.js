@@ -51,8 +51,10 @@ async function sendBrevoEmail({ toEmail, firstName, subject, html }) {
 }
 
 /* Programmation ou modification d'un créneau — isReschedule adapte le titre/objet
-   pour que le client comprenne que ça remplace un précédent horaire, pas un doublon. */
-export async function sendCallConfirmEmail({ toEmail, firstName, tel, slotLabel, isReschedule = false, topic = 'de votre mariage' }) {
+   pour que le client comprenne que ça remplace un précédent horaire, pas un doublon.
+   modifyUrl (optionnel) : lien vers /rendez-vous/[token], pour que le client change lui-même
+   le créneau sans repasser par un email/appel à Myrio. */
+export async function sendCallConfirmEmail({ toEmail, firstName, tel, slotLabel, isReschedule = false, topic = 'de votre mariage', modifyUrl = null }) {
   const title = isReschedule ? 'Votre rendez-vous a été modifié 📞' : 'Votre appel est confirmé 📞';
   const subject = isReschedule ? `Votre rendez-vous est modifié — ${slotLabel}` : `Votre appel est confirmé — ${slotLabel}`;
   const html = emailShell(`
@@ -63,11 +65,33 @@ export async function sendCallConfirmEmail({ toEmail, firstName, tel, slotLabel,
         <p style="color:#b8ef0b;font-size:16px;font-weight:700;margin:0;text-transform:capitalize;">${slotLabel}</p>
       </td></tr>
     </table>
-    <p style="color:rgba(255,255,255,0.8);font-size:15px;line-height:1.8;margin:0;">
+    <p style="color:rgba(255,255,255,0.8);font-size:15px;line-height:1.8;margin:0 0 ${modifyUrl ? '20' : '0'}px;">
       Un conseiller Myracoustic vous appellera au <strong>${tel}</strong> pour échanger ${topic}. Merci d'être disponible à ce moment-là.
     </p>
+    ${modifyUrl ? `<p style="color:rgba(255,255,255,0.4);font-size:13px;line-height:1.7;margin:0;">
+      Ce moment ne vous convient plus ? <a href="${modifyUrl}" style="color:#b8ef0b;">Choisissez un autre créneau</a>.
+    </p>` : ''}
   `);
   await sendBrevoEmail({ toEmail, firstName, subject, html });
+}
+
+/* Invitation à choisir soi-même un créneau — envoyée à la demande depuis l'admin (bouton sur
+   la fiche du prospect), pour les cas où l'on préfère laisser le prospect choisir plutôt que
+   de fixer un horaire à sa place ou de l'appeler à l'aveugle. */
+export async function sendBookingLinkEmail({ toEmail, firstName, topic = 'de votre projet', bookingUrl }) {
+  const html = emailShell(`
+    <p style="color:rgba(255,255,255,0.6);font-size:15px;margin:0 0 8px;">Bonjour ${firstName},</p>
+    <h2 style="color:#ffffff;font-size:20px;font-weight:700;margin:0 0 24px;line-height:1.3;">Choisissez votre créneau d'appel 📞</h2>
+    <p style="color:rgba(255,255,255,0.8);font-size:15px;line-height:1.8;margin:0 0 28px;">
+      Pour échanger ${topic}, choisissez le moment qui vous arrange le mieux — ça prend une minute.
+    </p>
+    <table cellpadding="0" cellspacing="0" style="margin:0 auto;">
+      <tr><td style="background:#b8ef0b;border-radius:8px;padding:14px 32px;text-align:center;">
+        <a href="${bookingUrl}" style="color:#060e16;font-size:15px;font-weight:700;text-decoration:none;">Choisir mon créneau →</a>
+      </td></tr>
+    </table>
+  `);
+  await sendBrevoEmail({ toEmail, firstName, subject: 'Choisissez votre créneau d\'appel — Myracoustic', html });
 }
 
 /* Annulation d'un rendez-vous, sans nouveau créneau proposé dans l'immédiat. */

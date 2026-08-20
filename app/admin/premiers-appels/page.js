@@ -30,7 +30,7 @@ function timeAgo(iso) {
 
 /* Même style de contrôles que sur /admin/leads-mariage et /admin/prospects — pattern dupliqué
    volontairement (pas un composant partagé), voir plan du 19/08. */
-function CallControls({ scheduledAt, cancelledAt, busy, onSchedule, onReschedule, onCancel }) {
+function CallControls({ scheduledAt, cancelledAt, busy, onSchedule, onReschedule, onCancel, onSendLink, sendLinkBusy }) {
   if (scheduledAt && !cancelledAt) {
     return (
       <div style={{ display: 'flex', gap: 8 }}>
@@ -40,9 +40,14 @@ function CallControls({ scheduledAt, cancelledAt, busy, onSchedule, onReschedule
     );
   }
   return (
-    <button onClick={onSchedule} style={{ border: '1px solid rgba(184,239,11,0.35)', background: 'rgba(184,239,11,0.08)', color: 'var(--lime)', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
-      <PhoneCall size={13} /> Programmer un appel
-    </button>
+    <div style={{ display: 'flex', gap: 8 }}>
+      <button onClick={onSchedule} style={{ border: '1px solid rgba(184,239,11,0.35)', background: 'rgba(184,239,11,0.08)', color: 'var(--lime)', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
+        <PhoneCall size={13} /> Programmer un appel
+      </button>
+      <button onClick={onSendLink} disabled={sendLinkBusy} style={{ border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.7)', borderRadius: 8, padding: '6px 14px', cursor: sendLinkBusy ? 'wait' : 'pointer', fontSize: 12, fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, whiteSpace: 'nowrap', opacity: sendLinkBusy ? 0.6 : 1 }}>
+        Envoyer le lien
+      </button>
+    </div>
   );
 }
 
@@ -69,6 +74,16 @@ export default function PremiersAppelsPage() {
     setCallBusy(null);
     if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || 'Erreur'); return; }
     load();
+  };
+
+  const sendBookingLink = async (row) => {
+    setCallBusy('link-' + row.id);
+    const res = await fetch(PATCH_URL[row.kind], {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: row.id, sendBookingLink: true }),
+    });
+    setCallBusy(null);
+    if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || 'Erreur'); return; }
+    alert('Email envoyé — le contact peut choisir lui-même son créneau.');
   };
 
   if (loading) return (
@@ -127,6 +142,8 @@ export default function PremiersAppelsPage() {
                   onSchedule={() => setCallSlotFor({ row, mode: 'schedule' })}
                   onReschedule={() => setCallSlotFor({ row, mode: 'reschedule' })}
                   onCancel={() => cancelCall(row)}
+                  onSendLink={() => sendBookingLink(row)}
+                  sendLinkBusy={callBusy === 'link-' + row.id}
                 />
               </div>
             );

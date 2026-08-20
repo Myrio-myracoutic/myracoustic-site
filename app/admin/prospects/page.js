@@ -110,7 +110,7 @@ function timeAgo(iso) {
 }
 
 /* Boutons de planning d'appel — partagés entre les devis Qonto et les contacts pro simples. */
-function CallControls({ scheduledAt, cancelledAt, busy, onSchedule, onReschedule, onCancel }) {
+function CallControls({ scheduledAt, cancelledAt, busy, onSchedule, onReschedule, onCancel, onSendLink, sendLinkBusy }) {
   if (scheduledAt && !cancelledAt) {
     return (
       <div style={{ display: 'flex', gap: 8 }}>
@@ -129,11 +129,21 @@ function CallControls({ scheduledAt, cancelledAt, busy, onSchedule, onReschedule
     );
   }
   return (
-    <button onClick={onSchedule} title="Programmer un appel avec ce contact" style={{
-      border: '1px solid rgba(184,239,11,0.35)', background: 'rgba(184,239,11,0.08)', color: 'var(--lime)',
-      borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font-display), sans-serif', fontWeight: 700,
-      display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap',
-    }}><PhoneCall size={13} /> Programmer un appel</button>
+    <div style={{ display: 'flex', gap: 8 }}>
+      <button onClick={onSchedule} title="Programmer un appel avec ce contact" style={{
+        border: '1px solid rgba(184,239,11,0.35)', background: 'rgba(184,239,11,0.08)', color: 'var(--lime)',
+        borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontSize: 12, fontFamily: 'var(--font-display), sans-serif', fontWeight: 700,
+        display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap',
+      }}><PhoneCall size={13} /> Programmer un appel</button>
+      {onSendLink && (
+        <button onClick={onSendLink} disabled={sendLinkBusy} title="Envoyer un email pour que le contact choisisse lui-même son créneau" style={{
+          border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.7)',
+          borderRadius: 8, padding: '6px 14px', cursor: sendLinkBusy ? 'wait' : 'pointer', fontSize: 12,
+          fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, whiteSpace: 'nowrap',
+          opacity: sendLinkBusy ? 0.6 : 1,
+        }}>Envoyer le lien</button>
+      )}
+    </div>
   );
 }
 
@@ -179,6 +189,16 @@ export default function ProspectsPage() {
     setCallBusy(null);
     if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || 'Erreur'); return; }
     load();
+  };
+
+  const sendBookingLink = async (patchUrl, id) => {
+    setCallBusy('link-' + id);
+    const res = await fetch(patchUrl, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, sendBookingLink: true }),
+    });
+    setCallBusy(null);
+    if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || 'Erreur'); return; }
+    alert('Email envoyé — le contact peut choisir lui-même son créneau.');
   };
 
   useEffect(() => { load(); }, []);
@@ -445,6 +465,8 @@ export default function ProspectsPage() {
                   onSchedule={() => setCallSlotFor({ kind: 'devis', id: q.id, mode: 'schedule', contactLabel: `${q.client_first_name || ''} ${q.client_last_name || ''} · 📞 ${q.client_phone || '—'}`, patchUrl: '/api/admin/qonto-quotes' })}
                   onReschedule={() => setCallSlotFor({ kind: 'devis', id: q.id, mode: 'reschedule', contactLabel: `${q.client_first_name || ''} ${q.client_last_name || ''} · 📞 ${q.client_phone || '—'}`, patchUrl: '/api/admin/qonto-quotes' })}
                   onCancel={() => cancelCall('/api/admin/qonto-quotes', q.id)}
+                  onSendLink={() => sendBookingLink('/api/admin/qonto-quotes', q.id)}
+                  sendLinkBusy={callBusy === 'link-' + q.id}
                 />
                 <button
                   onClick={() => deleteEntry('/api/admin/qonto-quotes', q.id, `le devis de ${q.client_first_name || ''} ${q.client_last_name || ''}`)}
@@ -514,6 +536,8 @@ export default function ProspectsPage() {
                 onSchedule={() => setCallSlotFor({ kind: 'pro_contact', id: l.id, mode: 'schedule', contactLabel: `${l.prenom} ${l.nom} · 📞 ${l.tel}`, patchUrl: '/api/admin/pro-contacts' })}
                 onReschedule={() => setCallSlotFor({ kind: 'pro_contact', id: l.id, mode: 'reschedule', contactLabel: `${l.prenom} ${l.nom} · 📞 ${l.tel}`, patchUrl: '/api/admin/pro-contacts' })}
                 onCancel={() => cancelCall('/api/admin/pro-contacts', l.id)}
+                onSendLink={() => sendBookingLink('/api/admin/pro-contacts', l.id)}
+                sendLinkBusy={callBusy === 'link-' + l.id}
               />
               <button
                 onClick={() => deleteEntry('/api/admin/pro-contacts', l.id, `la demande de ${l.prenom} ${l.nom}`)}

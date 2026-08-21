@@ -25,12 +25,6 @@ let _userExpires = 0;
 async function getUserToken() {
   if (_userToken && Date.now() < _userExpires - 30_000) return _userToken;
 
-  if (process.env.TIDAL_ACCESS_TOKEN) {
-    _userToken   = process.env.TIDAL_ACCESS_TOKEN;
-    _userExpires = Date.now() + 14400 * 1000;
-    return _userToken;
-  }
-
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -43,12 +37,21 @@ async function getUserToken() {
   const token     = data?.find(d => d.key === 'tidal_access_token')?.value;
   const expiresAt = Number(data?.find(d => d.key === 'tidal_token_expires_at')?.value || 0);
 
-  if (!token) throw new Error('TOKEN_EXPIRED');
-  if (Date.now() > expiresAt - 30_000) throw new Error('TOKEN_EXPIRED');
+  if (token && Date.now() < expiresAt - 30_000) {
+    _userToken   = token;
+    _userExpires = expiresAt;
+    return _userToken;
+  }
 
-  _userToken   = token;
-  _userExpires = expiresAt;
-  return _userToken;
+  // Fallback dev uniquement si aucun token valide en base (jamais prioritaire sur un
+  // vrai reconnect via le bouton — sinon un token de test périmé bloque tout).
+  if (process.env.TIDAL_ACCESS_TOKEN) {
+    _userToken   = process.env.TIDAL_ACCESS_TOKEN;
+    _userExpires = Date.now() + 14400 * 1000;
+    return _userToken;
+  }
+
+  throw new Error('TOKEN_EXPIRED');
 }
 
 function authHeaders(write = false) {
@@ -100,7 +103,10 @@ export async function resolveTrackId(artist, title) {
   const query = `${artist || ''} ${title || ''}`.trim();
   if (!query) return null;
   const headers = await authHeaders();
-  const url = `${V2}/searchResults/${encodeURIComponent(query)}/relationships/tracks?countryCode=${COUNTRY}&include=tracks`;
+  // Tidal a changé le format de cet endpoint (constaté le 21/08 : l'ancien
+  // searchResults/{texte}/relationships/tracks renvoie désormais INVALID_RESOURCE_ID
+  // sur toute requête) — la query passe maintenant par filter[query], pas dans le path.
+  const url = `${V2}/searchResults?countryCode=${COUNTRY}&filter%5Bquery%5D=${encodeURIComponent(query)}&include=tracks`;
   for (let attempt = 0; attempt < 3; attempt++) {
     if (attempt > 0) await new Promise(r => setTimeout(r, attempt * 1500));
     const res = await fetch(url, { headers, signal: AbortSignal.timeout(15000) });
@@ -110,7 +116,7 @@ export async function resolveTrackId(artist, title) {
 
     const titleById = {};
     for (const t of (data.included || [])) titleById[t.id] = t.attributes?.title || '';
-    const ids = (data.data || []).map(x => x.id);
+    const ids = (data.data?.[0]?.relationships?.tracks?.data || []).map(x => x.id);
 
     // Si on a les titres : retenir le 1er résultat dont le titre concorde
     if (Object.keys(titleById).length) {

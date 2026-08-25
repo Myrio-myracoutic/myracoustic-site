@@ -4,6 +4,7 @@ import Nav from "./components/Nav";
 import Footer from "./components/Footer";
 import GoogleAnalytics from "./components/GoogleAnalytics";
 import Clarity from "./components/Clarity";
+import AttributionCapture from "./components/AttributionCapture";
 import CookieConsent from "./components/CookieConsent";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
@@ -110,6 +111,7 @@ export default function RootLayout({ children }) {
         <SpeedInsights />
         <GoogleAnalytics />
         <Clarity />
+        <AttributionCapture />
         <Nav />
         <main style={{ flexGrow: 1 }}>{children}</main>
         <Footer />

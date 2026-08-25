@@ -6,6 +6,7 @@ import { Building2, Calendar, PartyPopper, Volume2, Headphones, Lightbulb, Mic, 
 import { AnimatedWave } from './AnimatedWave';
 import CallSlotPicker from './CallSlotPicker';
 import { gtagEvent, gtagBeacon, gtagSetUserData } from '../lib/gtag';
+import { readAttribution, SOURCE_OPTIONS_PRO } from '../lib/attribution';
 
 /* ════════════════════════════════════════════════════════════════════
    TARIFS — source : docs/grilles-tarifaires.md
@@ -550,6 +551,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
   const [proBudget,   setProBudget]   = useState('');
   const [proLieu,     setProLieu]     = useState('');
   const [proDesc,     setProDesc]     = useState('');
+  const [proSource,   setProSource]   = useState('');
 
   /* ── Modal date bloquée ────────────────────────────────────────── */
   const [blockedDateModal, setBlockedDateModal] = useState(null);  /* date string ou null */
@@ -637,6 +639,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
           needsMaterial, nbPersons, eclairOpts, videoChoice, djDuration, karaokeActive,
           adresse, cp, ville,
         },
+        ...readAttribution(),
       }),
     }).catch(() => {});
   };
@@ -1028,6 +1031,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
         body: JSON.stringify({
           prenom: proPrenom, nom: proNom, societe: proSociete, email: proEmail, tel: proTel, poste: proPoste,
           type: proType, personnes: proPersonnes, date: proDate, budget: proBudget, lieu: proLieu, description: proDesc,
+          ...readAttribution(), sourceDeclared: proSource || null,
         }),
       });
       const data = await res.json();
@@ -2880,6 +2884,12 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
             value={proDesc} onChange={e => setProDesc(e.target.value)} rows={4}
             style={{ ...IS, resize: 'vertical', lineHeight: 1.65 }}
             onFocus={fo} onBlur={bl} />
+          <select value={proSource} onChange={e => setProSource(e.target.value)}
+            style={{ ...IS, cursor: 'pointer', color: proSource ? 'white' : 'rgba(255,255,255,0.35)', appearance: 'none' }}
+            onFocus={fo} onBlur={bl}>
+            <option value="">Comment nous avez-vous connu ? (optionnel)</option>
+            {SOURCE_OPTIONS_PRO.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
           <BtnPrimary onClick={submitContactPro} disabled={!proType || !proPersonnes || qontoLoading} style={{ marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
             {qontoLoading ? 'Envoi en cours…' : <><Send size={14} strokeWidth={2} /> Envoyer ma demande de contact →</>}
           </BtnPrimary>

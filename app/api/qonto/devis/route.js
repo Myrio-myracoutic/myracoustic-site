@@ -203,6 +203,15 @@ export async function POST(request) {
     // sert de point d'accroche au planning d'appel (client_phone + colonnes call_*).
     let trackingId = null;
     try {
+      // Origine du prospect : reprise de l'attribution posée au premier contact du tunnel
+      // (devis_particulier_progress, voir app/api/devis/progress/route.js) — même pattern que
+      // total_ttc/client_kind ci-dessous, calculée une fois puis stockée sur la ligne finale.
+      const { data: progressRow } = await supabaseAdmin
+        .from('devis_particulier_progress')
+        .select('gclid, utm_source, utm_medium, utm_campaign, source')
+        .eq('email', client.email)
+        .maybeSingle();
+
       const { data: tracking } = await supabaseAdmin.from('qonto_quotes_tracking').insert({
         qonto_quote_id: quoteId,
         qonto_quote_url: quoteUrl,
@@ -219,6 +228,11 @@ export async function POST(request) {
         expiry_date: draft ? null : expiryDate,
         total_ttc: totalTTC,
         client_kind: client.type,
+        gclid: progressRow?.gclid || null,
+        utm_source: progressRow?.utm_source || null,
+        utm_medium: progressRow?.utm_medium || null,
+        utm_campaign: progressRow?.utm_campaign || null,
+        source: progressRow?.source || null,
       }).select('id').single();
       trackingId = tracking?.id || null;
     } catch (trackErr) {

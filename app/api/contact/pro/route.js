@@ -8,7 +8,9 @@ export async function POST(request) {
   const {
     prenom, nom, societe, email, tel, poste,
     type, personnes, date, budget, lieu, description,
+    gclid, utm_source, utm_medium, utm_campaign, sourceDeclared,
   } = body;
+  const source = gclid ? 'google_ads' : (sourceDeclared || null);
 
   if (!prenom || !nom || !societe || !email || !tel || !type || !personnes) {
     return NextResponse.json({ error: 'Champs requis manquants' }, { status: 400 });
@@ -22,6 +24,8 @@ export async function POST(request) {
       prenom, nom, societe, email, tel, poste: poste || null,
       event_type: type, personnes, event_date: date || null,
       budget: budget || null, lieu: lieu || null, description: description || null,
+      gclid: gclid || null, utm_source: utm_source || null, utm_medium: utm_medium || null,
+      utm_campaign: utm_campaign || null, source,
     }).select('id').single();
     leadId = lead?.id || null;
   } catch (dbErr) {

@@ -9,6 +9,7 @@ import AddressAutocomplete from '@/app/components/AddressAutocomplete';
 import TestimonialCarousel from '@/app/components/TestimonialCarousel';
 import CallSlotPicker from '@/app/components/CallSlotPicker';
 import { gtagEvent, gtagBeacon, gtagSetUserData } from '@/app/lib/gtag';
+import { readAttribution, SOURCE_OPTIONS } from '@/app/lib/attribution';
 
 /* Avis mariage — mêmes témoignages que la page /mariage */
 const TESTIMONIALS = [
@@ -40,6 +41,7 @@ export default function MariageContactClient() {
   const [guests, setGuests] = useState('');
   const [lieu, setLieu] = useState('');
   const [message, setMessage] = useState('');
+  const [sourceDeclared, setSourceDeclared] = useState('');
   const [sending, setSending] = useState(false);
   const [step, setStep] = useState('form'); // 'form' | 'slot' | 'done'
   const [leadId, setLeadId] = useState(null);
@@ -102,6 +104,7 @@ export default function MariageContactClient() {
         body: JSON.stringify({
           prenom: firstName.trim(), nom: lastName.trim(), tel: phone.trim(),
           email: email.trim().toLowerCase(), date, guests, lieu: lieu.trim(), message: message.trim(),
+          ...readAttribution(), sourceDeclared: sourceDeclared || null,
         }),
       });
       setSending(false);
@@ -221,9 +224,17 @@ export default function MariageContactClient() {
             <div><label style={label}>Lieu de l'événement</label><AddressAutocomplete value={lieu} onChange={(v) => { touch(); setLieu(v); }} onSelect={(s) => setLieu(s.label)} placeholder="Commune ou lieu de réception" inputStyle={input} /></div>
           </div>
 
-          <div style={{ marginBottom: 20 }}>
+          <div style={{ marginBottom: 12 }}>
             <label style={label}>Votre projet <span style={{ textTransform: 'none', fontWeight: 400, color: 'rgba(255,255,255,0.3)' }}>(optionnel)</span></label>
             <textarea value={message} onFocus={touch} onChange={e => setMessage(e.target.value)} placeholder="Un mot sur vos envies, votre ambiance, vos questions…" rows={3} style={{ ...input, resize: 'vertical' }} />
+          </div>
+
+          <div style={{ marginBottom: 20 }}>
+            <label style={label}>Comment nous avez-vous connu ? <span style={{ textTransform: 'none', fontWeight: 400, color: 'rgba(255,255,255,0.3)' }}>(optionnel)</span></label>
+            <select value={sourceDeclared} onChange={e => setSourceDeclared(e.target.value)} style={{ ...input, color: sourceDeclared ? '#fff' : 'rgba(255,255,255,0.4)' }}>
+              <option value="">— Sélectionner —</option>
+              {SOURCE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
           </div>
 
           {error && <p style={{ color: '#ef4444', fontSize: 14, marginBottom: 14 }}>{error}</p>}

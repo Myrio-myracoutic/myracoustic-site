@@ -24,7 +24,10 @@ async function sendEmail(payload) {
 
 export async function POST(request) {
   const body = await request.json();
-  const { prenom, nom, tel, email, date, guests, lieu, message } = body;
+  const { prenom, nom, tel, email, date, guests, lieu, message, gclid, utm_source, utm_medium, utm_campaign, sourceDeclared } = body;
+  // Détection auto (pub Google Ads) prioritaire sur le déclaratif — plus fiable qu'une réponse
+  // de visiteur qui ne sait pas toujours distinguer une pub d'une recherche Google classique.
+  const source = gclid ? 'google_ads' : (sourceDeclared || null);
 
   if (!prenom || !nom || !tel || !email) {
     return NextResponse.json({ error: 'Champs requis manquants' }, { status: 400 });
@@ -44,6 +47,11 @@ export async function POST(request) {
       guests: guests ? parseInt(guests, 10) || null : null,
       lieu: lieu?.trim() || null,
       message: message?.trim() || null,
+      gclid: gclid || null,
+      utm_source: utm_source || null,
+      utm_medium: utm_medium || null,
+      utm_campaign: utm_campaign || null,
+      source,
     }).select('id').single();
     leadId = inserted?.id || null;
   } catch (err) {

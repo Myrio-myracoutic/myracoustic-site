@@ -21,7 +21,10 @@ import { getPeriodRanges, deltaPct, DATA_START_DATE } from '@/app/lib/period-ran
      via le site que ceux créés à la main dans Qonto (la majorité en réalité) — contrairement à
      devis_proposals/qonto_quotes_tracking qui ne voient que ce qui passe par le site. Synchronisé
      par lib/qonto-sync.js (cron 15 min, table qonto_signed_quotes).
-   - CA encaissé = somme qonto_payments.amount sur paid_at, jamais confondu avec le CA signé. */
+   - CA encaissé = somme qonto_payments.amount sur paid_at, jamais confondu avec le CA signé.
+   - Devis en attente / perdu = parmi les devis envoyés non convertis, ceux encore dans leur
+     délai de validité (valid_until/expiry_date) vs ceux expirés sans signature — jamais de
+     statut "expiré" stocké en base, toujours recalculé (voir classifyProposal/classifyQuote). */
 
 function inRange(dateStr, range) {
   if (!dateStr) return false;
@@ -30,7 +33,27 @@ function inRange(dateStr, range) {
 }
 
 function emptyBucket() {
-  return { ca_signe: 0, ca_encaisse: 0, clients_confirmes: 0, prospects_entrants: 0, devis_envoyes: 0 };
+  return { ca_signe: 0, ca_encaisse: 0, clients_confirmes: 0, prospects_entrants: 0, devis_envoyes: 0, devis_en_attente: 0, devis_perdus: 0, sources: {} };
+}
+
+// Classe un devis mariage (status + valid_until) en 'converti' / 'en_attente' / 'perdu'.
+// Jamais de statut "expiré" stocké en base — recalculé à la volée, comme lib/run-devis-reminders.js.
+function classifyProposal(p, today) {
+  if (p.status === 'validee') return 'converti';
+  if (p.status === 'refusee') return 'perdu';
+  // status === 'proposee'
+  if (p.valid_until && new Date(p.valid_until) < today) return 'perdu';
+  return 'en_attente';
+}
+
+// Idem pour un devis particulier/pro (qonto_status + expiry_date). kind='brouillon' est filtré
+// en amont, avant l'appel (jamais envoyé au client, hors périmètre de ce calcul).
+function classifyQuote(q, today) {
+  if (q.qonto_status === 'approved') return 'converti';
+  if (q.qonto_status === 'canceled') return 'perdu';
+  // qonto_status === 'pending_approval'
+  if (q.expiry_date && new Date(q.expiry_date) < today) return 'perdu';
+  return 'en_attente';
 }
 
 export async function GET(request) {
@@ -76,19 +99,28 @@ export async function GET(request) {
     supabaseAdmin.from('qonto_signed_quotes').select('amount, vertical, approved_at'),
     // Version non filtrée (tous statuts) pour compter "devis envoyés" + suivi de cohorte —
     // petite table, pas de souci de volume à charger en entier.
-    supabaseAdmin.from('devis_proposals').select('id, created_at, status'),
-    supabaseAdmin.from('mariage_leads').select('created_at').gte('created_at', prospectWindowStartISO).lt('created_at', windowEndISO),
+    supabaseAdmin.from('devis_proposals').select('id, created_at, status, valid_until, lead_id'),
+    supabaseAdmin.from('mariage_leads').select('id, created_at, source').gte('created_at', prospectWindowStartISO).lt('created_at', windowEndISO),
     supabaseAdmin.from('devis_particulier_progress').select('email, created_at').gte('created_at', prospectWindowStartISO).lt('created_at', windowEndISO),
     supabaseAdmin.from('qonto_quotes_tracking').select('client_email, client_kind, qonto_status, total_ttc, created_at, event_type').neq('qonto_status', 'canceled').gte('created_at', prospectWindowStartISO).lt('created_at', windowEndISO),
     // Version non filtrée (tous statuts, y compris annulés/brouillons) pour "devis envoyés" +
     // suivi de cohorte — un devis annulé compte comme envoyé mais pas comme converti.
-    supabaseAdmin.from('qonto_quotes_tracking').select('id, created_at, kind, qonto_status, client_kind, event_type'),
+    supabaseAdmin.from('qonto_quotes_tracking').select('id, created_at, kind, qonto_status, client_kind, event_type, expiry_date, source'),
     supabaseAdmin.from('pro_contact_leads').select('email, created_at').gte('created_at', prospectWindowStartISO).lt('created_at', windowEndISO),
   ]);
 
   // events.vertical n'est connu qu'après création de l'événement — pour le CA encaissé on a
   // besoin de le retrouver via event_id.
   const eventVerticalById = new Map((events || []).map(e => [e.id, e.vertical]));
+  // Origine du lead mariage à l'entrée (mariage_leads.source) — pour rattacher un devis validé
+  // (devis_proposals) à sa source via lead_id.
+  const leadSourceById = new Map((mariageLeads || []).map(l => [l.id, l.source || 'inconnu']));
+  const today = new Date();
+
+  function bumpSource(bucket, key, field) {
+    if (!bucket.sources[key]) bucket.sources[key] = { entrants: 0, convertis: 0 };
+    bucket.sources[key][field]++;
+  }
 
   function bucketFor(range) {
     const b = { global: emptyBucket(), mariage: emptyBucket(), particulier: emptyBucket(), professionnel: emptyBucket() };
@@ -121,11 +153,16 @@ export async function GET(request) {
       if (q.vertical) b[q.vertical].ca_signe += montant;
     }
 
-    // Devis envoyés — mariage (toute proposition créée = envoyée par l'admin)
+    // Devis envoyés — mariage (toute proposition créée = envoyée par l'admin), + répartition
+    // converti/en attente/perdu (voir classifyProposal — jamais un statut "expiré" stocké,
+    // toujours recalculé au moment de l'affichage).
     for (const p of allProposals || []) {
       if (!inRange(p.created_at, range)) continue;
       b.mariage.devis_envoyes++;
       b.global.devis_envoyes++;
+      const c = classifyProposal(p, today);
+      if (c === 'en_attente') { b.mariage.devis_en_attente++; b.global.devis_en_attente++; }
+      else if (c === 'perdu') { b.mariage.devis_perdus++; b.global.devis_perdus++; }
     }
     // Devis envoyés — particulier/pro (kind='auto_envoye' seulement, un brouillon n'a rien reçu)
     for (const q of allQuotes || []) {
@@ -133,6 +170,9 @@ export async function GET(request) {
       const vertical = q.client_kind === 'company' ? 'professionnel' : 'particulier';
       b[vertical].devis_envoyes++;
       b.global.devis_envoyes++;
+      const c = classifyQuote(q, today);
+      if (c === 'en_attente') { b[vertical].devis_en_attente++; b.global.devis_en_attente++; }
+      else if (c === 'perdu') { b[vertical].devis_perdus++; b.global.devis_perdus++; }
     }
 
     // Prospects entrants — mariage
@@ -164,6 +204,36 @@ export async function GET(request) {
       if (!seenPro.has(email)) { seenPro.add(email); b.professionnel.prospects_entrants++; b.global.prospects_entrants++; }
     }
 
+    // Origine des prospects (gclid auto / menu déclaratif — voir migration du 25/08). 'inconnu'
+    // regroupe tout ce qui n'a ni clic pub ni réponse déclarée (direct, organique, oubli du
+    // formulaire) — jamais réparti au prorata, toujours affiché tel quel.
+    // Mariage : entrants = mariage_leads, convertis = devis_proposals validés rattachés via lead_id.
+    for (const l of mariageLeads || []) {
+      if (!inRange(l.created_at, range)) continue;
+      const key = l.source || 'inconnu';
+      bumpSource(b.mariage, key, 'entrants');
+      bumpSource(b.global, key, 'entrants');
+    }
+    for (const p of allProposals || []) {
+      if (p.status !== 'validee' || !inRange(p.created_at, range)) continue;
+      const key = leadSourceById.get(p.lead_id) || 'inconnu';
+      bumpSource(b.mariage, key, 'convertis');
+      bumpSource(b.global, key, 'convertis');
+    }
+    // Particulier/pro : qonto_quotes_tracking.source (propagé à la création du devis depuis
+    // devis_particulier_progress) donne directement entrants (kind='auto_envoye') et convertis.
+    for (const q of allQuotes || []) {
+      if (q.event_type === 'Mariage' || q.kind !== 'auto_envoye' || !inRange(q.created_at, range)) continue;
+      const vertical = q.client_kind === 'company' ? 'professionnel' : 'particulier';
+      const key = q.source || 'inconnu';
+      bumpSource(b[vertical], key, 'entrants');
+      bumpSource(b.global, key, 'entrants');
+      if (q.qonto_status === 'approved') {
+        bumpSource(b[vertical], key, 'convertis');
+        bumpSource(b.global, key, 'convertis');
+      }
+    }
+
     return b;
   }
 
@@ -181,9 +251,15 @@ export async function GET(request) {
       ca_signe: { value: Math.round(c.ca_signe), deltaPrevPct: deltaPct(c.ca_signe, p.ca_signe), deltaYearPct: py ? deltaPct(c.ca_signe, py.ca_signe) : null },
       ca_encaisse: { value: Math.round(c.ca_encaisse), deltaPrevPct: deltaPct(c.ca_encaisse, p.ca_encaisse), deltaYearPct: py ? deltaPct(c.ca_encaisse, py.ca_encaisse) : null },
       devis_envoyes: { value: c.devis_envoyes, deltaPrevPct: deltaPct(c.devis_envoyes, p.devis_envoyes), deltaYearPct: py ? deltaPct(c.devis_envoyes, py.devis_envoyes) : null },
+      devis_en_attente: { value: c.devis_en_attente },
+      devis_perdus: { value: c.devis_perdus },
+      taux_perte: { value: c.devis_envoyes > 0 ? Math.round((c.devis_perdus / c.devis_envoyes) * 1000) / 10 : null, caveat: 'Devis expirés sans signature / devis envoyés sur la période — les devis encore en attente ne comptent pas comme perdus.' },
       clients_confirmes: { value: c.clients_confirmes, deltaPrevPct: deltaPct(c.clients_confirmes, p.clients_confirmes), deltaYearPct: py ? deltaPct(c.clients_confirmes, py.clients_confirmes) : null },
       prospects_entrants: { value: c.prospects_entrants, deltaPrevPct: deltaPct(c.prospects_entrants, p.prospects_entrants), deltaYearPct: py ? deltaPct(c.prospects_entrants, py.prospects_entrants) : null },
       taux_conversion: { value: tauxConversion, deltaPrevPct: (tauxConversion !== null && tauxPrev !== null) ? deltaPct(tauxConversion, tauxPrev) : null, caveat: 'Taux de flux sur la période — pas un suivi de cohorte individuelle.' },
+      // Pas de delta ici : la collecte de l'origine vient de démarrer (25/08), aucune période
+      // antérieure n'a de donnée comparable.
+      sources: c.sources,
     };
   }
 
@@ -272,6 +348,7 @@ export async function GET(request) {
       ca_encaisse: "N'inclut que les paiements effectivement reçus (acompte et/ou solde) — pas les devis signés en attente de paiement.",
       monthly_trend: "Convertis = statut à ce jour (peut encore évoluer pour les devis récents dont la réponse du client est en attente).",
       previsionnel: "Vue sur l'ensemble des contrats actifs à ce jour, sans filtre de période — le CA signé inclut des prestations dont la date est encore loin (ex. mariages 2027).",
+      sources: "Collecte démarrée le 25/08/2026 — aucun historique avant cette date. 'inconnu' regroupe tout ce qui n'a ni clic pub Google Ads ni réponse au menu déclaratif (visite directe, organique, formulaire non renseigné).",
     },
   });
 }

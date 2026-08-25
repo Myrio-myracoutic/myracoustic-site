@@ -66,6 +66,29 @@ function StatusBreakdown({ byStatus, total }) {
   );
 }
 
+// Barres de répartition génériques (même pattern visuel que StatusBreakdown, mais pour des
+// segments arbitraires — non convertis/perdu/etc. n'ont pas de vocabulaire fixe comme STATUS).
+function SegmentBreakdown({ segments, total }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {segments.map(s => {
+        const pct = total > 0 ? Math.round((s.count / total) * 100) : 0;
+        return (
+          <div key={s.label}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', fontWeight: 500 }}>{s.label}</span>
+              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)' }}>{s.count} <span style={{ color: 'rgba(255,255,255,0.2)' }}>({pct}%)</span></span>
+            </div>
+            <div style={{ background: 'rgba(255,255,255,0.07)', borderRadius: 4, height: 6 }}>
+              <div style={{ width: `${pct}%`, height: '100%', background: s.color, borderRadius: 4, transition: 'width 0.6s ease' }} />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function fmtDate(d) {
   if (!d) return '—';
   return new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -182,6 +205,76 @@ function KpiDashboard() {
               );
             })()}
           </div>
+
+          {(() => {
+            const k = kpis.kpis[vertical];
+            if (k.devis_envoyes.value === 0) return null;
+            return (
+              <div style={{ marginTop: 4, marginBottom: 24 }}>
+                <h3 style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.6)', margin: '0 0 4px', fontFamily: 'var(--font-display), sans-serif' }}>
+                  Devis envoyés — converti / en attente / perdu
+                </h3>
+                <p style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.25)', margin: '0 0 14px' }}>
+                  {k.taux_perte.caveat}
+                </p>
+                <SegmentBreakdown
+                  total={k.devis_envoyes.value}
+                  segments={[
+                    { label: 'Converti', count: k.devis_envoyes.value - k.devis_en_attente.value - k.devis_perdus.value, color: '#22c55e' },
+                    { label: 'En attente', count: k.devis_en_attente.value, color: '#f59e0b' },
+                    { label: 'Perdu', count: k.devis_perdus.value, color: '#ef4444' },
+                  ]}
+                />
+              </div>
+            );
+          })()}
+
+          {(() => {
+            const k = kpis.kpis[vertical];
+            const entries = Object.entries(k.sources || {});
+            if (!entries.length) return null;
+            const totalEntrants = entries.reduce((s, [, v]) => s + v.entrants, 0);
+            const SOURCE_LABELS = { google_ads: 'Google Ads', recherche_google: 'Recherche Google', reseaux_sociaux: 'Réseaux sociaux', bouche_a_oreille: 'Bouche-à-oreille', salon_du_mariage: 'Salon du mariage', autre: 'Autre', inconnu: 'Inconnu' };
+            entries.sort((a, b) => b[1].entrants - a[1].entrants);
+            return (
+              <div style={{ marginTop: 4, marginBottom: 24 }}>
+                <h3 style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.6)', margin: '0 0 4px', fontFamily: 'var(--font-display), sans-serif' }}>
+                  Origine des prospects
+                </h3>
+                <p style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.25)', margin: '0 0 14px' }}>
+                  {kpis.caveats?.sources}
+                </p>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                        <th style={{ textAlign: 'left', padding: '8px 10px', color: 'rgba(255,255,255,0.35)', fontWeight: 600 }}>Origine</th>
+                        <th style={{ textAlign: 'right', padding: '8px 10px', color: 'rgba(255,255,255,0.35)', fontWeight: 600 }}>Entrants</th>
+                        <th style={{ textAlign: 'right', padding: '8px 10px', color: 'rgba(255,255,255,0.35)', fontWeight: 600 }}>Convertis</th>
+                        <th style={{ textAlign: 'right', padding: '8px 10px', color: 'rgba(255,255,255,0.35)', fontWeight: 600 }}>Taux</th>
+                        <th style={{ textAlign: 'right', padding: '8px 10px', color: 'rgba(255,255,255,0.35)', fontWeight: 600 }}>% du total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {entries.map(([key, v]) => {
+                        const taux = v.entrants > 0 ? Math.round((v.convertis / v.entrants) * 1000) / 10 : null;
+                        const pctTotal = totalEntrants > 0 ? Math.round((v.entrants / totalEntrants) * 100) : 0;
+                        return (
+                          <tr key={key} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                            <td style={{ padding: '9px 10px', color: key === 'inconnu' ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.75)', fontWeight: 600 }}>{SOURCE_LABELS[key] || key}</td>
+                            <td style={{ padding: '9px 10px', textAlign: 'right', color: 'rgba(255,255,255,0.7)' }}>{v.entrants}</td>
+                            <td style={{ padding: '9px 10px', textAlign: 'right', color: 'rgba(255,255,255,0.7)' }}>{v.convertis}</td>
+                            <td style={{ padding: '9px 10px', textAlign: 'right', color: taux === null ? 'rgba(255,255,255,0.2)' : 'var(--lime)', fontWeight: 600 }}>{taux !== null ? `${taux}%` : '—'}</td>
+                            <td style={{ padding: '9px 10px', textAlign: 'right', color: 'rgba(255,255,255,0.4)' }}>{pctTotal}%</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            );
+          })()}
 
           {vertical === 'global' && (
             <div style={{ overflowX: 'auto' }}>

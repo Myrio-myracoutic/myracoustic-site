@@ -97,6 +97,22 @@ export default function PropositionTokenClient({ token }) {
     </Shell>
   );
 
+  if (!done && p.unavailable) return (
+    <Shell>
+      <div style={{ textAlign: 'center', padding: '40px 0' }}>
+        <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 22, fontWeight: 800, marginBottom: 12 }}>
+          {p.unavailable === 'expiree' ? 'Cette offre a expiré' : 'Cette proposition n\'est plus disponible'}
+        </h1>
+        <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 15, lineHeight: 1.7 }}>
+          {p.unavailable === 'expiree'
+            ? 'Le délai de validité de cette proposition est dépassé. Contactez-nous et nous vous en préparons une nouvelle avec plaisir.'
+            : 'Contactez-nous si vous souhaitez reprendre l\'échange sur votre projet.'}
+          {' '}Appelez-nous au 07 68 53 33 08.
+        </p>
+      </div>
+    </Shell>
+  );
+
   if (done || p.status === 'validee') return (
     <Shell>
       <div style={{ textAlign: 'center', padding: '40px 0' }}>

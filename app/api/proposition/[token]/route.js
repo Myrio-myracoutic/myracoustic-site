@@ -51,8 +51,17 @@ export async function GET(_req, { params }) {
       valid_until: p.valid_until, acompte, solde,
       installments_allowed: installmentsAllowed(p.event_date),
       firstName: lead.prenom || '',
+      unavailable: proposalUnavailable(p),
     },
   });
+}
+
+// Une proposition refusée (marquée perdue en admin) ou expirée (délai de validité dépassé, jamais
+// validée) ne doit plus pouvoir être acceptée par le client — ni affichée comme si de rien n'était.
+function proposalUnavailable(p) {
+  if (p.status === 'refusee') return 'refusee';
+  if (p.status === 'proposee' && p.valid_until && p.valid_until < new Date().toISOString().slice(0, 10)) return 'expiree';
+  return null;
 }
 
 // POST — valider : crée le compte + le brouillon Qonto
@@ -66,6 +75,9 @@ export async function POST(request, { params }) {
   const p = await getProposal(token);
   if (!p) return NextResponse.json({ error: 'Proposition introuvable' }, { status: 404 });
   if (p.status === 'validee') return NextResponse.json({ ok: true, already: true });
+  const unavailable = proposalUnavailable(p);
+  if (unavailable === 'refusee') return NextResponse.json({ error: 'Cette proposition n\'est plus disponible.' }, { status: 400 });
+  if (unavailable === 'expiree') return NextResponse.json({ error: 'Cette offre a expiré. Contactez-nous pour une nouvelle proposition.' }, { status: 400 });
 
   const lead = p.mariage_leads || {};
   const email = (lead.email || '').toLowerCase();

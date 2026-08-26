@@ -47,6 +47,12 @@ export default function PropositionTokenClient({ token }) {
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
   const [nowMs, setNowMs] = useState(Date.now());
+  // 'recap' = proposition + acompte/solde (accepter, sans rien à payer) ; 'billing' = paiement
+  // de l'acompte + adresse de facturation. Séparés pour éviter qu'un client pressé associe le
+  // bouton d'acceptation à un paiement immédiat, juste parce qu'ils sont visuellement proches.
+  const [screen, setScreen] = useState('recap');
+  const goToBilling = () => { setScreen('billing'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  const backToRecap = () => { setScreen('recap'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
 
   useEffect(() => {
     const id = setInterval(() => setNowMs(Date.now()), 1000);
@@ -135,20 +141,33 @@ export default function PropositionTokenClient({ token }) {
     </div>
   );
 
+  const stepLabel = (n) => (
+    <p style={{ ...label, textAlign: 'center', marginBottom: 10 }}>Étape {n} sur 2</p>
+  );
+
   return (
     <Shell>
+      {screen === 'billing' && (
+        <button onClick={backToRecap} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, padding: 0, marginBottom: 18, fontSize: 13, fontFamily: 'var(--font-display), sans-serif', fontWeight: 500 }}>
+          ← Retour à la proposition
+        </button>
+      )}
+      {stepLabel(screen === 'recap' ? 1 : 2)}
       <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(24px,4vw,32px)', fontWeight: 800, textAlign: 'center', marginBottom: 8 }}>
-        {p.firstName ? `${p.firstName}, votre` : 'Votre'} proposition de devis
+        {screen === 'recap'
+          ? <>{p.firstName ? `${p.firstName}, votre` : 'Votre'} proposition de devis</>
+          : 'Vos informations de facturation'}
       </h1>
       <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 14.5, textAlign: 'center', marginBottom: 8 }}>
         {p.formule_name ? <>Formule <strong style={{ color: '#fff' }}>{p.formule_name}</strong></> : 'Sur-mesure'}{p.event_date && <> · {fmtDate(p.event_date)}</>}
       </p>
-      {p.valid_until && (
+      {screen === 'recap' && p.valid_until && (
         <p style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--lime)', background: 'rgba(184,239,11,0.08)', border: '1px solid rgba(184,239,11,0.2)', borderRadius: 20, padding: '5px 14px', margin: '0 auto 28px', width: 'fit-content', display: 'flex', justifyContent: 'center' }}>
           <CalendarClock size={14} /> Offre valable jusqu'au {fmtDate(p.valid_until)}
         </p>
       )}
 
+      {screen === 'recap' && <>
       {/* Chrono de la réduction du moment — visible uniquement tant que la réduction est active */}
       {discountLive && (
         <div style={{ background: 'linear-gradient(135deg, rgba(184,239,11,0.14), rgba(184,239,11,0.06))', border: '1px solid rgba(184,239,11,0.35)', borderRadius: 12, padding: '14px 18px', margin: '0 0 24px', textAlign: 'center' }}>
@@ -219,10 +238,16 @@ export default function PropositionTokenClient({ token }) {
         {payCard('À la signature du devis', acompte, 'Acompte · 60 %', 'var(--lime)')}
         {payCard('Solde le jour J', solde, '40 %', 'rgba(52,55,144,0.9)')}
       </div>
-      <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginBottom: p.installments_allowed ? 14 : 26 }}>
+      <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginBottom: 26 }}>
         L'acompte de <strong style={{ color: 'rgba(255,255,255,0.7)' }}>{fmtPrice(acompte)}</strong> se règle à la signature de votre devis, et réserve alors votre date.
       </p>
 
+      <button onClick={goToBilling} className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
+        J'accepte la proposition →
+      </button>
+      </>}
+
+      {screen === 'billing' && <>
       {/* Options de paiement de l'acompte (si événement à plus de 3 mois) */}
       {p.installments_allowed && (
         <div style={{ background: 'rgba(52,55,144,0.1)', border: '1px solid rgba(52,55,144,0.3)', borderRadius: 12, padding: '16px 18px', marginBottom: 26 }}>
@@ -271,11 +296,10 @@ export default function PropositionTokenClient({ token }) {
       <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, padding: '14px 16px', marginBottom: 16 }}>
         <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 13, marginBottom: 10 }}>Et ensuite ?</div>
         {[
-          'Vous validez votre proposition',
           'Nous vous envoyons votre devis officiel à signer',
           'Vous réglez l’acompte — votre date est alors réservée',
         ].map((t, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: i < 2 ? 8 : 0 }}>
+          <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: i < 1 ? 8 : 0 }}>
             <span style={{ flexShrink: 0, width: 20, height: 20, borderRadius: '50%', background: 'rgba(184,239,11,0.15)', color: 'var(--lime)', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display), sans-serif' }}>{i + 1}</span>
             <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)', lineHeight: 1.5 }}>{t}</span>
           </div>
@@ -283,9 +307,10 @@ export default function PropositionTokenClient({ token }) {
       </div>
 
       <button onClick={validate} disabled={sending || !valid} className="btn-primary" style={{ width: '100%', justifyContent: 'center', opacity: sending || !valid ? 0.5 : 1, cursor: sending || !valid ? 'not-allowed' : 'pointer' }}>
-        {sending ? <><Loader2 size={16} style={{ animation: 'spin 0.8s linear infinite' }} /> Validation…</> : 'Valider ma proposition →'}
+        {sending ? <><Loader2 size={16} style={{ animation: 'spin 0.8s linear infinite' }} /> Validation…</> : 'Valider mes informations de facturation →'}
       </button>
       {!valid && <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', textAlign: 'center', marginTop: 10 }}>Renseignez votre adresse de facturation pour valider.</p>}
+      </>}
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </Shell>
   );

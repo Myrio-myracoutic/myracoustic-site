@@ -15,6 +15,25 @@ const card = { background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.08)'
 const inp = { background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.14)', borderRadius: 7, padding: '8px 10px', color: '#fff', fontSize: 14, fontFamily: 'inherit', outline: 'none', boxSizing: 'border-box' };
 const btnSm = { border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.8)', borderRadius: 7, padding: '7px 14px', cursor: 'pointer', fontSize: 13, fontFamily: 'var(--font-display), sans-serif', fontWeight: 600 };
 
+const TABS = [
+  { key: 'actifs', label: 'Actifs', test: (s) => !s || s === 'nouveau' || s === 'en_cours' },
+  { key: 'gagnes', label: 'Gagnés', test: (s) => s === 'gagne' },
+  { key: 'perdus', label: 'Perdus', test: (s) => s === 'perdu' },
+  { key: 'tous', label: 'Tous', test: () => true },
+];
+
+function TabButton({ active, onClick, children }) {
+  return (
+    <button onClick={onClick} style={{
+      border: `1px solid ${active ? 'var(--lime)' : 'rgba(255,255,255,0.14)'}`,
+      background: active ? 'rgba(184,239,11,0.1)' : 'transparent',
+      color: active ? 'var(--lime)' : 'rgba(255,255,255,0.6)',
+      borderRadius: 8, padding: '7px 14px', cursor: 'pointer', fontSize: 13,
+      fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, whiteSpace: 'nowrap',
+    }}>{children}</button>
+  );
+}
+
 let uid = 0;
 const nextId = () => `l${++uid}`;
 
@@ -480,6 +499,8 @@ export default function LeadsMariagePage() {
   const [validityEdit, setValidityEdit] = useState(null); // { id, value }
   const [discountFor, setDiscountFor] = useState(null); // proposal
   const [callSlotFor, setCallSlotFor] = useState(null); // { lead, mode: 'schedule' | 'reschedule' }
+  const [tab, setTab] = useState('actifs');
+  const [noteEdits, setNoteEdits] = useState({}); // { [leadId]: valeur en cours d'édition }
   const todayStr = new Date().toISOString().slice(0, 10);
 
   const load = () => {
@@ -566,6 +587,35 @@ export default function LeadsMariagePage() {
     load();
   };
 
+  const markStatus = async (l, action) => {
+    const messages = {
+      markLost: `Marquer le dossier de ${l.prenom} ${l.nom} comme PERDU ?${l.proposal && l.proposal.status === 'proposee' ? '\n\nLe devis lié sera aussi marqué refusé.' : ''}`,
+      markWon: `Marquer le dossier de ${l.prenom} ${l.nom} comme GAGNÉ ?${l.proposal && l.proposal.status === 'proposee' ? '\n\nLe devis lié sera aussi marqué validé.' : ''}`,
+      reopen: `Rouvrir le dossier de ${l.prenom} ${l.nom} ?`,
+    };
+    if (!window.confirm(messages[action])) return;
+    setBusy(action + '-' + l.id);
+    const res = await fetch('/api/admin/mariage-leads', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: l.id, [action]: true }),
+    });
+    setBusy(null);
+    if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || 'Erreur'); return; }
+    load();
+  };
+
+  const saveNote = async (leadId) => {
+    setBusy('note-' + leadId);
+    const res = await fetch('/api/admin/mariage-leads', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: leadId, adminNote: noteEdits[leadId] || '' }),
+    });
+    setBusy(null);
+    if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || 'Erreur'); return; }
+    setNoteEdits(prev => { const n = { ...prev }; delete n[leadId]; return n; });
+    load();
+  };
+
+  const visibleLeads = leads.filter(l => (TABS.find(t => t.key === tab) || TABS[0]).test(l.status));
+
   return (
     <div style={{ padding: '32px 28px', maxWidth: 1100, margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap', margin: '0 0 4px' }}>
@@ -576,15 +626,23 @@ export default function LeadsMariagePage() {
           display: 'inline-flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap',
         }}><Plus size={15} /> Nouveau contact</button>
       </div>
-      <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, margin: '0 0 24px' }}>Demandes du formulaire de contact, ou contacts ajoutés à la main. Rappelez, puis créez la proposition de devis.</p>
+      <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, margin: '0 0 20px' }}>Demandes du formulaire de contact, ou contacts ajoutés à la main. Rappelez, puis créez la proposition de devis.</p>
+
+      <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+        {TABS.map(t => (
+          <TabButton key={t.key} active={tab === t.key} onClick={() => setTab(t.key)}>
+            {t.label} ({leads.filter(l => t.test(l.status)).length})
+          </TabButton>
+        ))}
+      </div>
 
       {loading ? (
         <p style={{ color: 'rgba(255,255,255,0.5)' }}>Chargement…</p>
-      ) : leads.length === 0 ? (
-        <p style={{ color: 'rgba(255,255,255,0.5)' }}>Aucun lead pour le moment.</p>
+      ) : visibleLeads.length === 0 ? (
+        <p style={{ color: 'rgba(255,255,255,0.5)' }}>{leads.length === 0 ? 'Aucun lead pour le moment.' : 'Aucun dossier dans cet onglet.'}</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {leads.map(l => {
+          {visibleLeads.map(l => {
             const vu = l.proposal?.valid_until;
             let daysUntil = null;
             if (vu) {
@@ -602,7 +660,11 @@ export default function LeadsMariagePage() {
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6, flexWrap: 'wrap' }}>
                   <span style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 16, color: '#fff' }}>{l.prenom} {l.nom}</span>
-                  {l.proposal
+                  {l.status === 'perdu' ? (
+                    <span style={{ fontSize: 11, padding: '2px 9px', borderRadius: 20, background: 'rgba(239,68,68,0.15)', color: '#ef4444', fontWeight: 700 }}>✗ Perdu</span>
+                  ) : l.status === 'gagne' ? (
+                    <span style={{ fontSize: 11, padding: '2px 9px', borderRadius: 20, background: 'rgba(34,197,94,0.15)', color: '#22c55e', fontWeight: 700 }}>✓ Gagné</span>
+                  ) : l.proposal
                     ? <span style={{ fontSize: 11, padding: '2px 9px', borderRadius: 20, background: 'rgba(184,239,11,0.15)', color: 'var(--lime)', fontWeight: 700 }}>Devis {l.proposal.status} · {fmtPrice(l.proposal.total)}</span>
                     : <span style={{ fontSize: 11, padding: '2px 9px', borderRadius: 20, background: 'rgba(245,158,11,0.15)', color: '#f59e0b', fontWeight: 700 }}>À rappeler</span>}
                 </div>
@@ -635,6 +697,20 @@ export default function LeadsMariagePage() {
                     </span></>
                   )}
                   {l.message && <><br /><span style={{ color: 'rgba(255,255,255,0.45)', fontStyle: 'italic' }}>« {l.message} »</span></>}
+                </div>
+                <div style={{ marginTop: 10 }}>
+                  <textarea
+                    value={noteEdits[l.id] ?? l.admin_note ?? ''}
+                    onChange={e => setNoteEdits(prev => ({ ...prev, [l.id]: e.target.value }))}
+                    placeholder="Note de suivi (où en est ce dossier ?)…" rows={2}
+                    style={{ ...inp, width: '100%', resize: 'vertical', fontSize: 12.5, color: 'rgba(255,255,255,0.75)' }}
+                  />
+                  {noteEdits[l.id] !== undefined && noteEdits[l.id] !== (l.admin_note || '') && (
+                    <button onClick={() => saveNote(l.id)} disabled={busy === 'note-' + l.id} style={{
+                      ...btnSm, marginTop: 6, opacity: busy === 'note-' + l.id ? 0.6 : 1,
+                      cursor: busy === 'note-' + l.id ? 'wait' : 'pointer',
+                    }}>Enregistrer la note</button>
+                  )}
                 </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
@@ -728,6 +804,26 @@ export default function LeadsMariagePage() {
                     )}
                     {l.proposal.event_id && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--lime)', fontSize: 13, fontWeight: 600 }}><Check size={16} /> Espace ouvert</span>}
                   </>
+                )}
+                {l.status === 'gagne' || l.status === 'perdu' ? (
+                  <button onClick={() => markStatus(l, 'reopen')} disabled={busy === 'reopen-' + l.id} title="Remettre ce dossier en cours" style={{
+                    border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.7)',
+                    borderRadius: 8, padding: '7px 14px', cursor: busy === 'reopen-' + l.id ? 'wait' : 'pointer', fontSize: 12.5,
+                    fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, whiteSpace: 'nowrap', opacity: busy === 'reopen-' + l.id ? 0.6 : 1,
+                  }}>↺ Rouvrir le dossier</button>
+                ) : (
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button onClick={() => markStatus(l, 'markWon')} disabled={busy === 'markWon-' + l.id} title="Marquer ce dossier comme gagné" style={{
+                      border: '1px solid rgba(34,197,94,0.3)', background: 'rgba(34,197,94,0.08)', color: '#22c55e',
+                      borderRadius: 8, padding: '7px 14px', cursor: busy === 'markWon-' + l.id ? 'wait' : 'pointer', fontSize: 12.5,
+                      fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, whiteSpace: 'nowrap', opacity: busy === 'markWon-' + l.id ? 0.6 : 1,
+                    }}>✓ Marquer gagné</button>
+                    <button onClick={() => markStatus(l, 'markLost')} disabled={busy === 'markLost-' + l.id} title="Marquer ce dossier comme perdu" style={{
+                      border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)', color: '#ef4444',
+                      borderRadius: 8, padding: '7px 14px', cursor: busy === 'markLost-' + l.id ? 'wait' : 'pointer', fontSize: 12.5,
+                      fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, whiteSpace: 'nowrap', opacity: busy === 'markLost-' + l.id ? 0.6 : 1,
+                    }}>✗ Marquer perdu</button>
+                  </div>
                 )}
                 <button onClick={() => deleteLead(l)} disabled={busy === 'del-' + l.id} title="Supprimer ce contact" style={{
                   background: 'none', border: 'none', color: 'rgba(255,120,120,0.55)',

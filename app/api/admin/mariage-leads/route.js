@@ -11,7 +11,7 @@ export async function GET() {
 
   const { data: leads, error } = await supabaseAdmin
     .from('mariage_leads')
-    .select('id, created_at, prenom, nom, tel, email, event_date, guests, lieu, message, status, client_id, call_scheduled_at, call_google_event_id, call_cancelled_at')
+    .select('id, created_at, prenom, nom, tel, email, event_date, guests, lieu, message, status, admin_note, client_id, call_scheduled_at, call_google_event_id, call_cancelled_at')
     .order('created_at', { ascending: false });
   if (error) return Response.json({ error: error.message }, { status: 500 });
 
@@ -69,7 +69,7 @@ export async function PATCH(request) {
   if (!(await verifyAdminCookie())) {
     return Response.json({ error: 'Non autorisé' }, { status: 401 });
   }
-  const { id, cancelCall, setCall, sendBookingLink } = await request.json();
+  const { id, cancelCall, setCall, sendBookingLink, markLost, markWon, reopen, adminNote } = await request.json();
   if (!id) return Response.json({ error: 'id manquant' }, { status: 400 });
 
   if (cancelCall) {
@@ -81,6 +81,38 @@ export async function PATCH(request) {
   if (sendBookingLink) {
     const result = await sendBookingLinkForLead({ kind: 'mariage', refId: id });
     if (result.error) return Response.json({ error: result.error }, { status: result.status });
+    return Response.json({ ok: true });
+  }
+
+  // Marquage manuel gagné/perdu — vérité terrain (retour client), sans attendre l'expiration
+  // automatique d'un devis. Répercuté sur la proposition liée (si elle existe) pour que le
+  // dashboard KPI reflète immédiatement la réalité. Volontairement AUCUN email, AUCUN appel Qonto :
+  // ce sont des corrections de statut, pas le déclenchement d'un nouveau parcours client.
+  if (markLost || markWon) {
+    const newStatus = markLost ? 'perdu' : 'gagne';
+    const { error: lErr } = await supabaseAdmin.from('mariage_leads').update({ status: newStatus }).eq('id', id);
+    if (lErr) return Response.json({ error: lErr.message }, { status: 500 });
+
+    const { data: proposal } = await supabaseAdmin
+      .from('devis_proposals').select('id, status').eq('lead_id', id).maybeSingle();
+    if (proposal && proposal.status === 'proposee') {
+      const proposalUpdate = markLost
+        ? { status: 'refusee' }
+        : { status: 'validee', validated_at: new Date().toISOString() };
+      await supabaseAdmin.from('devis_proposals').update(proposalUpdate).eq('id', proposal.id);
+    }
+    return Response.json({ ok: true });
+  }
+
+  if (reopen) {
+    const { error } = await supabaseAdmin.from('mariage_leads').update({ status: 'en_cours' }).eq('id', id);
+    if (error) return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ ok: true });
+  }
+
+  if (adminNote !== undefined) {
+    const { error } = await supabaseAdmin.from('mariage_leads').update({ admin_note: adminNote || null }).eq('id', id);
+    if (error) return Response.json({ error: error.message }, { status: 500 });
     return Response.json({ ok: true });
   }
 
@@ -102,6 +134,9 @@ export async function PATCH(request) {
 
     const result = await bookCallSlot({ kind: 'mariage', refId: id, date, time, requireEmptySlot: false, windowDays: ADMIN_BOOKING_WINDOW_DAYS, isReschedule });
     if (result.error) return Response.json({ error: result.error }, { status: result.status });
+    // Un appel programmé = dossier qui bouge — passe "en cours" seulement s'il était encore
+    // "nouveau" (le filtre .eq('status','nouveau') protège un dossier déjà gagné/perdu/en_cours).
+    await supabaseAdmin.from('mariage_leads').update({ status: 'en_cours' }).eq('id', id).eq('status', 'nouveau');
     return Response.json({ ok: true });
   }
 

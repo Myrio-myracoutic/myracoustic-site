@@ -138,7 +138,10 @@ export async function POST(request) {
   if (pErr) return Response.json({ error: 'Création proposition échouée : ' + pErr.message }, { status: 500 });
 
   await supabaseAdmin.from('mariage_leads')
-    .update({ status: 'devis_fait', event_date: evDate, lieu: evVenue, guests: evGuests }).eq('id', leadId);
+    .update({ event_date: evDate, lieu: evVenue, guests: evGuests }).eq('id', leadId);
+  // Un devis créé = dossier qui bouge — passe "en cours" seulement s'il était encore "nouveau"
+  // (ne rétrograde jamais un dossier déjà gagné/perdu/en_cours).
+  await supabaseAdmin.from('mariage_leads').update({ status: 'en_cours' }).eq('id', leadId).eq('status', 'nouveau');
 
   try {
     await sendProposalLink(lead.email.toLowerCase(), lead.prenom, proposal.token, validUntilDate);

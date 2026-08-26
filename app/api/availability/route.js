@@ -60,7 +60,7 @@ export async function GET(request) {
       timeMax: new Date(`${end}T23:59:59`).toISOString(),
       singleEvents: true,
       maxResults: 500,
-      fields: 'items(start,end,transparency,status)',
+      fields: 'items(start,end,transparency,status,extendedProperties)',
     });
 
     const events = res.data.items ?? [];
@@ -70,6 +70,9 @@ export async function GET(request) {
       // Ignore les événements déclinés ou marqués "disponible"
       if (evt.status === 'cancelled') continue;
       if (evt.transparency === 'transparent') continue;
+      // Un appel téléphonique réservé (voir app/lib/call-booking.js) n'est pas une prestation :
+      // il ne doit jamais bloquer la date pour un client qui veut réserver son événement.
+      if (evt.extendedProperties?.private?.kind === 'call_appointment') continue;
 
       const s = evt.start?.date || evt.start?.dateTime?.slice(0, 10);
       const e = evt.end?.date   || evt.end?.dateTime?.slice(0, 10);

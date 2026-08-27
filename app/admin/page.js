@@ -189,7 +189,7 @@ function KpiDashboard() {
         <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>Chargement…</p>
       ) : (
         <>
-          <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: vertical === 'global' ? 24 : 0 }}>
+          <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 14 }}>
             {(() => {
               const k = kpis.kpis[vertical];
               const pya = kpis.previousYearAvailable;
@@ -197,12 +197,23 @@ function KpiDashboard() {
                 <>
                   <KpiCard label="Devis envoyés" value={k.devis_envoyes.value} deltaPrevPct={k.devis_envoyes.deltaPrevPct} deltaYearPct={k.devis_envoyes.deltaYearPct} previousYearAvailable={pya} sub="Propositions/devis chiffrés envoyés au client" />
                   <KpiCard label="Taux de transformation" value={k.taux_transformation.value !== null ? `${k.taux_transformation.value}%` : '—'} deltaPrevPct={k.taux_transformation.deltaPrevPct} deltaYearPct={null} previousYearAvailable={false} sub={k.taux_transformation.caveat} />
-                  <KpiCard label="CA signé" value={fmtEuro(k.ca_signe.value)} deltaPrevPct={k.ca_signe.deltaPrevPct} deltaYearPct={k.ca_signe.deltaYearPct} previousYearAvailable={pya} sub="Devis acceptés — synchronisé depuis Qonto, toute origine" />
-                  <KpiCard label="CA encaissé" value={fmtEuro(k.ca_encaisse.value)} deltaPrevPct={k.ca_encaisse.deltaPrevPct} deltaYearPct={k.ca_encaisse.deltaYearPct} previousYearAvailable={pya} sub="Paiements réellement reçus" />
-                  <KpiCard label="Clients confirmés" value={k.clients_confirmes.value} deltaPrevPct={k.clients_confirmes.deltaPrevPct} deltaYearPct={k.clients_confirmes.deltaYearPct} previousYearAvailable={pya} />
-                  <KpiCard label="Prospects entrants" value={k.prospects_entrants.value} deltaPrevPct={k.prospects_entrants.deltaPrevPct} deltaYearPct={k.prospects_entrants.deltaYearPct} previousYearAvailable={pya} />
                   <KpiCard label="Taux de prise en charge" value={k.taux_prise_en_charge.value !== null ? `${k.taux_prise_en_charge.value}%` : '—'} deltaPrevPct={k.taux_prise_en_charge.deltaPrevPct} deltaYearPct={null} previousYearAvailable={false} sub={k.taux_prise_en_charge.caveat} />
                   <KpiCard label="Taux de conversion" value={k.taux_conversion.value !== null ? `${k.taux_conversion.value}%` : '—'} deltaPrevPct={k.taux_conversion.deltaPrevPct} deltaYearPct={null} previousYearAvailable={false} sub={k.taux_conversion.caveat} />
+                  <KpiCard label="Prospects entrants" value={k.prospects_entrants.value} deltaPrevPct={k.prospects_entrants.deltaPrevPct} deltaYearPct={k.prospects_entrants.deltaYearPct} previousYearAvailable={pya} />
+                  <KpiCard label="Clients confirmés" value={k.clients_confirmes.value} deltaPrevPct={k.clients_confirmes.deltaPrevPct} deltaYearPct={k.clients_confirmes.deltaYearPct} previousYearAvailable={pya} />
+                </>
+              );
+            })()}
+          </div>
+
+          <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: vertical === 'global' ? 24 : 0 }}>
+            {(() => {
+              const k = kpis.kpis[vertical];
+              const pya = kpis.previousYearAvailable;
+              return (
+                <>
+                  <KpiCard label="CA signé" value={fmtEuro(k.ca_signe.value)} deltaPrevPct={k.ca_signe.deltaPrevPct} deltaYearPct={k.ca_signe.deltaYearPct} previousYearAvailable={pya} sub="Sur la période sélectionnée — devis acceptés, synchronisé depuis Qonto" />
+                  <KpiCard label="CA encaissé" value={fmtEuro(k.ca_encaisse.value)} deltaPrevPct={k.ca_encaisse.deltaPrevPct} deltaYearPct={k.ca_encaisse.deltaYearPct} previousYearAvailable={pya} sub="Sur la période sélectionnée — paiements réellement reçus" />
                 </>
               );
             })()}

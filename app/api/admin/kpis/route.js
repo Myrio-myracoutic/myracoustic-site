@@ -254,6 +254,12 @@ export async function GET(request) {
     const convertisP = p.devis_envoyes - p.devis_en_attente - p.devis_perdus;
     const tauxTransfo = c.devis_envoyes > 0 ? Math.round((convertisC / c.devis_envoyes) * 1000) / 10 : null;
     const tauxTransfoPrev = p.devis_envoyes > 0 ? Math.round((convertisP / p.devis_envoyes) * 1000) / 10 : null;
+    // Taux de prise en charge = devis envoyés / prospects entrants — mesure la réactivité de
+    // traitement des leads (pas leur issue finale). Comme taux_conversion, c'est un flux sur la
+    // période, pas un suivi de cohorte : un devis envoyé cette semaine peut concerner un lead
+    // entré une semaine précédente — le taux peut donc légitimement dépasser 100 %, jamais plafonné.
+    const tauxPriseEnCharge = c.prospects_entrants > 0 ? Math.round((c.devis_envoyes / c.prospects_entrants) * 1000) / 10 : null;
+    const tauxPriseEnChargePrev = p.prospects_entrants > 0 ? Math.round((p.devis_envoyes / p.prospects_entrants) * 1000) / 10 : null;
     return {
       ca_signe: { value: Math.round(c.ca_signe), deltaPrevPct: deltaPct(c.ca_signe, p.ca_signe), deltaYearPct: py ? deltaPct(c.ca_signe, py.ca_signe) : null },
       ca_encaisse: { value: Math.round(c.ca_encaisse), deltaPrevPct: deltaPct(c.ca_encaisse, p.ca_encaisse), deltaYearPct: py ? deltaPct(c.ca_encaisse, py.ca_encaisse) : null },
@@ -263,6 +269,7 @@ export async function GET(request) {
       taux_perte: { value: c.devis_envoyes > 0 ? Math.round((c.devis_perdus / c.devis_envoyes) * 1000) / 10 : null, caveat: 'Devis expirés sans signature / devis envoyés sur la période — les devis encore en attente ne comptent pas comme perdus.' },
       clients_confirmes: { value: c.clients_confirmes, deltaPrevPct: deltaPct(c.clients_confirmes, p.clients_confirmes), deltaYearPct: py ? deltaPct(c.clients_confirmes, py.clients_confirmes) : null },
       prospects_entrants: { value: c.prospects_entrants, deltaPrevPct: deltaPct(c.prospects_entrants, p.prospects_entrants), deltaYearPct: py ? deltaPct(c.prospects_entrants, py.prospects_entrants) : null },
+      taux_prise_en_charge: { value: tauxPriseEnCharge, deltaPrevPct: (tauxPriseEnCharge !== null && tauxPriseEnChargePrev !== null) ? deltaPct(tauxPriseEnCharge, tauxPriseEnChargePrev) : null, caveat: 'Devis envoyés / prospects entrants sur la période — mesure votre réactivité de traitement, pas le résultat final. Un devis envoyé peut concerner un lead entré une période précédente, le taux peut donc dépasser 100 %.' },
       taux_conversion: { value: tauxConversion, deltaPrevPct: (tauxConversion !== null && tauxPrev !== null) ? deltaPct(tauxConversion, tauxPrev) : null, caveat: 'Prospects entrants → clients confirmés, tout le tunnel — taux de flux, pas un suivi de cohorte individuelle.' },
       taux_transformation: { value: tauxTransfo, deltaPrevPct: (tauxTransfo !== null && tauxTransfoPrev !== null) ? deltaPct(tauxTransfo, tauxTransfoPrev) : null, caveat: 'Devis convertis / devis envoyés sur la période — à ne pas confondre avec le taux de conversion ci-dessus.' },
       // Pas de delta ici : la collecte de l'origine vient de démarrer (25/08), aucune période

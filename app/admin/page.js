@@ -201,6 +201,7 @@ function KpiDashboard() {
                   <KpiCard label="CA encaissé" value={fmtEuro(k.ca_encaisse.value)} deltaPrevPct={k.ca_encaisse.deltaPrevPct} deltaYearPct={k.ca_encaisse.deltaYearPct} previousYearAvailable={pya} sub="Paiements réellement reçus" />
                   <KpiCard label="Clients confirmés" value={k.clients_confirmes.value} deltaPrevPct={k.clients_confirmes.deltaPrevPct} deltaYearPct={k.clients_confirmes.deltaYearPct} previousYearAvailable={pya} />
                   <KpiCard label="Prospects entrants" value={k.prospects_entrants.value} deltaPrevPct={k.prospects_entrants.deltaPrevPct} deltaYearPct={k.prospects_entrants.deltaYearPct} previousYearAvailable={pya} />
+                  <KpiCard label="Taux de prise en charge" value={k.taux_prise_en_charge.value !== null ? `${k.taux_prise_en_charge.value}%` : '—'} deltaPrevPct={k.taux_prise_en_charge.deltaPrevPct} deltaYearPct={null} previousYearAvailable={false} sub={k.taux_prise_en_charge.caveat} />
                   <KpiCard label="Taux de conversion" value={k.taux_conversion.value !== null ? `${k.taux_conversion.value}%` : '—'} deltaPrevPct={k.taux_conversion.deltaPrevPct} deltaYearPct={null} previousYearAvailable={false} sub={k.taux_conversion.caveat} />
                 </>
               );

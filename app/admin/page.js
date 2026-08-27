@@ -196,6 +196,7 @@ function KpiDashboard() {
               return (
                 <>
                   <KpiCard label="Devis envoyés" value={k.devis_envoyes.value} deltaPrevPct={k.devis_envoyes.deltaPrevPct} deltaYearPct={k.devis_envoyes.deltaYearPct} previousYearAvailable={pya} sub="Propositions/devis chiffrés envoyés au client" />
+                  <KpiCard label="Taux de transformation" value={k.taux_transformation.value !== null ? `${k.taux_transformation.value}%` : '—'} deltaPrevPct={k.taux_transformation.deltaPrevPct} deltaYearPct={null} previousYearAvailable={false} sub={k.taux_transformation.caveat} />
                   <KpiCard label="CA signé" value={fmtEuro(k.ca_signe.value)} deltaPrevPct={k.ca_signe.deltaPrevPct} deltaYearPct={k.ca_signe.deltaYearPct} previousYearAvailable={pya} sub="Devis acceptés — synchronisé depuis Qonto, toute origine" />
                   <KpiCard label="CA encaissé" value={fmtEuro(k.ca_encaisse.value)} deltaPrevPct={k.ca_encaisse.deltaPrevPct} deltaYearPct={k.ca_encaisse.deltaYearPct} previousYearAvailable={pya} sub="Paiements réellement reçus" />
                   <KpiCard label="Clients confirmés" value={k.clients_confirmes.value} deltaPrevPct={k.clients_confirmes.deltaPrevPct} deltaYearPct={k.clients_confirmes.deltaYearPct} previousYearAvailable={pya} />

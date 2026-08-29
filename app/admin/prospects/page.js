@@ -223,6 +223,17 @@ export default function ProspectsPage() {
     load();
   };
 
+  const setQuoteStatus = async (id, action, label) => {
+    if (!confirm(label)) return;
+    setCallBusy(action + '-' + id);
+    const res = await fetch('/api/admin/qonto-quotes', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, [action]: true }),
+    });
+    setCallBusy(null);
+    if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || 'Erreur'); return; }
+    load();
+  };
+
   const handleRelance = async (email) => {
     setSending(email);
     const res = await fetch('/api/admin/prospects/relance', {
@@ -468,6 +479,33 @@ export default function ProspectsPage() {
                   onSendLink={() => sendBookingLink('/api/admin/qonto-quotes', q.id)}
                   sendLinkBusy={callBusy === 'link-' + q.id}
                 />
+                {q.qonto_status === 'canceled' ? (
+                  <button
+                    onClick={() => setQuoteStatus(q.id, 'reopen', `Remettre en attente le devis de ${q.client_first_name || ''} ${q.client_last_name || ''} ?`)}
+                    disabled={callBusy === 'reopen-' + q.id}
+                    title="Remettre ce devis en attente"
+                    style={{
+                      display: 'flex', alignItems: 'center', padding: '7px 12px', gap: 6,
+                      background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.18)',
+                      borderRadius: 7, color: 'rgba(255,255,255,0.7)', cursor: callBusy === 'reopen-' + q.id ? 'wait' : 'pointer',
+                      fontSize: 12.5, fontFamily: 'var(--font-display), sans-serif', fontWeight: 700,
+                      opacity: callBusy === 'reopen-' + q.id ? 0.6 : 1,
+                    }}
+                  >↺ Rouvrir</button>
+                ) : (
+                  <button
+                    onClick={() => setQuoteStatus(q.id, 'markCanceled', `Marquer annulé le devis de ${q.client_first_name || ''} ${q.client_last_name || ''} ?`)}
+                    disabled={callBusy === 'markCanceled-' + q.id}
+                    title="Marquer ce devis comme annulé (le client ne donne pas suite)"
+                    style={{
+                      display: 'flex', alignItems: 'center', padding: '7px 12px', gap: 6,
+                      background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.3)',
+                      borderRadius: 7, color: '#ef4444', cursor: callBusy === 'markCanceled-' + q.id ? 'wait' : 'pointer',
+                      fontSize: 12.5, fontFamily: 'var(--font-display), sans-serif', fontWeight: 700,
+                      opacity: callBusy === 'markCanceled-' + q.id ? 0.6 : 1,
+                    }}
+                  >✗ Marquer annulé</button>
+                )}
                 <button
                   onClick={() => deleteEntry('/api/admin/qonto-quotes', q.id, `le devis de ${q.client_first_name || ''} ${q.client_last_name || ''}`)}
                   title="Supprimer ce suivi de devis"

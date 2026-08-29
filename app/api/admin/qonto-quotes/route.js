@@ -23,15 +23,31 @@ export async function GET() {
   return Response.json({ quotes: data || [] });
 }
 
-// PATCH /api/admin/qonto-quotes — mêmes actions que /api/admin/mariage-leads (planning d'appel) :
+// PATCH /api/admin/qonto-quotes — mêmes actions que /api/admin/mariage-leads (planning d'appel),
+// + statut manuel :
 // - cancelCall: true → annule un appel réservé
 // - setCall: { date, time } → programme ou reprogramme un appel
+// - markCanceled: true → marque le devis annulé (retour client négatif) — même vocabulaire que le
+//   statut déjà affiché ("Annulé"), déjà compté comme "perdu" par le dashboard KPI
+//   (classifyQuote). Simple correction de statut, aucun appel Qonto, aucun email : le cron de
+//   synchro (run-qonto-quote-status.js) ne repolle que les lignes encore 'pending_approval', donc
+//   ce statut manuel ne sera jamais écrasé.
+// - reopen: true → remet le devis en attente si annulé par erreur
 export async function PATCH(request) {
   if (!(await verifyAdminCookie())) {
     return Response.json({ error: 'Non autorisé' }, { status: 401 });
   }
-  const { id, cancelCall, setCall, sendBookingLink } = await request.json();
+  const { id, cancelCall, setCall, sendBookingLink, markCanceled, reopen } = await request.json();
   if (!id) return Response.json({ error: 'id manquant' }, { status: 400 });
+
+  if (markCanceled || reopen) {
+    const { error } = await supabaseAdmin
+      .from('qonto_quotes_tracking')
+      .update({ qonto_status: markCanceled ? 'canceled' : 'pending_approval' })
+      .eq('id', id);
+    if (error) return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ ok: true });
+  }
 
   if (cancelCall) {
     const result = await cancelCallSlot({ kind: 'devis', refId: id });

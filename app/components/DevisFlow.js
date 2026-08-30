@@ -556,6 +556,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
   /* ── Modal date bloquée ────────────────────────────────────────── */
   const [blockedDateModal, setBlockedDateModal] = useState(null);  /* date string ou null */
   const [blockedDateThankYou, setBlockedDateThankYou] = useState(false);
+  const [pendingDateInfo, setPendingDateInfo] = useState(null);  /* { date, count, apply } ou null */
 
   /* ── Totaux calculés ───────────────────────────────────────────── */
   const djCfg = getDJCfg(eventType);
@@ -1246,9 +1247,11 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
             if (bookedDates.has(d)) {
               setBlockedDateThankYou(false);
               setBlockedDateModal(d);
-            } else {
-              setDate(d);
+              return;
             }
+            const n = pendingDates[d] ?? 0;
+            if (n > 0) { setPendingDateInfo({ date: d, count: n, apply: () => setDate(d) }); return; }
+            setDate(d);
           }}
           devisPending={pendingDates}
           bookedDates={bookedDates}
@@ -2185,7 +2188,12 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
             </div>
             <div>
               <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 10 }}>Date de l'événement <span style={{ color: '#ef4444' }}>*</span></div>
-              <MiniCal selected={cibleDate} onSelect={setCibleDate} devisPending={pendingDates} bookedDates={bookedDates} yearsAhead={2} loading={availabilityLoading} />
+              <MiniCal selected={cibleDate} onSelect={d => {
+                if (bookedDates.has(d)) { setBlockedDateThankYou(false); setBlockedDateModal(d); return; }
+                const n = pendingDates[d] ?? 0;
+                if (n > 0) { setPendingDateInfo({ date: d, count: n, apply: () => setCibleDate(d) }); return; }
+                setCibleDate(d);
+              }} devisPending={pendingDates} bookedDates={bookedDates} yearsAhead={2} loading={availabilityLoading} />
               {cibleDate && (
                 <div style={{ marginTop: 8, fontSize: 12, color: 'var(--lime)', fontFamily: 'var(--font-display), sans-serif' }}>
                   <Check size={13} style={{ verticalAlign: '-2px' }} />{' '}{new Date(cibleDate + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
@@ -2849,7 +2857,12 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
 
           <div>
             <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 10 }}>Date envisagée (facultatif)</div>
-            <MiniCal selected={proDate} onSelect={setProDate} devisPending={pendingDates} bookedDates={bookedDates} yearsAhead={2} loading={availabilityLoading} />
+            <MiniCal selected={proDate} onSelect={d => {
+              if (bookedDates.has(d)) { setBlockedDateThankYou(false); setBlockedDateModal(d); return; }
+              const n = pendingDates[d] ?? 0;
+              if (n > 0) { setPendingDateInfo({ date: d, count: n, apply: () => setProDate(d) }); return; }
+              setProDate(d);
+            }} devisPending={pendingDates} bookedDates={bookedDates} yearsAhead={2} loading={availabilityLoading} />
             {proDate && (
               <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
                 <span style={{ fontSize: 12, color: 'var(--lime)', fontFamily: 'var(--font-display), sans-serif' }}>
@@ -2940,6 +2953,32 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
       {profil === 'professionnel' && step === 19 && renderStep19()}
       {profil === 'professionnel' && step === 20 && renderStep20()}
       {profil === 'professionnel' && step === 21 && renderStep21()}
+
+      {/* Modal — date déjà demandée (partagé par les 3 étapes date : particulier, cible, pro) */}
+      {pendingDateInfo && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 100,
+          background: 'rgba(6,14,22,0.8)', backdropFilter: 'blur(6px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+        }}>
+          <div style={{
+            width: '100%', maxWidth: 420,
+            background: '#0d1b2a', border: '1px solid rgba(249,115,22,0.35)',
+            borderRadius: 16, padding: '28px 24px', textAlign: 'center',
+          }}>
+            <AlertTriangle size={36} strokeWidth={1.5} color="#f97316" style={{ marginBottom: 12 }} />
+            <h3 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 18, fontWeight: 700, marginBottom: 10 }}>
+              Cette date est déjà demandée
+            </h3>
+            <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 14, lineHeight: 1.7, marginBottom: 24 }}>
+              <strong style={{ color: '#fff' }}>{pendingDateInfo.count} personne{pendingDateInfo.count > 1 ? 's' : ''}</strong> {pendingDateInfo.count > 1 ? 'ont' : 'a'} déjà demandé cette date. Elle sera réservée au premier contrat signé — ne tardez pas si elle vous intéresse.
+            </p>
+            <BtnPrimary onClick={() => { pendingDateInfo.apply(); setPendingDateInfo(null); }} style={{ width: '100%' }}>
+              J'ai compris →
+            </BtnPrimary>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

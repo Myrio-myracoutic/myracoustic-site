@@ -5,7 +5,7 @@ const TODAY = (() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }
 const MONTHS_FR = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 
 /* Calendrier compact avec dates réservées (rouge) + dates déjà demandées (point orange). */
-export default function MiniCal({ selected, onSelect, onBookedClick, devisPending = {}, bookedDates = new Set(), yearsAhead = 1, loading = false }) {
+export default function MiniCal({ selected, onSelect, onBookedClick, onPendingClick, devisPending = {}, bookedDates = new Set(), yearsAhead = 1, loading = false }) {
   const startYr = TODAY.getFullYear();
   const YEARS   = Array.from({ length: yearsAhead + 1 }, (_, i) => startYr + i);
   const [year,  setYear]  = useState(startYr);
@@ -69,6 +69,7 @@ export default function MiniCal({ selected, onSelect, onBookedClick, devisPendin
           const handleClick = () => {
             if (trueBlocked) return;
             if (booked) { onBookedClick?.(k); return; }
+            if (pCount > 0 && onPendingClick) { onPendingClick(k); return; }
             onSelect(k);
           };
           return (

@@ -51,6 +51,7 @@ export default function MariageContactClient() {
   const [pendingDates, setPendingDates] = useState({});
   const [availLoading, setAvailLoading] = useState(true);
   const [bookedNotice, setBookedNotice] = useState('');
+  const [pendingNotice, setPendingNotice] = useState('');
   const startedRef = useRef(false);
   const submittedRef = useRef(false);
 
@@ -209,7 +210,7 @@ export default function MariageContactClient() {
 
           <div style={{ marginBottom: 12 }}>
             <label style={label}>Date du mariage</label>
-            <MiniCal selected={date} onSelect={(k) => { touch(); setDate(k); }} onBookedClick={(k) => setBookedNotice(k)} devisPending={pendingDates} bookedDates={bookedDates} loading={availLoading} yearsAhead={2} />
+            <MiniCal selected={date} onSelect={(k) => { touch(); setDate(k); }} onBookedClick={(k) => setBookedNotice(k)} onPendingClick={(k) => { touch(); setPendingNotice(k); }} devisPending={pendingDates} bookedDates={bookedDates} loading={availLoading} yearsAhead={2} />
             <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 8 }}>Les dates déjà réservées sont grisées : si votre date n'est pas disponible, c'est que nous sommes déjà pris ce jour-là.</p>
             {date && (pendingDates[date] ?? 0) > 0 && (
               <p style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12, color: '#f59e0b', marginTop: 8 }}>
@@ -271,6 +272,30 @@ export default function MariageContactClient() {
             </p>
             <button onClick={() => setBookedNotice('')} className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
               Choisir une autre date
+            </button>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Pop-up date déjà demandée */}
+      {pendingNotice && typeof document !== 'undefined' && createPortal(
+        <div onClick={() => { setDate(pendingNotice); setPendingNotice(''); }} style={{
+          position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+        }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background: '#0d1b2a', border: '1px solid rgba(249,115,22,0.35)', borderRadius: 14,
+            padding: '28px 26px', maxWidth: 400, width: '100%', textAlign: 'center', color: '#fff',
+            fontFamily: 'var(--font-body), sans-serif', boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+          }}>
+            <AlertTriangle size={32} color="#f97316" style={{ margin: '0 auto 14px' }} />
+            <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 800, fontSize: 18, marginBottom: 10 }}>Cette date est déjà demandée</div>
+            <p style={{ fontSize: 14.5, lineHeight: 1.7, color: 'rgba(255,255,255,0.7)', margin: '0 0 22px' }}>
+              <strong style={{ color: '#fff' }}>{pendingDates[pendingNotice]} personne{pendingDates[pendingNotice] > 1 ? 's' : ''}</strong> {pendingDates[pendingNotice] > 1 ? 'ont' : 'a'} déjà demandé cette date. Elle sera réservée au premier contrat signé — ne tardez pas si elle vous intéresse.
+            </p>
+            <button onClick={() => { setDate(pendingNotice); setPendingNotice(''); }} className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
+              J'ai compris →
             </button>
           </div>
         </div>,

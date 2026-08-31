@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Minus, Trash2, X, FileText, Check, Loader2, Heart, Mail, CalendarClock, Percent, PhoneCall } from 'lucide-react';
+import { Plus, Minus, Trash2, X, FileText, Check, Loader2, Heart, Mail, CalendarClock, Percent, PhoneCall, AlertTriangle } from 'lucide-react';
 import { FORMULES, POLES, EXTRA_HOUR_PRICE, fmtPrice } from '@/app/lib/formules';
 import { discountEuros, discountLabel } from '@/app/lib/discount';
 import { getTransportFee, getRoadKm, TECH_PRICE } from '@/app/lib/transport';
@@ -40,7 +40,7 @@ const nextId = () => `l${++uid}`;
 // Même vocabulaire que app/lib/attribution.js / app/admin/page.js — origine captée depuis le 25/08.
 const SOURCE_LABELS = { google_ads: 'Google Ads', recherche_google: 'Recherche Google', reseaux_sociaux: 'Réseaux sociaux', bouche_a_oreille: 'Bouche-à-oreille', salon_du_mariage: 'Salon du mariage', bark: 'Bark.com', mariages_net: 'Mariages.net', autre: 'Autre' };
 
-function DevisBuilder({ lead, proposal, onClose, onDone }) {
+function DevisBuilder({ lead, proposal, bookedDates = new Set(), pendingDates = {}, onClose, onDone }) {
   const editing = !!proposal;
   const [formuleKey, setFormuleKey] = useState(proposal?.formule || '');
   const [items, setItems] = useState(() => (proposal?.items || []).map(it => ({ ...it, id: nextId() })));
@@ -171,6 +171,16 @@ function DevisBuilder({ lead, proposal, onClose, onDone }) {
             <div>
               <label style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 4 }}>Date</label>
               <input type="date" value={eventDate || ''} onChange={e => setEventDate(e.target.value)} style={{ ...inp, width: '100%' }} />
+              {eventDate && bookedDates.has(eventDate) && (
+                <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 11.5, color: '#ef4444', marginTop: 6, lineHeight: 1.5 }}>
+                  <AlertTriangle size={12} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} /> Date déjà réservée dans l'agenda.
+                </p>
+              )}
+              {eventDate && !bookedDates.has(eventDate) && (pendingDates[eventDate] ?? 0) > 0 && (
+                <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 11.5, color: '#f97316', marginTop: 6, lineHeight: 1.5 }}>
+                  <AlertTriangle size={12} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} /> {pendingDates[eventDate]} demande{pendingDates[eventDate] > 1 ? 's' : ''} déjà en attente pour cette date.
+                </p>
+              )}
             </div>
             <div>
               <label style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 4 }}>Nombre d'invités</label>
@@ -322,7 +332,7 @@ function DevisBuilder({ lead, proposal, onClose, onDone }) {
 }
 
 // Création manuelle d'un contact (aucun email envoyé — contact déjà connu de Myrio)
-function NewContactForm({ onClose, onDone }) {
+function NewContactForm({ bookedDates, pendingDates, onClose, onDone }) {
   const [f, setF] = useState({ prenom: '', nom: '', tel: '', email: '', date: '', guests: '', lieu: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -361,7 +371,20 @@ function NewContactForm({ onClose, onDone }) {
           <div><label style={fLabel}>Email *</label><input type="email" value={f.email} onChange={set('email')} placeholder="vous@email.com" style={{ ...inp, width: '100%' }} /></div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-          <div><label style={fLabel}>Date (optionnel)</label><input type="date" value={f.date} onChange={set('date')} style={{ ...inp, width: '100%' }} /></div>
+          <div>
+            <label style={fLabel}>Date (optionnel)</label>
+            <input type="date" value={f.date} onChange={set('date')} style={{ ...inp, width: '100%' }} />
+            {f.date && bookedDates.has(f.date) && (
+              <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 11.5, color: '#ef4444', marginTop: 6, lineHeight: 1.5 }}>
+                <AlertTriangle size={12} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} /> Cette date est déjà réservée dans l'agenda.
+              </p>
+            )}
+            {f.date && !bookedDates.has(f.date) && (pendingDates[f.date] ?? 0) > 0 && (
+              <p style={{ display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 11.5, color: '#f97316', marginTop: 6, lineHeight: 1.5 }}>
+                <AlertTriangle size={12} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} /> {pendingDates[f.date]} demande{pendingDates[f.date] > 1 ? 's' : ''} déjà en attente pour cette date.
+              </p>
+            )}
+          </div>
           <div><label style={fLabel}>Invités (optionnel)</label><input type="number" min={1} value={f.guests} onChange={set('guests')} placeholder="ex. 120" style={{ ...inp, width: '100%' }} /></div>
         </div>
         <div style={{ marginBottom: 18 }}><label style={fLabel}>Lieu (optionnel)</label>
@@ -505,6 +528,8 @@ export default function LeadsMariagePage() {
   const [tab, setTab] = useState('actifs');
   const [noteEdits, setNoteEdits] = useState({}); // { [leadId]: valeur en cours d'édition }
   const [sourceEditFor, setSourceEditFor] = useState(null); // id du lead dont l'origine est en édition
+  const [bookedDates, setBookedDates] = useState(new Set());
+  const [pendingDates, setPendingDates] = useState({});
   const todayStr = new Date().toISOString().slice(0, 10);
 
   const load = () => {
@@ -515,6 +540,18 @@ export default function LeadsMariagePage() {
       .finally(() => setLoading(false));
   };
   useEffect(() => { load(); }, []);
+
+  // Disponibilité calendrier — chargée une fois, réutilisée par "Nouveau contact" et le devis
+  // builder pour avertir Myrio d'une date déjà prise (aucune alerte n'existait avant sur ces
+  // deux formulaires, contrairement au calendrier public).
+  useEffect(() => {
+    const start = new Date().toISOString().slice(0, 10);
+    const end = new Date(new Date().setFullYear(new Date().getFullYear() + 2)).toISOString().slice(0, 10);
+    fetch(`/api/availability?start=${start}&end=${end}`)
+      .then(r => r.json())
+      .then(d => { if (d.bookedDates) setBookedDates(new Set(d.bookedDates)); if (d.pendingDates) setPendingDates(d.pendingDates); })
+      .catch(() => {});
+  }, []);
 
   const openEspace = async (proposalId) => {
     if (!window.confirm('Ouvrir l\'espace mariage pour ce client ? À faire une fois l\'acompte reçu.')) return;
@@ -886,11 +923,11 @@ export default function LeadsMariagePage() {
       )}
 
       {builder && (
-        <DevisBuilder lead={builder.lead} proposal={builder.proposal} onClose={() => setBuilder(null)} onDone={() => { setBuilder(null); load(); }} />
+        <DevisBuilder lead={builder.lead} proposal={builder.proposal} bookedDates={bookedDates} pendingDates={pendingDates} onClose={() => setBuilder(null)} onDone={() => { setBuilder(null); load(); }} />
       )}
 
       {newContact && (
-        <NewContactForm onClose={() => setNewContact(false)} onDone={() => { setNewContact(false); load(); }} />
+        <NewContactForm bookedDates={bookedDates} pendingDates={pendingDates} onClose={() => setNewContact(false)} onDone={() => { setNewContact(false); load(); }} />
       )}
 
       {discountFor && (

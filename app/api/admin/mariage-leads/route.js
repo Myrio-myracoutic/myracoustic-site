@@ -2,6 +2,7 @@ import { verifyAdminCookie } from '@/app/lib/admin-auth';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
 import { isDateInBookingWindow, ADMIN_BOOKING_WINDOW_DAYS } from '@/lib/call-slots';
 import { bookCallSlot, deleteCallGoogleEvent, cancelCallSlot, sendBookingLinkForLead } from '@/app/lib/call-booking';
+import { SOURCE_VALUES } from '@/app/lib/lead-source';
 
 // GET /api/admin/mariage-leads — leads du formulaire de contact mariage
 export async function GET() {
@@ -75,7 +76,6 @@ export async function PATCH(request) {
   // Origine posée/corrigée à la main par Myrio — il sait parfois d'où vient un lead même quand
   // la détection auto (gclid) ou le déclaratif du formulaire n'ont rien capté. Même vocabulaire
   // que la contrainte SQL (2026-08-25_lead_source.sql) ; source: null efface l'origine.
-  const SOURCE_VALUES = ['google_ads', 'recherche_google', 'reseaux_sociaux', 'bouche_a_oreille', 'salon_du_mariage', 'bark', 'mariages_net', 'autre'];
   if (source !== undefined) {
     if (source !== null && !SOURCE_VALUES.includes(source)) {
       return Response.json({ error: 'Origine invalide' }, { status: 400 });

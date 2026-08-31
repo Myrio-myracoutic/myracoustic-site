@@ -2,6 +2,7 @@ import { verifyAdminCookie } from '@/app/lib/admin-auth';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
 import { isDateInBookingWindow, ADMIN_BOOKING_WINDOW_DAYS } from '@/lib/call-slots';
 import { bookCallSlot, deleteCallGoogleEvent, cancelCallSlot, sendBookingLinkForLead } from '@/app/lib/call-booking';
+import { SOURCE_VALUES } from '@/app/lib/lead-source';
 
 // GET /api/admin/pro-contacts — demandes de contact pro simples (formulaire sans prix)
 export async function GET() {
@@ -26,8 +27,17 @@ export async function PATCH(request) {
   if (!(await verifyAdminCookie())) {
     return Response.json({ error: 'Non autorisé' }, { status: 401 });
   }
-  const { id, cancelCall, setCall, sendBookingLink } = await request.json();
+  const { id, cancelCall, setCall, sendBookingLink, source } = await request.json();
   if (!id) return Response.json({ error: 'id manquant' }, { status: 400 });
+
+  if (source !== undefined) {
+    if (source !== null && !SOURCE_VALUES.includes(source)) {
+      return Response.json({ error: 'Origine invalide' }, { status: 400 });
+    }
+    const { error } = await supabaseAdmin.from('pro_contact_leads').update({ source }).eq('id', id);
+    if (error) return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ ok: true });
+  }
 
   if (cancelCall) {
     const result = await cancelCallSlot({ kind: 'pro_contact', refId: id });

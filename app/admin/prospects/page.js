@@ -4,6 +4,9 @@ import { useRouter } from 'next/navigation';
 import { Trash2, Mail, MousePointerClick, Send, FileText, ChevronDown, ExternalLink, PhoneCall } from 'lucide-react';
 import CallSlotModal from '@/app/components/CallSlotModal';
 
+// Même vocabulaire que app/lib/attribution.js / app/admin/leads-mariage/page.js.
+const SOURCE_LABELS = { google_ads: 'Google Ads', recherche_google: 'Recherche Google', reseaux_sociaux: 'Réseaux sociaux', bouche_a_oreille: 'Bouche-à-oreille', salon_du_mariage: 'Salon du mariage', bark: 'Bark.com', mariages_net: 'Mariages.net', autre: 'Autre' };
+
 const QUOTE_STATUS_LABEL = {
   pending_approval: { label: 'En attente', color: '#f59e0b' },
   approved:          { label: 'Accepté',   color: '#22c55e' },
@@ -147,6 +150,49 @@ function CallControls({ scheduledAt, cancelledAt, busy, onSchedule, onReschedule
   );
 }
 
+// Étiquette d'origine cliquable — pose/corrige app_leads.source à la main (même vocabulaire que
+// la détection auto, voir app/lib/lead-source.js). Composant top-level (jamais défini dans le
+// render du parent, voir CLAUDE.md).
+function SourcePicker({ patchUrl, id, current, editing, onToggle, busy, onSave }) {
+  return (
+    <>
+      <button
+        onClick={onToggle}
+        title="Cliquez pour indiquer/corriger l'origine"
+        style={{
+          fontSize: 11, padding: '2px 9px', borderRadius: 20, cursor: 'pointer',
+          background: current ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.03)',
+          color: current ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.3)',
+          border: `1px dashed ${editing ? 'var(--lime)' : 'rgba(255,255,255,0.15)'}`,
+          fontWeight: 600, fontFamily: 'inherit',
+        }}
+      >
+        {current ? SOURCE_LABELS[current] || current : '+ Origine'}
+      </button>
+      {editing && (
+        <div style={{ width: '100%', display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
+          {Object.entries(SOURCE_LABELS).map(([key, label]) => (
+            <button key={key} onClick={() => onSave(patchUrl, id, key)} disabled={busy} style={{
+              fontSize: 11.5, padding: '5px 11px', borderRadius: 7, cursor: 'pointer',
+              background: current === key ? 'rgba(184,239,11,0.12)' : 'rgba(255,255,255,0.04)',
+              color: current === key ? 'var(--lime)' : 'rgba(255,255,255,0.6)',
+              border: `1px solid ${current === key ? 'var(--lime)' : 'rgba(255,255,255,0.14)'}`,
+              fontFamily: 'var(--font-display), sans-serif', fontWeight: 600,
+            }}>{label}</button>
+          ))}
+          {current && (
+            <button onClick={() => onSave(patchUrl, id, null)} disabled={busy} style={{
+              fontSize: 11.5, padding: '5px 11px', borderRadius: 7, cursor: 'pointer',
+              background: 'transparent', color: 'rgba(255,120,120,0.6)',
+              border: '1px solid rgba(239,68,68,0.25)', fontFamily: 'var(--font-display), sans-serif', fontWeight: 600,
+            }}>Effacer</button>
+          )}
+        </div>
+      )}
+    </>
+  );
+}
+
 export default function ProspectsPage() {
   const router    = useRouter();
   const [prospects, setProspects] = useState([]);
@@ -159,6 +205,7 @@ export default function ProspectsPage() {
   const [guideSignups, setGuideSignups] = useState([]);
   const [callBusy,  setCallBusy]  = useState(null);
   const [callSlotFor, setCallSlotFor] = useState(null); // { kind, id, mode, contactLabel, patchUrl }
+  const [sourceEditFor, setSourceEditFor] = useState(null); // id de la fiche dont l'origine est en édition
 
   const load = () => {
     fetch('/api/admin/prospects')
@@ -230,6 +277,17 @@ export default function ProspectsPage() {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, [action]: true }),
     });
     setCallBusy(null);
+    if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || 'Erreur'); return; }
+    load();
+  };
+
+  const saveSource = async (patchUrl, id, value) => {
+    setCallBusy('source-' + id);
+    const res = await fetch(patchUrl, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, source: value }),
+    });
+    setCallBusy(null);
+    setSourceEditFor(null);
     if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || 'Erreur'); return; }
     load();
   };
@@ -456,6 +514,11 @@ export default function ProspectsPage() {
                 <span style={{ fontSize: 11, fontWeight: 700, color: st.color }}>
                   {st.label}
                 </span>
+                <SourcePicker
+                  patchUrl="/api/admin/qonto-quotes" id={q.id} current={q.source}
+                  editing={sourceEditFor === q.id} onToggle={() => setSourceEditFor(sourceEditFor === q.id ? null : q.id)}
+                  busy={callBusy === 'source-' + q.id} onSave={saveSource}
+                />
                 <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>
                   {timeAgo(q.created_at)}
                 </div>
@@ -564,6 +627,11 @@ export default function ProspectsPage() {
                 <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>{l.event_type || '—'}</div>
                 <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>{l.event_date ? fmtDate(l.event_date) : 'Date non précisée'}</div>
               </div>
+              <SourcePicker
+                patchUrl="/api/admin/pro-contacts" id={l.id} current={l.source}
+                editing={sourceEditFor === l.id} onToggle={() => setSourceEditFor(sourceEditFor === l.id ? null : l.id)}
+                busy={callBusy === 'source-' + l.id} onSave={saveSource}
+              />
               <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)' }}>
                 {timeAgo(l.created_at)}
               </div>

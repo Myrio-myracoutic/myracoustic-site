@@ -38,7 +38,7 @@ let uid = 0;
 const nextId = () => `l${++uid}`;
 
 // Même vocabulaire que app/lib/attribution.js / app/admin/page.js — origine captée depuis le 25/08.
-const SOURCE_LABELS = { google_ads: 'Google Ads', recherche_google: 'Recherche Google', reseaux_sociaux: 'Réseaux sociaux', bouche_a_oreille: 'Bouche-à-oreille', salon_du_mariage: 'Salon du mariage', autre: 'Autre' };
+const SOURCE_LABELS = { google_ads: 'Google Ads', recherche_google: 'Recherche Google', reseaux_sociaux: 'Réseaux sociaux', bouche_a_oreille: 'Bouche-à-oreille', salon_du_mariage: 'Salon du mariage', bark: 'Bark.com', mariages_net: 'Mariages.net', autre: 'Autre' };
 
 function DevisBuilder({ lead, proposal, onClose, onDone }) {
   const editing = !!proposal;

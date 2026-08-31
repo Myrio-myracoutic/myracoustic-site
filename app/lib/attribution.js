@@ -22,7 +22,9 @@ export const SOURCE_OPTIONS = [
   { value: 'reseaux_sociaux', label: 'Réseaux sociaux' },
   { value: 'bouche_a_oreille', label: 'Bouche-à-oreille / recommandation' },
   { value: 'salon_du_mariage', label: 'Salon du mariage' },
+  { value: 'bark', label: 'Bark.com' },
+  { value: 'mariages_net', label: 'Mariages.net' },
   { value: 'autre', label: 'Autre' },
 ];
 
-export const SOURCE_OPTIONS_PRO = SOURCE_OPTIONS.filter(o => o.value !== 'salon_du_mariage');
+export const SOURCE_OPTIONS_PRO = SOURCE_OPTIONS.filter(o => o.value !== 'salon_du_mariage' && o.value !== 'mariages_net');

@@ -247,7 +247,7 @@ function KpiDashboard() {
             const entries = Object.entries(k.sources || {});
             if (!entries.length) return null;
             const totalEntrants = entries.reduce((s, [, v]) => s + v.entrants, 0);
-            const SOURCE_LABELS = { google_ads: 'Google Ads', recherche_google: 'Recherche Google', reseaux_sociaux: 'Réseaux sociaux', bouche_a_oreille: 'Bouche-à-oreille', salon_du_mariage: 'Salon du mariage', autre: 'Autre', inconnu: 'Inconnu' };
+            const SOURCE_LABELS = { google_ads: 'Google Ads', recherche_google: 'Recherche Google', reseaux_sociaux: 'Réseaux sociaux', bouche_a_oreille: 'Bouche-à-oreille', salon_du_mariage: 'Salon du mariage', bark: 'Bark.com', mariages_net: 'Mariages.net', autre: 'Autre', inconnu: 'Inconnu' };
             entries.sort((a, b) => b[1].entrants - a[1].entrants);
             return (
               <div style={{ marginTop: 4, marginBottom: 24 }}>

@@ -504,6 +504,7 @@ export default function LeadsMariagePage() {
   const [callSlotFor, setCallSlotFor] = useState(null); // { lead, mode: 'schedule' | 'reschedule' }
   const [tab, setTab] = useState('actifs');
   const [noteEdits, setNoteEdits] = useState({}); // { [leadId]: valeur en cours d'édition }
+  const [sourceEditFor, setSourceEditFor] = useState(null); // id du lead dont l'origine est en édition
   const todayStr = new Date().toISOString().slice(0, 10);
 
   const load = () => {
@@ -617,6 +618,17 @@ export default function LeadsMariagePage() {
     load();
   };
 
+  const saveSource = async (leadId, value) => {
+    setBusy('source-' + leadId);
+    const res = await fetch('/api/admin/mariage-leads', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: leadId, source: value }),
+    });
+    setBusy(null);
+    setSourceEditFor(null);
+    if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || 'Erreur'); return; }
+    load();
+  };
+
   const visibleLeads = leads.filter(l => (TABS.find(t => t.key === tab) || TABS[0]).test(l.status));
 
   return (
@@ -670,12 +682,40 @@ export default function LeadsMariagePage() {
                   ) : l.proposal
                     ? <span style={{ fontSize: 11, padding: '2px 9px', borderRadius: 20, background: 'rgba(184,239,11,0.15)', color: 'var(--lime)', fontWeight: 700 }}>Devis {l.proposal.status} · {fmtPrice(l.proposal.total)}</span>
                     : <span style={{ fontSize: 11, padding: '2px 9px', borderRadius: 20, background: 'rgba(245,158,11,0.15)', color: '#f59e0b', fontWeight: 700 }}>À rappeler</span>}
-                  {l.source && (
-                    <span style={{ fontSize: 11, padding: '2px 9px', borderRadius: 20, background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.5)', fontWeight: 600 }}>
-                      {SOURCE_LABELS[l.source] || l.source}
-                    </span>
-                  )}
+                  <button
+                    onClick={() => setSourceEditFor(sourceEditFor === l.id ? null : l.id)}
+                    title="Cliquez pour indiquer/corriger l'origine"
+                    style={{
+                      fontSize: 11, padding: '2px 9px', borderRadius: 20, cursor: 'pointer',
+                      background: l.source ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.03)',
+                      color: l.source ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.3)',
+                      border: `1px dashed ${sourceEditFor === l.id ? 'var(--lime)' : 'rgba(255,255,255,0.15)'}`,
+                      fontWeight: 600, fontFamily: 'inherit',
+                    }}
+                  >
+                    {l.source ? SOURCE_LABELS[l.source] || l.source : '+ Origine'}
+                  </button>
                 </div>
+                {sourceEditFor === l.id && (
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+                    {Object.entries(SOURCE_LABELS).map(([key, label]) => (
+                      <button key={key} onClick={() => saveSource(l.id, key)} disabled={busy === 'source-' + l.id} style={{
+                        fontSize: 11.5, padding: '5px 11px', borderRadius: 7, cursor: 'pointer',
+                        background: l.source === key ? 'rgba(184,239,11,0.12)' : 'rgba(255,255,255,0.04)',
+                        color: l.source === key ? 'var(--lime)' : 'rgba(255,255,255,0.6)',
+                        border: `1px solid ${l.source === key ? 'var(--lime)' : 'rgba(255,255,255,0.14)'}`,
+                        fontFamily: 'var(--font-display), sans-serif', fontWeight: 600,
+                      }}>{label}</button>
+                    ))}
+                    {l.source && (
+                      <button onClick={() => saveSource(l.id, null)} disabled={busy === 'source-' + l.id} style={{
+                        fontSize: 11.5, padding: '5px 11px', borderRadius: 7, cursor: 'pointer',
+                        background: 'transparent', color: 'rgba(255,120,120,0.6)',
+                        border: '1px solid rgba(239,68,68,0.25)', fontFamily: 'var(--font-display), sans-serif', fontWeight: 600,
+                      }}>Effacer</button>
+                    )}
+                  </div>
+                )}
                 <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', lineHeight: 1.7 }}>
                   📞 {l.tel} · ✉️ {l.email}<br />
                   📅 {fmtDate(l.event_date)} · 👥 {l.guests || '?'} pers. · 📍 {l.lieu || '—'}

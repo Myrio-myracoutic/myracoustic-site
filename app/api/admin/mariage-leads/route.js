@@ -69,8 +69,21 @@ export async function PATCH(request) {
   if (!(await verifyAdminCookie())) {
     return Response.json({ error: 'Non autorisé' }, { status: 401 });
   }
-  const { id, cancelCall, setCall, sendBookingLink, markLost, markWon, reopen, adminNote } = await request.json();
+  const { id, cancelCall, setCall, sendBookingLink, markLost, markWon, reopen, adminNote, source } = await request.json();
   if (!id) return Response.json({ error: 'id manquant' }, { status: 400 });
+
+  // Origine posée/corrigée à la main par Myrio — il sait parfois d'où vient un lead même quand
+  // la détection auto (gclid) ou le déclaratif du formulaire n'ont rien capté. Même vocabulaire
+  // que la contrainte SQL (2026-08-25_lead_source.sql) ; source: null efface l'origine.
+  const SOURCE_VALUES = ['google_ads', 'recherche_google', 'reseaux_sociaux', 'bouche_a_oreille', 'salon_du_mariage', 'autre'];
+  if (source !== undefined) {
+    if (source !== null && !SOURCE_VALUES.includes(source)) {
+      return Response.json({ error: 'Origine invalide' }, { status: 400 });
+    }
+    const { error } = await supabaseAdmin.from('mariage_leads').update({ source }).eq('id', id);
+    if (error) return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ ok: true });
+  }
 
   if (cancelCall) {
     const result = await cancelCallSlot({ kind: 'mariage', refId: id });

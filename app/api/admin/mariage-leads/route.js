@@ -11,7 +11,7 @@ export async function GET() {
 
   const { data: leads, error } = await supabaseAdmin
     .from('mariage_leads')
-    .select('id, created_at, prenom, nom, tel, email, event_date, guests, lieu, message, status, admin_note, client_id, call_scheduled_at, call_google_event_id, call_cancelled_at')
+    .select('id, created_at, prenom, nom, tel, email, event_date, guests, lieu, message, status, admin_note, source, client_id, call_scheduled_at, call_google_event_id, call_cancelled_at')
     .order('created_at', { ascending: false });
   if (error) return Response.json({ error: error.message }, { status: 500 });
 

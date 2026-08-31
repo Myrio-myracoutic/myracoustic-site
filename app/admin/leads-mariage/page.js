@@ -37,6 +37,9 @@ function TabButton({ active, onClick, children }) {
 let uid = 0;
 const nextId = () => `l${++uid}`;
 
+// Même vocabulaire que app/lib/attribution.js / app/admin/page.js — origine captée depuis le 25/08.
+const SOURCE_LABELS = { google_ads: 'Google Ads', recherche_google: 'Recherche Google', reseaux_sociaux: 'Réseaux sociaux', bouche_a_oreille: 'Bouche-à-oreille', salon_du_mariage: 'Salon du mariage', autre: 'Autre' };
+
 function DevisBuilder({ lead, proposal, onClose, onDone }) {
   const editing = !!proposal;
   const [formuleKey, setFormuleKey] = useState(proposal?.formule || '');
@@ -667,6 +670,11 @@ export default function LeadsMariagePage() {
                   ) : l.proposal
                     ? <span style={{ fontSize: 11, padding: '2px 9px', borderRadius: 20, background: 'rgba(184,239,11,0.15)', color: 'var(--lime)', fontWeight: 700 }}>Devis {l.proposal.status} · {fmtPrice(l.proposal.total)}</span>
                     : <span style={{ fontSize: 11, padding: '2px 9px', borderRadius: 20, background: 'rgba(245,158,11,0.15)', color: '#f59e0b', fontWeight: 700 }}>À rappeler</span>}
+                  {l.source && (
+                    <span style={{ fontSize: 11, padding: '2px 9px', borderRadius: 20, background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.5)', fontWeight: 600 }}>
+                      {SOURCE_LABELS[l.source] || l.source}
+                    </span>
+                  )}
                 </div>
                 <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.65)', lineHeight: 1.7 }}>
                   📞 {l.tel} · ✉️ {l.email}<br />

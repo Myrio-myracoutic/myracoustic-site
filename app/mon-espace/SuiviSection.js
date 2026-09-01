@@ -162,7 +162,7 @@ function DocRow({ icon: Icon, iconColor, title, subtitle, url, badge, badgeColor
   );
 }
 
-function FacturationTab({ ev, token }) {
+export function FacturationTab({ ev, token }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -247,12 +247,13 @@ function FacturationTab({ ev, token }) {
 
         // Bouton Payer visible :
         // - Acompte (deposit) : dès que non payé
-        // - Solde (balance)   : à partir de J-1 avant l'événement (ou après)
+        // - Solde (balance)   : à partir de J-7 avant l'événement (ou après) — aligné sur le
+        //   bandeau de rappel (BillingReminderBanner.js), le client peut solder en avance s'il veut.
         const today    = new Date(); today.setHours(0, 0, 0, 0);
         const eventDay = data.event_date ? new Date(data.event_date + 'T00:00:00') : null;
-        const j1       = eventDay ? new Date(eventDay.getTime() - 24 * 60 * 60 * 1000) : null;
+        const j7       = eventDay ? new Date(eventDay.getTime() - 7 * 24 * 60 * 60 * 1000) : null;
         const payVisible = !isPaid && inv.pay_url && (
-          inv.type === 'deposit' || !j1 || today >= j1
+          inv.type === 'deposit' || !j7 || today >= j7
         );
 
         const sub = [
@@ -311,7 +312,6 @@ function FacturationTab({ ev, token }) {
 }
 
 export default function SuiviSection({ ev, token, sections }) {
-  const [tab, setTab] = useState('apercu');
   const [guests, setGuests]             = useState([]);
   const [playlists, setPlaylists]       = useState([]);
   const [programmeCount, setProgrammeCount] = useState(null);
@@ -353,11 +353,6 @@ export default function SuiviSection({ ev, token, sections }) {
   const totalTracks    = playlists.reduce((s, p) => s + (p.playlist_tracks?.length || 0), 0);
   const pendingTotal   = playlists.reduce((s, p) => s + (p.pending_suggestions || 0), 0);
 
-  const TABS = [
-    { id: 'apercu',       label: 'Aperçu' },
-    { id: 'facturation',  label: 'Facturation' },
-  ];
-
   return (
     <div>
       <div style={{
@@ -371,27 +366,7 @@ export default function SuiviSection({ ev, token, sections }) {
             .sv-stats { grid-template-columns: repeat(2, 1fr) !important; }
           }
         `}</style>
-        {/* Tabs */}
-        <div style={{ display: 'flex', gap: 4, marginBottom: 24 }}>
-          {TABS.map(t => {
-            const isAct = t.id === tab;
-            return (
-              <button key={t.id} onClick={() => setTab(t.id)} style={{
-                padding: '7px 18px', border: 'none', borderRadius: 8, cursor: 'pointer',
-                fontSize: 13, fontWeight: isAct ? 700 : 500,
-                fontFamily: 'var(--font-display), sans-serif',
-                background: isAct ? 'rgba(184,239,11,0.12)' : 'rgba(255,255,255,0.04)',
-                color: isAct ? '#b8ef0b' : 'rgba(255,255,255,0.4)',
-                borderBottom: isAct ? '2px solid #b8ef0b' : '2px solid transparent',
-                transition: 'all 0.15s',
-              }}>{t.label}</button>
-            );
-          })}
-        </div>
-
-        {tab === 'apercu' && (
-          <>
-            {/* Compte à rebours */}
+        {/* Compte à rebours */}
             {!annule && ev.event_date && (
               <div style={{
                 background: 'rgba(184,239,11,0.05)', border: '1px solid rgba(184,239,11,0.12)',
@@ -549,12 +524,6 @@ export default function SuiviSection({ ev, token, sections }) {
                 </div>
               </div>
             )}
-          </>
-        )}
-
-        {tab === 'facturation' && (
-          <FacturationTab ev={ev} token={token} />
-        )}
       </div>
     </div>
   );

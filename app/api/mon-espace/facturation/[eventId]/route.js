@@ -23,6 +23,11 @@ export async function GET(request, { params }) {
 
   const access = await verifyEventAccess(token, eventId);
   if (!access) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
+  // Un collaborateur sans droit "voir la facturation" n'a pas accès aux montants/factures,
+  // même s'il a par ailleurs accès à l'événement (voir app/lib/event-access.js).
+  if (access.isCollaborator && !access.canSeeBilling) {
+    return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
+  }
 
   // Récupérer les infos de l'événement + client
   const { data: ev } = await supabaseAdmin

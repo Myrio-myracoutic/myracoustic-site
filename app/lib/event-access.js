@@ -27,18 +27,19 @@ export async function verifyEventAccess(token, eventId) {
   if (client) {
     const { data: ev } = await supabaseAdmin
       .from('events').select('id').eq('id', eventId).eq('client_id', client.id).single();
-    if (ev) return { clientId: client.id, isCollaborator: false, userId: user.id };
+    // Le titulaire du compte voit toujours sa propre facturation.
+    if (ev) return { clientId: client.id, isCollaborator: false, userId: user.id, canSeeBilling: true };
   }
 
   // 2. Collaborateur
   const { data: collab } = await supabaseAdmin
     .from('event_collaborators')
-    .select('event_id, events(client_id)')
+    .select('event_id, can_see_billing, events(client_id)')
     .eq('auth_id', user.id)
     .eq('event_id', eventId)
     .single();
 
-  if (collab) return { clientId: collab.events?.client_id, isCollaborator: true, userId: user.id };
+  if (collab) return { clientId: collab.events?.client_id, isCollaborator: true, userId: user.id, canSeeBilling: !!collab.can_see_billing };
 
   return null;
 }

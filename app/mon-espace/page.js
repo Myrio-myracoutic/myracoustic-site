@@ -4,13 +4,14 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { supabase } from '@/app/lib/supabase';
 import {
-  ClipboardList, Calendar, Music2, CheckSquare,
+  ClipboardList, Calendar, Music2, CheckSquare, CreditCard,
   Phone, Camera, LogOut, ChevronDown, Users, Heart, Settings, UtensilsCrossed, LayoutGrid, Lock, MoreHorizontal,
 } from 'lucide-react';
 
 import NotificationBell    from './NotificationBell';
+import BillingReminderBanner from './BillingReminderBanner';
 import ParametrageSection  from './ParametrageSection';
-import SuiviSection        from './SuiviSection';
+import SuiviSection, { FacturationTab } from './SuiviSection';
 import ProgrammeSection  from './ProgrammeSection';
 import PlaylistSection   from './PlaylistSection';
 import PreparationSection from './PreparationSection';
@@ -56,6 +57,7 @@ function getSections(ev) {
 
   const base = [
     { id: 'suivi',       label: 'Vue d\'ensemble', shortLabel: 'Accueil',  icon: ClipboardList,  locked: false },
+    { id: 'facturation', label: 'Facturation',   shortLabel: 'Factures', icon: CreditCard,     locked: false },
     { id: 'preparation', label: 'Préparation',   shortLabel: 'Prép.',    icon: CheckSquare,    locked: !active },
     { id: 'programme',   label: 'Programme',     shortLabel: 'Prog.',    icon: Calendar,       locked: !active },
     { id: 'playlist',    label: 'Playlist',      shortLabel: 'Playlist', icon: Music2,         locked: !active },
@@ -328,6 +330,7 @@ function MobileHeader({ client, ev, events, onEventChange, onLogout, token, onNa
 function SectionTitle({ section }) {
   const TITLES = {
     suivi:       'Vue d\'ensemble',
+    facturation: 'Facturation',
     programme:   'Programme de votre événement',
     playlist:    'Vos playlists musicales',
     invites:     'Vos invités',
@@ -364,7 +367,8 @@ export default function MonEspacePage() {
   const [canSeeBilling,   setCanSeeBilling]   = useState(false);
 
   const ev = events.find(e => e.id === eventId) || events[0] || null;
-  const sections = getSections(ev);
+  // Un collaborateur sans droit "voir la facturation" ne doit pas voir l'onglet dédié.
+  const sections = getSections(ev).filter(s => s.id !== 'facturation' || !isCollaborator || canSeeBilling);
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -513,6 +517,7 @@ export default function MonEspacePage() {
 
     switch (section) {
       case 'suivi':       return <SuiviSection ev={ev} token={token} sections={sections} />;
+      case 'facturation': return <FacturationTab ev={ev} token={token} />;
       case 'programme':   return <ProgrammeSection ev={ev} token={token} client={client} lockMoments={lockPrestige} />;
       case 'playlist':    return <PlaylistSection eventId={ev.id} token={token} onSuggestionActed={() => setNotifTick(n => n + 1)} isCollaborator={isCollaborator} lockSurprise={lockPrestige} />;
       case 'invites':     return <InvitesSection ev={ev} token={token} />;
@@ -612,6 +617,8 @@ export default function MonEspacePage() {
             </select>
           </div>
         )}
+
+        <BillingReminderBanner ev={ev} token={token} visible={!isCollaborator || canSeeBilling} />
 
         <div key={section} className="mc-fade">
           <SectionTitle section={section} />

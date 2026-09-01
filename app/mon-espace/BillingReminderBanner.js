@@ -21,7 +21,11 @@ export default function BillingReminderBanner({ ev, token, visible }) {
     fetch(`/api/mon-espace/facturation/${ev.id}`, { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
       .then(d => {
-        const balance = (d.invoices || []).find(inv => inv.type === 'balance' && inv.status !== 'paid');
+        // Qonto type ses factures de solde différemment selon les cas ('balance' la plupart du
+        // temps, mais aussi 'partial' constaté en réel — voir FacturationTab dans SuiviSection.js,
+        // qui traite déjà tout ce qui n'est pas 'deposit' comme le paiement final). Même logique
+        // ici pour ne pas rater un vrai solde à cause d'un type Qonto inattendu.
+        const balance = (d.invoices || []).find(inv => inv.type !== 'deposit' && inv.status !== 'paid');
         if (balance) setInvoice(balance);
       })
       .catch(() => {});

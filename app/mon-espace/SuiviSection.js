@@ -241,7 +241,9 @@ export function FacturationTab({ ev, token }) {
       {(data.invoices || []).map(inv => {
         const isPaid    = inv.status === 'paid';
         const isOverdue = !isPaid && inv.due_date && new Date(inv.due_date) < new Date();
-        const label     = TYPE_LABELS[inv.type] || `Facture ${inv.number}`;
+        // Qonto type parfois une facture de solde 'partial' plutôt que 'balance' (constaté en
+        // réel) — tout ce qui n'est pas un acompte s'affiche comme "Facture de solde".
+        const label     = TYPE_LABELS[inv.type] || (inv.type !== 'deposit' ? TYPE_LABELS.balance : `Facture ${inv.number}`);
         const badge     = isPaid ? 'Payée' : isOverdue ? 'En retard' : 'En attente';
         const badgeColor = isPaid ? '#22c55e' : isOverdue ? '#ef4444' : '#f59e0b';
 

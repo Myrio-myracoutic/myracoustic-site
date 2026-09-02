@@ -10,6 +10,7 @@ export const POLES = [
   { key: 'video',     label: 'Vidéo' },
   { key: 'effets',    label: 'Effets spéciaux' },
   { key: 'photobooth', label: 'Photobooth' },
+  { key: 'livre_or',  label: 'Livre d’or vidéo & audio' },
   { key: 'ceremonie', label: 'Cérémonie & vin d’honneur' },
   { key: 'jourJ',     label: 'Le jour J' },
 ];
@@ -42,6 +43,8 @@ export const FORMULES = [
       { key: 'murled4',       label: 'Mur LED 4 m²',                  price: 600, category: 'video' },
       { key: 'fumee',         label: 'Machine à fumée lourde',        price: 50,  category: 'effets', note: 'Danse dans les nuages — effet mariés' },
       { key: 'etincelles',    label: 'Machines à étincelles froides', price: 100, category: 'effets', note: 'Lot de 2 machines' },
+      { key: 'photobooth',    label: 'Photobooth',                    price: 450, category: 'animation' },
+      { key: 'livre_or',      label: 'Livre d’or vidéo & audio',      price: 150, category: 'animation' },
     ],
   },
   {
@@ -67,6 +70,8 @@ export const FORMULES = [
       { key: 'reception',   label: 'Grande réception (150-300 pers.)', price: 150, category: 'sonorisation' },
       { key: 'murled2',     label: 'Mur LED 2 m²',                  price: 300, category: 'video' },
       { key: 'murled4',     label: 'Mur LED 4 m²',                  price: 600, category: 'video' },
+      { key: 'photobooth',  label: 'Photobooth',                    price: 450, category: 'animation' },
+      { key: 'livre_or',    label: 'Livre d’or vidéo & audio',      price: 150, category: 'animation' },
     ],
   },
   {
@@ -82,6 +87,7 @@ export const FORMULES = [
       video: 'Mur LED 2 m² inclus',
       effets: 'Fumée lourde + étincelles froides incluses',
       photobooth: 'Inclus',
+      livre_or: 'Inclus',
       ceremonie: 'Cérémonie laïque + vin d’honneur inclus',
       jourJ: 'Installation + technicien dédié',
     },

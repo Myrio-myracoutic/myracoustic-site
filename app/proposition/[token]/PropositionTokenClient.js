@@ -127,7 +127,9 @@ export default function PropositionTokenClient({ token }) {
 
   // ── Vue proposition ──
   const items = p.items || [];
-  const formuleDef = p.formule ? FORMULES.find(f => f.key === p.formule) : null;
+  // Le contenu figé au moment de l'envoi (formule_snapshot) prime toujours sur FORMULES en direct :
+  // une proposition déjà envoyée ne doit jamais changer si les packs évoluent ensuite.
+  const formuleDef = p.formule_snapshot || (p.formule ? FORMULES.find(f => f.key === p.formule) : null);
   const baseItem = items.find(it => it.source === 'formule' || /^Formule /i.test(it.title));
   const extras = items.filter(it => it !== baseItem);
   const inclusions = formuleDef ? [

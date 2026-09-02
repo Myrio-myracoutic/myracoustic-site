@@ -1,6 +1,7 @@
 import { verifyAdminCookie } from '@/app/lib/admin-auth';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
 import { validUntil } from '@/app/lib/devis-validity';
+import { FORMULES } from '@/app/lib/formules';
 
 const SENDER_EMAIL = 'contact@myracoustic.com';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://myracoustic.com';
@@ -78,6 +79,9 @@ export async function POST(request) {
   if (!Array.isArray(items) || items.length === 0) {
     return Response.json({ error: 'Données manquantes' }, { status: 400 });
   }
+  // Fige le contenu de la formule tel qu'il est MAINTENANT : la proposition envoyée au client ne
+  // doit plus bouger si formules.js change ensuite (voir migration formule_snapshot).
+  const formuleSnapshot = formule ? FORMULES.find(f => f.key === formule) || null : null;
 
   // ── Modification d'une proposition existante ──
   if (proposalId) {
@@ -91,7 +95,7 @@ export async function POST(request) {
     const evGuests = guests || existing.guests;
     const validUntilDate = validUntil(evDate);
     const { error: uErr } = await supabaseAdmin.from('devis_proposals').update({
-      formule: formule || null, formule_name: formuleName || null,
+      formule: formule || null, formule_name: formuleName || null, formule_snapshot: formuleSnapshot,
       items, total: Number(total) || 0, admin_note: adminNote || null,
       event_date: evDate, venue: evVenue, guests: evGuests,
       status: 'proposee', valid_until: validUntilDate, reminder_sent_at: null, reminder_stage: 0,
@@ -129,7 +133,7 @@ export async function POST(request) {
     .from('devis_proposals')
     .insert({
       lead_id: leadId,
-      formule: formule || null, formule_name: formuleName || null,
+      formule: formule || null, formule_name: formuleName || null, formule_snapshot: formuleSnapshot,
       items, total: Number(total) || 0,
       event_date: evDate, venue: evVenue, guests: evGuests,
       admin_note: adminNote || null, status: 'proposee', valid_until: validUntilDate,

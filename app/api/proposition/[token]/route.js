@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
 import { ensureAuthUser, setupTempPassword, sendCredentialsEmail } from '@/app/lib/account-access';
 import { installmentsAllowed } from '@/app/lib/devis-validity';
-import { formuleInclusionsText } from '@/app/lib/formules';
+import { formuleInclusionsText, formuleInclusionsTextFromObj } from '@/app/lib/formules';
 import { discountEuros, discountActive } from '@/app/lib/discount';
 
 const NOTIF_EMAIL = 'contact@myracoustic.com';
@@ -44,7 +44,8 @@ export async function GET(_req, { params }) {
 
   return NextResponse.json({
     proposal: {
-      formule: p.formule, formule_name: p.formule_name, items: p.items, total: Number(p.total),
+      formule: p.formule, formule_name: p.formule_name, formule_snapshot: p.formule_snapshot,
+      items: p.items, total: Number(p.total),
       net_total: netTotal,
       discount: dEuros > 0 ? { amount: dEuros, until: p.discount_until, type: p.discount_type, value: Number(p.discount_value) } : null,
       event_date: p.event_date, venue: p.venue, guests: p.guests, status: p.status,
@@ -103,7 +104,9 @@ export async function POST(request, { params }) {
   // 2. Brouillon Qonto (même date de validité que la proposition)
   const origin = new URL(request.url).origin;
   // La ligne de formule détaille ses inclusions dans la description (visible sur le devis Qonto)
-  const formuleDesc = p.formule ? formuleInclusionsText(p.formule) : '';
+  const formuleDesc = p.formule_snapshot
+    ? formuleInclusionsTextFromObj(p.formule_snapshot)
+    : (p.formule ? formuleInclusionsText(p.formule) : '');
   const items = (p.items || []).map(it => ({
     title: it.title,
     description: (it.source === 'formule' || /^Formule /i.test(it.title)) ? formuleDesc : '',

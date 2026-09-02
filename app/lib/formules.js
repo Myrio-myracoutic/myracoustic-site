@@ -9,6 +9,7 @@ export const POLES = [
   { key: 'lumiere',   label: 'Éclairage' },
   { key: 'video',     label: 'Vidéo' },
   { key: 'effets',    label: 'Effets spéciaux' },
+  { key: 'photobooth', label: 'Photobooth' },
   { key: 'ceremonie', label: 'Cérémonie & vin d’honneur' },
   { key: 'jourJ',     label: 'Le jour J' },
 ];
@@ -55,17 +56,17 @@ export const FORMULES = [
       son: 'Adaptée au nombre d’invités',
       lumiere: 'Piste + mise en lumière de la salle',
       video: 'Vidéoprojecteur / diaporama inclus',
-      effets: 'Fumée lourde incluse · étincelles en option',
-      ceremonie: 'Cérémonie laïque + vin d’honneur inclus',
+      effets: 'Fumée lourde et étincelles froides incluses',
+      ceremonie: 'Vin d’honneur inclus',
       jourJ: 'Installation & technicien inclus',
     },
     platform: 'Plateforme complète : invités & RSVP, menu, plan de table, faire-part + infos pratiques, accès collaborateurs',
     options: [
       { key: 'karaoke',     label: 'Karaoké & blind test',          price: 100, category: 'animation' },
+      { key: 'ceremonie',   label: 'Sonorisation cérémonie laïque', price: 190, category: 'sonorisation' },
       { key: 'reception',   label: 'Grande réception (150-300 pers.)', price: 150, category: 'sonorisation' },
       { key: 'murled2',     label: 'Mur LED 2 m²',                  price: 300, category: 'video' },
       { key: 'murled4',     label: 'Mur LED 4 m²',                  price: 600, category: 'video' },
-      { key: 'etincelles',  label: 'Machines à étincelles froides', price: 100, category: 'effets', note: 'Lot de 2 machines' },
     ],
   },
   {
@@ -80,6 +81,7 @@ export const FORMULES = [
       lumiere: 'Mise en lumière complète',
       video: 'Mur LED 2 m² inclus',
       effets: 'Fumée lourde + étincelles froides incluses',
+      photobooth: 'Inclus',
       ceremonie: 'Cérémonie laïque + vin d’honneur inclus',
       jourJ: 'Installation + technicien dédié',
     },
@@ -120,9 +122,11 @@ export const EXTRA_HOUR_PRICE = 70; // heure DJ supplémentaire (TTC) — sauf P
 export const fmtPrice = (n) => n.toLocaleString('fr-FR') + ' €';
 
 /* Détail des inclusions d'une formule, en puces — pour la description d'une ligne de devis Qonto.
-   Filtre les mentions « en option » ; la cérémonie n'affiche que ce qui est réellement inclus. */
-export function formuleInclusionsText(key) {
-  const f = FORMULES.find(x => x.key === key);
+   Filtre les mentions « en option » ; la cérémonie n'affiche que ce qui est réellement inclus.
+   Prend l'objet formule directement (et pas seulement sa clé) pour pouvoir aussi bien décrire une
+   formule courante (FORMULES) qu'une formule figée (devis_proposals.formule_snapshot) — voir
+   PropositionTokenClient.js. */
+export function formuleInclusionsTextFromObj(f) {
   if (!f) return '';
   const strip = (s) => s.split('·').map(x => x.trim()).filter(x => x && !/en option/i.test(x)).join(' · ');
   const lines = POLES
@@ -136,4 +140,8 @@ export function formuleInclusionsText(key) {
     .filter(Boolean);
   if (f.platform) lines.push(`Espace en ligne : ${f.platform}`);
   return lines.map(l => `• ${l}`).join('\n');
+}
+
+export function formuleInclusionsText(key) {
+  return formuleInclusionsTextFromObj(FORMULES.find(x => x.key === key));
 }

@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/app/lib/supabase-admin';
 import { isDateInBookingWindow, ADMIN_BOOKING_WINDOW_DAYS } from '@/lib/call-slots';
 import { bookCallSlot, deleteCallGoogleEvent, cancelCallSlot, sendBookingLinkForLead } from '@/app/lib/call-booking';
 import { SOURCE_VALUES } from '@/app/lib/lead-source';
+import { sendQuoteExpiredEmail } from '@/app/lib/send-quote-expired-email';
 
 // GET /api/admin/mariage-leads — leads du formulaire de contact mariage
 export async function GET() {
@@ -99,8 +100,10 @@ export async function PATCH(request) {
 
   // Marquage manuel gagné/perdu — vérité terrain (retour client), sans attendre l'expiration
   // automatique d'un devis. Répercuté sur la proposition liée (si elle existe) pour que le
-  // dashboard KPI reflète immédiatement la réalité. Volontairement AUCUN email, AUCUN appel Qonto :
-  // ce sont des corrections de statut, pas le déclenchement d'un nouveau parcours client.
+  // dashboard KPI reflète immédiatement la réalité. Pas d'appel Qonto : ce sont des corrections
+  // de statut, pas le déclenchement d'un nouveau parcours client. Seule exception email : un
+  // devis en attente ('proposee') qu'on marque perdu — le client est prévenu que sa date n'est
+  // plus retenue (sinon silence radio). Aucun email si le dossier n'avait pas de devis en attente.
   if (markLost || markWon) {
     const newStatus = markLost ? 'perdu' : 'gagne';
     const { error: lErr } = await supabaseAdmin.from('mariage_leads').update({ status: newStatus }).eq('id', id);
@@ -113,6 +116,18 @@ export async function PATCH(request) {
         ? { status: 'refusee' }
         : { status: 'validee', validated_at: new Date().toISOString() };
       await supabaseAdmin.from('devis_proposals').update(proposalUpdate).eq('id', proposal.id);
+
+      if (markLost) {
+        const { data: lead } = await supabaseAdmin
+          .from('mariage_leads').select('prenom, email, event_date').eq('id', id).maybeSingle();
+        if (lead?.email) {
+          try {
+            await sendQuoteExpiredEmail({ email: lead.email, prenom: lead.prenom, eventDate: lead.event_date });
+          } catch (e) {
+            console.error('sendQuoteExpiredEmail failed:', e);
+          }
+        }
+      }
     }
     return Response.json({ ok: true });
   }

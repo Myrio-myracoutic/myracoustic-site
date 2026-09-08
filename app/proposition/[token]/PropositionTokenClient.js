@@ -7,6 +7,9 @@ import AddressAutocomplete from '@/app/components/AddressAutocomplete';
 import { FORMULES, POLES } from '@/app/lib/formules';
 
 const fmtPrice = (n) => Number(n).toLocaleString('fr-FR') + ' €';
+// Ligne ajoutée à prix 0 = cadeau volontaire de Myrio (ex. cérémonie laïque offerte) — "Offert"
+// se lit mieux que "0 €" pour le client, sans changer la formule (fmtPrice reste tel quel ailleurs).
+const fmtExtraPrice = (n) => Number(n) === 0 ? 'Offert' : fmtPrice(n);
 const fmtDate = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
 
 // Compte à rebours lisible, avec les secondes qui défilent toujours (effet d'urgence).
@@ -231,7 +234,7 @@ export default function PropositionTokenClient({ token }) {
             {extras.map((it, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 14, fontSize: 14, padding: '5px 0' }}>
                 <span style={{ display: 'inline-flex', alignItems: 'flex-start', gap: 7, color: 'rgba(255,255,255,0.8)' }}><Plus size={13} color="var(--lime)" style={{ flexShrink: 0, marginTop: 3 }} />{it.title}</span>
-                <span style={{ color: '#fff', fontWeight: 600, whiteSpace: 'nowrap' }}>{fmtPrice(it.price)}</span>
+                <span style={{ color: Number(it.price) === 0 ? 'var(--lime)' : '#fff', fontWeight: 600, whiteSpace: 'nowrap' }}>{fmtExtraPrice(it.price)}</span>
               </div>
             ))}
           </>

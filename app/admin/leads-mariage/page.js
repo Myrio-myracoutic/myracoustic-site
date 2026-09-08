@@ -68,18 +68,25 @@ function DevisBuilder({ lead, proposal, bookedDates = new Set(), pendingDates = 
     setItems(prev => {
       // on conserve les lignes indépendantes de la formule : sur-mesure, déplacement, technicien
       const kept = prev.filter(it => ['custom', 'transport', 'tech'].includes(it.source));
+      // options déjà cochées : reconduites si la nouvelle formule les propose aussi (reprix au tarif
+      // de la nouvelle formule) — sinon elles étaient silencieusement perdues en changeant de formule.
+      const keptOptions = (f?.options || [])
+        .filter(o => prev.some(it => it.source === `option:${o.key}`))
+        .map(o => ({ id: nextId(), title: o.label, price: o.price, source: `option:${o.key}` }));
       const base = f ? [{ id: nextId(), title: `Formule ${f.name} — Mariage`, price: f.price, source: 'formule' }] : [];
       // technicien conseillé au-delà de 100 invités — ajouté d'office, retirable
       if (f && Number(guests) > 100 && !kept.some(it => it.source === 'tech')) {
         base.push({ id: nextId(), title: 'Technicien supplémentaire', price: TECH_PRICE, source: 'tech' });
       }
-      return [...base, ...kept];
+      return [...base, ...keptOptions, ...kept];
     });
   };
 
   const hasOption = (k) => items.some(it => it.source === `option:${k}`);
   const toggleOption = (o) => {
-    setItems(prev => hasOption(o.key)
+    // décision prise sur `prev` (pas sur `items`, qui peut être périmé si deux mises à jour
+    // s'enchaînent avant le prochain rendu) — même logique que les autres toggles ci-dessous.
+    setItems(prev => prev.some(it => it.source === `option:${o.key}`)
       ? prev.filter(it => it.source !== `option:${o.key}`)
       : [...prev, { id: nextId(), title: o.label, price: o.price, source: `option:${o.key}` }]);
   };
@@ -136,7 +143,7 @@ function DevisBuilder({ lead, proposal, bookedDates = new Set(), pendingDates = 
 
   const save = async () => {
     if (saving) return;
-    const clean = items.filter(it => it.title.trim() && Number(it.price) > 0)
+    const clean = items.filter(it => it.title.trim() && Number(it.price) >= 0)
       .map(it => ({ title: it.title.trim(), price: Number(it.price), source: it.source }));
     if (clean.length === 0) { setError('Ajoutez au moins une ligne (titre + prix).'); return; }
     setSaving(true); setError('');

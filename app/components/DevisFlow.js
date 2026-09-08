@@ -428,10 +428,12 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
     20: 'pro_facturation', 21: 'pro_recapitulatif',
   };
   const stepStartRef = useRef(Date.now());
+  const abandonFiredRef = useRef(false);
 
   useEffect(() => {
     if (step < 0) return;
     stepStartRef.current = Date.now();
+    abandonFiredRef.current = false;
     gtagEvent('funnel_step', {
       profil: profil || forcedProfil || '',
       step,
@@ -442,7 +444,8 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
   /* ── Abandon du tunnel ──────────────────────────────────────────── */
   useEffect(() => {
     const fireAbandon = () => {
-      if (step < 0) return;
+      if (step < 0 || abandonFiredRef.current) return;
+      abandonFiredRef.current = true;
       gtagBeacon('funnel_abandon', {
         profil: profil || forcedProfil || '',
         step,

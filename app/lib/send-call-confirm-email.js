@@ -94,6 +94,24 @@ export async function sendBookingLinkEmail({ toEmail, firstName, topic = 'de vot
   await sendBrevoEmail({ toEmail, firstName, subject: 'Choisissez votre créneau d\'appel — Myracoustic', html });
 }
 
+/* Rappel automatique la veille d'un appel programmé — réduit les rendez-vous manqués.
+   Envoyé une seule fois par créneau (voir call_reminder_sent_at dans app/lib/call-booking.js). */
+export async function sendCallReminderEmail({ toEmail, firstName, tel, slotLabel, topic = 'de votre projet' }) {
+  const html = emailShell(`
+    <p style="color:rgba(255,255,255,0.6);font-size:15px;margin:0 0 8px;">Bonjour ${firstName},</p>
+    <h2 style="color:#ffffff;font-size:20px;font-weight:700;margin:0 0 24px;line-height:1.3;">Petit rappel : votre appel, c'est demain 📞</h2>
+    <table cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 24px;">
+      <tr><td style="background:rgba(184,239,11,0.08);border:1px solid rgba(184,239,11,0.3);border-radius:8px;padding:16px 20px;">
+        <p style="color:#b8ef0b;font-size:16px;font-weight:700;margin:0;text-transform:capitalize;">${slotLabel}</p>
+      </td></tr>
+    </table>
+    <p style="color:rgba(255,255,255,0.8);font-size:15px;line-height:1.8;margin:0;">
+      Un conseiller Myracoustic vous appellera au <strong>${tel}</strong> pour échanger ${topic}. Merci d'être disponible à ce moment-là.
+    </p>
+  `);
+  await sendBrevoEmail({ toEmail, firstName, subject: `Rappel — votre appel demain, ${slotLabel}`, html });
+}
+
 /* Annulation d'un rendez-vous, sans nouveau créneau proposé dans l'immédiat. */
 export async function sendCallCancelEmail({ toEmail, firstName }) {
   const html = emailShell(`

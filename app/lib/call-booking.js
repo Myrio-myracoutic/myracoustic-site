@@ -10,9 +10,9 @@
 import crypto from 'crypto';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
 import { getCalendarClient, getCalendarId } from '@/lib/google-calendar';
-import { addMinutesToTime, parisLocalToUtcISO } from '@/lib/paris-time';
+import { addMinutesToTime, parisLocalToUtcISO, parisDatePlusDays, utcToParisParts } from '@/lib/paris-time';
 import { getAvailableSlots, getSlotDurationMinutes } from '@/lib/call-slots';
-import { sendCallConfirmEmail, sendCallCancelEmail, sendBookingLinkEmail, fmtSlotDateTime } from '@/app/lib/send-call-confirm-email';
+import { sendCallConfirmEmail, sendCallCancelEmail, sendBookingLinkEmail, sendCallReminderEmail, fmtSlotDateTime } from '@/app/lib/send-call-confirm-email';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://myracoustic.com';
 
@@ -225,6 +225,49 @@ export async function bookCallSlot({ kind = 'mariage', refId, date, time, requir
   }
 
   return { ok: true, date, time };
+}
+
+/* Rappel automatique J-1 pour tous les appels programmés le lendemain (heure de Paris),
+   tous tunnels confondus (mariage, devis, pro_contact) — un seul passage, comme le reste
+   du planning d'appel. Un appel n'est jamais rappelé deux fois (call_reminder_sent_at). */
+export async function runCallReminders() {
+  const tomorrow    = parisDatePlusDays(1);
+  const dayAfter     = parisDatePlusDays(2);
+  const startIso     = parisLocalToUtcISO(tomorrow, '00:00');
+  const endIso       = parisLocalToUtcISO(dayAfter, '00:00');
+
+  const results = [];
+  for (const [kind, src] of Object.entries(SOURCES)) {
+    const { data: rows, error } = await supabaseAdmin
+      .from(src.table)
+      .select(`${src.select}, call_scheduled_at`)
+      .gte('call_scheduled_at', startIso)
+      .lt('call_scheduled_at', endIso)
+      .is('call_cancelled_at', null)
+      .is('call_reminder_sent_at', null);
+
+    if (error) { results.push({ kind, status: 'error', error: error.message }); continue; }
+
+    for (const row of rows || []) {
+      const email = src.email(row);
+      if (!email) continue;
+      const { date, time } = utcToParisParts(row.call_scheduled_at);
+      try {
+        await sendCallReminderEmail({
+          toEmail: email,
+          firstName: src.firstName(row),
+          tel: src.tel(row),
+          slotLabel: fmtSlotDateTime(date, time),
+          topic: src.topic,
+        });
+        await supabaseAdmin.from(src.table).update({ call_reminder_sent_at: new Date().toISOString() }).eq('id', row.id);
+        results.push({ kind, id: row.id, status: 'sent' });
+      } catch (err) {
+        results.push({ kind, id: row.id, status: 'error', error: err.message });
+      }
+    }
+  }
+  return { sent: results.filter(r => r.status === 'sent').length, results };
 }
 
 /* Annule l'appel programmé sur la fiche `refId` du type `kind` : supprime l'événement Google

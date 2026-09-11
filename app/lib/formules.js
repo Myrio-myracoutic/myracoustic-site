@@ -77,7 +77,7 @@ export const FORMULES = [
   {
     key: 'prestige',
     name: 'Prestige',
-    price: 2490,
+    price: 2500,
     featured: false,
     accroche: 'Votre journée entière, orchestrée.',
     specs: {

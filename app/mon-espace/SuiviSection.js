@@ -498,12 +498,13 @@ export default function SuiviSection({ ev, token, sections }) {
               </div>
             )}
 
-            {/* Rendez-vous d'accompagnement — présentation de la plateforme, visite du lieu,
-                points d'étape. Affiché seulement une fois qu'il y a quelque chose à montrer
-                (réservé, ou lien de réservation déjà envoyé par Myracoustic). */}
-            {active && (() => {
-              const visibleMilestones = milestones.filter(m => m.scheduledAt || m.bookingUrl);
-              if (!visibleMilestones.length) return null;
+            {/* Suivi de l'accompagnement — présentation de la plateforme, visite du lieu,
+                points d'étape. Toujours visible dès que l'événement a ces étapes (créées à
+                l'ouverture de l'espace), pour que le client voie l'avancement de la préparation
+                même avant que Myracoustic n'active la réservation d'une étape donnée. */}
+            {active && milestones.length > 0 && (() => {
+              const shortDate = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : null;
+              const now = Date.now();
               return (
                 <div style={{
                   background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
@@ -511,23 +512,32 @@ export default function SuiviSection({ ev, token, sections }) {
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 14 }}>
                     <PhoneCall size={14} color="#b8ef0b" strokeWidth={1.5} />
-                    <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'var(--font-display)' }}>Rendez-vous d'accompagnement</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'var(--font-display)' }}>Suivi de l'accompagnement</span>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    {visibleMilestones.map(m => (
-                      <div key={m.milestone_type} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
-                        <span style={{ color: 'rgba(255,255,255,0.75)', fontSize: 13.5 }}>{m.label}</span>
-                        {m.scheduledAt ? (
-                          <span style={{ color: '#b8ef0b', fontSize: 13, fontWeight: 600, textTransform: 'capitalize' }}>{fmtDateTime(m.scheduledAt)}</span>
-                        ) : (
-                          <a href={m.bookingUrl} style={{
-                            display: 'inline-flex', alignItems: 'center', gap: 6,
-                            background: '#b8ef0b', color: '#060e16', borderRadius: 7, padding: '6px 14px',
-                            fontSize: 12.5, fontWeight: 700, textDecoration: 'none', fontFamily: 'var(--font-display), sans-serif',
-                          }}>Réserver mon créneau</a>
-                        )}
-                      </div>
-                    ))}
+                    {milestones.map(m => {
+                      const isPast = m.scheduledAt && new Date(m.scheduledAt).getTime() < now;
+                      return (
+                        <div key={m.milestone_type} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+                          <span style={{ color: 'rgba(255,255,255,0.75)', fontSize: 13.5 }}>{m.label}</span>
+                          {m.scheduledAt ? (
+                            <span style={{ color: '#b8ef0b', fontSize: 13, fontWeight: 600, textTransform: 'capitalize' }}>
+                              {isPast ? 'Fait le ' : 'Prévu le '}{fmtDateTime(m.scheduledAt)}
+                            </span>
+                          ) : m.bookingUrl ? (
+                            <a href={m.bookingUrl} style={{
+                              display: 'inline-flex', alignItems: 'center', gap: 6,
+                              background: '#b8ef0b', color: '#060e16', borderRadius: 7, padding: '6px 14px',
+                              fontSize: 12.5, fontWeight: 700, textDecoration: 'none', fontFamily: 'var(--font-display), sans-serif',
+                            }}>Réserver mon créneau</a>
+                          ) : (
+                            <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: 13 }}>
+                              À venir{m.targetDate ? ` · vers le ${shortDate(m.targetDate)}` : ''}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               );

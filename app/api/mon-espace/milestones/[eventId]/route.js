@@ -18,7 +18,7 @@ export async function GET(req, { params }) {
 
   const { data, error } = await supabaseAdmin
     .from('event_milestones')
-    .select('milestone_type, call_scheduled_at, call_cancelled_at, call_token')
+    .select('milestone_type, target_date, call_scheduled_at, call_cancelled_at, call_token')
     .eq('event_id', eventId);
   if (error) return Response.json({ error: error.message }, { status: 500 });
 
@@ -28,6 +28,7 @@ export async function GET(req, { params }) {
     .map(m => ({
       milestone_type: m.milestone_type,
       label: MILESTONE_LABELS[m.milestone_type],
+      targetDate: m.target_date,
       scheduledAt: (m.call_scheduled_at && !m.call_cancelled_at) ? m.call_scheduled_at : null,
       bookingUrl: m.call_token ? `${APP_URL}/rendez-vous/${m.call_token}` : null,
     }));

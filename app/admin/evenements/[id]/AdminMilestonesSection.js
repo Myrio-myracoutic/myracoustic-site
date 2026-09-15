@@ -28,6 +28,7 @@ export default function AdminMilestonesSection({ eventId }) {
   const [loading, setLoading] = useState(true);
   const [callSlotFor, setCallSlotFor] = useState(null); // { milestone, mode: 'schedule' | 'reschedule' }
   const [busy, setBusy] = useState(null);
+  const [creating, setCreating] = useState(false);
 
   const load = () => fetch(`/api/admin/event-milestones?eventId=${eventId}`)
     .then(r => r.json())
@@ -45,7 +46,36 @@ export default function AdminMilestonesSection({ eventId }) {
     load();
   };
 
-  if (loading || !milestones.length) return null;
+  const createMilestones = async () => {
+    setCreating(true);
+    const res = await fetch('/api/admin/event-milestones', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ eventId }),
+    });
+    setCreating(false);
+    if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || 'Erreur'); return; }
+    load();
+  };
+
+  if (loading) return null;
+
+  // Événement créé avant la mise en place du suivi (ou jamais rattrapé) — pas de création
+  // automatique, mais Myrio peut le faire lui-même en un clic, sans email envoyé.
+  if (!milestones.length) {
+    return (
+      <div style={{ marginTop: 20 }}>
+        <div style={{ background: '#0d1b2a', borderRadius: 14, padding: '20px 24px', border: '1px dashed rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 13, margin: 0 }}>
+            Cet événement n'a pas encore de rendez-vous de suivi (créé avant leur mise en place).
+          </p>
+          <button onClick={createMilestones} disabled={creating} style={{
+            border: '1px solid rgba(184,239,11,0.35)', background: 'rgba(184,239,11,0.08)', color: '#b8ef0b',
+            borderRadius: 8, padding: '8px 16px', cursor: creating ? 'wait' : 'pointer', fontSize: 13,
+            fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, whiteSpace: 'nowrap', opacity: creating ? 0.6 : 1,
+          }}>{creating ? 'Création…' : 'Créer le suivi'}</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ marginTop: 20 }}>

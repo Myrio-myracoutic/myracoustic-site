@@ -1,6 +1,7 @@
 import { verifyAdminCookie } from '@/app/lib/admin-auth';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
 import { sendBookingLinkForLead } from '@/app/lib/call-booking';
+import { buildMilestoneRows } from '@/app/lib/event-milestones';
 
 const SENDER_EMAIL = 'contact@myracoustic.com';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://myracoustic.com';
@@ -39,24 +40,10 @@ async function sendEspaceOpenEmail(toEmail, firstName) {
 // Étapes du suivi post-signature (voir supabase-migrations/2026-09-14_event_milestones.sql) —
 // target_date purement indicative (déclenche le rappel interne), calculée depuis event_date.
 // "presentation" n'a pas d'échéance : à réserver dès l'ouverture de l'espace.
-function subtractFromDate(dateStr, { months = 0, days = 0 } = {}) {
-  if (!dateStr) return null;
-  const d = new Date(dateStr + 'T12:00:00');
-  if (months) d.setMonth(d.getMonth() - months);
-  if (days) d.setDate(d.getDate() - days);
-  return d.toISOString().slice(0, 10);
-}
-
 async function createMilestonesAndSendPresentationLink(eventId, eventDate) {
-  const milestones = [
-    { milestone_type: 'presentation', target_date: null },
-    { milestone_type: 'visite_lieu', target_date: subtractFromDate(eventDate, { months: 6 }) },
-    { milestone_type: 'point_1_mois', target_date: subtractFromDate(eventDate, { months: 1 }) },
-    { milestone_type: 'reglages_2_semaines', target_date: subtractFromDate(eventDate, { days: 14 }) },
-  ];
   const { error } = await supabaseAdmin
     .from('event_milestones')
-    .insert(milestones.map(m => ({ event_id: eventId, ...m })));
+    .insert(buildMilestoneRows(eventDate).map(m => ({ event_id: eventId, ...m })));
   if (error) { console.error('event_milestones insert error:', error.message); return; }
 
   const { data: presentation } = await supabaseAdmin

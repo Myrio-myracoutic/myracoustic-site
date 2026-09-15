@@ -2,6 +2,7 @@ import { verifyAdminCookie } from '@/app/lib/admin-auth';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
 import { isDateInBookingWindow, ADMIN_BOOKING_WINDOW_DAYS } from '@/lib/call-slots';
 import { bookCallSlot, deleteCallGoogleEvent, cancelCallSlot, sendBookingLinkForLead, MILESTONE_LABELS } from '@/app/lib/call-booking';
+import { buildMilestoneRows } from '@/app/lib/event-milestones';
 
 const MILESTONE_ORDER = ['presentation', 'visite_lieu', 'point_1_mois', 'reglages_2_semaines'];
 
@@ -26,6 +27,30 @@ export async function GET(request) {
     .map(m => ({ ...m, label: MILESTONE_LABELS[m.milestone_type] }));
 
   return Response.json({ milestones });
+}
+
+// POST /api/admin/event-milestones — { eventId } → crée les 4 étapes pour un événement qui n'en
+// a pas (créé avant la mise en place du suivi, ou fiche jamais rattrapée). N'envoie AUCUN email :
+// Myrio choisit ensuite lui-même, étape par étape, quand renvoyer le lien de réservation.
+export async function POST(request) {
+  if (!(await verifyAdminCookie())) {
+    return Response.json({ error: 'Non autorisé' }, { status: 401 });
+  }
+  const { eventId } = await request.json();
+  if (!eventId) return Response.json({ error: 'eventId manquant' }, { status: 400 });
+
+  const { count } = await supabaseAdmin
+    .from('event_milestones').select('id', { count: 'exact', head: true }).eq('event_id', eventId);
+  if (count > 0) return Response.json({ error: 'Ce suivi existe déjà pour cet événement' }, { status: 400 });
+
+  const { data: event } = await supabaseAdmin.from('events').select('event_date').eq('id', eventId).maybeSingle();
+  if (!event) return Response.json({ error: 'Événement introuvable' }, { status: 404 });
+
+  const { error } = await supabaseAdmin
+    .from('event_milestones').insert(buildMilestoneRows(event.event_date).map(m => ({ event_id: eventId, ...m })));
+  if (error) return Response.json({ error: error.message }, { status: 500 });
+
+  return Response.json({ ok: true });
 }
 
 // PATCH /api/admin/event-milestones — actions ponctuelles sur une étape :

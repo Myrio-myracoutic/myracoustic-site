@@ -7,6 +7,7 @@ const TOPIC_SUBTITLE = {
   mariage: (firstName) => `Bonjour ${firstName}, choisissez le moment qui vous arrange pour qu'on échange sur votre mariage.`,
   devis: (firstName) => `Bonjour ${firstName}, choisissez le moment qui vous arrange pour qu'on échange sur votre devis.`,
   pro_contact: (firstName) => `Bonjour ${firstName}, choisissez le moment qui vous arrange pour qu'on échange sur votre projet.`,
+  event_milestone: (firstName) => `Bonjour ${firstName}, choisissez le moment qui vous arrange pour la suite de votre accompagnement Myracoustic.`,
 };
 
 function fmtScheduled(iso) {

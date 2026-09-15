@@ -9,11 +9,13 @@ const FIRST_NAME = {
   mariage: (r) => r.prenom,
   devis: (r) => r.client_first_name,
   pro_contact: (r) => r.prenom,
+  event_milestone: (r) => r.events?.clients?.first_name,
 };
 const TEL = {
   mariage: (r) => r.tel,
   devis: (r) => r.client_phone,
   pro_contact: (r) => r.tel,
+  event_milestone: (r) => r.events?.clients?.phone,
 };
 
 // GET /api/rendez-vous/[token] — infos minimales pour afficher le sélecteur de créneau

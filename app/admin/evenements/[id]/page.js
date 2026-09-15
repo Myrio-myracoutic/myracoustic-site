@@ -7,6 +7,7 @@ import AdminMenuSection from './AdminMenuSection';
 import AdminPlanTableSection from './AdminPlanTableSection';
 import AdminProgrammeSection from './AdminProgrammeSection';
 import AdminGalerieSection from './AdminGalerieSection';
+import AdminMilestonesSection from './AdminMilestonesSection';
 import { Eye, Mail } from 'lucide-react';
 
 const STATUSES = {
@@ -296,6 +297,8 @@ export default function AdminDevisDetail() {
           </div>
         </Card>
       </div>
+
+      <AdminMilestonesSection eventId={params.id} />
 
       <AdminProgrammeSection eventId={params.id} />
       <AdminGuestSection eventId={params.id} />

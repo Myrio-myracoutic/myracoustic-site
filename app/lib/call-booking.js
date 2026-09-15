@@ -80,6 +80,33 @@ const SOURCES = {
     topic: 'de votre projet',
     cancelSelect: 'call_google_event_id, prenom, email, call_scheduled_at',
   },
+  // Rendez-vous d'accompagnement une fois le prospect devenu client (présentation de la
+  // plateforme, visite du lieu à 6 mois, point à 1 mois, derniers réglages à 2 semaines) —
+  // une ligne par étape par événement, voir supabase-migrations/2026-09-14_event_milestones.sql.
+  event_milestone: {
+    table: 'event_milestones',
+    select: 'id, milestone_type, target_date, events(event_date, venue, clients(first_name, last_name, email, phone))',
+    summary: (r) => `📞 ${MILESTONE_LABELS[r.milestone_type] || 'Rendez-vous'} — ${r.events?.clients?.first_name} ${r.events?.clients?.last_name}`,
+    description: (r) => [
+      `Tél : ${r.events?.clients?.phone}`,
+      `Email : ${r.events?.clients?.email}`,
+      r.events?.event_date ? `Date du mariage : ${fmtDate(r.events.event_date)}` : null,
+      r.events?.venue ? `Lieu : ${r.events.venue}` : null,
+    ],
+    extendedKey: 'event_milestone_id',
+    firstName: (r) => r.events?.clients?.first_name,
+    tel: (r) => r.events?.clients?.phone,
+    email: (r) => r.events?.clients?.email,
+    topic: 'de la suite de votre accompagnement Myracoustic',
+    cancelSelect: 'call_google_event_id, milestone_type, call_scheduled_at, events(clients(first_name, email))',
+  },
+};
+
+export const MILESTONE_LABELS = {
+  presentation: 'Présentation de la plateforme',
+  visite_lieu: 'Visite du lieu',
+  point_1_mois: 'Point à 1 mois',
+  reglages_2_semaines: 'Derniers réglages',
 };
 
 /* Jeton public de la fiche (lien "choisir/modifier mon créneau", envoyé par email — jamais

@@ -806,7 +806,10 @@ export default function LeadsMariagePage() {
                 </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
-                {l.call_scheduled_at && !l.call_cancelled_at ? (
+                {/* Une fois l'espace mariage ouvert (prospect devenu client), le premier appel n'a
+                    plus lieu d'être : la prise de rendez-vous se fait désormais depuis sa fiche
+                    Évènement (rendez-vous de suivi : présentation, visite du lieu, points d'étape). */}
+                {!l.proposal?.event_id && (l.call_scheduled_at && !l.call_cancelled_at ? (
                   <div style={{ display: 'flex', gap: 8 }}>
                     <button onClick={() => setCallSlotFor({ lead: l, mode: 'reschedule' })} title="Choisir un autre jour/créneau" style={{
                       border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.85)',
@@ -834,7 +837,7 @@ export default function LeadsMariagePage() {
                       opacity: busy === 'link-' + l.id ? 0.6 : 1,
                     }}>Envoyer le lien</button>
                   </div>
-                )}
+                ))}
                 {!l.proposal && (
                   <button onClick={() => setBuilder({ lead: l })} style={{
                     border: 'none', background: '#b8ef0b', color: '#060e16', borderRadius: 8, padding: '10px 18px',

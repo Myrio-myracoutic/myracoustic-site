@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import {
   ClipboardList, CheckCircle, CreditCard, PartyPopper,
   MessageCircle, FileText, ExternalLink,
-  Users, Music2, Calendar, AlertCircle, Clock,
+  Users, Music2, Calendar, AlertCircle, Clock, PhoneCall,
 } from 'lucide-react';
 
 function daysUntil(dateStr) {
@@ -18,6 +18,13 @@ function fmtDate(d) {
   if (!d) return '—';
   return new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+  });
+}
+
+function fmtDateTime(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('fr-FR', {
+    weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit',
   });
 }
 
@@ -317,6 +324,7 @@ export default function SuiviSection({ ev, token, sections }) {
   const [guests, setGuests]             = useState([]);
   const [playlists, setPlaylists]       = useState([]);
   const [programmeCount, setProgrammeCount] = useState(null);
+  const [milestones, setMilestones]     = useState([]);
   const [statsLoaded, setStatsLoaded]   = useState(false);
 
   const active  = ['accepte', 'confirme', 'termine'].includes(ev.status);
@@ -338,11 +346,13 @@ export default function SuiviSection({ ev, token, sections }) {
         : Promise.resolve({ guests: [] }),
       fetch(`/api/mon-espace/playlists/${ev.id}`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()).catch(() => ({ playlists: [] })),
       fetch(`/api/mon-espace/programme/${ev.id}`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()).catch(() => ({ items: [] })),
+      fetch(`/api/mon-espace/milestones/${ev.id}`, { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()).catch(() => ({ milestones: [] })),
     ];
-    Promise.all(calls).then(([gData, pData, prData]) => {
+    Promise.all(calls).then(([gData, pData, prData, mData]) => {
       setGuests(gData.guests || []);
       setPlaylists(pData.playlists || []);
       setProgrammeCount((prData.items || []).length);
+      setMilestones(mData.milestones || []);
       setStatsLoaded(true);
     });
   }, [ev.id, active, token, invitesAccessible]);
@@ -487,6 +497,41 @@ export default function SuiviSection({ ev, token, sections }) {
                 )}
               </div>
             )}
+
+            {/* Rendez-vous d'accompagnement — présentation de la plateforme, visite du lieu,
+                points d'étape. Affiché seulement une fois qu'il y a quelque chose à montrer
+                (réservé, ou lien de réservation déjà envoyé par Myracoustic). */}
+            {active && (() => {
+              const visibleMilestones = milestones.filter(m => m.scheduledAt || m.bookingUrl);
+              if (!visibleMilestones.length) return null;
+              return (
+                <div style={{
+                  background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)',
+                  borderRadius: 12, padding: '18px 20px', marginBottom: 24,
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 14 }}>
+                    <PhoneCall size={14} color="#b8ef0b" strokeWidth={1.5} />
+                    <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'var(--font-display)' }}>Rendez-vous d'accompagnement</span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {visibleMilestones.map(m => (
+                      <div key={m.milestone_type} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+                        <span style={{ color: 'rgba(255,255,255,0.75)', fontSize: 13.5 }}>{m.label}</span>
+                        {m.scheduledAt ? (
+                          <span style={{ color: '#b8ef0b', fontSize: 13, fontWeight: 600, textTransform: 'capitalize' }}>{fmtDateTime(m.scheduledAt)}</span>
+                        ) : (
+                          <a href={m.bookingUrl} style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 6,
+                            background: '#b8ef0b', color: '#060e16', borderRadius: 7, padding: '6px 14px',
+                            fontSize: 12.5, fontWeight: 700, textDecoration: 'none', fontFamily: 'var(--font-display), sans-serif',
+                          }}>Réserver mon créneau</a>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* CTA si pas encore actif */}
             {!active && !annule && (

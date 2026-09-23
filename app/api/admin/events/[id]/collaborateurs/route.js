@@ -74,6 +74,27 @@ export async function POST(req, { params }) {
   return Response.json({ ok: true });
 }
 
+// PATCH — changer la fonction d'un accès partagé (Wedding Planner / Marié / Mariée / classique)
+export async function PATCH(req, { params }) {
+  if (!(await verifyAdminCookie())) return Response.json({ error: 'Non autorisé' }, { status: 401 });
+  const { id } = await params;
+  const { collabId, role } = await req.json();
+
+  if (!collabId || !['collaborator', 'wedding_planner', 'marie', 'mariee'].includes(role))
+    return Response.json({ error: 'collabId et role valides requis' }, { status: 400 });
+
+  const { data, error } = await supabaseAdmin
+    .from('event_collaborators')
+    .update({ role })
+    .eq('id', collabId)
+    .eq('event_id', id)
+    .select()
+    .single();
+
+  if (error) return Response.json({ error: error.message }, { status: 500 });
+  return Response.json({ ok: true, collaborateur: data });
+}
+
 // DELETE — révoquer un accès partagé
 export async function DELETE(req, { params }) {
   if (!(await verifyAdminCookie())) return Response.json({ error: 'Non autorisé' }, { status: 401 });

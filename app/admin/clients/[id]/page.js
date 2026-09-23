@@ -81,6 +81,7 @@ export default function AdminClientDetail() {
   const [cp,            setCp]            = useState('');
   const [ville,         setVille]         = useState('');
   const [billingEmail,  setBillingEmail]  = useState('');
+  const [civilRole,     setCivilRole]     = useState('');
 
   const load = useCallback(async () => {
     const res  = await fetch(`/api/admin/clients/${id}`);
@@ -98,6 +99,7 @@ export default function AdminClientDetail() {
     setCp(data.cp || '');
     setVille(data.ville || '');
     setBillingEmail(data.billing_email || '');
+    setCivilRole(data.civil_role || '');
     setLoading(false);
 
     // Charger les données Qonto
@@ -133,7 +135,7 @@ export default function AdminClientDetail() {
     const res = await fetch(`/api/admin/clients/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ first_name: firstName, last_name: lastName, email, phone, profil, company_name: companyName, siret, adresse, cp, ville, billing_email: billingEmail }),
+      body: JSON.stringify({ first_name: firstName, last_name: lastName, email, phone, profil, company_name: companyName, siret, adresse, cp, ville, billing_email: billingEmail, civil_role: civilRole }),
     });
     if (res.ok) { setSaved(true); setTimeout(() => setSaved(false), 2500); }
     setSaving(false);
@@ -227,6 +229,16 @@ export default function AdminClientDetail() {
             <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', display: 'block', marginBottom: 5, fontWeight: 600 }}>TÉLÉPHONE</label>
             <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} style={inputStyle()} />
           </div>
+          {profil === 'particulier' && (
+            <div>
+              <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', display: 'block', marginBottom: 5, fontWeight: 600 }}>IDENTITÉ (MARIAGE)</label>
+              <select value={civilRole} onChange={e => setCivilRole(e.target.value)} style={inputStyle()}>
+                <option value="">Non précisé</option>
+                <option value="mariee">Mariée</option>
+                <option value="marie">Marié</option>
+              </select>
+            </div>
+          )}
         </div>
 
         {/* Facturation */}

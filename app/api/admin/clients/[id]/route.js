@@ -37,7 +37,7 @@ export async function PATCH(req, { params }) {
   const body = await req.json();
 
   const updates = {};
-  const allowed = ['first_name', 'last_name', 'email', 'phone', 'profil', 'company_name', 'siret', 'adresse', 'cp', 'ville', 'billing_email'];
+  const allowed = ['first_name', 'last_name', 'email', 'phone', 'profil', 'company_name', 'siret', 'adresse', 'cp', 'ville', 'billing_email', 'civil_role'];
   for (const key of allowed) {
     if (body[key] !== undefined) updates[key] = body[key] || null;
   }

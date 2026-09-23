@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
-import { verifyEventAccess } from '@/app/lib/event-access';
+import { verifyEventAccess, isSpouseAccess } from '@/app/lib/event-access';
 
 // POST /api/mon-espace/playlists — créer une playlist (normale ou surprise)
 export async function POST(request) {
@@ -14,8 +14,8 @@ export async function POST(request) {
   const access = await verifyEventAccess(token, eventId);
   if (!access) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
 
-  // Seul un collaborateur peut créer une playlist surprise
-  const isSurprise = !!is_surprise && access.isCollaborator;
+  // Seul un accès partagé (témoin, wedding planner…) peut créer une playlist surprise — pas les mariés
+  const isSurprise = !!is_surprise && !isSpouseAccess(access);
 
   const { data: existing } = await supabaseAdmin
     .from('playlists').select('position').eq('event_id', eventId)

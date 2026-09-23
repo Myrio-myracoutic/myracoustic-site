@@ -20,7 +20,7 @@ export async function GET(request) {
   // Chercher par auth_id (connexions suivantes)
   let collab = (await supabaseAdmin
     .from('event_collaborators')
-    .select('id, event_id, auth_id, email, can_see_billing, events(*, clients(*))')
+    .select('id, event_id, auth_id, email, role, can_see_billing, events(*, clients(*))')
     .eq('auth_id', user.id)
     .single()).data;
 
@@ -28,7 +28,7 @@ export async function GET(request) {
   if (!collab) {
     collab = (await supabaseAdmin
       .from('event_collaborators')
-      .select('id, event_id, email, can_see_billing, events(*, clients(*))')
+      .select('id, event_id, email, role, can_see_billing, events(*, clients(*))')
       .eq('email', user.email?.toLowerCase() || '')
       .single()).data;
 
@@ -46,6 +46,7 @@ export async function GET(request) {
   return NextResponse.json({
     found: true,
     canSeeBilling: !!collab.can_see_billing,
+    role: collab.role || null,
     event: collab.events,
     client: collab.events.clients,
   });

@@ -52,12 +52,38 @@ function StatusDot({ collab }) {
   );
 }
 
+const ROLE_OPTIONS = [
+  { value: 'collaborator',   label: 'Accès classique' },
+  { value: 'wedding_planner', label: 'Wedding Planner' },
+  { value: 'marie',          label: 'Marié' },
+  { value: 'mariee',         label: 'Mariée' },
+];
+
+function RoleSelect({ collab, onChange, disabled }) {
+  return (
+    <select
+      value={collab.role || 'collaborator'}
+      disabled={disabled}
+      onChange={e => onChange(collab, e.target.value)}
+      style={{
+        background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.12)',
+        borderRadius: 7, padding: '4px 8px', fontSize: 11, fontWeight: 600,
+        color: collab.role === 'wedding_planner' ? '#b8ef0b' : collab.role === 'marie' || collab.role === 'mariee' ? '#a78bfa' : 'rgba(255,255,255,0.6)',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+      }}
+    >
+      {ROLE_OPTIONS.map(o => <option key={o.value} value={o.value} style={{ color: '#000' }}>{o.label}</option>)}
+    </select>
+  );
+}
+
 export default function AdminCollaborateursSection({ eventId, compact = false }) {
   const [collabs,    setCollabs]    = useState([]);
   const [loading,    setLoading]    = useState(true);
   const [reinviting, setReinviting] = useState(null);
   const [deleting,   setDeleting]   = useState(null);
   const [confirmDel, setConfirmDel] = useState(null);
+  const [savingRole, setSavingRole] = useState(null);
 
   const load = useCallback(async () => {
     const res  = await fetch(`/api/admin/events/${eventId}/collaborateurs`);
@@ -67,6 +93,17 @@ export default function AdminCollaborateursSection({ eventId, compact = false })
   }, [eventId]);
 
   useEffect(() => { load(); }, [load]);
+
+  const handleRoleChange = async (collab, role) => {
+    setSavingRole(collab.id);
+    setCollabs(cs => cs.map(c => c.id === collab.id ? { ...c, role } : c));
+    await fetch(`/api/admin/events/${eventId}/collaborateurs`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ collabId: collab.id, role }),
+    });
+    setSavingRole(null);
+  };
 
   const handleReinvite = async (collab) => {
     setReinviting(collab.id);
@@ -100,6 +137,7 @@ export default function AdminCollaborateursSection({ eventId, compact = false })
               <p style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.8)', margin: '0 0 1px' }}>{c.first_name} {c.last_name || ''}</p>
               <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', margin: 0 }}>{c.email}</p>
             </div>
+            <RoleSelect collab={c} onChange={handleRoleChange} disabled={savingRole === c.id} />
             <StatusDot collab={c} />
           </div>
         ))}
@@ -143,7 +181,7 @@ export default function AdminCollaborateursSection({ eventId, compact = false })
         <div>
           {/* Header colonnes */}
           <div style={{
-            display: 'grid', gridTemplateColumns: '2fr 2fr 1.5fr 1fr 80px',
+            display: 'grid', gridTemplateColumns: '2fr 2fr 1.3fr 1.5fr 1fr 80px',
             padding: '10px 24px',
             fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.25)',
             textTransform: 'uppercase', letterSpacing: '0.08em',
@@ -152,6 +190,7 @@ export default function AdminCollaborateursSection({ eventId, compact = false })
           }}>
             <span>Collaborateur</span>
             <span>Email</span>
+            <span>Fonction</span>
             <span>Statut</span>
             <span>Invité le</span>
             <span />
@@ -161,7 +200,7 @@ export default function AdminCollaborateursSection({ eventId, compact = false })
             <div
               key={c.id}
               style={{
-                display: 'grid', gridTemplateColumns: '2fr 2fr 1.5fr 1fr 80px',
+                display: 'grid', gridTemplateColumns: '2fr 2fr 1.3fr 1.5fr 1fr 80px',
                 padding: '14px 24px', alignItems: 'center',
                 borderBottom: i < collabs.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
               }}
@@ -182,6 +221,11 @@ export default function AdminCollaborateursSection({ eventId, compact = false })
               <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', margin: 0, wordBreak: 'break-all' }}>
                 {c.email}
               </p>
+
+              {/* Fonction */}
+              <div>
+                <RoleSelect collab={c} onChange={handleRoleChange} disabled={savingRole === c.id} />
+              </div>
 
               {/* Statut */}
               <div>

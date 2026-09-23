@@ -365,6 +365,7 @@ export default function MonEspacePage() {
   const [notifTick,      setNotifTick]      = useState(0);
   const [isCollaborator,  setIsCollaborator]  = useState(false);
   const [canSeeBilling,   setCanSeeBilling]   = useState(false);
+  const [role,            setRole]            = useState(null);
 
   const ev = events.find(e => e.id === eventId) || events[0] || null;
   // Un collaborateur sans droit "voir la facturation" ne doit pas voir l'onglet dédié.
@@ -386,6 +387,7 @@ export default function MonEspacePage() {
       const { data: clientData } = await supabase
         .from('clients').select('*').eq('auth_id', session.user.id).single();
       setClient(clientData);
+      setRole(clientData?.civil_role || null);
 
       if (clientData) {
         const { data: eventsData } = await supabase
@@ -404,6 +406,7 @@ export default function MonEspacePage() {
         if (collabData.found) {
           setIsCollaborator(true);
           setCanSeeBilling(!!collabData.canSeeBilling);
+          setRole(collabData.role || null);
           setClient(collabData.client || { first_name: '', last_name: '', email: session.user.email });
           setEvents([collabData.event]);
           setEventId(collabData.event.id);
@@ -519,7 +522,7 @@ export default function MonEspacePage() {
       case 'suivi':       return <SuiviSection ev={ev} token={token} sections={sections} />;
       case 'facturation': return <FacturationTab ev={ev} token={token} />;
       case 'programme':   return <ProgrammeSection ev={ev} token={token} client={client} lockMoments={lockPrestige} />;
-      case 'playlist':    return <PlaylistSection eventId={ev.id} token={token} onSuggestionActed={() => setNotifTick(n => n + 1)} isCollaborator={isCollaborator} lockSurprise={lockPrestige} />;
+      case 'playlist':    return <PlaylistSection eventId={ev.id} token={token} onSuggestionActed={() => setNotifTick(n => n + 1)} isCollaborator={isCollaborator} role={role} lockSurprise={lockPrestige} />;
       case 'invites':     return <InvitesSection ev={ev} token={token} />;
       case 'menu':        return <MenuSection ev={ev} token={token} />;
       case 'plantable':   return <PlanTableSection ev={ev} token={token} />;

@@ -1,17 +1,19 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
-import { verifyEventAccess, verifyPlaylistAccess } from '@/app/lib/event-access';
+import { verifyEventAccess, verifyPlaylistAccess, isSpouseAccess, isPlannerAccess } from '@/app/lib/event-access';
 
 /**
  * Filtre les playlists selon le rôle et la visibilité choisie :
  * - is_surprise               → cachée aux MARIÉS (visible par tous les accès partagés + admin)
  * - hidden_from_collaborators → cachée aux ACCÈS PARTAGÉS (visible par les mariés + admin)
+ * - Wedding Planner : ne voit jamais rien de caché, quelle que soit la playlist
  * - Admin (via supabaseAdmin) : voit tout
  */
 function filterPlaylists(playlists, access) {
+  if (isPlannerAccess(access)) return playlists;
   return playlists.filter(p => {
-    if (access.isCollaborator) return !p.hidden_from_collaborators; // témoin : tout sauf « caché aux accès partagés »
-    return !p.is_surprise;                                          // couple : tout sauf « caché aux mariés »
+    if (isSpouseAccess(access)) return !p.is_surprise;              // mariés (principal ou conjoint tagué) : tout sauf « caché aux mariés »
+    return !p.hidden_from_collaborators;                            // accès partagé classique : tout sauf « caché aux accès partagés »
   });
 }
 
@@ -77,7 +79,9 @@ export async function PATCH(request, { params }) {
   if (!pl) return NextResponse.json({ error: 'Playlist introuvable' }, { status: 404 });
 
   // L'utilisateur doit pouvoir VOIR la playlist pour la modifier
-  const canSee = access.isCollaborator ? !pl.hidden_from_collaborators : !pl.is_surprise;
+  const canSee = isPlannerAccess(access)
+    ? true
+    : isSpouseAccess(access) ? !pl.is_surprise : !pl.hidden_from_collaborators;
   if (!canSee) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
 
   const body = await request.json();
@@ -94,13 +98,13 @@ export async function PATCH(request, { params }) {
   // Visibilité — un accès partagé cache aux mariés (is_surprise) ;
   // les mariés cachent aux accès partagés (hidden_from_collaborators). Exclusifs.
   if (body.is_surprise !== undefined) {
-    if (!access.isCollaborator)
+    if (isSpouseAccess(access))
       return NextResponse.json({ error: 'Seul un accès partagé peut cacher aux mariés' }, { status: 403 });
     updates.is_surprise = !!body.is_surprise;
     if (updates.is_surprise) updates.hidden_from_collaborators = false;
   }
   if (body.hidden_from_collaborators !== undefined) {
-    if (access.isCollaborator)
+    if (!isSpouseAccess(access))
       return NextResponse.json({ error: 'Seuls les mariés peuvent cacher aux accès partagés' }, { status: 403 });
     updates.hidden_from_collaborators = !!body.hidden_from_collaborators;
     if (updates.hidden_from_collaborators) updates.is_surprise = false;

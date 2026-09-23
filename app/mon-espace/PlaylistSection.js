@@ -1074,7 +1074,10 @@ function CreatePlaylistForm({ eventId, token, onCreated, isCollaborator, lockSur
   );
 }
 
-export default function PlaylistSection({ eventId, token, onSuggestionActed, isCollaborator, lockSurprise = false }) {
+export default function PlaylistSection({ eventId, token, onSuggestionActed, isCollaborator, role = null, lockSurprise = false }) {
+  // Un accès partagé tagué Marié/Mariée est traité comme le compte principal pour les
+  // interrupteurs de visibilité (cf. app/lib/event-access.js isSpouseAccess côté serveur).
+  const isCollaboratorForVisibility = isCollaborator && role !== 'marie' && role !== 'mariee';
   const [playlists, setPlaylists] = useState([]);
   const [loading, setLoading]     = useState(true);
   const onActedRef = useRef(onSuggestionActed);
@@ -1122,9 +1125,9 @@ export default function PlaylistSection({ eventId, token, onSuggestionActed, isC
           </p>
         )}
         {playlists.map(pl => (
-          <PlaylistCard key={pl.id} playlist={pl} token={token} onRefresh={refresh} isCollaborator={isCollaborator} />
+          <PlaylistCard key={pl.id} playlist={pl} token={token} onRefresh={refresh} isCollaborator={isCollaboratorForVisibility} />
         ))}
-        <CreatePlaylistForm eventId={eventId} token={token} onCreated={refresh} isCollaborator={isCollaborator} lockSurprise={lockSurprise} />
+        <CreatePlaylistForm eventId={eventId} token={token} onCreated={refresh} isCollaborator={isCollaboratorForVisibility} lockSurprise={lockSurprise} />
       </div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>

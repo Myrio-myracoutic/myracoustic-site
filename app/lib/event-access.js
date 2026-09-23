@@ -12,8 +12,19 @@ export function getSupabaseClient(token) {
 }
 
 /**
+ * Un compte "conjoint" (titulaire principal, ou accès partagé marié/mariée) est traité
+ * comme "les mariés" pour la visibilité des surprises. Un Wedding Planner voit tout.
+ */
+export function isSpouseAccess(access) {
+  return !!access && (!access.isCollaborator || access.role === 'marie' || access.role === 'mariee');
+}
+export function isPlannerAccess(access) {
+  return !!access && access.role === 'wedding_planner';
+}
+
+/**
  * Vérifie qu'un utilisateur (propriétaire ou collaborateur) a accès à un événement.
- * @returns {{ clientId: string, isCollaborator: boolean } | null}
+ * @returns {{ clientId: string, isCollaborator: boolean, role: string|null } | null}
  */
 export async function verifyEventAccess(token, eventId) {
   const supabase = getSupabaseClient(token);
@@ -22,24 +33,24 @@ export async function verifyEventAccess(token, eventId) {
 
   // 1. Propriétaire principal
   const { data: client } = await supabaseAdmin
-    .from('clients').select('id').eq('auth_id', user.id).single();
+    .from('clients').select('id, civil_role').eq('auth_id', user.id).single();
 
   if (client) {
     const { data: ev } = await supabaseAdmin
       .from('events').select('id').eq('id', eventId).eq('client_id', client.id).single();
     // Le titulaire du compte voit toujours sa propre facturation.
-    if (ev) return { clientId: client.id, isCollaborator: false, userId: user.id, canSeeBilling: true };
+    if (ev) return { clientId: client.id, isCollaborator: false, role: client.civil_role || null, userId: user.id, canSeeBilling: true };
   }
 
   // 2. Collaborateur
   const { data: collab } = await supabaseAdmin
     .from('event_collaborators')
-    .select('event_id, can_see_billing, events(client_id)')
+    .select('event_id, role, can_see_billing, events(client_id)')
     .eq('auth_id', user.id)
     .eq('event_id', eventId)
     .single();
 
-  if (collab) return { clientId: collab.events?.client_id, isCollaborator: true, userId: user.id, canSeeBilling: !!collab.can_see_billing };
+  if (collab) return { clientId: collab.events?.client_id, isCollaborator: true, role: collab.role, userId: user.id, canSeeBilling: !!collab.can_see_billing };
 
   return null;
 }
@@ -70,12 +81,15 @@ export async function getAuthContext(token) {
   if (!user) return null;
 
   const { data: client } = await supabaseAdmin
-    .from('clients').select('id').eq('auth_id', user.id).single();
+    .from('clients').select('id, civil_role').eq('auth_id', user.id).single();
 
-  if (client) return { userId: user.id, clientId: client.id, isCollaborator: false };
+  if (client) return { userId: user.id, clientId: client.id, isCollaborator: false, role: client.civil_role || null };
 
   // Collaborateur — pas de clientId direct, mais on peut vérifier par eventId si besoin
-  return { userId: user.id, clientId: null, isCollaborator: true };
+  const { data: collab } = await supabaseAdmin
+    .from('event_collaborators').select('role').eq('auth_id', user.id).single();
+
+  return { userId: user.id, clientId: null, isCollaborator: true, role: collab?.role || null };
 }
 
 /**
@@ -89,7 +103,7 @@ export async function verifyPlaylistAccess(token, playlistId) {
 
   const { data: pl } = await supabaseAdmin
     .from('playlists')
-    .select('id, event_id, events(id, client_id, clients(auth_id))')
+    .select('id, event_id, events(id, client_id, clients(auth_id, civil_role))')
     .eq('id', playlistId)
     .single();
 
@@ -98,16 +112,16 @@ export async function verifyPlaylistAccess(token, playlistId) {
 
   // Propriétaire
   if (ev?.clients?.auth_id === user.id)
-    return { clientId: ev.client_id, isCollaborator: false, userId: user.id };
+    return { clientId: ev.client_id, isCollaborator: false, role: ev.clients.civil_role || null, userId: user.id };
 
   // Collaborateur
   const { data: collab } = await supabaseAdmin
     .from('event_collaborators')
-    .select('id')
+    .select('id, role')
     .eq('auth_id', user.id)
     .eq('event_id', pl.event_id)
     .single();
 
-  if (collab) return { clientId: ev?.client_id, isCollaborator: true, userId: user.id };
+  if (collab) return { clientId: ev?.client_id, isCollaborator: true, role: collab.role, userId: user.id };
   return null;
 }

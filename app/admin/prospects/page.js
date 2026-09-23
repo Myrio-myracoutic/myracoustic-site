@@ -112,22 +112,31 @@ function timeAgo(iso) {
   return `il y a ${d} jour${d > 1 ? 's' : ''}`;
 }
 
+// Un appel dont l'horaire est passé n'a plus rien à "annuler" — le badge et les boutons
+// distinguent ce cas pour ne pas déclencher un email d'annulation sur un appel déjà passé.
+function isPastCall(iso) {
+  return !!iso && new Date(iso).getTime() < Date.now();
+}
+
 /* Boutons de planning d'appel — partagés entre les devis Qonto et les contacts pro simples. */
 function CallControls({ scheduledAt, cancelledAt, busy, onSchedule, onReschedule, onCancel, onSendLink, sendLinkBusy }) {
   if (scheduledAt && !cancelledAt) {
+    const past = isPastCall(scheduledAt);
     return (
       <div style={{ display: 'flex', gap: 8 }}>
         <button onClick={onReschedule} title="Choisir un autre jour/créneau" style={{
           border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.85)',
           borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontSize: 12,
           fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, whiteSpace: 'nowrap',
-        }}>Modifier</button>
-        <button onClick={onCancel} disabled={busy} title="Annuler le rendez-vous téléphonique" style={{
-          border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)', color: '#ef4444',
-          borderRadius: 8, padding: '6px 14px', cursor: busy ? 'wait' : 'pointer', fontSize: 12,
-          fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, whiteSpace: 'nowrap',
-          opacity: busy ? 0.6 : 1,
-        }}>Annuler</button>
+        }}>{past ? 'Reprogrammer' : 'Modifier'}</button>
+        {!past && (
+          <button onClick={onCancel} disabled={busy} title="Annuler le rendez-vous téléphonique" style={{
+            border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)', color: '#ef4444',
+            borderRadius: 8, padding: '6px 14px', cursor: busy ? 'wait' : 'pointer', fontSize: 12,
+            fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, whiteSpace: 'nowrap',
+            opacity: busy ? 0.6 : 1,
+          }}>Annuler</button>
+        )}
       </div>
     );
   }
@@ -495,8 +504,8 @@ export default function ProspectsPage() {
                   </div>
                   <div style={{ fontSize: 12.5, color: '#b8ef0b' }}>{q.client_email}</div>
                   {q.call_scheduled_at && !q.call_cancelled_at && (
-                    <div style={{ fontSize: 11.5, color: 'var(--lime)', fontWeight: 600, marginTop: 2 }}>
-                      📞 Appel prévu le {fmtCallDateTime(q.call_scheduled_at)}
+                    <div style={{ fontSize: 11.5, color: isPastCall(q.call_scheduled_at) ? 'rgba(255,255,255,0.4)' : 'var(--lime)', fontWeight: 600, marginTop: 2 }}>
+                      📞 {isPastCall(q.call_scheduled_at) ? 'Appel effectué le' : 'Appel prévu le'} {fmtCallDateTime(q.call_scheduled_at)}
                     </div>
                   )}
                 </div>
@@ -618,8 +627,8 @@ export default function ProspectsPage() {
                 </div>
                 <div style={{ fontSize: 12.5, color: '#b8ef0b' }}>{l.email} · 📞 {l.tel}</div>
                 {l.call_scheduled_at && !l.call_cancelled_at && (
-                  <div style={{ fontSize: 11.5, color: 'var(--lime)', fontWeight: 600, marginTop: 2 }}>
-                    📞 Appel prévu le {fmtCallDateTime(l.call_scheduled_at)}
+                  <div style={{ fontSize: 11.5, color: isPastCall(l.call_scheduled_at) ? 'rgba(255,255,255,0.4)' : 'var(--lime)', fontWeight: 600, marginTop: 2 }}>
+                    📞 {isPastCall(l.call_scheduled_at) ? 'Appel effectué le' : 'Appel prévu le'} {fmtCallDateTime(l.call_scheduled_at)}
                   </div>
                 )}
               </div>

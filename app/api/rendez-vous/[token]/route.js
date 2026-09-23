@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { resolveCallToken, bookCallSlot } from '@/app/lib/call-booking';
+import { resolveCallToken, bookCallSlot, deleteCallGoogleEvent } from '@/app/lib/call-booking';
 import { isDateInBookingWindow } from '@/lib/call-slots';
 
 // Même fenêtre que le tunnel public (7 j, cf. lib/call-slots.js) — CallSlotPicker n'affiche
@@ -48,6 +48,7 @@ export async function POST(request, { params }) {
   }
 
   const isReschedule = !!resolved.row.call_scheduled_at && !resolved.row.call_cancelled_at;
+  if (isReschedule) await deleteCallGoogleEvent(resolved.row.call_google_event_id);
   const result = await bookCallSlot({
     kind: resolved.kind, refId: resolved.refId, date, time,
     requireEmptySlot: false, isReschedule,

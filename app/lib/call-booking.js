@@ -131,7 +131,7 @@ export async function ensureCallToken({ kind = 'mariage', refId }) {
 export async function resolveCallToken(token) {
   if (!token) return null;
   for (const [kind, src] of Object.entries(SOURCES)) {
-    const { data: row } = await supabaseAdmin.from(src.table).select(src.select + ', call_scheduled_at, call_cancelled_at').eq('call_token', token).maybeSingle();
+    const { data: row } = await supabaseAdmin.from(src.table).select(src.select + ', call_scheduled_at, call_cancelled_at, call_google_event_id').eq('call_token', token).maybeSingle();
     if (row) return { kind, refId: row.id, row };
   }
   return null;

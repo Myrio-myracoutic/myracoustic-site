@@ -13,6 +13,12 @@ function fmtDateTime(iso) {
   return new Date(iso).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
 }
 
+// Un appel dont l'horaire est passé n'a plus rien à "annuler" — le badge et les boutons
+// distinguent ce cas pour ne pas déclencher un email d'annulation sur un appel déjà passé.
+function isPastCall(iso) {
+  return !!iso && new Date(iso).getTime() < Date.now();
+}
+
 const btnGhost = {
   border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.85)',
   borderRadius: 8, padding: '7px 14px', cursor: 'pointer', fontSize: 12.5,
@@ -95,7 +101,9 @@ export default function AdminMilestonesSection({ eventId }) {
                 <div>
                   <div style={{ color: '#fff', fontSize: 14, fontWeight: 600, marginBottom: 3 }}>{m.label}</div>
                   {booked ? (
-                    <div style={{ color: '#b8ef0b', fontSize: 12.5 }}>📞 Prévu le {fmtDateTime(m.call_scheduled_at)}</div>
+                    <div style={{ color: isPastCall(m.call_scheduled_at) ? 'rgba(255,255,255,0.4)' : '#b8ef0b', fontSize: 12.5 }}>
+                      📞 {isPastCall(m.call_scheduled_at) ? 'Effectué le' : 'Prévu le'} {fmtDateTime(m.call_scheduled_at)}
+                    </div>
                   ) : m.target_date ? (
                     <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12.5 }}>À prévoir vers le {fmtDate(m.target_date)}</div>
                   ) : (
@@ -104,16 +112,18 @@ export default function AdminMilestonesSection({ eventId }) {
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   {booked ? (
-                    <button onClick={() => act(m.id, { cancelCall: true }, 'cancel-' + key)} disabled={busy === 'cancel-' + key} title="Annuler ce rendez-vous" style={{ ...btnGhost, color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)' }}>
-                      {busy === 'cancel-' + key ? <Loader2 size={14} style={{ animation: 'spin 0.8s linear infinite' }} /> : 'Annuler'}
-                    </button>
+                    !isPastCall(m.call_scheduled_at) && (
+                      <button onClick={() => act(m.id, { cancelCall: true }, 'cancel-' + key)} disabled={busy === 'cancel-' + key} title="Annuler ce rendez-vous" style={{ ...btnGhost, color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)' }}>
+                        {busy === 'cancel-' + key ? <Loader2 size={14} style={{ animation: 'spin 0.8s linear infinite' }} /> : 'Annuler'}
+                      </button>
+                    )
                   ) : (
                     <button onClick={() => act(m.id, { sendBookingLink: true }, 'link-' + key)} disabled={busy === 'link-' + key} title="Renvoyer au client le lien pour choisir son créneau" style={btnGhost}>
                       {busy === 'link-' + key ? <Loader2 size={14} style={{ animation: 'spin 0.8s linear infinite' }} /> : <><Send size={13} /> Renvoyer le lien</>}
                     </button>
                   )}
                   <button onClick={() => setCallSlotFor({ milestone: m, mode: booked ? 'reschedule' : 'schedule' })} title="Programmer ce rendez-vous vous-même" style={{ ...btnGhost, color: '#b8ef0b', borderColor: 'rgba(184,239,11,0.3)', background: 'rgba(184,239,11,0.08)' }}>
-                    <PhoneCall size={13} /> {booked ? 'Modifier' : 'Programmer'}
+                    <PhoneCall size={13} /> {booked ? (isPastCall(m.call_scheduled_at) ? 'Reprogrammer' : 'Modifier') : 'Programmer'}
                   </button>
                 </div>
               </div>

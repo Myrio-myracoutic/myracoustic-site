@@ -621,6 +621,10 @@ export default function LeadsMariagePage() {
     return new Date(iso).toLocaleString('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
   };
 
+  // Un appel dont l'horaire est passé n'a plus rien à "annuler" — le badge et les boutons
+  // distinguent ce cas pour ne pas déclencher un email d'annulation sur un appel déjà passé.
+  const isPastCall = (iso) => !!iso && new Date(iso).getTime() < Date.now();
+
   const deleteLead = async (l) => {
     const warn = l.proposal
       ? `Supprimer le contact ${l.prenom} ${l.nom} ?\n\nUn devis est lié à ce contact : il ne sera pas supprimé, mais disparaîtra de cette liste.`
@@ -779,8 +783,8 @@ export default function LeadsMariagePage() {
                     </span></>
                   )}
                   {l.call_scheduled_at && !l.call_cancelled_at && (
-                    <><br /><span style={{ color: 'var(--lime)', fontWeight: 600 }}>
-                      📞 Appel prévu le {fmtCallDateTime(l.call_scheduled_at)}
+                    <><br /><span style={{ color: isPastCall(l.call_scheduled_at) ? 'rgba(255,255,255,0.4)' : 'var(--lime)', fontWeight: 600 }}>
+                      📞 {isPastCall(l.call_scheduled_at) ? 'Appel effectué le' : 'Appel prévu le'} {fmtCallDateTime(l.call_scheduled_at)}
                     </span></>
                   )}
                   {l.proposal?.viewed_count > 0 && (
@@ -815,13 +819,15 @@ export default function LeadsMariagePage() {
                       border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.85)',
                       borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontSize: 13,
                       fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, whiteSpace: 'nowrap',
-                    }}>Modifier</button>
-                    <button onClick={() => cancelCall(l.id)} disabled={busy === 'cancel-' + l.id} title="Annuler le rendez-vous téléphonique" style={{
-                      border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)', color: '#ef4444',
-                      borderRadius: 8, padding: '8px 16px', cursor: busy === 'cancel-' + l.id ? 'wait' : 'pointer', fontSize: 13,
-                      fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, whiteSpace: 'nowrap',
-                      opacity: busy === 'cancel-' + l.id ? 0.6 : 1,
-                    }}>Annuler le rendez-vous</button>
+                    }}>{isPastCall(l.call_scheduled_at) ? 'Reprogrammer' : 'Modifier'}</button>
+                    {!isPastCall(l.call_scheduled_at) && (
+                      <button onClick={() => cancelCall(l.id)} disabled={busy === 'cancel-' + l.id} title="Annuler le rendez-vous téléphonique" style={{
+                        border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)', color: '#ef4444',
+                        borderRadius: 8, padding: '8px 16px', cursor: busy === 'cancel-' + l.id ? 'wait' : 'pointer', fontSize: 13,
+                        fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, whiteSpace: 'nowrap',
+                        opacity: busy === 'cancel-' + l.id ? 0.6 : 1,
+                      }}>Annuler le rendez-vous</button>
+                    )}
                   </div>
                 ) : (
                   <div style={{ display: 'flex', gap: 8 }}>

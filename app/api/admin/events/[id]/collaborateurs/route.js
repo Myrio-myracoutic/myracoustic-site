@@ -80,7 +80,7 @@ export async function PATCH(req, { params }) {
   const { id } = await params;
   const { collabId, role } = await req.json();
 
-  if (!collabId || !['collaborator', 'wedding_planner', 'marie', 'mariee'].includes(role))
+  if (!collabId || !['collaborator', 'wedding_planner', 'marie', 'mariee', 'temoin', 'famille', 'ami', 'autre'].includes(role))
     return Response.json({ error: 'collabId et role valides requis' }, { status: 400 });
 
   const { data, error } = await supabaseAdmin

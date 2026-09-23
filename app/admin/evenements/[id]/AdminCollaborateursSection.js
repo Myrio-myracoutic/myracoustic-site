@@ -54,9 +54,13 @@ function StatusDot({ collab }) {
 
 const ROLE_OPTIONS = [
   { value: 'collaborator',   label: 'Accès classique' },
+  { value: 'temoin',         label: 'Témoin' },
+  { value: 'famille',        label: 'Famille' },
+  { value: 'ami',            label: 'Ami' },
   { value: 'wedding_planner', label: 'Wedding Planner' },
   { value: 'marie',          label: 'Marié' },
   { value: 'mariee',         label: 'Mariée' },
+  { value: 'autre',          label: 'Autre' },
 ];
 
 function RoleSelect({ collab, onChange, disabled }) {

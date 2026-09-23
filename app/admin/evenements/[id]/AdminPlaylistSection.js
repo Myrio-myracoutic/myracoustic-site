@@ -56,7 +56,10 @@ function PlaylistRow({ playlist, playingId, loadingId, onPlay, onDeleteTidal, on
 
   const currentVis = playlist.is_surprise
     ? 'hide_couple'
-    : playlist.hidden_from_collaborators ? 'hide_collaborators' : 'all';
+    : playlist.hidden_from_collaborators ? 'hide_collaborators'
+    : playlist.hidden_from_role === 'marie' ? 'hide_marie'
+    : playlist.hidden_from_role === 'mariee' ? 'hide_mariee'
+    : 'all';
 
   const changeVisibility = async (v) => {
     if (v === currentVis || savingVis) return;
@@ -135,6 +138,8 @@ function PlaylistRow({ playlist, playingId, loadingId, onPlay, onDeleteTidal, on
                 { key: 'all',                label: 'Visible par tous' },
                 { key: 'hide_couple',        label: 'Cachée aux mariés' },
                 { key: 'hide_collaborators', label: 'Cachée aux accès partagés' },
+                { key: 'hide_marie',         label: 'Cachée au marié' },
+                { key: 'hide_mariee',        label: 'Cachée à la mariée' },
               ].map(opt => {
                 const active = currentVis === opt.key;
                 return (
@@ -155,6 +160,8 @@ function PlaylistRow({ playlist, playingId, loadingId, onPlay, onDeleteTidal, on
             <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', margin: '8px 0 0', lineHeight: 1.5 }}>
               {currentVis === 'hide_couple'        && 'Les mariés ne voient pas cette playlist ; les accès partagés (témoins) et vous, oui.'}
               {currentVis === 'hide_collaborators' && 'Les accès partagés ne voient pas cette playlist ; les mariés et vous, oui.'}
+              {currentVis === 'hide_marie'         && 'Seul le compte tagué "Marié" ne voit pas cette playlist ; la mariée, les accès partagés et vous, oui.'}
+              {currentVis === 'hide_mariee'        && 'Seul le compte tagué "Mariée" ne voit pas cette playlist ; le marié, les accès partagés et vous, oui.'}
               {currentVis === 'all'                && 'Visible par les mariés et les accès partagés.'}
             </p>
           </div>

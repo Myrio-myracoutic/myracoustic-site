@@ -21,6 +21,28 @@ export function isSpouseAccess(access) {
 export function isPlannerAccess(access) {
   return !!access && access.role === 'wedding_planner';
 }
+export function otherSpouseRole(role) {
+  if (role === 'marie') return 'mariee';
+  if (role === 'mariee') return 'marie';
+  return null;
+}
+
+/**
+ * Détermine si une playlist est cachée pour ce compte, tous types de masquage confondus :
+ * - is_surprise         → cachée à TOUS les mariés (peu importe marié/mariée)
+ * - hidden_from_role     → cachée à UN SEUL conjoint (le marié OU la mariée, pas les deux)
+ * - hidden_from_collaborators → cachée aux accès partagés classiques
+ * Le Wedding Planner voit toujours tout.
+ */
+export function isPlaylistHiddenFor(playlist, access) {
+  if (isPlannerAccess(access)) return false;
+  if (isSpouseAccess(access)) {
+    if (playlist.is_surprise) return true;
+    if (playlist.hidden_from_role && playlist.hidden_from_role === access.role) return true;
+    return false;
+  }
+  return !!playlist.hidden_from_collaborators;
+}
 
 /**
  * Vérifie qu'un utilisateur (propriétaire ou collaborateur) a accès à un événement.

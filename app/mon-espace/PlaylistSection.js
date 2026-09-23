@@ -639,7 +639,7 @@ function SuggestionsTab({ playlistId, token, onRefresh, onApproved }) {
   );
 }
 
-function PlaylistCard({ playlist, token, onRefresh, isCollaborator }) {
+function PlaylistCard({ playlist, token, onRefresh, isCollaborator, role = null }) {
   const [open,      setOpen]      = useState(false);
   const [activeTab, setActiveTab] = useState('playlist');
   const [renaming,  setRenaming]  = useState(false);
@@ -648,6 +648,11 @@ function PlaylistCard({ playlist, token, onRefresh, isCollaborator }) {
   const [deleting,  setDeleting]  = useState(false);
   const [savingVis, setSavingVis] = useState(false);
   const nameInputRef = useRef(null);
+
+  // Un conjoint tagué (marié/mariée) peut en plus cacher une playlist à SON conjoint
+  // uniquement, sans la cacher aux témoins. Réservé aux comptes taggués côté admin.
+  const otherRole  = role === 'marie' ? 'mariee' : role === 'mariee' ? 'marie' : null;
+  const otherLabel = otherRole === 'mariee' ? 'la mariée' : otherRole === 'marie' ? 'le marié' : null;
 
   // Interrupteur de visibilité selon le rôle :
   // - accès partagé (témoin) : cacher aux mariés (is_surprise)
@@ -659,6 +664,29 @@ function PlaylistCard({ playlist, token, onRefresh, isCollaborator }) {
     const body = isCollaborator
       ? { is_surprise: !playlist.is_surprise }
       : { hidden_from_collaborators: !playlist.hidden_from_collaborators };
+    await fetch(`/api/mon-espace/playlists/${playlist.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(body),
+    });
+    setSavingVis(false);
+    onRefresh();
+  };
+
+  // État à 3 valeurs pour un conjoint tagué : visible / caché aux témoins / caché au conjoint
+  const spouseVisState = playlist.hidden_from_collaborators ? 'hide_collaborators'
+    : (playlist.hidden_from_role && playlist.hidden_from_role === otherRole) ? 'hide_spouse'
+    : 'all';
+  const setSpouseVisibility = async (next) => {
+    if (savingVis || next === spouseVisState) return;
+    setSavingVis(true);
+    const body = {};
+    if (next === 'hide_collaborators') body.hidden_from_collaborators = true;
+    else if (next === 'hide_spouse') body.hidden_from_role = otherRole;
+    else {
+      if (playlist.hidden_from_collaborators) body.hidden_from_collaborators = false;
+      if (playlist.hidden_from_role) body.hidden_from_role = null;
+    }
     await fetch(`/api/mon-espace/playlists/${playlist.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -779,7 +807,7 @@ function PlaylistCard({ playlist, token, onRefresh, isCollaborator }) {
             display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, textAlign: 'left',
           }}
         >
-          {(playlist.is_surprise || playlist.hidden_from_collaborators)
+          {(playlist.is_surprise || playlist.hidden_from_collaborators || playlist.hidden_from_role)
             ? <Gift size={16} color="#a78bfa" strokeWidth={1.5} style={{ flexShrink: 0 }} />
             : <Music2 size={16} color="#b8ef0b" strokeWidth={1.5} style={{ flexShrink: 0 }} />
           }
@@ -807,7 +835,7 @@ function PlaylistCard({ playlist, token, onRefresh, isCollaborator }) {
             background: 'rgba(255,255,255,0.06)', borderRadius: 10, padding: '2px 8px',
             flexShrink: 0,
           }}>{tracks.length} titre{tracks.length !== 1 ? 's' : ''}</span>
-          {(playlist.is_surprise || playlist.hidden_from_collaborators) && (
+          {(playlist.is_surprise || playlist.hidden_from_collaborators || playlist.hidden_from_role) && (
             <span style={{
               background: 'rgba(139,92,246,0.15)', color: '#a78bfa',
               border: '1px solid rgba(139,92,246,0.3)',
@@ -815,7 +843,11 @@ function PlaylistCard({ playlist, token, onRefresh, isCollaborator }) {
               flexShrink: 0, fontFamily: 'var(--font-display), sans-serif',
               display: 'flex', alignItems: 'center', gap: 4,
             }}>
-              <Gift size={9} /> {playlist.is_surprise ? 'Surprise' : 'Privée'}
+              <Gift size={9} /> {playlist.is_surprise
+                ? 'Surprise'
+                : playlist.hidden_from_role
+                  ? (playlist.hidden_from_role === 'mariee' ? 'Secret pour la mariée' : 'Secret pour le marié')
+                  : 'Privée'}
             </span>
           )}
           {playlist.pending_suggestions > 0 && (
@@ -886,37 +918,70 @@ function PlaylistCard({ playlist, token, onRefresh, isCollaborator }) {
 
           {/* Visibilité de la playlist (rôle-dépendante) */}
           <div style={{ marginBottom: 14 }}>
-            <button
-              onClick={toggleVisibility}
-              disabled={savingVis}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 8,
-                background: hidden ? 'rgba(139,92,246,0.12)' : 'rgba(255,255,255,0.04)',
-                border: `1px solid ${hidden ? 'rgba(139,92,246,0.4)' : 'rgba(255,255,255,0.1)'}`,
-                borderRadius: 7, padding: '6px 12px', cursor: savingVis ? 'default' : 'pointer',
-                color: hidden ? '#a78bfa' : 'rgba(255,255,255,0.5)', fontSize: 12, fontFamily: 'inherit',
-                transition: 'all 0.15s',
-              }}
-            >
-              {savingVis
-                ? <Loader2 size={13} style={{ animation: 'spin 0.8s linear infinite' }} />
-                : <Gift size={13} />}
-              <span style={{ fontWeight: hidden ? 700 : 400 }}>
-                {isCollaborator
-                  ? (hidden ? 'Surprise activée — cachée aux mariés' : 'Cacher aux mariés (surprise)')
-                  : (hidden ? 'Cachée aux accès partagés' : 'Cacher aux accès partagés')}
-              </span>
-            </button>
-            {hidden && (
-              <div style={{
-                marginTop: 8, fontSize: 12, color: 'rgba(167,139,250,0.75)',
-                background: 'rgba(139,92,246,0.07)', border: '1px solid rgba(139,92,246,0.15)',
-                borderRadius: 6, padding: '8px 12px', lineHeight: 1.6,
-              }}>
-                {isCollaborator
-                  ? <><strong style={{ color: '#a78bfa' }}>Invisible pour les mariés.</strong> Seuls les accès partagés (témoins) et Myracoustic la voient — parfait pour préparer une surprise.</>
-                  : <><strong style={{ color: '#a78bfa' }}>Invisible pour les accès partagés.</strong> Seuls vous (les mariés) et Myracoustic la voyez.</>}
-              </div>
+            {!isCollaborator && otherRole ? (
+              <>
+                <select
+                  value={spouseVisState}
+                  disabled={savingVis}
+                  onChange={e => setSpouseVisibility(e.target.value)}
+                  style={{
+                    background: spouseVisState !== 'all' ? 'rgba(139,92,246,0.12)' : 'rgba(255,255,255,0.04)',
+                    border: `1px solid ${spouseVisState !== 'all' ? 'rgba(139,92,246,0.4)' : 'rgba(255,255,255,0.1)'}`,
+                    borderRadius: 7, padding: '6px 12px', cursor: savingVis ? 'default' : 'pointer',
+                    color: spouseVisState !== 'all' ? '#a78bfa' : 'rgba(255,255,255,0.5)', fontSize: 12, fontFamily: 'inherit',
+                  }}
+                >
+                  <option value="all" style={{ color: '#000' }}>Visible par tous</option>
+                  <option value="hide_collaborators" style={{ color: '#000' }}>Cacher aux accès partagés</option>
+                  <option value="hide_spouse" style={{ color: '#000' }}>Cacher à {otherLabel}</option>
+                </select>
+                {spouseVisState !== 'all' && (
+                  <div style={{
+                    marginTop: 8, fontSize: 12, color: 'rgba(167,139,250,0.75)',
+                    background: 'rgba(139,92,246,0.07)', border: '1px solid rgba(139,92,246,0.15)',
+                    borderRadius: 6, padding: '8px 12px', lineHeight: 1.6,
+                  }}>
+                    {spouseVisState === 'hide_spouse'
+                      ? <><strong style={{ color: '#a78bfa' }}>Invisible pour {otherLabel}.</strong> Les accès partagés et Myracoustic la voient toujours.</>
+                      : <><strong style={{ color: '#a78bfa' }}>Invisible pour les accès partagés.</strong> Vous et Myracoustic la voyez.</>}
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={toggleVisibility}
+                  disabled={savingVis}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 8,
+                    background: hidden ? 'rgba(139,92,246,0.12)' : 'rgba(255,255,255,0.04)',
+                    border: `1px solid ${hidden ? 'rgba(139,92,246,0.4)' : 'rgba(255,255,255,0.1)'}`,
+                    borderRadius: 7, padding: '6px 12px', cursor: savingVis ? 'default' : 'pointer',
+                    color: hidden ? '#a78bfa' : 'rgba(255,255,255,0.5)', fontSize: 12, fontFamily: 'inherit',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {savingVis
+                    ? <Loader2 size={13} style={{ animation: 'spin 0.8s linear infinite' }} />
+                    : <Gift size={13} />}
+                  <span style={{ fontWeight: hidden ? 700 : 400 }}>
+                    {isCollaborator
+                      ? (hidden ? 'Surprise activée — cachée aux mariés' : 'Cacher aux mariés (surprise)')
+                      : (hidden ? 'Cachée aux accès partagés' : 'Cacher aux accès partagés')}
+                  </span>
+                </button>
+                {hidden && (
+                  <div style={{
+                    marginTop: 8, fontSize: 12, color: 'rgba(167,139,250,0.75)',
+                    background: 'rgba(139,92,246,0.07)', border: '1px solid rgba(139,92,246,0.15)',
+                    borderRadius: 6, padding: '8px 12px', lineHeight: 1.6,
+                  }}>
+                    {isCollaborator
+                      ? <><strong style={{ color: '#a78bfa' }}>Invisible pour les mariés.</strong> Seuls les accès partagés (témoins) et Myracoustic la voient — parfait pour préparer une surprise.</>
+                      : <><strong style={{ color: '#a78bfa' }}>Invisible pour les accès partagés.</strong> Seuls vous (les mariés) et Myracoustic la voyez.</>}
+                  </div>
+                )}
+              </>
             )}
           </div>
 
@@ -1125,7 +1190,7 @@ export default function PlaylistSection({ eventId, token, onSuggestionActed, isC
           </p>
         )}
         {playlists.map(pl => (
-          <PlaylistCard key={pl.id} playlist={pl} token={token} onRefresh={refresh} isCollaborator={isCollaboratorForVisibility} />
+          <PlaylistCard key={pl.id} playlist={pl} token={token} onRefresh={refresh} isCollaborator={isCollaboratorForVisibility} role={role} />
         ))}
         <CreatePlaylistForm eventId={eventId} token={token} onCreated={refresh} isCollaborator={isCollaboratorForVisibility} lockSurprise={lockSurprise} />
       </div>

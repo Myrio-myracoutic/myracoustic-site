@@ -1,20 +1,14 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
-import { verifyEventAccess, verifyPlaylistAccess, isSpouseAccess, isPlannerAccess } from '@/app/lib/event-access';
+import { verifyEventAccess, verifyPlaylistAccess, isSpouseAccess, isPlaylistHiddenFor, otherSpouseRole } from '@/app/lib/event-access';
 
 /**
- * Filtre les playlists selon le rôle et la visibilité choisie :
- * - is_surprise               → cachée aux MARIÉS (visible par tous les accès partagés + admin)
- * - hidden_from_collaborators → cachée aux ACCÈS PARTAGÉS (visible par les mariés + admin)
- * - Wedding Planner : ne voit jamais rien de caché, quelle que soit la playlist
- * - Admin (via supabaseAdmin) : voit tout
+ * Filtre les playlists selon le rôle et la visibilité choisie (voir isPlaylistHiddenFor
+ * dans app/lib/event-access.js pour le détail : surprise globale, ciblée à un conjoint,
+ * ou cachée aux accès partagés). Wedding Planner et admin voient toujours tout.
  */
 function filterPlaylists(playlists, access) {
-  if (isPlannerAccess(access)) return playlists;
-  return playlists.filter(p => {
-    if (isSpouseAccess(access)) return !p.is_surprise;              // mariés (principal ou conjoint tagué) : tout sauf « caché aux mariés »
-    return !p.hidden_from_collaborators;                            // accès partagé classique : tout sauf « caché aux accès partagés »
-  });
+  return playlists.filter(p => !isPlaylistHiddenFor(p, access));
 }
 
 // GET /api/mon-espace/playlists/[eventId]
@@ -29,7 +23,7 @@ export async function GET(request, { params }) {
   const { data: playlists, error } = await supabaseAdmin
     .from('playlists')
     .select(`
-      id, name, position, is_surprise, hidden_from_collaborators, created_by_auth_id,
+      id, name, position, is_surprise, hidden_from_collaborators, hidden_from_role, created_by_auth_id,
       playlist_tracks ( id, title, artist, note, position, tidal_id, album, deezer_id, preview_url, cover_url )
     `)
     .eq('event_id', eventId)
@@ -74,15 +68,12 @@ export async function PATCH(request, { params }) {
 
   const { data: pl } = await supabaseAdmin
     .from('playlists')
-    .select('is_surprise, hidden_from_collaborators, created_by_auth_id')
+    .select('is_surprise, hidden_from_collaborators, hidden_from_role, created_by_auth_id')
     .eq('id', playlistId).single();
   if (!pl) return NextResponse.json({ error: 'Playlist introuvable' }, { status: 404 });
 
   // L'utilisateur doit pouvoir VOIR la playlist pour la modifier
-  const canSee = isPlannerAccess(access)
-    ? true
-    : isSpouseAccess(access) ? !pl.is_surprise : !pl.hidden_from_collaborators;
-  if (!canSee) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
+  if (isPlaylistHiddenFor(pl, access)) return NextResponse.json({ error: 'Non autorisé' }, { status: 403 });
 
   const body = await request.json();
   const updates = {};
@@ -95,19 +86,29 @@ export async function PATCH(request, { params }) {
     updates.name = body.name.trim();
   }
 
-  // Visibilité — un accès partagé cache aux mariés (is_surprise) ;
-  // les mariés cachent aux accès partagés (hidden_from_collaborators). Exclusifs.
+  // Visibilité — un accès partagé cache aux mariés (is_surprise) ; les mariés cachent aux
+  // accès partagés (hidden_from_collaborators) ; un conjoint tagué peut cacher à l'AUTRE
+  // conjoint seulement (hidden_from_role). Les trois sont exclusifs entre eux.
   if (body.is_surprise !== undefined) {
     if (isSpouseAccess(access))
       return NextResponse.json({ error: 'Seul un accès partagé peut cacher aux mariés' }, { status: 403 });
     updates.is_surprise = !!body.is_surprise;
-    if (updates.is_surprise) updates.hidden_from_collaborators = false;
+    if (updates.is_surprise) { updates.hidden_from_collaborators = false; updates.hidden_from_role = null; }
   }
   if (body.hidden_from_collaborators !== undefined) {
     if (!isSpouseAccess(access))
       return NextResponse.json({ error: 'Seuls les mariés peuvent cacher aux accès partagés' }, { status: 403 });
     updates.hidden_from_collaborators = !!body.hidden_from_collaborators;
-    if (updates.hidden_from_collaborators) updates.is_surprise = false;
+    if (updates.hidden_from_collaborators) { updates.is_surprise = false; updates.hidden_from_role = null; }
+  }
+  if (body.hidden_from_role !== undefined) {
+    const target = otherSpouseRole(access.role);
+    if (!target)
+      return NextResponse.json({ error: 'Réservé aux comptes tagués Marié ou Mariée' }, { status: 403 });
+    if (body.hidden_from_role !== null && body.hidden_from_role !== target)
+      return NextResponse.json({ error: 'Vous ne pouvez cacher une playlist qu\'à votre conjoint' }, { status: 400 });
+    updates.hidden_from_role = body.hidden_from_role;
+    if (updates.hidden_from_role) { updates.is_surprise = false; updates.hidden_from_collaborators = false; }
   }
 
   if (Object.keys(updates).length === 0)

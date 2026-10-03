@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Sparkles, Download } from 'lucide-react';
 import { AnimatedWave, SectionLabel } from '../components/AnimatedWave';
 import { FAQ_ITEMS } from './faq-data';
@@ -142,12 +143,49 @@ function AvailabilityLine({ availability }) {
 }
 
 export default function MariageClient({ availability }) {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const h = () => setScrolled(window.scrollY > 40);
+    window.addEventListener('scroll', h, { passive: true });
+    return () => window.removeEventListener('scroll', h);
+  }, []);
+
   return (
-    <div style={{ paddingTop: 70 }}>
+    <div>
+
+      {/* ── HEADER (pas de menu, pas de liens annexes — logo + un seul CTA) ──
+           Fixe, transparent au chargement, coloré au scroll (même mécanisme que Nav.js) ── */}
+      <div style={{
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200,
+        background: scrolled ? 'rgba(13,27,42,0.96)' : 'transparent',
+        backdropFilter: scrolled ? 'blur(18px)' : 'none',
+        borderBottom: scrolled ? '1px solid rgba(255,255,255,0.07)' : 'none',
+        transition: 'all 0.35s ease',
+      }}>
+        <div style={{
+          padding: '20px 32px', maxWidth: 1280, margin: '0 auto', minHeight: 44,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+        }}>
+          <Image src="/logo.png" alt="Myracoustic" width={150} height={50} style={{ height: 44, width: 'auto' }} priority />
+          <a href="/devis/mariage-contact" onClick={() => gtagEvent('funnel_step', { profil: 'mariage', step_name: 'mariage_cta_header' })} style={{
+            background: 'var(--lime)', color: '#0d1b2a',
+            padding: '10px 20px', borderRadius: 6, fontSize: 14, fontWeight: 700,
+            fontFamily: 'var(--font-display), sans-serif',
+            textDecoration: 'none', display: 'inline-block', whiteSpace: 'nowrap', transition: 'all 0.2s',
+          }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = '#ceff2a'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; }}
+          >
+            <span className="hide-mobile">Vérifier ma disponibilité →</span>
+            <span className="hide-desktop">Devis →</span>
+          </a>
+        </div>
+      </div>
 
       {/* ── HERO ────────────────────────────────────────────────── */}
       <section style={{
-        padding: 'clamp(64px,9vw,110px) 32px clamp(80px,10vw,120px)',
+        padding: 'clamp(104px,12vw,140px) 32px clamp(80px,10vw,120px)',
         backgroundImage: 'url(/particuliers-hero.jpg)',
         backgroundSize: 'cover', backgroundPosition: 'center',
         position: 'relative', overflow: 'hidden',
@@ -191,7 +229,7 @@ export default function MariageClient({ availability }) {
           }}>
             Le jour où tout se joue. Nous orchestrons le son, la lumière et l&apos;émotion de votre cérémonie à la dernière danse — pour que vous n&apos;ayez qu&apos;à vivre l&apos;instant.
           </p>
-          <a href="/devis/mariage-contact" onClick={() => gtagEvent('funnel_step', { profil: 'mariage', step_name: 'mariage_cta' })} style={{
+          <a href="/devis/mariage-contact" onClick={() => gtagEvent('funnel_step', { profil: 'mariage', step_name: 'mariage_cta_hero' })} style={{
             background: 'var(--lime)', color: '#0d1b2a',
             padding: '15px 32px', borderRadius: 8, fontSize: 16, fontWeight: 700,
             fontFamily: 'var(--font-display), sans-serif',
@@ -326,7 +364,7 @@ export default function MariageClient({ availability }) {
           </div>
           <TestimonialCarousel items={TESTIMONIALS} />
           <Reveal style={{ textAlign: 'center', marginTop: 44 }}>
-            <a href="/devis/mariage-contact" onClick={() => gtagEvent('funnel_step', { profil: 'mariage', step_name: 'mariage_cta' })} style={{
+            <a href="/devis/mariage-contact" onClick={() => gtagEvent('funnel_step', { profil: 'mariage', step_name: 'mariage_cta_temoignages' })} style={{
               background: 'var(--lime)', color: '#0d1b2a',
               padding: '15px 34px', borderRadius: 8, fontSize: 16, fontWeight: 700,
               fontFamily: 'var(--font-display), sans-serif',
@@ -439,7 +477,7 @@ export default function MariageClient({ availability }) {
         <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 16, marginBottom: 32 }}>
           Trois formules claires, un conseiller vous rappelle sous 24h pour finaliser votre devis.
         </p>
-        <a href="/devis/mariage-contact" onClick={() => gtagEvent('funnel_step', { profil: 'mariage', step_name: 'mariage_cta' })} style={{
+        <a href="/devis/mariage-contact" onClick={() => gtagEvent('funnel_step', { profil: 'mariage', step_name: 'mariage_cta_final' })} style={{
           background: 'var(--lime)', color: '#0d1b2a',
           padding: '16px 40px', borderRadius: 8, fontSize: 17, fontWeight: 700,
           fontFamily: 'var(--font-display), sans-serif',

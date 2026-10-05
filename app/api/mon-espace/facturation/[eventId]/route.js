@@ -48,7 +48,8 @@ export async function GET(request, { params }) {
   ]);
 
   const quote   = qRes.ok   ? (await qRes.json()).quote             : null;
-  const allInvs = invRes.ok ? (await invRes.json()).client_invoices : [];
+  // Une facture annulée n'est jamais due : jamais affichée au client, jamais comptée.
+  const allInvs = invRes.ok ? (await invRes.json()).client_invoices.filter(i => i.status !== 'canceled') : [];
 
   // Le champ quote_url de Qonto pointe vers le portail privé (portal.qonto.com),
   // inaccessible au client. Le vrai PDF consultable passe par l'attachment :

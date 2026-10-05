@@ -38,7 +38,10 @@ export async function GET(request) {
   const qData   = qRes.ok   ? await qRes.json()   : { quotes: [] };
   const invData = invRes.ok ? await invRes.json() : { client_invoices: [] };
 
-  const allInvoices = invData.client_invoices || [];
+  // Une facture annulée n'est jamais due : elle ne doit jamais apparaître sur la fiche
+  // client (ni dans les listes, ni dans les calculs payé/restant dû).
+  const allInvoices = (invData.client_invoices || []).filter(i => i.status !== 'canceled');
+  const allInvoicesById = new Map(allInvoices.map(i => [i.id, i]));
 
   // Construire un index des factures liées à un devis
   const invoicesByDevis = {};
@@ -69,11 +72,26 @@ export async function GET(request) {
     .filter(q => q.client_id === client.id || q.client?.id === client.id)
     .filter(q => q.status !== 'canceled');
 
-  const quotes = clientQuotes.map(q => {
+  const quotes = await Promise.all(clientQuotes.map(async (q) => {
     const total = parseFloat(q.total_amount?.value || 0);
 
-    // Chercher les factures liées : par UUID ou par numéro de devis
-    const linked = invoicesByDevis[q.id] || invoicesByDevis[q.number] || [];
+    // Lien fiable : le devis Qonto liste toutes ses factures dans invoice_ids (même
+    // méthode que /api/mon-espace/facturation/[eventId]) — le lien quote_id/titre
+    // ci-dessus ne fonctionne quasiment jamais (Qonto ne renseigne pas quote_id).
+    let linked = invoicesByDevis[q.id] || invoicesByDevis[q.number] || [];
+    try {
+      const qdRes = await fetch(`${QONTO_BASE}/quotes/${q.id}`, { headers: qHeaders() });
+      if (qdRes.ok) {
+        const { quote: qd } = await qdRes.json();
+        for (const invoiceId of qd?.invoice_ids || []) {
+          const inv = allInvoicesById.get(invoiceId);
+          if (inv && !linkedInvoiceIds.has(inv.id)) {
+            linked = [...linked, inv];
+            linkedInvoiceIds.add(inv.id);
+          }
+        }
+      }
+    } catch { /* lien fiable indisponible, on garde le fallback titre/quote_id */ }
 
     const paidInvoices    = linked.filter(i => i.status === 'paid');
     const pendingInvoices = linked.filter(i => ['unpaid', 'pending'].includes(i.status));
@@ -117,7 +135,7 @@ export async function GET(request) {
         invoice_url: i.invoice_url || null,
       })),
     };
-  });
+  }));
 
   const isCompany = client.type === 'company';
   const addr = client.billing_address || client.address || {};

@@ -4,7 +4,7 @@ import { FAQ_ITEMS } from './faq-data';
 export const metadata = {
   title: "Prestataire Technique Événementiel à Nantes",
   description:
-    "Sonorisation professionnelle, éclairage, écran LED et régie technique pour vos séminaires, conventions et galas d'entreprise à Nantes et en Pays de la Loire (80 à 400 personnes).",
+    "Sonorisation professionnelle, éclairage, écran LED et régie technique pour vos séminaires, conventions et galas d'entreprise à Nantes et en Pays de la Loire (80 à 600 personnes).",
   alternates: {
     canonical: '/evenement-entreprise',
   },
@@ -12,7 +12,7 @@ export const metadata = {
     url: '/evenement-entreprise',
     title: "Prestataire Technique Événementiel à Nantes — Myracoustic",
     description:
-      "Sonorisation professionnelle, éclairage, écran LED et régie technique pour vos séminaires, conventions et galas d'entreprise à Nantes et en Pays de la Loire (80 à 400 personnes).",
+      "Sonorisation professionnelle, éclairage, écran LED et régie technique pour vos séminaires, conventions et galas d'entreprise à Nantes et en Pays de la Loire (80 à 600 personnes).",
     images: [{ url: '/seminaire_myracoustic_nantes.jpg', width: 1200, height: 630, alt: "Séminaire d'entreprise Myracoustic" }],
   },
   twitter: {

@@ -194,7 +194,7 @@ export default function EntreprisesPage() {
           maxWidth: 1280, margin: '0 auto',
           position: 'relative', zIndex: 1,
         }}>
-          <SectionLabel>Entreprises · 80 à 400 participants</SectionLabel>
+          <SectionLabel>Entreprises · 80 à 600 participants</SectionLabel>
           <h1 style={{
             fontFamily: 'var(--font-display), sans-serif',
             fontSize: 'clamp(40px,7vw,90px)', fontWeight: 700,
@@ -209,7 +209,7 @@ export default function EntreprisesPage() {
             fontSize: 'clamp(14px,1.5vw,17px)', lineHeight: 1.75,
             maxWidth: 460, marginBottom: 36,
           }}>
-            Myracoustic conçoit et exploite des dispositifs techniques complets — sonorisation, éclairage, écran LED et régie — pour vos événements d'entreprise de 80 à 400 personnes en Pays de la Loire.
+            Myracoustic conçoit et exploite des dispositifs techniques complets — sonorisation, éclairage, écran LED et régie — pour vos événements d'entreprise de 80 à 600 personnes en Pays de la Loire.
           </p>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             <a href="/devis/professionnel" style={{

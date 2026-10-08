@@ -125,6 +125,25 @@ export const PLATFORM_FEATURES = [
 
 export const EXTRA_HOUR_PRICE = 70; // heure DJ supplémentaire (TTC) — sauf Prestige (soirée complète)
 
+/* Catalogue complet des options (dédupliquées par clé, union des 3 formules) — pour le "Pack
+   personnalisé" du DevisBuilder admin, où les options sont de simples inclusions sans prix propre
+   (le prix du pack est fixé librement par l'admin, indépendamment des options cochées). */
+export const ALL_OPTIONS = (() => {
+  const seen = new Map();
+  for (const f of FORMULES) for (const o of f.options) if (!seen.has(o.key)) seen.set(o.key, o);
+  return [...seen.values()];
+})();
+
+/* Éléments de base (normalement garantis par une formule via `specs`, donc absents de `options`)
+   — à cocher manuellement pour un pack personnalisé, qui n'a aucune formule derrière lui. */
+export const PACK_BASE_ITEMS = [
+  { key: 'dj',             label: 'DJ' },
+  { key: 'son',            label: 'Sonorisation' },
+  { key: 'lumiere_piste',  label: 'Éclairage piste de danse' },
+  { key: 'installation',   label: 'Installation / désinstallation' },
+  { key: 'espace_en_ligne', label: 'Espace en ligne' },
+];
+
 export const fmtPrice = (n) => n.toLocaleString('fr-FR') + ' €';
 
 /* Détail des inclusions d'une formule, en puces — pour la description d'une ligne de devis Qonto.

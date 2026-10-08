@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Minus, Trash2, X, FileText, Check, Loader2, Heart, Mail, CalendarClock, Percent, PhoneCall, AlertTriangle } from 'lucide-react';
-import { FORMULES, POLES, EXTRA_HOUR_PRICE, fmtPrice } from '@/app/lib/formules';
+import { FORMULES, POLES, ALL_OPTIONS, PACK_BASE_ITEMS, EXTRA_HOUR_PRICE, fmtPrice } from '@/app/lib/formules';
 import { discountEuros, discountLabel } from '@/app/lib/discount';
 import { getTransportFee, getRoadKm, TECH_PRICE } from '@/app/lib/transport';
 import { geocodeAddress } from '@/app/lib/geocode';
@@ -37,13 +37,24 @@ function TabButton({ active, onClick, children }) {
 let uid = 0;
 const nextId = () => `l${++uid}`;
 
+// Sentinel pour le mode "Pack personnalisé" — jamais envoyé tel quel à l'API (voir save()).
+const PACK_KEY = '__pack__';
+
 // Même vocabulaire que app/lib/attribution.js / app/admin/page.js — origine captée depuis le 25/08.
 const SOURCE_LABELS = { google_ads: 'Google Ads', recherche_google: 'Recherche Google', reseaux_sociaux: 'Réseaux sociaux', bouche_a_oreille: 'Bouche-à-oreille', salon_du_mariage: 'Salon du mariage', bark: 'Bark.com', mariages_net: 'Mariages.net', autre: 'Autre' };
 
 function DevisBuilder({ lead, proposal, bookedDates = new Set(), pendingDates = {}, onClose, onDone }) {
   const editing = !!proposal;
-  const [formuleKey, setFormuleKey] = useState(proposal?.formule || '');
+  // Un pack personnalisé se reconnaît par l'absence de formule + une ligne source:'formule' déjà
+  // présente (sa ligne de base) — contrairement au "Sur-mesure" pur, qui n'a pas de ligne de base.
+  const [formuleKey, setFormuleKey] = useState(() => {
+    if (proposal?.formule) return proposal.formule;
+    return (proposal?.items || []).some(it => it.source === 'formule') ? PACK_KEY : '';
+  });
   const [items, setItems] = useState(() => (proposal?.items || []).map(it => ({ ...it, id: nextId() })));
+  const packBaseItem = (proposal?.items || []).find(it => it.source === 'formule');
+  const [packName, setPackName] = useState(() => !proposal?.formule && packBaseItem ? packBaseItem.title : '');
+  const [packPrice, setPackPrice] = useState(() => !proposal?.formule && packBaseItem ? packBaseItem.price : '');
   const [hours, setHours] = useState(() => {
     const h = (proposal?.items || []).find(it => it.source === 'hours');
     return h ? Math.round(Number(h.price) / EXTRA_HOUR_PRICE) : 0;
@@ -58,6 +69,7 @@ function DevisBuilder({ lead, proposal, bookedDates = new Set(), pendingDates = 
   const [guests, setGuests] = useState(lead.guests ?? '');
 
   const formule = FORMULES.find(f => f.key === formuleKey);
+  const isPack = formuleKey === PACK_KEY;
   const total = items.reduce((s, it) => s + (Number(it.price) || 0), 0);
 
   const pickFormule = (key) => {
@@ -81,6 +93,27 @@ function DevisBuilder({ lead, proposal, bookedDates = new Set(), pendingDates = 
       return [...base, ...keptOptions, ...kept];
     });
   };
+
+  // Pack personnalisé : base nom+prix libre (source 'formule', comme les vraies formules — pour
+  // être reconnue par la page client et par la description du devis Qonto), options sans prix
+  // propre (source 'packoption:<clé>', incluses à 0 € — affichées "Offert" côté client).
+  const pickPack = () => {
+    if (isPack) return;
+    setFormuleKey(PACK_KEY);
+    setHours(0);
+    setItems(prev => {
+      const kept = prev.filter(it => ['custom', 'transport', 'tech'].includes(it.source));
+      return [{ id: nextId(), title: packName, price: Number(packPrice) || 0, source: 'formule' }, ...kept];
+    });
+  };
+  const updatePackBase = (name, price) => setItems(prev => [
+    { id: nextId(), title: name, price: Number(price) || 0, source: 'formule' },
+    ...prev.filter(it => it.source !== 'formule'),
+  ]);
+  const hasPackOption = (k) => items.some(it => it.source === `packoption:${k}`);
+  const togglePackOption = (o) => setItems(prev => prev.some(it => it.source === `packoption:${o.key}`)
+    ? prev.filter(it => it.source !== `packoption:${o.key}`)
+    : [...prev, { id: nextId(), title: o.label, price: 0, source: `packoption:${o.key}` }]);
 
   const hasOption = (k) => items.some(it => it.source === `option:${k}`);
   const toggleOption = (o) => {
@@ -143,6 +176,7 @@ function DevisBuilder({ lead, proposal, bookedDates = new Set(), pendingDates = 
 
   const save = async () => {
     if (saving) return;
+    if (isPack && !packName.trim()) { setError('Donnez un nom à ce pack.'); return; }
     const clean = items.filter(it => it.title.trim() && Number(it.price) >= 0)
       .map(it => ({ title: it.title.trim(), price: Number(it.price), source: it.source }));
     if (clean.length === 0) { setError('Ajoutez au moins une ligne (titre + prix).'); return; }
@@ -150,8 +184,8 @@ function DevisBuilder({ lead, proposal, bookedDates = new Set(), pendingDates = 
     const res = await fetch('/api/admin/devis-proposal', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        proposalId: proposal?.id, leadId: lead.id, formule: formuleKey || null,
-        formuleName: formule ? formule.name : 'Sur-mesure',
+        proposalId: proposal?.id, leadId: lead.id, formule: formule ? formuleKey : null,
+        formuleName: formule ? formule.name : (isPack ? (packName.trim() || 'Pack personnalisé') : 'Sur-mesure'),
         items: clean, total, adminNote: note.trim(),
         eventDate: eventDate || null, venue: venue.trim() || null, guests: guests || null,
       }),
@@ -215,7 +249,60 @@ function DevisBuilder({ lead, proposal, bookedDates = new Set(), pendingDates = 
               color: formuleKey === f.key ? 'var(--lime)' : 'rgba(255,255,255,0.8)',
             }}>{f.name}<br /><span style={{ fontSize: 11, opacity: 0.7 }}>{fmtPrice(f.price)}</span></button>
           ))}
+          <button onClick={pickPack} style={{
+            ...btnSm, flex: '1 1 120px',
+            border: `1px solid ${isPack ? 'var(--lime)' : 'rgba(255,255,255,0.15)'}`,
+            background: isPack ? 'rgba(184,239,11,0.1)' : 'rgba(255,255,255,0.05)',
+            color: isPack ? 'var(--lime)' : 'rgba(255,255,255,0.8)',
+          }}>Pack personnalisé<br /><span style={{ fontSize: 11, opacity: 0.7 }}>Nom &amp; prix libres</span></button>
         </div>
+
+        {isPack && (
+          <>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 10, marginBottom: 16 }}>
+              <div>
+                <label style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 4 }}>Nom du pack</label>
+                <input value={packName} onChange={e => { setPackName(e.target.value); updatePackBase(e.target.value, packPrice); }}
+                  placeholder="ex. Pack Halloween" style={{ ...inp, width: '100%' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 4 }}>Prix</label>
+                <input type="number" value={packPrice} onChange={e => { setPackPrice(e.target.value); updatePackBase(packName, e.target.value); }}
+                  style={{ ...inp, width: '100%' }} />
+              </div>
+            </div>
+
+            {/* Éléments de base : normalement garantis par une formule (specs), ici à cocher à la
+                main puisqu'un pack n'a aucune formule derrière lui. Même mécanique 0€ que les
+                options. Le DJ reste générique ici — précisez les heures en éditant la ligne plus bas. */}
+            <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 8 }}>Éléments de base</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))', gap: 7, marginBottom: 14 }}>
+              {PACK_BASE_ITEMS.map(o => (
+                <button key={o.key} onClick={() => togglePackOption(o)} style={{
+                  ...btnSm, textAlign: 'left',
+                  border: `1px solid ${hasPackOption(o.key) ? 'var(--lime)' : 'rgba(255,255,255,0.12)'}`,
+                  background: hasPackOption(o.key) ? 'rgba(184,239,11,0.08)' : 'rgba(255,255,255,0.04)',
+                }}>
+                  <span style={{ fontSize: 12.5 }}>{o.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Options sans prix propre : simples inclusions dans le pack, le total ne bouge pas */}
+            <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 8 }}>Options incluses (sans supplément)</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))', gap: 7, marginBottom: 14 }}>
+              {ALL_OPTIONS.map(o => (
+                <button key={o.key} onClick={() => togglePackOption(o)} style={{
+                  ...btnSm, textAlign: 'left',
+                  border: `1px solid ${hasPackOption(o.key) ? 'var(--lime)' : 'rgba(255,255,255,0.12)'}`,
+                  background: hasPackOption(o.key) ? 'rgba(184,239,11,0.08)' : 'rgba(255,255,255,0.04)',
+                }}>
+                  <span style={{ fontSize: 12.5 }}>{o.label}</span>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
 
         {formule && (
           <>

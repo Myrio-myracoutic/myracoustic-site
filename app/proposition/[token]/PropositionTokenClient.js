@@ -180,7 +180,7 @@ export default function PropositionTokenClient({ token }) {
           : 'Vos informations de facturation'}
       </h1>
       <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 14.5, textAlign: 'center', marginBottom: 8 }}>
-        {p.formule_name ? <>Formule <strong style={{ color: '#fff' }}>{p.formule_name}</strong></> : 'Sur-mesure'}{p.event_date && <> · {fmtDate(p.event_date)}</>}
+        {p.formule_name ? (p.formule ? <>Formule <strong style={{ color: '#fff' }}>{p.formule_name}</strong></> : <strong style={{ color: '#fff' }}>{p.formule_name}</strong>) : 'Sur-mesure'}{p.event_date && <> · {fmtDate(p.event_date)}</>}
       </p>
       {screen === 'recap' && p.valid_until && (
         <p style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: 'var(--lime)', background: 'rgba(184,239,11,0.08)', border: '1px solid rgba(184,239,11,0.2)', borderRadius: 20, padding: '5px 14px', margin: '0 auto 28px', width: 'fit-content', display: 'flex', justifyContent: 'center' }}>

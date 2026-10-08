@@ -103,10 +103,16 @@ export async function POST(request, { params }) {
 
   // 2. Brouillon Qonto (même date de validité que la proposition)
   const origin = new URL(request.url).origin;
-  // La ligne de formule détaille ses inclusions dans la description (visible sur le devis Qonto)
+  // La ligne de formule détaille ses inclusions dans la description (visible sur le devis Qonto).
+  // Pour un pack personnalisé (pas de formule), les options cochées sont des lignes à 0 € — le
+  // endpoint Qonto les filtre entièrement (price <= 0, voir plus bas) : sans ce repli, le devis
+  // signé ne mentionnerait jamais ce qui est inclus dans le prix du pack.
+  const freeInclusions = (p.items || [])
+    .filter(it => it.source !== 'formule' && !/^Formule /i.test(it.title) && Number(it.price) === 0)
+    .map(it => `• ${it.title}`).join('\n');
   const formuleDesc = p.formule_snapshot
     ? formuleInclusionsTextFromObj(p.formule_snapshot)
-    : (p.formule ? formuleInclusionsText(p.formule) : '');
+    : (p.formule ? formuleInclusionsText(p.formule) : freeInclusions);
   const items = (p.items || []).map(it => ({
     title: it.title,
     description: (it.source === 'formule' || /^Formule /i.test(it.title)) ? formuleDesc : '',

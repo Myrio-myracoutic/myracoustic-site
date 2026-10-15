@@ -53,13 +53,9 @@ async function sendReminderEmail(toEmail, firstName, eventType, eventDate, amoun
     <p style="color:rgba(255,255,255,0.8);font-size:15px;line-height:1.8;margin:0 0 16px;">
       Tout est préparé pour faire de votre <strong style="color:#b8ef0b;">${fmtDate(eventDate)}</strong> un moment inoubliable. Nous avons hâte d'être là.
     </p>
-    <p style="color:rgba(255,255,255,0.8);font-size:15px;line-height:1.8;margin:0 0 16px;">
+    <p style="color:rgba(255,255,255,0.8);font-size:15px;line-height:1.8;margin:0 0 24px;">
       Avant de vous retrouver, une dernière formalité : votre <strong>facture de solde</strong> reste à régler.
-      Vous avez jusqu'au jour J pour effectuer ce paiement — en avance ou sur place, comme vous le souhaitez.
-    </p>
-    <p style="color:rgba(255,255,255,0.6);font-size:14px;line-height:1.8;margin:0 0 24px;font-style:italic;">
-      Nous comprenons que certains préfèrent attendre de voir la prestation avant de solder. C'est tout à fait normal !
-      Sachez simplement que le règlement peut s'effectuer à tout moment jusqu'à la fin de la soirée.
+      Merci d'effectuer ce paiement le jour J, avant le début de la prestation — en ligne à l'avance ou sur place à notre arrivée.
     </p>
 
     <!-- Montant -->

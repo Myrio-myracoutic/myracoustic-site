@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Music, CheckCircle, Wrench, Users2, Phone, Sparkles, Smartphone } from 'lucide-react';
+import { Music, CheckCircle, Wrench, Users2, Phone, Sparkles, Smartphone, Menu, X } from 'lucide-react';
 import { AnimatedWave, SectionLabel } from '../components/AnimatedWave';
 import TestimonialCarousel from '../components/TestimonialCarousel';
 import StatItem from '../components/StatItem';
@@ -177,26 +177,66 @@ function FaqItem({ q, a }) {
   );
 }
 
+const NAV_LINKS = [
+  { href: '#approche', label: 'Notre approche' },
+  { href: '#services', label: 'Nos services' },
+  { href: '#avis',     label: 'Avis' },
+  { href: '#faq',      label: 'FAQ' },
+];
+
 export default function MariageSansStressClient({ availability }) {
+  const [menuOpen, setMenuOpen] = useState(false);
   return (
     <div>
 
       {/* ── EN-TÊTE ─────────────────────────────────────────────── */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 100,
-        padding: '14px 32px', display: 'flex', flexWrap: 'wrap',
-        alignItems: 'center', justifyContent: 'space-between', gap: 12,
         background: 'rgba(6,14,22,0.85)', backdropFilter: 'blur(12px)',
         borderBottom: '1px solid rgba(255,255,255,0.06)',
       }}>
-        <Image src="/logo.png" alt="Myracoustic" width={140} height={47} style={{ height: 38, width: 'auto' }} priority />
-        <nav style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
-          <a href="#approche" style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, textDecoration: 'none', fontFamily: 'var(--font-display), sans-serif' }}>Notre approche</a>
-          <a href="#services" style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, textDecoration: 'none', fontFamily: 'var(--font-display), sans-serif' }}>Nos services</a>
-          <a href="#avis" style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, textDecoration: 'none', fontFamily: 'var(--font-display), sans-serif' }}>Avis</a>
-          <a href="#faq" style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, textDecoration: 'none', fontFamily: 'var(--font-display), sans-serif' }}>FAQ</a>
-          <CtaButton style={{ padding: '9px 20px', fontSize: 13.5 }} />
-        </nav>
+        <div style={{
+          padding: '14px 32px', display: 'flex',
+          alignItems: 'center', justifyContent: 'space-between', gap: 12,
+        }}>
+          <Image src="/logo.png" alt="Myracoustic" width={140} height={47} style={{ height: 38, width: 'auto' }} priority />
+          <nav className="hide-mobile" style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
+            {NAV_LINKS.map((l) => (
+              <a key={l.href} href={l.href} style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, textDecoration: 'none', fontFamily: 'var(--font-display), sans-serif' }}>{l.label}</a>
+            ))}
+            <CtaButton style={{ padding: '9px 20px', fontSize: 13.5 }} />
+          </nav>
+          <button
+            className="hide-desktop"
+            onClick={() => setMenuOpen((o) => !o)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#fff', padding: 4, display: 'flex', alignItems: 'center' }}
+            aria-label="Menu"
+          >
+            {menuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
+
+        {/* Menu mobile */}
+        {menuOpen && (
+          <div className="hide-desktop" style={{
+            borderTop: '1px solid rgba(255,255,255,0.08)',
+            padding: '16px 32px 24px',
+          }}>
+            {NAV_LINKS.map((l) => (
+              <a key={l.href} href={l.href} onClick={() => setMenuOpen(false)} style={{
+                display: 'block', color: 'rgba(255,255,255,0.8)',
+                fontFamily: 'var(--font-display), sans-serif', fontWeight: 500, fontSize: 16,
+                padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.06)',
+                textDecoration: 'none',
+              }}>
+                {l.label}
+              </a>
+            ))}
+            <div style={{ marginTop: 16 }}>
+              <CtaButton style={{ display: 'block', textAlign: 'center', width: '100%' }} />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ── HERO ────────────────────────────────────────────────── */}

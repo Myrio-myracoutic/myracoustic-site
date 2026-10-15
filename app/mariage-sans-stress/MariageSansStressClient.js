@@ -112,27 +112,24 @@ function CtaButton({ children = 'Vérifier la disponibilité de ma date →', st
   );
 }
 
-function AvailabilityLine({ availability }) {
-  if (!availability) {
-    return (
-      <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginTop: 12 }}>
-        Votre date part vite — vérifiez si elle est encore libre.
-      </p>
-    );
-  }
-  const { available, untilLabel } = availability;
-  let text;
-  if (available === 0) {
-    text = `Tous les samedis sont réservés d'ici ${untilLabel} — contactez-nous, d'autres jours restent parfois envisageables.`;
-  } else if (available === 1) {
-    text = `Plus qu'un seul samedi disponible d'ici ${untilLabel} — vérifiez si c'est le vôtre.`;
-  } else {
-    text = `Encore ${available} samedis disponibles d'ici ${untilLabel} — vérifiez si le vôtre en fait partie.`;
-  }
+function availabilityText(availability) {
+  if (!availability) return 'Votre date part vite.';
+  const { available, year } = availability;
+  if (available === 0) return `Tous les samedis de la saison ${year} sont déjà réservés.`;
+  if (available === 1) return `Plus qu'un seul samedi disponible sur la saison ${year}.`;
+  if (available >= 20) return `Plus que 20 samedis disponibles sur la saison ${year}.`;
+  return `Encore ${available} samedis disponibles sur la saison ${year}.`;
+}
+
+function AvailabilityBanner({ availability }) {
   return (
-    <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginTop: 12 }}>
-      {text}
-    </p>
+    <div style={{
+      background: 'var(--lime)', color: '#0d1b2a', textAlign: 'center',
+      padding: '10px 16px', fontSize: 13.5, fontWeight: 700,
+      fontFamily: 'var(--font-display), sans-serif',
+    }}>
+      {availabilityText(availability)}
+    </div>
   );
 }
 
@@ -188,6 +185,9 @@ export default function MariageSansStressClient({ availability }) {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
     <div>
+
+      {/* ── BANDEAU DISPONIBILITÉ ───────────────────────────────── */}
+      <AvailabilityBanner availability={availability} />
 
       {/* ── EN-TÊTE ─────────────────────────────────────────────── */}
       <div style={{
@@ -276,7 +276,6 @@ export default function MariageSansStressClient({ availability }) {
             <Typewriter words={TYPEWRITER_WORDS} />
           </p>
           <CtaButton />
-          <AvailabilityLine availability={availability} />
         </div>
 
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 80, zIndex: 2 }}>

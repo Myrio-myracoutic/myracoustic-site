@@ -126,14 +126,16 @@ function AvailabilityLine({ availability }) {
       </p>
     );
   }
-  const { available, untilLabel } = availability;
+  const { available, year } = availability;
   let text;
   if (available === 0) {
-    text = `Tous les samedis sont réservés d'ici ${untilLabel} — contactez-nous, d'autres jours restent parfois envisageables.`;
+    text = `Tous les samedis de la saison ${year} sont réservés — contactez-nous, d'autres dates restent parfois envisageables.`;
   } else if (available === 1) {
-    text = `Plus qu'un seul samedi disponible d'ici ${untilLabel} — vérifiez si c'est le vôtre.`;
+    text = `Plus qu'un seul samedi disponible sur la saison ${year} — vérifiez si c'est le vôtre.`;
+  } else if (available > 20) {
+    text = `Plus de 20 samedis disponibles sur la saison ${year} — vérifiez si le vôtre en fait partie.`;
   } else {
-    text = `Encore ${available} samedis disponibles d'ici ${untilLabel} — vérifiez si le vôtre en fait partie.`;
+    text = `Encore ${available} samedis disponibles sur la saison ${year} — vérifiez si le vôtre en fait partie.`;
   }
   return (
     <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginTop: 12 }}>

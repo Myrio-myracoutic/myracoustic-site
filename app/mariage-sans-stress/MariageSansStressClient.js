@@ -53,7 +53,7 @@ const SERVICE_CATEGORIES = [
     'DJ & animation musicale, adaptés à la durée et à l’ambiance de votre soirée',
     'Sonorisation adaptée au nombre d’invités',
     'Éclairage piste de danse & mise en lumière de la salle',
-    'Vidéoprojecteur / diaporama',
+    'Vidéoprojecteur',
     'Mur LED, au format adapté à votre salle',
     'Effets spéciaux : fumée lourde, étincelles froides',
     'Sonorisation & gestion technique de la cérémonie (laïque, religieuse, symbolique)',

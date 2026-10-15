@@ -14,6 +14,67 @@ import { gtagEvent } from '../lib/gtag';
    Même base visuelle que /dj-mariage et /mariage. CTA unifié vers le tunnel existant
    (/devis/mariage-contact) : pas de formulaire embarqué sur cette page, volontairement. */
 
+// Même parcours d'accompagnement que /mariage (voir MariageClient.js) — contenu identique.
+const JOURNEY = [
+  { when: 'Premier contact', title: 'On découvre votre projet',
+    text: "Vous nous présentez votre mariage, on vous présente Myracoustic. Un devis clair et détaillé vous est envoyé, sans engagement." },
+  { when: 'Réservation', title: 'Votre date est à vous',
+    text: "Dès réception de l'acompte, votre date est bloquée — on ne la propose plus à personne d'autre." },
+  { when: 'Quelques jours après', title: 'Découverte de votre espace',
+    text: "On vous présente votre espace de mariage en ligne : programme, playlists, invités, faire-part — tout au même endroit, à votre rythme." },
+  { when: '6 mois avant', title: 'Visite du lieu',
+    text: "Rendez-vous sur place pour caler ensemble l'organisation technique : sonorisation, implantation, accès, contraintes du lieu." },
+  { when: '1 mois avant', title: 'On reprend chaque détail',
+    text: "Déroulé, playlist, derniers ajustements — on fait le point ensemble pour que rien ne soit laissé au hasard." },
+  { when: '2 semaines avant', title: 'Tout est prêt',
+    text: "Le déroulé est figé, le matériel est vérifié. Il ne vous reste plus qu'à profiter." },
+  { when: 'Le jour J', title: 'Votre mariage, sans stress',
+    text: "26 ans d'expérience et plus de 200 mariages animés : on a déjà vu et géré l'imprévu, pour que votre journée se déroule sans stress, quoi qu'il arrive en coulisses.",
+    highlight: true },
+  { when: '1 semaine après', title: 'Un dernier mot',
+    text: "On revient vers vous pour un dernier merci, et pour recueillir vos premiers souvenirs de la soirée." },
+];
+
+function TimelineStep({ index, total, when, title, text, highlight }) {
+  return (
+    <div style={{ display: 'flex', gap: 20 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
+        <div style={{
+          width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
+          background: highlight ? 'var(--lime)' : 'rgba(255,255,255,0.06)',
+          border: `1.5px solid ${highlight ? 'var(--lime)' : 'rgba(255,255,255,0.18)'}`,
+          color: highlight ? '#0d1b2a' : 'rgba(255,255,255,0.6)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontFamily: 'var(--font-display), sans-serif', fontWeight: 800, fontSize: 15,
+        }}>
+          {index + 1}
+        </div>
+        {index < total - 1 && (
+          <div style={{
+            width: 2, flex: 1, minHeight: 24, marginTop: 6,
+            background: 'linear-gradient(to bottom, rgba(184,239,11,0.3), rgba(255,255,255,0.06))',
+          }} />
+        )}
+      </div>
+      <div style={{ paddingBottom: 36 }}>
+        <div style={{
+          display: 'inline-block', color: 'var(--lime)', fontSize: 12, fontWeight: 700,
+          fontFamily: 'var(--font-display), sans-serif', textTransform: 'uppercase', letterSpacing: '0.04em',
+          marginBottom: 6,
+        }}>
+          {when}
+        </div>
+        <h3 style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 19, marginBottom: 8 }}>
+          {title}
+        </h3>
+        <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 14.5, lineHeight: 1.7, maxWidth: 460 }}>
+          {text}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 // Mêmes avis réels que /mariage (voir MariageClient.js) — jamais reformulés.
 const TESTIMONIALS = [
   { name: 'Alexis et Ozanne', event: 'Mariage', stars: 5, source: 'Google', date: 'Août 2026',
@@ -412,6 +473,37 @@ export default function MariageSansStressClient({ availability }) {
             <CtaButton />
           </div>
         </Reveal>
+      </section>
+
+      {/* ── PARCOURS D'ACCOMPAGNEMENT ───────────────────────────── */}
+      <section id="parcours" style={{
+        padding: 'clamp(56px,7vw,88px) 32px',
+        backgroundImage: 'url(/ban_prestation_son.jpg)',
+        backgroundSize: 'cover', backgroundPosition: 'center',
+        position: 'relative', overflow: 'hidden',
+      }}>
+        <div style={{ position: 'absolute', inset: 0, zIndex: 0, background: 'rgba(6,14,22,0.88)' }} />
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: 1280, margin: '0 auto' }}>
+          <Reveal style={{ maxWidth: 640, margin: '0 auto 56px', textAlign: 'center' }}>
+            <SectionLabel style={{ justifyContent: 'center' }}>Votre accompagnement</SectionLabel>
+            <h2 style={{
+              fontFamily: 'var(--font-display), sans-serif',
+              fontSize: 'clamp(24px,3.5vw,42px)', fontWeight: 700, marginBottom: 12,
+            }}>
+              Du premier contact au <span style={{ color: 'var(--lime)' }}>jour J</span>
+            </h2>
+            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 15, lineHeight: 1.7 }}>
+              Sur la base d&apos;un mariage organisé un an à l&apos;avance, voici comment se déroule un accompagnement Myracoustic, étape par étape.
+            </p>
+          </Reveal>
+          <div style={{ maxWidth: 600, margin: '0 auto' }}>
+            {JOURNEY.map((step, i) => (
+              <Reveal key={i}>
+                <TimelineStep index={i} total={JOURNEY.length} {...step} />
+              </Reveal>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* ── TÉMOIGNAGES ─────────────────────────────────────────── */}

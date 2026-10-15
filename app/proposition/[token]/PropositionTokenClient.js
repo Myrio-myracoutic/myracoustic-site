@@ -151,7 +151,8 @@ export default function PropositionTokenClient({ token }) {
   const discEndMs = disc ? new Date(disc.until + 'T23:59:59').getTime() : 0;
   const discountLive = !!disc && nowMs <= discEndMs;
   const effTotal = discountLive ? p.total - disc.amount : p.total;
-  const acompte = Math.round(effTotal * 0.6);
+  // Test 2 mois (15/10/2026) : 50/50 au lieu de 60/40, pour voir si ça convertit plus.
+  const acompte = Math.round(effTotal * 0.5);
   const solde = effTotal - acompte;
 
   const payCard = (title, amount, pct, accent) => (
@@ -254,10 +255,10 @@ export default function PropositionTokenClient({ token }) {
         </div>
       </div>
 
-      {/* Acompte 60 / solde 40 en grand */}
+      {/* Acompte 50 / solde 50 en grand */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 8 }}>
-        {payCard('À la signature du devis', acompte, 'Acompte · 60 %', 'var(--lime)')}
-        {payCard('Solde le jour J', solde, '40 %', 'rgba(52,55,144,0.9)')}
+        {payCard('À la signature du devis', acompte, 'Acompte · 50 %', 'var(--lime)')}
+        {payCard('Solde le jour J', solde, '50 %', 'rgba(52,55,144,0.9)')}
       </div>
       <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginBottom: 26 }}>
         L'acompte de <strong style={{ color: 'rgba(255,255,255,0.7)' }}>{fmtPrice(acompte)}</strong> se règle à la signature de votre devis, et réserve alors votre date.

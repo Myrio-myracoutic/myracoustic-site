@@ -39,7 +39,8 @@ export async function GET(_req, { params }) {
   const dActive = discountActive(p.discount_until);
   const dEuros = dActive ? discountEuros(p.total, p.discount_type, p.discount_value) : 0;
   const netTotal = Number(p.total) - dEuros;
-  const acompte = Math.round(netTotal * 0.6);
+  // Test 2 mois (15/10/2026) : 50/50 au lieu de 60/40, pour voir si ça convertit plus.
+  const acompte = Math.round(netTotal * 0.5);
   const solde = netTotal - acompte;
 
   return NextResponse.json({

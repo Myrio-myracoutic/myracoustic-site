@@ -38,7 +38,7 @@ const ARTICLES = [
     title: '4. Conditions financières',
     body: (
       <p>
-        60 % du montant total TTC est exigible à la signature du devis à titre d'acompte, le solde de 40 % étant
+        50 % du montant total TTC est exigible à la signature du devis à titre d'acompte, le solde de 50 % étant
         exigible le lendemain de la prestation (J+1). Tout retard de paiement entraîne l'application de pénalités
         légales, majorées le cas échéant d'une indemnité forfaitaire pour frais de recouvrement.
       </p>

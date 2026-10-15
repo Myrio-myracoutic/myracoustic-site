@@ -171,7 +171,8 @@ export async function POST(request) {
       issue_date: issueDate,
       expiry_date: expiryDate,
       currency: 'EUR',
-      terms_and_conditions: 'Acompte de 60 % à la signature du devis — Solde de 40 % le jour de la prestation.',
+      // Test 2 mois (15/10/2026) : 50/50 au lieu de 60/40, pour voir si ça convertit plus.
+      terms_and_conditions: 'Acompte de 50 % à la signature du devis — Solde de 50 % le jour de la prestation.',
       header: headerParts.join(' · '),
       footer: giftFooter,
       // Remise native Qonto (ex. réduction « du moment ») — en pourcentage du devis

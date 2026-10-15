@@ -584,8 +584,9 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
       (karaokeActive ? KARAOKE_PRICE : 0) + INSTALL_PRICE + techPrice
     : 0;
   const totalBrut     = materialTotal + djForFait + djXtraCost + kmFee;
-  const acompte60     = Math.round(totalBrut * 0.6);
-  const solde40       = totalBrut - acompte60;
+  // Test 2 mois (15/10/2026) : 50/50 au lieu de 60/40, pour voir si ça convertit plus.
+  const acompte50     = Math.round(totalBrut * 0.5);
+  const solde50       = totalBrut - acompte50;
 
   /* ── Totaux — prestation ciblée pro (tarifs HT) ─────────────────── */
   const cibleNb          = parseInt(cibleNbPersons) || 0;
@@ -2045,7 +2046,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
           )}
         </div>
 
-        {/* Conditions paiement 60/40 */}
+        {/* Conditions paiement 50/50 (test 2 mois, 15/10/2026) */}
         {totalBrut > 0 && (
           <div style={{ background: 'rgba(52,55,144,0.12)', border: '1px solid rgba(52,55,144,0.35)', borderRadius: 12, padding: '18px 20px', marginBottom: 16 }}>
             <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 13, marginBottom: 14 }}>
@@ -2054,13 +2055,13 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 10, padding: '16px 18px', borderLeft: '3px solid var(--lime)' }}>
                 <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, marginBottom: 6, fontFamily: 'var(--font-display), sans-serif', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Acompte à la signature</div>
-                <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 26, color: 'white', lineHeight: 1 }}>{acompte60.toLocaleString('fr-FR')} €</div>
-                <div style={{ color: 'var(--lime)', fontSize: 12, marginTop: 4, fontFamily: 'var(--font-display), sans-serif', fontWeight: 600 }}>60 %</div>
+                <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 26, color: 'white', lineHeight: 1 }}>{acompte50.toLocaleString('fr-FR')} €</div>
+                <div style={{ color: 'var(--lime)', fontSize: 12, marginTop: 4, fontFamily: 'var(--font-display), sans-serif', fontWeight: 600 }}>50 %</div>
               </div>
               <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 10, padding: '16px 18px', borderLeft: '3px solid rgba(52,55,144,0.8)' }}>
                 <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, marginBottom: 6, fontFamily: 'var(--font-display), sans-serif', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Solde le jour J</div>
-                <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 26, color: 'white', lineHeight: 1 }}>{solde40.toLocaleString('fr-FR')} €</div>
-                <div style={{ color: 'rgba(184,239,11,0.6)', fontSize: 12, marginTop: 4, fontFamily: 'var(--font-display), sans-serif', fontWeight: 600 }}>40 %</div>
+                <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 26, color: 'white', lineHeight: 1 }}>{solde50.toLocaleString('fr-FR')} €</div>
+                <div style={{ color: 'rgba(184,239,11,0.6)', fontSize: 12, marginTop: 4, fontFamily: 'var(--font-display), sans-serif', fontWeight: 600 }}>50 %</div>
               </div>
             </div>
           </div>
@@ -2595,7 +2596,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
                 Votre devis (à titre indicatif) de <strong style={{ color: 'var(--lime)' }}>{cibleTotalHT.toLocaleString('fr-FR')} € HT</strong> a été envoyé à <strong style={{ color: 'white' }}>{cibleEmail}</strong> — consultez-le dès maintenant.
               </p>
               <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, lineHeight: 1.7, marginBottom: 24 }}>
-                Prochaine étape : un conseiller vous appelle sous 24h. Le devis sera ensuite finalisé et envoyé pour signature électronique. Le paiement de l'acompte (60 %) validera définitivement votre date.
+                Prochaine étape : un conseiller vous appelle sous 24h. Le devis sera ensuite finalisé et envoyé pour signature électronique. Le paiement de l'acompte (50 %) validera définitivement votre date.
               </p>
             </>
           )}
@@ -2732,7 +2733,8 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
           )}
 
           {!cibleIsHorsZone && cibleTotalHT > 0 && (() => {
-            const a = Math.round(cibleTotalHT * 0.6);
+            // Test 2 mois (15/10/2026) : 50/50 au lieu de 60/40, pour voir si ça convertit plus.
+            const a = Math.round(cibleTotalHT * 0.5);
             return (
               <div style={{ background: 'rgba(52,55,144,0.12)', border: '1px solid rgba(52,55,144,0.35)', borderRadius: 12, padding: '18px 20px', marginTop: 8 }}>
                 <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 13, marginBottom: 14 }}>
@@ -2742,12 +2744,12 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
                   <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 10, padding: '16px 18px', borderLeft: '3px solid var(--lime)' }}>
                     <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, marginBottom: 6, fontFamily: 'var(--font-display), sans-serif', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Acompte à la signature</div>
                     <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 26, color: 'white', lineHeight: 1 }}>{a.toLocaleString('fr-FR')} € HT</div>
-                    <div style={{ color: 'var(--lime)', fontSize: 12, marginTop: 4, fontFamily: 'var(--font-display), sans-serif', fontWeight: 600 }}>60 %</div>
+                    <div style={{ color: 'var(--lime)', fontSize: 12, marginTop: 4, fontFamily: 'var(--font-display), sans-serif', fontWeight: 600 }}>50 %</div>
                   </div>
                   <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: 10, padding: '16px 18px', borderLeft: '3px solid rgba(52,55,144,0.8)' }}>
                     <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, marginBottom: 6, fontFamily: 'var(--font-display), sans-serif', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Solde le jour J</div>
                     <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 26, color: 'white', lineHeight: 1 }}>{(cibleTotalHT - a).toLocaleString('fr-FR')} € HT</div>
-                    <div style={{ color: 'rgba(184,239,11,0.6)', fontSize: 12, marginTop: 4, fontFamily: 'var(--font-display), sans-serif', fontWeight: 600 }}>40 %</div>
+                    <div style={{ color: 'rgba(184,239,11,0.6)', fontSize: 12, marginTop: 4, fontFamily: 'var(--font-display), sans-serif', fontWeight: 600 }}>50 %</div>
                   </div>
                 </div>
               </div>

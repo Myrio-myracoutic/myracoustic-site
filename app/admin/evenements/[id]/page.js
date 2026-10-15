@@ -199,9 +199,9 @@ export default function AdminDevisDetail() {
               style={{ width: '100%', background: '#0d1b2a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 7, padding: '8px 12px', color: '#fff', fontSize: 13, fontFamily: 'inherit', outline: 'none', cursor: 'pointer', colorScheme: 'dark' }}
             >
               <option value="" style={{ background: '#0d1b2a' }}>Aucune (accès complet)</option>
-              <option value="essentiel" style={{ background: '#0d1b2a' }}>Essentiel</option>
-              <option value="signature" style={{ background: '#0d1b2a' }}>Signature</option>
-              <option value="prestige" style={{ background: '#0d1b2a' }}>Prestige</option>
+              <option value="essentiel" style={{ background: '#0d1b2a' }}>Ambiance Festive</option>
+              <option value="signature" style={{ background: '#0d1b2a' }}>Expérience Signature</option>
+              <option value="prestige" style={{ background: '#0d1b2a' }}>Mariage d&apos;Exception</option>
             </select>
             <p style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.3)', marginTop: 5, lineHeight: 1.5 }}>
               Débloque les sections de l'espace client. « Aucune » = tout ouvert (non-mariage : sections mariage masquées).

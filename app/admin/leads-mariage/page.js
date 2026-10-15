@@ -96,7 +96,7 @@ function DevisBuilder({ lead, proposal, bookedDates = new Set(), pendingDates = 
 
   // Pack personnalisé : base nom+prix libre (source 'formule', comme les vraies formules — pour
   // être reconnue par la page client et par la description du devis Qonto), options sans prix
-  // propre (source 'packoption:<clé>', incluses à 0 € — affichées "Offert" côté client).
+  // propre (source 'packoption:<clé>', incluses à 0 € — affichées "Inclus" côté client).
   const pickPack = () => {
     if (isPack) return;
     setFormuleKey(PACK_KEY);
@@ -114,6 +114,26 @@ function DevisBuilder({ lead, proposal, bookedDates = new Set(), pendingDates = 
   const togglePackOption = (o) => setItems(prev => prev.some(it => it.source === `packoption:${o.key}`)
     ? prev.filter(it => it.source !== `packoption:${o.key}`)
     : [...prev, { id: nextId(), title: o.label, price: 0, source: `packoption:${o.key}` }]);
+
+  // Bascule une formule vers un Pack personnalisé pré-rempli avec son contenu (packPreset) —
+  // pour pouvoir retirer une inclusion (ex. Photobooth) et ajuster le prix sur une proposition
+  // précise, sans toucher à la vraie formule (qui reste intacte pour tous les autres clients).
+  const startPackFrom = (f) => {
+    setFormuleKey(PACK_KEY);
+    setHours(0);
+    setPackName(f.name);
+    setPackPrice(f.price);
+    const presetKeys = [...(f.packPreset?.base || []), ...(f.packPreset?.options || [])];
+    setItems(prev => {
+      const kept = prev.filter(it => ['custom', 'transport', 'tech'].includes(it.source));
+      const baseLine = { id: nextId(), title: f.name, price: f.price, source: 'formule' };
+      const checks = presetKeys
+        .map(key => PACK_BASE_ITEMS.find(x => x.key === key) || ALL_OPTIONS.find(x => x.key === key))
+        .filter(Boolean)
+        .map(o => ({ id: nextId(), title: o.label, price: 0, source: `packoption:${o.key}` }));
+      return [baseLine, ...checks, ...kept];
+    });
+  };
 
   const hasOption = (k) => items.some(it => it.source === `option:${k}`);
   const toggleOption = (o) => {
@@ -308,7 +328,16 @@ function DevisBuilder({ lead, proposal, bookedDates = new Set(), pendingDates = 
           <>
             {/* Ce qui est compris dans la formule */}
             <div style={{ background: 'rgba(184,239,11,0.05)', border: '1px solid rgba(184,239,11,0.18)', borderRadius: 10, padding: '12px 14px', marginBottom: 16 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--lime)', marginBottom: 8 }}>Compris dans la formule {formule.name}</div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 8 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--lime)' }}>Compris dans la formule {formule.name}</div>
+                <button onClick={() => startPackFrom(formule)} style={{
+                  background: 'none', border: '1px solid rgba(184,239,11,0.4)', color: 'var(--lime)',
+                  borderRadius: 6, padding: '4px 9px', fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap',
+                }}>
+                  Personnaliser cette formule →
+                </button>
+              </div>
+              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', margin: '0 0 8px' }}>Retirer une inclusion ou changer le prix pour cette proposition uniquement → bascule en Pack personnalisé pré-rempli.</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                 {POLES.map(p => {
                   const raw = formule.specs[p.key];
@@ -349,7 +378,7 @@ function DevisBuilder({ lead, proposal, bookedDates = new Set(), pendingDates = 
             </div>
 
             {/* Heures DJ */}
-            {formule.key !== 'prestige' && (
+            {formule.key === 'essentiel' && (
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
                 <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>Heures DJ supplémentaires ({EXTRA_HOUR_PRICE} €/h)</span>
                 <button onClick={() => setHoursQty(hours - 1)} style={{ ...btnSm, padding: '5px 9px' }}><Minus size={13} /></button>

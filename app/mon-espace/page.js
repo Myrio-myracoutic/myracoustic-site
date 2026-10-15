@@ -46,7 +46,7 @@ function fmtDate(d) {
    - Mariage avec formule Essentiel → verrouillées (cadenas + upsell Signature). */
 const WEDDING_ORG = ['invites', 'menu', 'plantable', 'fairepart'];
 const FORMULE_RANK = { essentiel: 1, signature: 2, prestige: 3 };
-const FORMULE_LABEL = { essentiel: 'Essentiel', signature: 'Signature', prestige: 'Prestige' };
+const FORMULE_LABEL = { essentiel: 'Ambiance Festive', signature: 'Expérience Signature', prestige: 'Mariage d’Exception' };
 
 function getSections(ev) {
   const active  = ev ? isActive(ev.status) : false;
@@ -75,7 +75,7 @@ function getSections(ev) {
       if (!WEDDING_ORG.includes(sec.id)) return sec;
       if (!isMariage) return { ...sec, hidden: true };                 // B : non-mariage → masqué
       if (rank && rank < FORMULE_RANK.signature) {                     // mariage Essentiel → verrouillé formule
-        return { ...sec, formuleLocked: true, requiredFormule: 'Signature' };
+        return { ...sec, formuleLocked: true, requiredFormule: FORMULE_LABEL.signature };
       }
       return sec;                                                       // Signature+ ou mariage sans formule → ouvert
     })

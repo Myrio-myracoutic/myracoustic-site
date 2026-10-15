@@ -45,6 +45,48 @@ const FEATURES = [
     text: "Notre DJ sait lire le public et adapter la musique pour une piste de danse pleine, toutes générations confondues." },
 ];
 
+const PRICING = [
+  { key: 'festive', name: 'Ambiance Festive', price: 2000,
+    description: 'Pour une célébration pleine de joie et de rythme, sans le superflu. L’essentiel pour une ambiance réussie.',
+    items: [
+      'DJ 6h',
+      'Sonorisation adaptée au nombre d’invités',
+      'Éclairage piste de danse',
+      'Vidéoprojecteur / diaporama inclus',
+      'Effets : fumée lourde + étincelles froides',
+      'Installation & technicien',
+      'Accès basique à la plateforme en ligne',
+      { text: 'Captures vidéo professionnelles de la soirée (durée selon la présence du DJ 6h)', isNew: true },
+    ] },
+  { key: 'signature', name: 'Expérience Signature', featured: true, badge: 'Le plus choisi', price: 3000,
+    description: 'L’expérience complète pour une soirée orchestrée avec élégance et sans limite, tout inclus.',
+    items: [
+      'DJ pour la soirée complète (sans limite d’heures)',
+      'Éclairage piste de danse + mise en lumière de la salle',
+      'Mur LED 2 m² inclus',
+      'Photobooth inclus',
+      'Livre d’or vidéo & audio inclus',
+      'Technicien dédié & accompagnement prioritaire',
+      'Accès complet à la plateforme en ligne',
+      'Coordination du déroulé & sonorisation du vin d’honneur',
+      'Sonorisation cérémonie laïque (option +190€)',
+      { text: 'Captures vidéo professionnelles de l’intégralité de votre événement (selon la présence de l’équipe)', isNew: true },
+    ] },
+  { key: 'exception', name: 'Mariage d’Exception', price: 4000,
+    description: 'Le summum du sur-mesure pour un mariage grandiose et totalement unique, géré dans les moindres détails.',
+    items: [
+      'Toutes les fonctionnalités Expérience Signature',
+      'Sonorisation & gestion technique de toute cérémonie (laïque, religieuse, symbolique, etc.) incluse',
+      'Prestation DJ illimitée en temps',
+      'Accompagnement personnalisé par un Wedding Tech Coach dédié de A à Z (visualisation 3D, conseils experts)',
+      'Gestion des imprévus proactive',
+      'Accès Premium à la plateforme en ligne',
+      'Suivi en temps réel, communication prioritaire avec l’équipe dédiée',
+      'Mur LED sur-mesure & sonorisation multi-espace complète',
+      { text: 'Captures vidéo professionnelles sur-mesure de l’intégralité de votre événement (selon la présence de l’équipe)', isNew: true },
+    ] },
+];
+
 const FAQ = [
   { q: 'Comment assurez-vous que la musique corresponde à nos goûts et à l’ambiance désirée ?',
     a: 'Grâce à votre espace en ligne et des échanges approfondis, nous créons une playlist sur-mesure. Notre DJ sait aussi s’adapter en temps réel pour une piste de danse toujours pleine et une ambiance qui vous ressemble.' },
@@ -140,18 +182,64 @@ function FaqItem({ q, a }) {
   );
 }
 
+function PricingCard({ plan }) {
+  return (
+    <div style={{
+      background: plan.featured ? 'rgba(184,239,11,0.05)' : 'var(--card)',
+      border: `1px solid ${plan.featured ? 'var(--lime)' : 'rgba(255,255,255,0.08)'}`,
+      borderRadius: 16, padding: '32px 28px', display: 'flex', flexDirection: 'column',
+      position: 'relative',
+    }}>
+      {plan.badge && (
+        <span style={{
+          position: 'absolute', top: -13, left: 28, background: 'var(--lime)', color: '#0d1b2a',
+          fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 12,
+          padding: '4px 12px', borderRadius: 20,
+        }}>
+          {plan.badge}
+        </span>
+      )}
+      <h3 style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 22, marginBottom: 4, marginTop: plan.badge ? 10 : 0 }}>
+        {plan.name}
+      </h3>
+      <p style={{ fontFamily: 'var(--font-display), sans-serif', color: 'var(--lime)', fontWeight: 700, fontSize: 26, marginBottom: 10 }}>
+        {plan.price.toLocaleString('fr-FR')}€ <span style={{ color: 'rgba(255,255,255,0.4)', fontWeight: 500, fontSize: 14 }}>l&apos;événement</span>
+      </p>
+      <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, marginBottom: 20, lineHeight: 1.6 }}>{plan.description}</p>
+      <ul style={{ listStyle: 'none', margin: 0, padding: 0, marginBottom: 28, flex: 1 }}>
+        {plan.items.map((item, i) => {
+          const isNew = typeof item === 'object';
+          const text = isNew ? item.text : item;
+          return (
+            <li key={i} style={{
+              display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 12,
+              color: 'rgba(255,255,255,0.72)', fontSize: 14.5, lineHeight: 1.5,
+            }}>
+              <CheckCircle size={16} color="var(--lime)" style={{ flexShrink: 0, marginTop: 2 }} />
+              <span>
+                {isNew && (
+                  <span style={{
+                    background: 'rgba(184,239,11,0.15)', color: 'var(--lime)', fontSize: 10.5, fontWeight: 700,
+                    fontFamily: 'var(--font-display), sans-serif', padding: '2px 7px', borderRadius: 4,
+                    marginRight: 7, verticalAlign: 'middle',
+                  }}>
+                    NOUVEAU
+                  </span>
+                )}
+                {text}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+      <CtaButton children="Demander un devis personnalisé" style={{ textAlign: 'center', width: '100%' }} />
+    </div>
+  );
+}
+
 export default function MariageSansStressClient({ availability }) {
   return (
     <div>
-
-      {/* ── BANNIÈRE BONUS ──────────────────────────────────────── */}
-      <div style={{
-        background: 'var(--lime)', color: '#0d1b2a', textAlign: 'center',
-        padding: '10px 16px', fontSize: 13.5, fontWeight: 700,
-        fontFamily: 'var(--font-display), sans-serif',
-      }}>
-        🎁 Bonus : Vos Souvenirs d&apos;Ambiance en vidéo 4K offerts aux prochains mariés qui valident leur devis
-      </div>
 
       {/* ── EN-TÊTE ─────────────────────────────────────────────── */}
       <div style={{
@@ -164,6 +252,7 @@ export default function MariageSansStressClient({ availability }) {
         <Image src="/logo.png" alt="Myracoustic" width={140} height={47} style={{ height: 38, width: 'auto' }} priority />
         <nav style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
           <a href="#approche" style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, textDecoration: 'none', fontFamily: 'var(--font-display), sans-serif' }}>Notre approche</a>
+          <a href="#tarifs" style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, textDecoration: 'none', fontFamily: 'var(--font-display), sans-serif' }}>Tarifs</a>
           <a href="#avis" style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, textDecoration: 'none', fontFamily: 'var(--font-display), sans-serif' }}>Avis</a>
           <a href="#faq" style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, textDecoration: 'none', fontFamily: 'var(--font-display), sans-serif' }}>FAQ</a>
           <CtaButton style={{ padding: '9px 20px', fontSize: 13.5 }} />
@@ -256,6 +345,27 @@ export default function MariageSansStressClient({ availability }) {
                 </p>
               </div>
             ))}
+          </div>
+        </Reveal>
+      </section>
+
+      {/* ── TARIFS ──────────────────────────────────────────────── */}
+      <section id="tarifs" style={{ padding: 'clamp(56px,7vw,88px) 32px', background: '#060e16', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <Reveal style={{ maxWidth: 1280, margin: '0 auto' }}>
+          <div style={{ maxWidth: 640, margin: '0 auto 44px', textAlign: 'center' }}>
+            <SectionLabel style={{ justifyContent: 'center' }}>Tarifs</SectionLabel>
+            <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(24px,3.5vw,42px)', fontWeight: 700, marginBottom: 12 }}>
+              Des formules pour un mariage à la hauteur de vos rêves
+            </h2>
+            <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 15, lineHeight: 1.7 }}>
+              Choisissez l&apos;expérience Myracoustic qui fera de votre mariage un événement inoubliable, sans aucun compromis sur la qualité et la sérénité.
+            </p>
+          </div>
+          <div style={{
+            display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(280px,1fr))', gap: 28,
+            maxWidth: 1100, margin: '0 auto',
+          }}>
+            {PRICING.map((plan) => <PricingCard key={plan.key} plan={plan} />)}
           </div>
         </Reveal>
       </section>

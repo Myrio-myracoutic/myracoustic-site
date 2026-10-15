@@ -158,7 +158,7 @@ const TYPEWRITER_WORDS = ['Sérénité absolue', 'Ambiance sur-mesure', 'Fluidit
 
 function CtaButton({ children = 'Vérifier la disponibilité de ma date →', style }) {
   return (
-    <a href="/devis/mariage-contact" onClick={() => gtagEvent('funnel_step', { profil: 'mariage', step_name: 'mariage_sans_stress_cta' })} style={{
+    <a href="/devis/mariage-contact" className="mss-focusable" onClick={() => gtagEvent('funnel_step', { profil: 'mariage', step_name: 'mariage_sans_stress_cta' })} style={{
       background: 'var(--lime)', color: '#0d1b2a',
       padding: '15px 32px', borderRadius: 8, fontSize: 16, fontWeight: 700,
       fontFamily: 'var(--font-display), sans-serif',
@@ -197,6 +197,7 @@ function AvailabilityBanner({ availability }) {
 function Typewriter({ words }) {
   const [index, setIndex] = useState(0);
   useEffect(() => {
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
     const id = setInterval(() => setIndex((i) => (i + 1) % words.length), 2200);
     return () => clearInterval(id);
   }, [words.length]);
@@ -214,7 +215,7 @@ function FaqItem({ q, a }) {
       background: 'var(--card)', border: `1px solid ${open ? 'var(--lime)' : 'rgba(255,255,255,0.07)'}`,
       borderRadius: 10, overflow: 'hidden', transition: 'border-color 0.2s',
     }}>
-      <button onClick={() => setOpen((o) => !o)} style={{
+      <button onClick={() => setOpen((o) => !o)} className="mss-focusable" style={{
         width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
         background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left',
         padding: '18px 22px', color: '#fff',
@@ -246,6 +247,15 @@ export default function MariageSansStressClient({ availability }) {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
     <div>
+      <style>{`
+        .mss-focusable:focus-visible {
+          outline: 2px solid var(--lime);
+          outline-offset: 2px;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .mss-focusable { transition: none !important; }
+        }
+      `}</style>
 
       {/* ── BANDEAU DISPONIBILITÉ ───────────────────────────────── */}
       <AvailabilityBanner availability={availability} />
@@ -263,14 +273,18 @@ export default function MariageSansStressClient({ availability }) {
           <Image src="/logo.png" alt="Myracoustic" width={140} height={47} style={{ height: 38, width: 'auto' }} priority />
           <nav className="hide-mobile" style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
             {NAV_LINKS.map((l) => (
-              <a key={l.href} href={l.href} style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, textDecoration: 'none', fontFamily: 'var(--font-display), sans-serif' }}>{l.label}</a>
+              <a key={l.href} href={l.href} className="mss-focusable" style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, textDecoration: 'none', fontFamily: 'var(--font-display), sans-serif' }}>{l.label}</a>
             ))}
             <CtaButton style={{ padding: '9px 20px', fontSize: 13.5 }} />
           </nav>
           <button
-            className="hide-desktop"
+            className="hide-desktop mss-focusable"
             onClick={() => setMenuOpen((o) => !o)}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#fff', padding: 4, display: 'flex', alignItems: 'center' }}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer', color: '#fff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              width: 44, height: 44, margin: '-4px -4px -4px 0',
+            }}
             aria-label="Menu"
           >
             {menuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -284,7 +298,7 @@ export default function MariageSansStressClient({ availability }) {
             padding: '16px 32px 24px',
           }}>
             {NAV_LINKS.map((l) => (
-              <a key={l.href} href={l.href} onClick={() => setMenuOpen(false)} style={{
+              <a key={l.href} href={l.href} className="mss-focusable" onClick={() => setMenuOpen(false)} style={{
                 display: 'block', color: 'rgba(255,255,255,0.8)',
                 fontFamily: 'var(--font-display), sans-serif', fontWeight: 500, fontSize: 16,
                 padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.06)',
@@ -402,7 +416,7 @@ export default function MariageSansStressClient({ availability }) {
             </p>
           </div>
           <div style={{
-            display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(320px,1fr))', gap: 32,
+            display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(320px,100%),1fr))', gap: 32,
           }}>
             {SERVICE_CATEGORIES.map((cat, i) => (
               <div key={i} style={{
@@ -599,6 +613,21 @@ export default function MariageSansStressClient({ availability }) {
             Préférences cookies
           </button>
         </div>
+      </div>
+
+      {/* Réserve l'espace occupé par la barre CTA fixe mobile, pour qu'elle ne masque pas le pied de page */}
+      <div className="hide-desktop" style={{ height: 70 }} />
+
+      {/* ── CTA FIXE MOBILE ─────────────────────────────────────── */}
+      {/* Sur mobile, le CTA du header est caché dans le menu hamburger : sans cette barre,
+          plus aucune action n'est visible une fois le hero dépassé. */}
+      <div className="hide-desktop" style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 90,
+        padding: '12px 16px', paddingBottom: 'max(12px, env(safe-area-inset-bottom))',
+        background: 'rgba(6,14,22,0.95)', backdropFilter: 'blur(12px)',
+        borderTop: '1px solid rgba(255,255,255,0.08)',
+      }}>
+        <CtaButton style={{ display: 'block', textAlign: 'center', width: '100%' }} />
       </div>
 
     </div>

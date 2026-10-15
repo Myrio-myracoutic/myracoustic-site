@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Music, CheckCircle, Wrench, Users2, Phone } from 'lucide-react';
+import { Music, CheckCircle, Wrench, Users2, Phone, Sparkles, Smartphone } from 'lucide-react';
 import { AnimatedWave, SectionLabel } from '../components/AnimatedWave';
 import TestimonialCarousel from '../components/TestimonialCarousel';
 import StatItem from '../components/StatItem';
@@ -47,22 +47,39 @@ const FEATURES = [
 
 // Tous les services réunis, sans distinction de formule ni de prix — l'offre exacte
 // (durée, options retenues) se construit par téléphone selon le besoin du client.
-const SERVICES = [
-  'DJ & animation musicale, adaptés à la durée et à l’ambiance de votre soirée',
-  'Sonorisation adaptée au nombre d’invités',
-  'Éclairage piste de danse & mise en lumière de la salle',
-  'Vidéoprojecteur / diaporama',
-  'Mur LED, au format adapté à votre salle',
-  'Effets spéciaux : fumée lourde, étincelles froides',
-  'Photobooth',
-  'Livre d’or vidéo & audio',
-  'Sonorisation & gestion technique de la cérémonie (laïque, religieuse, symbolique)',
-  'Coordination du déroulé & sonorisation du vin d’honneur',
-  'Installation, désinstallation & technicien dédié',
-  'Accompagnement personnalisé & gestion proactive des imprévus',
-  'Suivi en temps réel avec votre équipe dédiée le jour J',
-  'Votre espace en ligne : playlists, déroulé, invités, suivi du projet',
-  'Captures vidéo professionnelles de votre événement',
+// Regroupés par catégorie pour montrer l'étendue réelle de l'offre.
+const SERVICE_CATEGORIES = [
+  { icon: Wrench, title: 'Son, lumière & vidéo', items: [
+    'DJ & animation musicale, adaptés à la durée et à l’ambiance de votre soirée',
+    'Sonorisation adaptée au nombre d’invités',
+    'Éclairage piste de danse & mise en lumière de la salle',
+    'Vidéoprojecteur / diaporama',
+    'Mur LED, au format adapté à votre salle',
+    'Effets spéciaux : fumée lourde, étincelles froides',
+    'Sonorisation & gestion technique de la cérémonie (laïque, religieuse, symbolique)',
+    'Coordination du déroulé & sonorisation du vin d’honneur',
+    'Installation, désinstallation & technicien dédié',
+  ] },
+  { icon: Sparkles, title: 'Animations & souvenirs', items: [
+    'Photobooth',
+    'Livre d’or vidéo & audio',
+    { type: 'video', title: 'Captures vidéo professionnelles', steps: [
+      'Captation continue, de notre arrivée jusqu’à la dernière danse',
+      'Montage d’un film souvenir, offert aux mariés',
+      'Partage de l’intégralité des fichiers bruts',
+    ] },
+  ] },
+  { icon: Users2, title: 'Accompagnement', items: [
+    'Accompagnement personnalisé, du premier contact au jour J',
+    'Gestion proactive des imprévus',
+    'Suivi en temps réel avec votre équipe dédiée le jour J',
+  ] },
+  { icon: Smartphone, title: 'Votre espace en ligne', items: [
+    'Playlists & programmation musicale',
+    'Déroulé de la soirée',
+    'Invités & informations pratiques',
+    'Suivi de votre projet à deux, au même endroit',
+  ] },
 ];
 
 const FAQ = [
@@ -285,15 +302,70 @@ export default function MariageSansStressClient({ availability }) {
             </p>
           </div>
           <div style={{
-            display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(260px,1fr))', gap: '14px 28px',
+            display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(320px,1fr))', gap: 32,
           }}>
-            {SERVICES.map((service, i) => (
+            {SERVICE_CATEGORIES.map((cat, i) => (
               <div key={i} style={{
-                display: 'flex', alignItems: 'flex-start', gap: 10,
-                color: 'rgba(255,255,255,0.75)', fontSize: 14.5, lineHeight: 1.5,
+                background: 'var(--card)', border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: 16, padding: '28px 26px',
               }}>
-                <CheckCircle size={16} color="var(--lime)" style={{ flexShrink: 0, marginTop: 2 }} />
-                {service}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
+                  <div style={{
+                    width: 38, height: 38, borderRadius: '50%', background: 'rgba(184,239,11,0.12)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  }}>
+                    <cat.icon size={18} color="var(--lime)" />
+                  </div>
+                  <h3 style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 18 }}>
+                    {cat.title}
+                  </h3>
+                </div>
+                <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                  {cat.items.map((item, j) => {
+                    if (typeof item === 'object' && item.type === 'video') {
+                      return (
+                        <li key={j} style={{
+                          marginTop: 16, marginBottom: 6, paddingTop: 16,
+                          borderTop: '1px solid rgba(255,255,255,0.08)',
+                        }}>
+                          <p style={{
+                            fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 14.5,
+                            color: '#fff', marginBottom: 10,
+                          }}>
+                            {item.title}
+                          </p>
+                          <ol style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                            {item.steps.map((step, k) => (
+                              <li key={k} style={{
+                                display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 9,
+                                color: 'rgba(255,255,255,0.72)', fontSize: 14, lineHeight: 1.5,
+                              }}>
+                                <span style={{
+                                  flexShrink: 0, width: 18, height: 18, borderRadius: '50%',
+                                  background: 'rgba(184,239,11,0.15)', color: 'var(--lime)',
+                                  fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 10.5,
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 1,
+                                }}>
+                                  {k + 1}
+                                </span>
+                                {step}
+                              </li>
+                            ))}
+                          </ol>
+                        </li>
+                      );
+                    }
+                    return (
+                      <li key={j} style={{
+                        display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 11,
+                        color: 'rgba(255,255,255,0.72)', fontSize: 14.5, lineHeight: 1.5,
+                      }}>
+                        <CheckCircle size={15} color="var(--lime)" style={{ flexShrink: 0, marginTop: 2 }} />
+                        {item}
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
             ))}
           </div>

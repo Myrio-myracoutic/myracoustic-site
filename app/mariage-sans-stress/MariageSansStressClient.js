@@ -220,7 +220,7 @@ export default function MariageSansStressClient({ availability }) {
             fontSize: 'clamp(34px,6vw,64px)', fontWeight: 700,
             lineHeight: 1.05, letterSpacing: '-0.02em', marginBottom: 20,
           }}>
-            Myracoustic : votre mariage, une émotion inoubliable, sans aucun stress.
+            Votre mariage, une soirée inoubliable pour vos invités, sans aucun stress pour vous.
           </h1>
           <p style={{
             color: 'rgba(255,255,255,0.56)',

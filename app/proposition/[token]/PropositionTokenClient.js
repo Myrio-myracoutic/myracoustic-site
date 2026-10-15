@@ -46,7 +46,6 @@ export default function PropositionTokenClient({ token }) {
   const [adresse, setAdresse] = useState('');
   const [cp, setCp] = useState('');
   const [ville, setVille] = useState('');
-  const [acompte2x, setAcompte2x] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
@@ -79,7 +78,7 @@ export default function PropositionTokenClient({ token }) {
     try {
       const res = await fetch(`/api/proposition/${token}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ adresse: adresse.trim(), cp: cp.trim(), ville: ville.trim(), acompte2x }),
+        body: JSON.stringify({ adresse: adresse.trim(), cp: cp.trim(), ville: ville.trim() }),
       });
       setSending(false);
       if (!res.ok) { const d = await res.json().catch(() => ({})); setError(d.error || 'Une erreur est survenue.'); return; }
@@ -271,32 +270,6 @@ export default function PropositionTokenClient({ token }) {
       </>}
 
       {screen === 'billing' && <>
-      {/* Options de paiement de l'acompte (si événement à plus de 3 mois) */}
-      {p.installments_allowed && (
-        <div style={{ background: 'rgba(52,55,144,0.1)', border: '1px solid rgba(52,55,144,0.3)', borderRadius: 12, padding: '16px 18px', marginBottom: 26 }}>
-          <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 13.5, marginBottom: 12 }}>Comment souhaitez-vous régler l'acompte ?</div>
-          <p style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.5)', margin: '2px 0 12px' }}>Aucun paiement maintenant — indiquez simplement votre préférence, réglable à la signature de votre devis.</p>
-          {[[false, 'En 1 fois',`${fmtPrice(acompte)} à la signature`], [true, 'En 2 fois', `2 × ${fmtPrice(Math.round(acompte / 2))} sur 2 mois`]].map(([val, title, sub]) => {
-            const active = acompte2x === val;
-            return (
-              <div key={String(val)} onClick={() => setAcompte2x(val)} style={{
-                display: 'flex', alignItems: 'center', gap: 12, padding: '11px 12px', borderRadius: 9, cursor: 'pointer', marginBottom: 6,
-                background: active ? 'rgba(184,239,11,0.08)' : 'transparent', border: `1px solid ${active ? 'var(--lime)' : 'rgba(255,255,255,0.1)'}`,
-              }}>
-                <div style={{ width: 18, height: 18, borderRadius: '50%', flexShrink: 0, border: `2px solid ${active ? 'var(--lime)' : 'rgba(255,255,255,0.25)'}`, background: active ? 'var(--lime)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {active && <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#0d1b2a' }} />}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: active ? 'var(--lime)' : '#fff' }}>{title}</div>
-                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)' }}>{sub}</div>
-                </div>
-              </div>
-            );
-          })}
-          {acompte2x && <p style={{ fontSize: 11.5, color: 'rgba(255,255,255,0.45)', margin: '8px 2px 0' }}>Votre demande de paiement en 2 fois sera transmise à Myracoustic, qui la mettra en place avec vous.</p>}
-        </div>
-      )}
-
       {/* Adresse de facturation */}
       <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
         <MapPin size={16} color="var(--lime)" /><span style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 15 }}>Adresse de facturation</span>

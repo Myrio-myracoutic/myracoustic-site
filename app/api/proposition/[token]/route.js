@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
 import { ensureAuthUser, setupTempPassword, sendCredentialsEmail } from '@/app/lib/account-access';
-import { installmentsAllowed } from '@/app/lib/devis-validity';
 import { formuleInclusionsText, formuleInclusionsTextFromObj } from '@/app/lib/formules';
 import { discountEuros, discountActive } from '@/app/lib/discount';
 
@@ -51,7 +50,6 @@ export async function GET(_req, { params }) {
       discount: dEuros > 0 ? { amount: dEuros, until: p.discount_until, type: p.discount_type, value: Number(p.discount_value) } : null,
       event_date: p.event_date, venue: p.venue, guests: p.guests, status: p.status,
       valid_until: p.valid_until, acompte, solde,
-      installments_allowed: installmentsAllowed(p.event_date),
       firstName: lead.prenom || '',
       unavailable: proposalUnavailable(p),
     },
@@ -69,7 +67,7 @@ function proposalUnavailable(p) {
 // POST — valider : crée le compte + le brouillon Qonto
 export async function POST(request, { params }) {
   const { token } = await params;
-  const { adresse, cp, ville, acompte2x } = await request.json();
+  const { adresse, cp, ville } = await request.json();
   if (!adresse?.trim() || !cp?.trim() || !ville?.trim()) {
     return NextResponse.json({ error: 'Adresse de facturation incomplète' }, { status: 400 });
   }
@@ -138,7 +136,7 @@ export async function POST(request, { params }) {
         event: { type: 'Mariage', date: p.event_date, lieu: p.venue, formule: p.formule },
         items,
         discountPct,
-        note: `Formule ${p.formule_name || 'sur-mesure'} · validé en ligne par le client${dEuros > 0 ? ` · réduction du moment -${dEuros} €` : ''}${acompte2x ? ' · DEMANDE acompte en 2 fois' : ''}`,
+        note: `Formule ${p.formule_name || 'sur-mesure'} · validé en ligne par le client${dEuros > 0 ? ` · réduction du moment -${dEuros} €` : ''}`,
       }),
     });
     const qData = await qRes.json();
@@ -149,7 +147,7 @@ export async function POST(request, { params }) {
   // 3. Mettre à jour la proposition + le lead + accès client
   await supabaseAdmin.from('devis_proposals').update({
     status: 'validee', client_id: clientId, adresse: adresse.trim(), cp: cp.trim(), ville: ville.trim(),
-    acompte_2x: !!acompte2x, qonto_quote_id: quoteId, qonto_quote_url: quoteUrl, validated_at: new Date().toISOString(),
+    qonto_quote_id: quoteId, qonto_quote_url: quoteUrl, validated_at: new Date().toISOString(),
     montant_final: netTotal,
   }).eq('id', p.id);
   await supabaseAdmin.from('mariage_leads').update({ status: 'gagne', client_id: clientId }).eq('id', p.lead_id);
@@ -175,8 +173,7 @@ export async function POST(request, { params }) {
         htmlContent: `<h2>Proposition validée par le client</h2>
           <p><strong>${lead.prenom} ${lead.nom}</strong> (${email}) a validé sa proposition (${netTotal} € TTC${dEuros > 0 ? ` — réduction du moment de ${dEuros} € appliquée` : ''}).</p>
           <p>${quoteId ? 'Un <strong>brouillon Qonto</strong> a été créé : ouvrez Qonto et envoyez-le pour signature.' : '⚠️ Brouillon Qonto NON créé automatiquement — à faire à la main.'}</p>
-          <p>Adresse de facturation : ${adresse}, ${cp} ${ville}</p>
-          ${acompte2x ? '<p style="color:#b8860b"><strong>⚠️ Le client demande à régler l\'acompte en 2 fois (sur 2 mois).</strong></p>' : ''}`,
+          <p>Adresse de facturation : ${adresse}, ${cp} ${ville}</p>`,
       }),
     });
   } catch (err) { console.error('Notif Myrio error:', err.message); }

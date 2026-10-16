@@ -328,7 +328,7 @@ export default function MariageSansStressClient({ availability }) {
 
       {/* ── HERO ────────────────────────────────────────────────── */}
       <section style={{
-        padding: 'clamp(132px,14vw,160px) 32px clamp(80px,10vw,120px)',
+        padding: 'clamp(66px,7vw,80px) 32px clamp(80px,10vw,120px)',
         backgroundImage: 'url(/ban_mariage_sans-stress.jpg)',
         backgroundSize: 'cover', backgroundPosition: 'center',
         position: 'relative', overflow: 'hidden',

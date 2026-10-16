@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Music, CheckCircle, Wrench, Users2, Phone, Sparkles, Smartphone, Menu, X } from 'lucide-react';
+import { Music, CheckCircle, Wrench, Users2, Phone, Sparkles, Menu, X } from 'lucide-react';
 import { AnimatedWave, SectionLabel } from '../components/AnimatedWave';
 import TestimonialCarousel from '../components/TestimonialCarousel';
 import StatItem from '../components/StatItem';
@@ -130,12 +130,10 @@ const SERVICE_CATEGORIES = [
       'Partage de l’intégralité des fichiers bruts',
     ] },
   ] },
-  { icon: Users2, title: 'Accompagnement', items: [
+  { icon: Users2, title: 'Accompagnement & espace en ligne', items: [
     'Accompagnement personnalisé, du premier contact au jour J',
     'Gestion proactive des imprévus',
     'Suivi en temps réel avec votre équipe dédiée le jour J',
-  ] },
-  { icon: Smartphone, title: 'Votre espace en ligne', items: [
     'Playlists & programmation musicale',
     'Déroulé de la soirée',
     'Invités & informations pratiques',
@@ -245,6 +243,16 @@ const NAV_LINKS = [
 
 export default function MariageSansStressClient({ availability }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const barRef = useRef(null);
+  const [barHeight, setBarHeight] = useState(0);
+  useEffect(() => {
+    if (!barRef.current) return;
+    const update = () => setBarHeight(barRef.current.offsetHeight);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(barRef.current);
+    return () => ro.disconnect();
+  }, [menuOpen]);
   return (
     <div>
       <style>{`
@@ -257,15 +265,15 @@ export default function MariageSansStressClient({ availability }) {
         }
       `}</style>
 
-      {/* ── BANDEAU DISPONIBILITÉ ───────────────────────────────── */}
-      <AvailabilityBanner availability={availability} />
-
-      {/* ── EN-TÊTE ─────────────────────────────────────────────── */}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 100,
-        background: 'rgba(6,14,22,0.85)', backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
-      }}>
+      {/* ── BANDEAU DISPONIBILITÉ + EN-TÊTE ─────────────────────── */}
+      {/* Regroupés dans un même bloc collant : le bandeau reste visible pendant le
+          défilement, comme le CTA fixe en bas d'écran sur mobile. */}
+      <div ref={barRef} style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100 }}>
+        <AvailabilityBanner availability={availability} />
+        <div style={{
+          background: 'rgba(6,14,22,0.85)', backdropFilter: 'blur(12px)',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+        }}>
         <div style={{
           padding: '14px 32px', display: 'flex',
           alignItems: 'center', justifyContent: 'space-between', gap: 12,
@@ -312,45 +320,55 @@ export default function MariageSansStressClient({ availability }) {
             </div>
           </div>
         )}
+        </div>
       </div>
+      {/* Réserve l'espace occupé par le bandeau+en-tête fixe (hauteur mesurée dynamiquement :
+          le bandeau peut passer sur 2 lignes sur les très petits écrans). */}
+      <div style={{ height: barHeight }} />
 
       {/* ── HERO ────────────────────────────────────────────────── */}
       <section style={{
-        padding: 'clamp(64px,9vw,110px) 32px clamp(80px,10vw,120px)',
+        padding: 'clamp(132px,14vw,160px) 32px clamp(80px,10vw,120px)',
+        backgroundImage: 'url(/ban_mariage_sans-stress.jpg)',
+        backgroundSize: 'cover', backgroundPosition: 'center',
         position: 'relative', overflow: 'hidden',
       }}>
         <div style={{
-          position: 'absolute', inset: 0, zIndex: 0,
-          background: 'linear-gradient(135deg,#0d1b2a 0%,#152233 50%,#0d1b2a 100%)',
+          position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
+          background: 'linear-gradient(to right,rgba(13,27,42,0.92) 0%,rgba(13,27,42,0.55) 60%,rgba(13,27,42,0.2) 100%)',
         }} />
         <div style={{
           position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
-          background: 'radial-gradient(ellipse 70% 60% at 80% 40%,rgba(184,239,11,0.06) 0%,transparent 55%)',
+          background: 'radial-gradient(ellipse 70% 60% at 80% 40%,rgba(184,239,11,0.08) 0%,transparent 55%)',
         }} />
 
-        <div style={{ maxWidth: 820, margin: '0 auto', position: 'relative', zIndex: 2, textAlign: 'center' }}>
-          <SectionLabel style={{ justifyContent: 'center' }}>Mariage</SectionLabel>
-          <h1 style={{
-            fontFamily: 'var(--font-display), sans-serif',
-            fontSize: 'clamp(34px,6vw,64px)', fontWeight: 700,
-            lineHeight: 1.05, letterSpacing: '-0.02em', marginBottom: 20,
-          }}>
-            Votre mariage, une soirée inoubliable pour vous et vos invités, sans aucun stress.
-          </h1>
-          <p style={{
-            color: 'rgba(255,255,255,0.56)',
-            fontSize: 'clamp(15px,1.5vw,18px)', lineHeight: 1.75,
-            maxWidth: 620, margin: '0 auto 28px',
-          }}>
-            L&apos;architecte de votre ambiance sonore et lumineuse pour un événement qui vous ressemble, parfaitement orchestré.
-          </p>
-          <p style={{
-            fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(16px,2vw,20px)', fontWeight: 700,
-            marginBottom: 36, minHeight: 28,
-          }}>
-            <Typewriter words={TYPEWRITER_WORDS} />
-          </p>
-          <CtaButton />
+        <div style={{ maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 2 }}>
+          <div style={{ maxWidth: 620 }}>
+            <SectionLabel>Mariage</SectionLabel>
+            <h1 style={{
+              fontFamily: 'var(--font-display), sans-serif',
+              fontSize: 'clamp(34px,6vw,64px)', fontWeight: 700,
+              lineHeight: 1.05, letterSpacing: '-0.02em', marginBottom: 20,
+            }}>
+              Votre mariage, une soirée inoubliable pour vous et vos invités, sans aucun stress.
+            </h1>
+            <p style={{
+              color: 'rgba(255,255,255,0.56)',
+              fontSize: 'clamp(15px,1.5vw,18px)', lineHeight: 1.75,
+              marginBottom: 28,
+            }}>
+              L&apos;architecte de votre ambiance sonore et lumineuse pour un événement qui vous ressemble, parfaitement orchestré.
+            </p>
+            <p style={{
+              fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(16px,2vw,20px)', fontWeight: 700,
+              marginBottom: 36, minHeight: 28,
+            }}>
+              <Typewriter words={TYPEWRITER_WORDS} />
+            </p>
+            {/* Sur mobile, un seul CTA accessible en permanence (barre fixe en bas) —
+                celui-ci ferait doublon avec elle, retiré sur ce breakpoint. */}
+            <div className="hide-mobile"><CtaButton /></div>
+          </div>
         </div>
 
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 80, zIndex: 2 }}>
@@ -483,7 +501,7 @@ export default function MariageSansStressClient({ availability }) {
               </div>
             ))}
           </div>
-          <div style={{ textAlign: 'center', marginTop: 44 }}>
+          <div className="hide-mobile" style={{ textAlign: 'center', marginTop: 44 }}>
             <CtaButton />
           </div>
         </Reveal>
@@ -575,7 +593,7 @@ export default function MariageSansStressClient({ availability }) {
           <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 16, marginBottom: 32 }}>
             Un devis personnalisé, sans engagement, sous 48h.
           </p>
-          <CtaButton children="Oui, je veux mon mariage inoubliable !" style={{ padding: '16px 40px', fontSize: 17 }} />
+          <div className="hide-mobile"><CtaButton children="Oui, je veux mon mariage inoubliable !" style={{ padding: '16px 40px', fontSize: 17 }} /></div>
         </Reveal>
       </section>
 

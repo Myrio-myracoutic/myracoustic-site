@@ -152,7 +152,12 @@ const FAQ = [
     a: 'Notre expertise repose sur une compréhension fine de vos attentes. Nous vous aidons à visualiser le rendu final et à concevoir une atmosphère unique qui marquera les esprits.' },
 ];
 
-const TYPEWRITER_WORDS = ['Sérénité absolue', 'Ambiance sur-mesure', 'Fluidité technique', 'Souvenirs magiques'];
+const TYPEWRITER_WORDS = [
+  'Une ambiance qui vous ressemble',
+  'Zéro gestion technique le jour J',
+  'Des souvenirs qui restent en images et en son',
+  'Une soirée dont vous profitez vraiment',
+];
 
 function CtaButton({ children = 'Vérifier la disponibilité de ma date →', style }) {
   return (
@@ -357,11 +362,11 @@ export default function MariageSansStressClient({ availability }) {
               fontSize: 'clamp(15px,1.5vw,18px)', lineHeight: 1.75,
               marginBottom: 28,
             }}>
-              L&apos;architecte de votre ambiance sonore et lumineuse pour un événement qui vous ressemble, parfaitement orchestré.
+              Son, lumière, vidéo et DJ, pilotés de A à Z, pour que vous profitiez de chaque instant.
             </p>
             <p style={{
               fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(16px,2vw,20px)', fontWeight: 700,
-              marginBottom: 36, minHeight: 28,
+              lineHeight: 1.3, marginBottom: 36, minHeight: 56,
             }}>
               <Typewriter words={TYPEWRITER_WORDS} />
             </p>

@@ -97,13 +97,13 @@ const LEGAL_LINKS = [
 
 const FEATURES = [
   { icon: Music, title: 'Ambiance personnalisée & sur mesure',
-    text: "Nous prenons le temps de comprendre vos envies, vos goûts musicaux pour une playlist et une ambiance qui vous ressemblent à 100%." },
+    text: "Une playlist construite avec vous : vos goûts, vos souvenirs, l'ambiance que vous imaginez." },
   { icon: CheckCircle, title: 'Coordination technique globale',
-    text: "Un seul interlocuteur pour toute la coordination technique (son, lumière, DJ, vidéo). Zéro stress, nous gérons tout de A à Z." },
+    text: "Un seul interlocuteur pour le son, la lumière, le DJ et la vidéo. Vous n'avez plus à coordonner vos prestataires." },
   { icon: Wrench, title: 'Matériel son & lumière premium',
-    text: "Matériel professionnel avec des systèmes de secours intégrés. Finis les problèmes techniques qui gâchent la fête." },
+    text: "Du matériel professionnel et un plan de secours. Si quelque chose lâche, on le gère." },
   { icon: Users2, title: 'DJ expert en ambiance multigénérationnelle',
-    text: "Notre DJ sait lire le public et adapter la musique pour une piste de danse pleine, toutes générations confondues." },
+    text: "Un DJ qui lit la salle et adapte la musique pour que la piste reste pleine, toutes générations confondues." },
 ];
 
 // Tous les services réunis, sans distinction de formule ni de prix — l'offre exacte
@@ -399,7 +399,7 @@ export default function MariageSansStressClient({ availability }) {
           <div style={{ maxWidth: 640, margin: '0 auto 44px', textAlign: 'center' }}>
             <SectionLabel style={{ justifyContent: 'center' }}>Notre approche</SectionLabel>
             <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(24px,3.5vw,42px)', fontWeight: 700, marginBottom: 12 }}>
-              L&apos;expérience Myracoustic : des solutions pour un mariage parfait
+              Une soirée coordonnée de A à Z, sans stress technique
             </h2>
           </div>
           <div style={{

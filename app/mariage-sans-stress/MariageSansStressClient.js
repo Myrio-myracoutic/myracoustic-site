@@ -257,16 +257,24 @@ const NAV_LINKS = [
 
 export default function MariageSansStressClient({ availability }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const barRef = useRef(null);
-  const [barHeight, setBarHeight] = useState(0);
+  const bannerRef = useRef(null);
+  const [bannerHeight, setBannerHeight] = useState(0);
   useEffect(() => {
-    if (!barRef.current) return;
-    const update = () => setBarHeight(barRef.current.offsetHeight);
+    if (!bannerRef.current) return;
+    const update = () => setBannerHeight(bannerRef.current.offsetHeight);
     update();
     const ro = new ResizeObserver(update);
-    ro.observe(barRef.current);
+    ro.observe(bannerRef.current);
     return () => ro.disconnect();
-  }, [menuOpen]);
+  }, []);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
   return (
     <div>
       <style>{`
@@ -283,10 +291,14 @@ export default function MariageSansStressClient({ availability }) {
       {/* Regroupés dans un même bloc collant : le bandeau reste visible pendant le
           défilement, comme le CTA fixe en bas d'écran sur mobile. */}
       <div ref={barRef} style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100 }}>
-        <AvailabilityBanner availability={availability} />
+        <div ref={bannerRef}>
+          <AvailabilityBanner availability={availability} />
+        </div>
         <div style={{
-          background: 'rgba(6,14,22,0.85)', backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          background: (scrolled || menuOpen) ? 'rgba(6,14,22,0.85)' : 'transparent',
+          backdropFilter: (scrolled || menuOpen) ? 'blur(12px)' : 'none',
+          borderBottom: (scrolled || menuOpen) ? '1px solid rgba(255,255,255,0.06)' : '1px solid transparent',
+          transition: 'background 0.25s ease, border-color 0.25s ease',
         }}>
         <div style={{
           padding: '14px 32px', display: 'flex',
@@ -338,7 +350,7 @@ export default function MariageSansStressClient({ availability }) {
       </div>
       {/* Réserve l'espace occupé par le bandeau+en-tête fixe (hauteur mesurée dynamiquement :
           le bandeau peut passer sur 2 lignes sur les très petits écrans). */}
-      <div style={{ height: barHeight }} />
+      <div style={{ height: bannerHeight }} />
 
       {/* ── HERO ────────────────────────────────────────────────── */}
       <section style={{
@@ -596,10 +608,13 @@ export default function MariageSansStressClient({ availability }) {
       {/* ── CTA FINAL ───────────────────────────────────────────── */}
       <section style={{
         padding: 'clamp(56px,7vw,88px) 32px', textAlign: 'center',
-        background: 'linear-gradient(135deg,#0d1b2a 0%,#1a0510 50%,#0d1b2a 100%)',
+        backgroundImage: 'url(/ban_mariage_sans-stress-2.jpg)',
+        backgroundSize: 'cover', backgroundPosition: 'center',
+        position: 'relative', overflow: 'hidden',
         borderTop: '1px solid rgba(184,239,11,0.18)',
       }}>
-        <Reveal>
+        <div style={{ position: 'absolute', inset: 0, zIndex: 0, background: 'linear-gradient(135deg,rgba(13,27,42,0.9) 0%,rgba(26,5,16,0.9) 50%,rgba(13,27,42,0.9) 100%)' }} />
+        <Reveal style={{ position: 'relative', zIndex: 1 }}>
           <AnimatedWave bars={48} height={50} style={{ maxWidth: 560, margin: '0 auto 28px' }} opacity={0.55} />
           <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(24px,3.5vw,44px)', fontWeight: 700, marginBottom: 12 }}>
             Prêts à vivre le mariage de vos rêves ?

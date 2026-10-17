@@ -141,14 +141,24 @@ const SERVICE_CATEGORIES = [
 ];
 
 const FAQ = [
-  { q: 'Comment assurez-vous que la musique corresponde à nos goûts et à l’ambiance désirée ?',
-    a: 'Grâce à votre espace en ligne et des échanges approfondis, nous créons une playlist sur-mesure. Notre DJ sait aussi s’adapter en temps réel pour une piste de danse toujours pleine et une ambiance qui vous ressemble.' },
-  { q: 'Que se passe-t-il en cas de problème technique le jour du mariage ?',
-    a: 'Nous utilisons du matériel professionnel avec des systèmes de secours intégrés. Une équipe technique dédiée est présente pour assurer une fluidité irréprochable et gérer tout imprévu discrètement.' },
-  { q: 'Serons-nous accompagnés et conseillés tout au long des préparatifs ?',
-    a: 'Absolument. Nous vous offrons un accompagnement personnalisé et des conseils, du premier contact jusqu’au jour J, pour faire les meilleurs choix et anticiper chaque détail.' },
-  { q: 'Comment être sûr que l’ambiance sera à la hauteur de nos attentes ?',
-    a: 'Notre expertise repose sur une compréhension fine de vos attentes. Nous vous aidons à visualiser le rendu final et à concevoir une atmosphère unique qui marquera les esprits.' },
+  { q: "Comment être sûr que la musique correspondra à nos goûts ?",
+    a: "Nous commençons par un échange et un questionnaire sur vos goûts, vos souvenirs et l'ambiance souhaitée. La playlist est construite à partir de ces éléments. Le jour J, notre DJ adapte la musique en direct selon la réaction de la piste." },
+  { q: "Que se passe-t-il en cas de problème technique le jour du mariage ?",
+    a: "Nous utilisons du matériel professionnel et prévoyons un plan de secours. Un technicien est présent du début à la fin de la prestation. Si un incident survient, il est pris en charge par notre équipe, sans que vous ayez à intervenir." },
+  { q: "Serons-nous accompagnés tout au long des préparatifs ?",
+    a: "Oui. Vous avez un interlocuteur unique, du premier échange jusqu'au jour J. Nous organisons un point régulier avant l'événement, avec le déroulé, les playlists et les contraintes du lieu." },
+  { q: "Quelle est la prestation incluse ?",
+    a: "Le contenu dépend de vos besoins et de votre lieu. Il est défini ensemble lors de l'échange, puis détaillé dans une proposition personnalisée. Les options possibles incluent le DJ, la sonorisation, l'éclairage, la vidéo, le photobooth et le livre d'or." },
+  { q: "Quel est le budget minimum ?",
+    a: "Nos prestations démarrent à partir de 2 000 €. Le montant final dépend du lieu, de la durée et des options choisies." },
+  { q: "Comment se passe la réservation ?",
+    a: "Après notre échange, nous vous envoyons une proposition. Votre date est réservée à réception de l'acompte de 50 % et du contrat signé. Une date réservée n'est plus proposée à d'autres couples." },
+  { q: "Intervenez-vous hors de la région ?",
+    a: "Nous intervenons principalement en Pays de la Loire — Nantes, Angers, Rennes, Saint-Nazaire et leurs environs. Pour un lieu plus éloigné, contactez-nous : les frais de déplacement sont précisés dans la proposition." },
+  { q: "Peut-on modifier la prestation après la réservation ?",
+    a: "Oui, dans les conditions prévues par nos conditions générales de vente. Toute modification est confirmée par écrit." },
+  { q: "Quand faut-il réserver ?",
+    a: "Nous conseillons de réserver 12 à 18 mois à l'avance, surtout pour les samedis de la saison. Les dates disponibles évoluent selon les réservations." },
 ];
 
 const TYPEWRITER_WORDS = [
@@ -574,7 +584,7 @@ export default function MariageSansStressClient({ availability }) {
           <div style={{ textAlign: 'center', marginBottom: 40 }}>
             <SectionLabel style={{ justifyContent: 'center' }}>FAQ</SectionLabel>
             <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(24px,3.5vw,38px)', fontWeight: 700, marginBottom: 12 }}>
-              Vos questions, nos réponses : la sérénité avant tout
+              Vos questions, nos réponses
             </h2>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -592,12 +602,12 @@ export default function MariageSansStressClient({ availability }) {
         <Reveal>
           <AnimatedWave bars={48} height={50} style={{ maxWidth: 560, margin: '0 auto 28px' }} opacity={0.55} />
           <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(24px,3.5vw,44px)', fontWeight: 700, marginBottom: 12 }}>
-            Prêts à vivre le mariage de vos rêves, sans le moindre stress ?
+            Prêts à vivre le mariage de vos rêves ?
           </h2>
           <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 16, marginBottom: 32 }}>
-            Un devis personnalisé, sans engagement, sous 48h.
+            Un devis personnalisé, sans engagement.
           </p>
-          <div className="hide-mobile"><CtaButton children="Oui, je veux mon mariage inoubliable !" style={{ padding: '16px 40px', fontSize: 17 }} /></div>
+          <div className="hide-mobile"><CtaButton children="Demander mon devis" style={{ padding: '16px 40px', fontSize: 17 }} /></div>
         </Reveal>
       </section>
 

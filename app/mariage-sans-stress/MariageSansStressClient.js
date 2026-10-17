@@ -448,8 +448,14 @@ export default function MariageSansStressClient({ availability }) {
       </section>
 
       {/* ── TÉMOIGNAGES ─────────────────────────────────────────── */}
-      <section id="avis" style={{ padding: 'clamp(56px,7vw,88px) 32px', background: '#060e16', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-        <Reveal style={{ maxWidth: 1280, margin: '0 auto' }}>
+      <section id="avis" style={{
+        padding: 'clamp(56px,7vw,88px) 32px',
+        backgroundImage: 'url(/ban_mariage_sans-stress-3.jpg)',
+        backgroundSize: 'cover', backgroundPosition: 'center',
+        position: 'relative', overflow: 'hidden',
+      }}>
+        <div style={{ position: 'absolute', inset: 0, zIndex: 0, background: 'rgba(6,14,22,0.88)' }} />
+        <Reveal style={{ position: 'relative', zIndex: 1, maxWidth: 1280, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 48 }}>
             <SectionLabel style={{ justifyContent: 'center' }}>Ils en parlent</SectionLabel>
             <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(24px,3.5vw,42px)', fontWeight: 700, marginBottom: 12 }}>
@@ -611,7 +617,6 @@ export default function MariageSansStressClient({ availability }) {
         backgroundImage: 'url(/ban_mariage_sans-stress-2.jpg)',
         backgroundSize: 'cover', backgroundPosition: 'center',
         position: 'relative', overflow: 'hidden',
-        borderTop: '1px solid rgba(184,239,11,0.18)',
       }}>
         <div style={{ position: 'absolute', inset: 0, zIndex: 0, background: 'linear-gradient(135deg,rgba(13,27,42,0.9) 0%,rgba(26,5,16,0.9) 50%,rgba(13,27,42,0.9) 100%)' }} />
         <Reveal style={{ position: 'relative', zIndex: 1 }}>

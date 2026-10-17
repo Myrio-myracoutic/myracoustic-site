@@ -240,8 +240,8 @@ function FaqItem({ q, a }) {
 
 const NAV_LINKS = [
   { href: '#approche', label: 'Notre approche' },
-  { href: '#services', label: 'Nos services' },
   { href: '#avis',     label: 'Avis' },
+  { href: '#services', label: 'Nos services' },
   { href: '#faq',      label: 'FAQ' },
 ];
 
@@ -425,8 +425,21 @@ export default function MariageSansStressClient({ availability }) {
         </Reveal>
       </section>
 
+      {/* ── TÉMOIGNAGES ─────────────────────────────────────────── */}
+      <section id="avis" style={{ padding: 'clamp(56px,7vw,88px) 32px', background: '#060e16', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <Reveal style={{ maxWidth: 1280, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 48 }}>
+            <SectionLabel style={{ justifyContent: 'center' }}>Ils en parlent</SectionLabel>
+            <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(24px,3.5vw,42px)', fontWeight: 700, marginBottom: 12 }}>
+              Ce que disent les couples que nous avons accompagnés
+            </h2>
+          </div>
+          <TestimonialCarousel items={TESTIMONIALS} />
+        </Reveal>
+      </section>
+
       {/* ── SERVICES ────────────────────────────────────────────── */}
-      <section id="services" style={{ padding: 'clamp(56px,7vw,88px) 32px', background: '#060e16', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+      <section id="services" style={{ padding: 'clamp(56px,7vw,88px) 32px' }}>
         <Reveal style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div style={{ maxWidth: 640, margin: '0 auto 44px', textAlign: 'center' }}>
             <SectionLabel style={{ justifyContent: 'center' }}>Nos services</SectionLabel>
@@ -542,19 +555,6 @@ export default function MariageSansStressClient({ availability }) {
         </div>
       </section>
 
-      {/* ── TÉMOIGNAGES ─────────────────────────────────────────── */}
-      <section id="avis" style={{ padding: 'clamp(56px,7vw,88px) 32px' }}>
-        <Reveal style={{ maxWidth: 1280, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: 48 }}>
-            <SectionLabel style={{ justifyContent: 'center' }}>Ils en parlent</SectionLabel>
-            <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(24px,3.5vw,42px)', fontWeight: 700, marginBottom: 12 }}>
-              Leurs souvenirs de mariages inoubliables
-            </h2>
-          </div>
-          <TestimonialCarousel items={TESTIMONIALS} />
-        </Reveal>
-      </section>
-
       {/* ── NOTRE ENGAGEMENT (garantie allégée) ─────────────────── */}
       <section style={{ padding: 'clamp(56px,7vw,88px) 32px', background: '#060e16', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
         <Reveal style={{ maxWidth: 720, margin: '0 auto', textAlign: 'center' }}>
@@ -563,7 +563,7 @@ export default function MariageSansStressClient({ availability }) {
             Votre sérénité, notre priorité
           </h2>
           <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 15, lineHeight: 1.8 }}>
-            Votre mariage est un événement non reproductible. Nous mettons tout en œuvre — matériel professionnel, systèmes de secours, équipe dédiée — pour une ambiance mémorable et une fluidité technique irréprochable. Et si un imprévu de notre fait venait perturber votre soirée, nous nous engageons à intervenir immédiatement pour que la fête reprenne son cours, selon les conditions prévues dans nos conditions générales de vente.
+            Votre mariage ne se rejoue pas. Nous prévoyons tout en amont : matériel professionnel, systèmes de secours et équipe dédiée. Si un imprévu de notre fait venait perturber votre soirée, nous nous engageons à intervenir rapidement, selon les conditions prévues dans nos CGV.
           </p>
         </Reveal>
       </section>

@@ -168,9 +168,9 @@ const TYPEWRITER_WORDS = [
   'Une soirée dont vous profitez vraiment',
 ];
 
-function CtaButton({ children = 'Vérifier la disponibilité de ma date →', style }) {
+function CtaButton({ children = 'Vérifier la disponibilité de ma date →', style, location = 'autre' }) {
   return (
-    <a href="/devis/mariage-contact" className="mss-focusable" onClick={() => gtagEvent('funnel_step', { profil: 'mariage', step_name: 'mariage_sans_stress_cta' })} style={{
+    <a href="/devis/mariage-contact" className="mss-focusable" onClick={() => gtagEvent('funnel_step', { profil: 'mariage', step_name: `mariage_sans_stress_cta_${location}` })} style={{
       background: 'var(--lime)', color: '#0d1b2a',
       padding: '15px 32px', borderRadius: 8, fontSize: 16, fontWeight: 700,
       fontFamily: 'var(--font-display), sans-serif',
@@ -309,7 +309,7 @@ export default function MariageSansStressClient({ availability }) {
             {NAV_LINKS.map((l) => (
               <a key={l.href} href={l.href} className="mss-focusable" style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, textDecoration: 'none', fontFamily: 'var(--font-display), sans-serif' }}>{l.label}</a>
             ))}
-            <CtaButton style={{ padding: '9px 20px', fontSize: 13.5 }} />
+            <CtaButton location="header" style={{ padding: '9px 20px', fontSize: 13.5 }} />
           </nav>
           <button
             className="hide-desktop mss-focusable"
@@ -342,7 +342,7 @@ export default function MariageSansStressClient({ availability }) {
               </a>
             ))}
             <div style={{ marginTop: 16 }}>
-              <CtaButton style={{ display: 'block', textAlign: 'center', width: '100%' }} />
+              <CtaButton location="menu_mobile" style={{ display: 'block', textAlign: 'center', width: '100%' }} />
             </div>
           </div>
         )}
@@ -393,7 +393,7 @@ export default function MariageSansStressClient({ availability }) {
             </p>
             {/* Sur mobile, un seul CTA accessible en permanence (barre fixe en bas) —
                 celui-ci ferait doublon avec elle, retiré sur ce breakpoint. */}
-            <div className="hide-mobile"><CtaButton /></div>
+            <div className="hide-mobile"><CtaButton location="hero" /></div>
           </div>
         </div>
 
@@ -547,7 +547,7 @@ export default function MariageSansStressClient({ availability }) {
             ))}
           </div>
           <div className="hide-mobile" style={{ textAlign: 'center', marginTop: 44 }}>
-            <CtaButton />
+            <CtaButton location="services" />
           </div>
         </Reveal>
       </section>
@@ -627,7 +627,7 @@ export default function MariageSansStressClient({ availability }) {
           <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 16, marginBottom: 32 }}>
             Un devis personnalisé, sans engagement.
           </p>
-          <div className="hide-mobile"><CtaButton children="Demander mon devis" style={{ padding: '16px 40px', fontSize: 17 }} /></div>
+          <div className="hide-mobile"><CtaButton location="final" children="Demander mon devis" style={{ padding: '16px 40px', fontSize: 17 }} /></div>
         </Reveal>
       </section>
 
@@ -679,7 +679,7 @@ export default function MariageSansStressClient({ availability }) {
         background: 'rgba(6,14,22,0.95)', backdropFilter: 'blur(12px)',
         borderTop: '1px solid rgba(255,255,255,0.08)',
       }}>
-        <CtaButton style={{ display: 'block', textAlign: 'center', width: '100%' }} />
+        <CtaButton location="barre_mobile" style={{ display: 'block', textAlign: 'center', width: '100%' }} />
       </div>
 
     </div>

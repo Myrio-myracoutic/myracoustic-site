@@ -161,6 +161,25 @@ export default function Footer() {
               </svg>
               Instagram
             </a>
+            <a
+              href="https://www.youtube.com/channel/UCwkJIzar5kZ30lZDRoQGCHg"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Myracoustic sur YouTube"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 7,
+                color: 'rgba(255,255,255,0.45)', fontSize: 14, marginTop: 9,
+                textDecoration: 'none', transition: 'color 0.2s',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--lime)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.45)'; }}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <rect x="2" y="5" width="20" height="14" rx="4" />
+                <path d="M10 9.5v5l4.5-2.5-4.5-2.5z" fill="currentColor" stroke="none" />
+              </svg>
+              YouTube
+            </a>
           </div>
         </div>
 

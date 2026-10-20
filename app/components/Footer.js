@@ -147,7 +147,7 @@ export default function Footer() {
               rel="noopener noreferrer"
               aria-label="Myracoustic sur Instagram"
               style={{
-                display: 'inline-flex', alignItems: 'center', gap: 7,
+                display: 'flex', alignItems: 'center', gap: 7,
                 color: 'rgba(255,255,255,0.45)', fontSize: 14, marginTop: 4,
                 textDecoration: 'none', transition: 'color 0.2s',
               }}
@@ -167,7 +167,7 @@ export default function Footer() {
               rel="noopener noreferrer"
               aria-label="Myracoustic sur YouTube"
               style={{
-                display: 'inline-flex', alignItems: 'center', gap: 7,
+                display: 'flex', alignItems: 'center', gap: 7,
                 color: 'rgba(255,255,255,0.45)', fontSize: 14, marginTop: 9,
                 textDecoration: 'none', transition: 'color 0.2s',
               }}

@@ -237,15 +237,16 @@ function MiniCal({ selected, onSelect, devisPending = {}, bookedDates = new Set(
           // pas de concurrence avec l'équipe/le matériel pendant la haute saison.
           const weddingSeasonSaturday = blockWeddingSeasonSaturdays
             && new Date(year, month, d).getDay() === 6 && month >= 3 && month <= 8;
-          const pCount = avail && !pt && !booked ? (devisPending[k] ?? 0) : 0;
+          const isOpen = avail && !pt && !weddingSeasonSaturday;
+          const pCount = isOpen && !booked ? (devisPending[k] ?? 0) : 0;
           const trueBlocked = !avail || pt || weddingSeasonSaturday;  /* passé, hors plage ou samedi haute saison — vraiment non cliquable */
           const blocked = trueBlocked || booked;  /* pour le style */
           return (
             <button key={i} onClick={() => !trueBlocked && onSelect(k)} disabled={trueBlocked}
               style={{
-                background: sel ? 'var(--lime)' : booked ? 'rgba(239,68,68,0.22)' : avail && !pt ? 'rgba(184,239,11,0.07)' : 'transparent',
+                background: sel ? 'var(--lime)' : booked ? 'rgba(239,68,68,0.22)' : isOpen ? 'rgba(184,239,11,0.07)' : 'transparent',
                 color: sel ? '#0d1b2a' : booked ? 'rgba(255,100,100,0.7)' : blocked ? 'rgba(255,255,255,0.18)' : 'rgba(255,255,255,0.82)',
-                border: `1px solid ${sel ? 'var(--lime)' : booked ? 'rgba(239,68,68,0.6)' : avail && !pt ? 'rgba(184,239,11,0.25)' : 'transparent'}`,
+                border: `1px solid ${sel ? 'var(--lime)' : booked ? 'rgba(239,68,68,0.6)' : isOpen ? 'rgba(184,239,11,0.25)' : 'transparent'}`,
                 borderRadius: 5, padding: '5px 0', fontSize: 12,
                 cursor: trueBlocked ? 'default' : 'pointer',
                 fontFamily: 'var(--font-display), sans-serif', fontWeight: sel ? 700 : 400,

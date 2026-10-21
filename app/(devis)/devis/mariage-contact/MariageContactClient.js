@@ -211,8 +211,8 @@ export default function MariageContactClient() {
 
           <div style={{ marginBottom: 12 }}>
             <label style={label}>Date du mariage</label>
-            <MiniCal selected={date} onSelect={(k) => { touch(); setDate(k); }} onBookedClick={(k) => { gtagEvent('date_indisponible', { profil: 'mariage', step_name: 'formulaire_contact' }); setBookedNotice(k); }} onPendingClick={(k) => { touch(); setDate(k); }} devisPending={pendingDates} bookedDates={bookedDates} loading={availLoading} yearsAhead={2} allowedDow={6} seasonMonths={[3, 8]} />
-            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 8 }}>Nous célébrons les mariages le samedi, d&apos;avril à septembre. Les dates déjà réservées sont grisées : si votre date n&apos;est pas disponible, c&apos;est que nous sommes déjà pris ce jour-là.</p>
+            <MiniCal selected={date} onSelect={(k) => { touch(); setDate(k); }} onBookedClick={(k) => { gtagEvent('date_indisponible', { profil: 'mariage', step_name: 'formulaire_contact' }); setBookedNotice(k); }} onPendingClick={(k) => { touch(); setDate(k); }} devisPending={pendingDates} bookedDates={bookedDates} loading={availLoading} yearsAhead={2} allowedDow={6} />
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 8 }}>Nous célébrons les mariages le samedi, toute l&apos;année. Les dates déjà réservées sont grisées : si votre date n&apos;est pas disponible, c&apos;est que nous sommes déjà pris ce jour-là.</p>
             {date && (pendingDates[date] ?? 0) > 0 && (
               <p style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12, color: '#f59e0b', marginTop: 8 }}>
                 <AlertTriangle size={13} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />

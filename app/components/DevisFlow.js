@@ -143,7 +143,7 @@ function AnimatedPrice({ value }) {
   return <span>{disp.toLocaleString('fr-FR')}</span>;
 }
 
-function MiniCal({ selected, onSelect, devisPending = {}, bookedDates = new Set(), yearsAhead = 1, loading = false }) {
+function MiniCal({ selected, onSelect, devisPending = {}, bookedDates = new Set(), yearsAhead = 1, loading = false, blockWeddingSeasonSaturdays = false }) {
   const startYr = TODAY.getFullYear();
   const YEARS   = Array.from({ length: yearsAhead + 1 }, (_, i) => startYr + i);
   const [year,  setYear]  = useState(startYr);
@@ -233,8 +233,12 @@ function MiniCal({ selected, onSelect, devisPending = {}, bookedDates = new Set(
           if (!d) return <div key={i} />;
           const k = mk(d), avail = withinYear(d), pt = past(d), sel = selected === k;
           const booked = bookedDates.has(k);
+          // Samedis d'avril à septembre réservés aux mariages (voir /devis/mariage-contact) :
+          // pas de concurrence avec l'équipe/le matériel pendant la haute saison.
+          const weddingSeasonSaturday = blockWeddingSeasonSaturdays
+            && new Date(year, month, d).getDay() === 6 && month >= 3 && month <= 8;
           const pCount = avail && !pt && !booked ? (devisPending[k] ?? 0) : 0;
-          const trueBlocked = !avail || pt;  /* passé ou hors plage — vraiment non cliquable */
+          const trueBlocked = !avail || pt || weddingSeasonSaturday;  /* passé, hors plage ou samedi haute saison — vraiment non cliquable */
           const blocked = trueBlocked || booked;  /* pour le style */
           return (
             <button key={i} onClick={() => !trueBlocked && onSelect(k)} disabled={trueBlocked}
@@ -1260,7 +1264,11 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
           devisPending={pendingDates}
           bookedDates={bookedDates}
           loading={availabilityLoading}
+          blockWeddingSeasonSaturdays
         />
+        <p style={{ color: 'rgba(255,255,255,0.28)', fontSize: 11, marginTop: 8, lineHeight: 1.5 }}>
+          Les samedis d&apos;avril à septembre sont réservés à nos prestations mariage.
+        </p>
         {date && (pendingDates[date] ?? 0) > 0 && (
           <div style={{ margin: '8px 0 12px', padding: '10px 12px', background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.28)', borderRadius: 8, fontSize: 12, color: '#f97316', lineHeight: 1.6, textAlign: 'left', display: 'flex', alignItems: 'flex-start', gap: 6 }}>
             <AlertTriangle size={13} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} /> <span><strong>{pendingDates[date]} devis déjà demandé{pendingDates[date] > 1 ? 's' : ''}</strong> pour cette date — répondez rapidement à notre appel pour être prioritaire.</span>

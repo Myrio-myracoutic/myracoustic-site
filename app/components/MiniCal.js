@@ -4,7 +4,9 @@ import { useState } from 'react';
 const TODAY = (() => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; })();
 const MONTHS_FR = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
 
-/* Calendrier compact avec dates réservées (rouge) + dates déjà demandées (point orange).
+/* Calendrier compact avec dates réservées (rouge). Les dates déjà demandées ne sont plus
+   signalées visuellement (pour ne pas stresser les mariés) : le message d'alerte sous le
+   calendrier suffit, affiché seulement une fois la date choisie.
    allowedDow / seasonMonths : restriction optionnelle (ex. mariage : samedis d'avril à
    septembre uniquement) — non utilisée par défaut, pour ne pas affecter les autres parcours. */
 export default function MiniCal({ selected, onSelect, onBookedClick, onPendingClick, devisPending = {}, bookedDates = new Set(), yearsAhead = 1, loading = false, allowedDow = null, seasonMonths = null }) {
@@ -89,14 +91,12 @@ export default function MiniCal({ selected, onSelect, onBookedClick, onPendingCl
               fontFamily: 'var(--font-display), sans-serif', fontWeight: sel ? 700 : 400, position: 'relative',
             }}>
               {d}
-              {pCount > 0 && <span style={{ position: 'absolute', top: 2, right: 2, width: 5, height: 5, borderRadius: '50%', background: sel ? '#0d1b2a' : '#f97316' }} />}
             </button>
           );
         })}
       </div>
       <div style={{ marginTop: 8, display: 'flex', gap: 12, fontSize: 10, color: 'rgba(255,255,255,0.35)', flexWrap: 'wrap' }}>
         <span><span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: 'var(--lime)', marginRight: 4 }} />Disponible</span>
-        <span><span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: '#f97316', marginRight: 4 }} />Déjà demandé</span>
         <span><span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: '#ef4444', marginRight: 4 }} />Réservé</span>
         <span><span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', marginRight: 4 }} />Indisponible</span>
       </div>

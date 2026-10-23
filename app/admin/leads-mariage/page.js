@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { Plus, Minus, Trash2, X, FileText, Check, Loader2, Heart, Mail, CalendarClock, Percent, PhoneCall, AlertTriangle } from 'lucide-react';
 import { FORMULES, POLES, ALL_OPTIONS, PACK_BASE_ITEMS, EXTRA_HOUR_PRICE, fmtPrice } from '@/app/lib/formules';
 import { discountEuros, discountLabel } from '@/app/lib/discount';
-import { getTransportFee, getRoadKm, TECH_PRICE } from '@/app/lib/transport';
+import { getTransportFee, getRoadKm } from '@/app/lib/transport';
 import { geocodeAddress } from '@/app/lib/geocode';
 import AddressAutocomplete from '@/app/components/AddressAutocomplete';
 import CallSlotModal from '@/app/components/CallSlotModal';
@@ -59,6 +59,15 @@ function DevisBuilder({ lead, proposal, bookedDates = new Set(), pendingDates = 
     const h = (proposal?.items || []).find(it => it.source === 'hours');
     return h ? Math.round(Number(h.price) / EXTRA_HOUR_PRICE) : 0;
   });
+  // Nombre de techniciens prévus sur la prestation — toujours inclus (pas de surcoût), juste une
+  // information affichée au client. Reconduit depuis l'ancien format "Technicien supplémentaire"
+  // (sans nombre) sur un devis déjà existant → compté comme 1.
+  const [techCount, setTechCount] = useState(() => {
+    const t = (proposal?.items || []).find(it => it.source === 'tech');
+    if (!t) return 0;
+    const m = /(\d+)/.exec(t.title);
+    return m ? Number(m[1]) : 1;
+  });
   const [note, setNote] = useState(proposal?.admin_note || '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -86,10 +95,6 @@ function DevisBuilder({ lead, proposal, bookedDates = new Set(), pendingDates = 
         .filter(o => prev.some(it => it.source === `option:${o.key}`))
         .map(o => ({ id: nextId(), title: o.label, price: o.price, source: `option:${o.key}` }));
       const base = f ? [{ id: nextId(), title: `Formule ${f.name} — Mariage`, price: f.price, source: 'formule' }] : [];
-      // technicien conseillé au-delà de 100 invités — ajouté d'office, retirable
-      if (f && Number(guests) > 100 && !kept.some(it => it.source === 'tech')) {
-        base.push({ id: nextId(), title: 'Technicien supplémentaire', price: TECH_PRICE, source: 'tech' });
-      }
       return [...base, ...keptOptions, ...kept];
     });
   };
@@ -160,10 +165,14 @@ function DevisBuilder({ lead, proposal, bookedDates = new Set(), pendingDates = 
 
   const hasSource = (src) => items.some(it => it.source === src);
 
-  const toggleTech = () => {
-    setItems(prev => prev.some(it => it.source === 'tech')
-      ? prev.filter(it => it.source !== 'tech')
-      : [...prev, { id: nextId(), title: 'Technicien supplémentaire', price: TECH_PRICE, source: 'tech' }]);
+  const setTechQty = (n) => {
+    const q = Math.max(0, n);
+    setTechCount(q);
+    setItems(prev => {
+      const without = prev.filter(it => it.source !== 'tech');
+      if (q === 0) return without;
+      return [...without, { id: nextId(), title: q > 1 ? `${q} techniciens dédiés` : '1 technicien dédié', price: 0, source: 'tech' }];
+    });
   };
 
   // Déplacement : géocode le lieu du lead → distance routière A/R → forfait du barème grille
@@ -389,17 +398,13 @@ function DevisBuilder({ lead, proposal, bookedDates = new Set(), pendingDates = 
           </>
         )}
 
-        {/* Frais à ne pas oublier : déplacement (pré-calculé) + technicien (au-delà de 100 pers.) */}
+        {/* Techniciens (toujours inclus, juste une info client) + déplacement (pré-calculé) */}
         <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 8 }}>Frais à ne pas oublier</label>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 18, flexWrap: 'wrap' }}>
-          <button onClick={toggleTech} style={{
-            ...btnSm,
-            border: `1px solid ${hasSource('tech') ? 'var(--lime)' : 'rgba(255,255,255,0.15)'}`,
-            background: hasSource('tech') ? 'rgba(184,239,11,0.1)' : 'rgba(255,255,255,0.05)',
-            color: hasSource('tech') ? 'var(--lime)' : 'rgba(255,255,255,0.8)',
-          }}>
-            {hasSource('tech') ? '✓ ' : '+ '}Technicien (100 €){Number(guests) > 100 && !hasSource('tech') ? ' · conseillé' : ''}
-          </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.7)' }}>Techniciens sur la prestation (inclus){Number(guests) > 100 && techCount < 2 ? ' · 2 conseillés' : ''}</span>
+          <button onClick={() => setTechQty(techCount - 1)} style={{ ...btnSm, padding: '5px 9px' }}><Minus size={13} /></button>
+          <span style={{ width: 20, textAlign: 'center', fontWeight: 700 }}>{techCount}</span>
+          <button onClick={() => setTechQty(techCount + 1)} style={{ ...btnSm, padding: '5px 9px' }}><Plus size={13} /></button>
           <button onClick={() => addTransport(false)} disabled={kmCalc} style={{
             ...btnSm,
             border: `1px solid ${hasSource('transport') ? 'var(--lime)' : 'rgba(255,255,255,0.15)'}`,

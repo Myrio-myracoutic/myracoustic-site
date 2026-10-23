@@ -286,12 +286,25 @@ export default function MariageContactClient() {
         </div>
       ) : (
         <div style={{ maxWidth: 620, margin: '0 auto', padding: '40px 20px 70px' }}>
-          <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(26px,4vw,38px)', fontWeight: 800, textAlign: 'center', lineHeight: 1.12, marginBottom: 12 }}>
-            Parlons de <span style={{ color: 'var(--lime)' }}>votre mariage</span>
-          </h1>
-          <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 15.5, lineHeight: 1.7, textAlign: 'center', maxWidth: 520, margin: '0 auto 26px' }}>
-            Laissez-nous quelques informations : un conseiller vous rappelle sous 24h pour construire, de vive voix, la formule idéale pour votre grand jour.
-          </p>
+          {formPhase === 'date' ? (
+            <>
+              <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(26px,4vw,38px)', fontWeight: 800, textAlign: 'center', lineHeight: 1.12, marginBottom: 12 }}>
+                Vérifions la disponibilité de <span style={{ color: 'var(--lime)' }}>votre date</span>
+              </h1>
+              <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 15.5, lineHeight: 1.7, textAlign: 'center', maxWidth: 520, margin: '0 auto 26px' }}>
+                Indiquez la date de votre mariage avec votre calendrier : nous vous disons tout de suite si nous sommes libres ce jour-là.
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(26px,4vw,38px)', fontWeight: 800, textAlign: 'center', lineHeight: 1.12, marginBottom: 12 }}>
+                Parlons de <span style={{ color: 'var(--lime)' }}>votre mariage</span>
+              </h1>
+              <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 15.5, lineHeight: 1.7, textAlign: 'center', maxWidth: 520, margin: '0 auto 26px' }}>
+                Laissez-nous quelques informations : un conseiller vous rappelle sous 24h pour construire, de vive voix, la formule idéale pour votre grand jour.
+              </p>
+            </>
+          )}
 
           {/* Réassurance */}
           <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px 22px', marginBottom: 34, fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>
@@ -315,9 +328,6 @@ export default function MariageContactClient() {
                 disabled={availLoading}
                 style={{ ...input, opacity: availLoading ? 0.5 : 1 }}
               />
-              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 8 }}>
-                Choisissez votre date avec votre propre calendrier — nous vous disons tout de suite si elle est disponible.
-              </p>
 
               {availLoading && (
                 <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 6 }}>Chargement des disponibilités…</p>

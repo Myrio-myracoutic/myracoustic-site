@@ -2,15 +2,11 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { CheckCircle2, Loader2, MapPin, Check, Plus, CalendarClock } from 'lucide-react';
+import { CheckCircle2, Loader2, MapPin, Check, CalendarClock } from 'lucide-react';
 import AddressAutocomplete from '@/app/components/AddressAutocomplete';
 import { FORMULES, POLES } from '@/app/lib/formules';
 
 const fmtPrice = (n) => Number(n).toLocaleString('fr-FR') + ' €';
-// Ligne à prix 0 : deux cas différents. Sur un Pack personnalisé (source `packoption:`), c'est
-// une inclusion normale du pack → "Inclus". Sur une formule classique, c'est un cadeau volontaire
-// de Myrio (ex. cérémonie laïque offerte) → "Offert" se lit mieux que "0 €" pour le client.
-const fmtExtraPrice = (it) => Number(it.price) !== 0 ? fmtPrice(it.price) : (it.source?.startsWith('packoption:') ? 'Inclus' : 'Offert');
 const fmtDate = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
 
 // Compte à rebours lisible, avec les secondes qui défilent toujours (effet d'urgence).
@@ -206,39 +202,34 @@ export default function PropositionTokenClient({ token }) {
       {/* Récapitulatif détaillé */}
       <div style={{ background: 'var(--card)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 12, padding: '18px 20px', marginBottom: 20 }}>
         {baseItem && (
-          <div style={{ paddingBottom: (extras.length || inclusions.length) ? 14 : 0, borderBottom: (extras.length || inclusions.length) ? '1px solid rgba(255,255,255,0.08)' : 'none', marginBottom: (extras.length || inclusions.length) ? 14 : 0 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, fontSize: 15, marginBottom: inclusions.length ? 12 : 0 }}>
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, fontSize: 15, marginBottom: (inclusions.length || extras.length) ? 12 : 0 }}>
               <span style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, color: '#fff' }}>{baseItem.title}</span>
               <span style={{ color: '#fff', fontWeight: 700, whiteSpace: 'nowrap' }}>{fmtPrice(baseItem.price)}</span>
             </div>
-            {inclusions.length > 0 && (
+            {(inclusions.length > 0 || extras.length > 0) && (
               <>
                 <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--lime)', marginBottom: 8 }}>Tout ce qui est compris</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {inclusions.map((line, i) => {
                     const [head, ...rest] = line.split(' — ');
                     return (
-                      <div key={i} style={{ display: 'flex', gap: 8, fontSize: 12.5, color: 'rgba(255,255,255,0.65)', lineHeight: 1.5 }}>
+                      <div key={`inc-${i}`} style={{ display: 'flex', gap: 8, fontSize: 12.5, color: 'rgba(255,255,255,0.65)', lineHeight: 1.5 }}>
                         <Check size={13} color="var(--lime)" style={{ flexShrink: 0, marginTop: 2 }} />
                         <span><span style={{ color: '#fff', fontWeight: 600 }}>{head}</span>{rest.length ? ` — ${rest.join(' — ')}` : ''}</span>
                       </div>
                     );
                   })}
+                  {extras.map((it, i) => (
+                    <div key={`extra-${i}`} style={{ display: 'flex', gap: 8, fontSize: 12.5, color: 'rgba(255,255,255,0.65)', lineHeight: 1.5 }}>
+                      <Check size={13} color="var(--lime)" style={{ flexShrink: 0, marginTop: 2 }} />
+                      <span style={{ color: '#fff', fontWeight: 600 }}>{it.title}</span>
+                    </div>
+                  ))}
                 </div>
               </>
             )}
           </div>
-        )}
-        {extras.length > 0 && (
-          <>
-            <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 8 }}>Ajouté à votre demande</div>
-            {extras.map((it, i) => (
-              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: 14, fontSize: 14, padding: '5px 0' }}>
-                <span style={{ display: 'inline-flex', alignItems: 'flex-start', gap: 7, color: 'rgba(255,255,255,0.8)' }}><Plus size={13} color="var(--lime)" style={{ flexShrink: 0, marginTop: 3 }} />{it.title}</span>
-                <span style={{ color: Number(it.price) === 0 ? 'var(--lime)' : '#fff', fontWeight: 600, whiteSpace: 'nowrap' }}>{fmtExtraPrice(it)}</span>
-              </div>
-            ))}
-          </>
         )}
         {discountLive && (
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 14, fontSize: 14, padding: '6px 0 0', color: 'var(--lime)' }}>

@@ -171,7 +171,7 @@ function DevisBuilder({ lead, proposal, bookedDates = new Set(), pendingDates = 
     setItems(prev => {
       const without = prev.filter(it => it.source !== 'tech');
       if (q === 0) return without;
-      return [...without, { id: nextId(), title: q > 1 ? `${q} techniciens dédiés` : '1 technicien dédié', price: 0, source: 'tech' }];
+      return [...without, { id: nextId(), title: `Équipe sur place — DJ + ${q} technicien${q > 1 ? 's' : ''}`, price: 0, source: 'tech' }];
     });
   };
 

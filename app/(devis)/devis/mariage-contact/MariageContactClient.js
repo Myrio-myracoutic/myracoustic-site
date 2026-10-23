@@ -31,6 +31,11 @@ const input = {
   outline: 'none', boxSizing: 'border-box',
 };
 const label = { display: 'block', fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 7 };
+const chipStyle = { background: 'rgba(184,239,11,0.1)', border: '1px solid rgba(184,239,11,0.3)', color: 'var(--lime)', borderRadius: 20, padding: '5px 12px', fontSize: 12.5, cursor: 'pointer', fontFamily: 'var(--font-display), sans-serif' };
+const linkBtn = { background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', fontSize: 13, cursor: 'pointer', textDecoration: 'underline', padding: 0, marginTop: 10, fontFamily: 'inherit' };
+
+/* Formate une date en évitant tout décalage de fuseau (contrairement à toISOString) */
+const toISODate = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 export default function MariageContactClient() {
   const [firstName, setFirstName] = useState('');
@@ -51,19 +56,35 @@ export default function MariageContactClient() {
   const [pendingDates, setPendingDates] = useState({});
   const [availLoading, setAvailLoading] = useState(true);
   const [bookedNotice, setBookedNotice] = useState('');
-  const startedRef = useRef(false);
+
+  /* Qualification de la date en amont, avant le reste du formulaire */
+  const [formPhase, setFormPhase] = useState('date'); // 'date' | 'details'
+  const [nativeDateInput, setNativeDateInput] = useState('');
+  const [dateFeedback, setDateFeedback] = useState(null); // { type: 'invalide' | 'indisponible', date, suggestion?, suggestions? }
+  const [showBrowseCalendar, setShowBrowseCalendar] = useState(false);
+
+  const startedRef = useRef(false); // form_start (étape coordonnées) déjà tiré
+  const dateStartedRef = useRef(false); // une interaction a eu lieu sur l'étape date
+  const dateMethodRef = useRef('native'); // dernière méthode utilisée : 'native' | 'calendrier_visuel'
+  const lastFieldRef = useRef(''); // dernier champ touché dans l'étape coordonnées
+  const formPhaseRef = useRef('date');
   const submittedRef = useRef(false);
   const abandonFiredRef = useRef(false);
+  const checkDateTimeoutRef = useRef(null); // vérification différée après une saisie native (voir handleNativeDateInput)
 
   const fmtDateFr = (k) => {
     try { return new Date(k + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }); }
     catch { return k; }
   };
 
+  useEffect(() => { formPhaseRef.current = formPhase; }, [formPhase]);
+
+  useEffect(() => () => { if (checkDateTimeoutRef.current) clearTimeout(checkDateTimeoutRef.current); }, []);
+
   useEffect(() => {
     const t = new Date();
-    const start = t.toISOString().slice(0, 10);
-    const end = new Date(t.getFullYear() + 2, t.getMonth(), t.getDate()).toISOString().slice(0, 10);
+    const start = toISODate(t);
+    const end = toISODate(new Date(t.getFullYear() + 2, t.getMonth(), t.getDate()));
     fetch(`/api/availability?start=${start}&end=${end}`, { cache: 'no-store' })
       .then(r => r.json())
       .then(d => { if (d.bookedDates) setBookedDates(new Set(d.bookedDates)); if (d.pendingDates) setPendingDates(d.pendingDates); })
@@ -71,12 +92,17 @@ export default function MariageContactClient() {
       .finally(() => setAvailLoading(false));
   }, []);
 
-  /* Abandon : formulaire commencé (form_start) mais quitté sans envoyer */
+  /* Abandon : quitte la page sans avoir envoyé — on distingue l'étape date de l'étape coordonnées */
   useEffect(() => {
     const fireAbandon = () => {
-      if (!startedRef.current || submittedRef.current || abandonFiredRef.current) return;
-      abandonFiredRef.current = true;
-      gtagBeacon('funnel_abandon', { profil: 'mariage', step_name: 'formulaire_contact' });
+      if (submittedRef.current || abandonFiredRef.current) return;
+      if (formPhaseRef.current === 'details' && startedRef.current) {
+        abandonFiredRef.current = true;
+        gtagBeacon('funnel_abandon', { profil: 'mariage', step: 'coordonnees', step_name: lastFieldRef.current || 'inconnu' });
+      } else if (formPhaseRef.current === 'date' && dateStartedRef.current) {
+        abandonFiredRef.current = true;
+        gtagBeacon('funnel_abandon', { profil: 'mariage', step: 'date', step_name: dateMethodRef.current });
+      }
     };
     const onVisibility = () => { if (document.visibilityState === 'hidden') fireAbandon(); };
     document.addEventListener('visibilitychange', onVisibility);
@@ -87,11 +113,86 @@ export default function MariageContactClient() {
     };
   }, []);
 
-  const touch = () => {
+  const touch = (field) => {
+    lastFieldRef.current = field;
     if (startedRef.current) return;
     startedRef.current = true;
-    gtagEvent('form_start', { profil: 'mariage', method: 'formulaire_contact' });
+    gtagEvent('form_start', { profil: 'mariage', step: 'coordonnees', method: 'formulaire_contact' });
   };
+
+  /* Prochaines dates libres après une date déjà réservée (calcul local, pas de nouvel appel réseau) */
+  const nextAvailableDates = (fromKey, count = 3) => {
+    const out = [];
+    const d = new Date(fromKey + 'T12:00:00');
+    d.setDate(d.getDate() + 1);
+    let guard = 0;
+    while (out.length < count && guard < 400) {
+      const k = toISODate(d);
+      if (!bookedDates.has(k)) out.push(k);
+      d.setDate(d.getDate() + 1);
+      guard++;
+    }
+    return out;
+  };
+
+  const confirmDate = (k, methodLabel) => {
+    setDate(k);
+    setNativeDateInput(k);
+    setDateFeedback(null);
+    dateMethodRef.current = methodLabel;
+    gtagEvent('date_disponible', { profil: 'mariage', step: 'date', step_name: methodLabel });
+    setFormPhase('details');
+    gtagEvent('funnel_step', { profil: 'mariage', step: 'coordonnees', step_name: 'etape_affichee' });
+  };
+
+  const notifyBooked = (k, methodLabel) => {
+    dateMethodRef.current = methodLabel;
+    gtagEvent('date_indisponible', { profil: 'mariage', step: 'date', step_name: methodLabel });
+    if (methodLabel === 'native') {
+      setDateFeedback({ type: 'indisponible', date: k, suggestions: nextAvailableDates(k) });
+    } else {
+      setBookedNotice(k);
+    }
+  };
+
+  const handleNativeDateFocus = () => { dateStartedRef.current = true; dateMethodRef.current = 'native'; };
+
+  /* Un input type="date" déclenche onChange dès qu'UN segment (jour/mois/année) devient complet —
+     pas forcément les trois (ex. en tapant "2027" au clavier, on passe réellement par "0002",
+     "0020", "0202" avant d'arriver à "2027"). Sur mobile (roue de sélection), il n'y a en revanche
+     aucune "sortie de champ" naturelle pour confirmer — la vérification doit donc se faire toute
+     seule. Compromis : on attend une courte pause sans nouvelle frappe (la saisie s'est stabilisée)
+     avant de vérifier, tout en vérifiant aussi immédiatement sur sortie de champ ou Entrée. */
+  const handleNativeDateInput = (k) => {
+    setNativeDateInput(k);
+    setDateFeedback(null);
+    if (checkDateTimeoutRef.current) clearTimeout(checkDateTimeoutRef.current);
+    checkDateTimeoutRef.current = setTimeout(() => checkNativeDate(k), 500);
+  };
+
+  const checkNativeDate = (k) => {
+    if (!k || !/^\d{4}-\d{2}-\d{2}$/.test(k) || Number.isNaN(new Date(k + 'T12:00:00').getTime())) return;
+    // Un input type="date" peut composer une année invraisemblable pendant la frappe
+    // (ex. "0002" en tapant "2027" chiffre par chiffre) : on ignore tout ce qui sort de la
+    // plage réellement proposée (aujourd'hui → 2 ans), plutôt que d'afficher une fausse dispo.
+    if (k < todayIso || k > maxIso) return;
+    dateStartedRef.current = true;
+    dateMethodRef.current = 'native';
+    if (bookedDates.has(k)) { notifyBooked(k, 'native'); return; }
+    gtagEvent('date_verifiee_disponible', { profil: 'mariage', step: 'date', step_name: 'native' });
+    setDateFeedback({ type: 'disponible', date: k, pending: pendingDates[k] ?? 0 });
+  };
+
+  const openBrowseCalendar = () => {
+    if (!showBrowseCalendar) {
+      dateStartedRef.current = true;
+      gtagEvent('date_browse_ouvert', { profil: 'mariage', step: 'date', step_name: 'calendrier_visuel' });
+    }
+    setShowBrowseCalendar(s => !s);
+  };
+
+  const todayIso = toISODate(new Date());
+  const maxIso = toISODate(new Date(new Date().getFullYear() + 2, new Date().getMonth(), new Date().getDate()));
 
   const emailValid = /\S+@\S+\.\S+/.test(email);
   const phoneValid = /^[0-9+\s().-]{6,}$/.test(phone);
@@ -199,63 +300,150 @@ export default function MariageContactClient() {
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}><Phone size={15} color="var(--lime)" /> Un échange humain, pas un robot</span>
           </div>
 
-          {/* Formulaire */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-            <div><label style={label}>Prénom</label><input value={firstName} onFocus={touch} onChange={e => setFirstName(e.target.value)} placeholder="Prénom" style={input} /></div>
-            <div><label style={label}>Nom</label><input value={lastName} onFocus={touch} onChange={e => setLastName(e.target.value)} placeholder="Nom" style={input} /></div>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-            <div><label style={label}>Téléphone</label><input type="tel" value={phone} onFocus={touch} onChange={e => setPhone(e.target.value)} placeholder="06 12 34 56 78" style={input} /></div>
-            <div><label style={label}>Email</label><input type="email" value={email} onFocus={touch} onChange={e => setEmail(e.target.value)} placeholder="vous@email.com" style={input} /></div>
-          </div>
-
-          <div style={{ marginBottom: 12 }}>
-            <label style={label}>Date du mariage</label>
-            <MiniCal selected={date} onSelect={(k) => { touch(); setDate(k); }} onBookedClick={(k) => { gtagEvent('date_indisponible', { profil: 'mariage', step_name: 'formulaire_contact' }); setBookedNotice(k); }} onPendingClick={(k) => { touch(); setDate(k); }} devisPending={pendingDates} bookedDates={bookedDates} loading={availLoading} yearsAhead={2} allowedDow={6} />
-            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 8 }}>Nous célébrons les mariages le samedi, toute l&apos;année. Les dates déjà réservées sont grisées : si votre date n&apos;est pas disponible, c&apos;est que nous sommes déjà pris ce jour-là.</p>
-            {date && (pendingDates[date] ?? 0) > 0 && (
-              <p style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12, color: '#f59e0b', marginTop: 8 }}>
-                <AlertTriangle size={13} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
-                <span><strong>{pendingDates[date]} devis déjà demandé{pendingDates[date] > 1 ? 's' : ''}</strong> pour cette date — répondez rapidement à notre appel pour être prioritaire.</span>
+          {formPhase === 'date' ? (
+            <div style={{ marginBottom: 12 }}>
+              <label style={label}>Date du mariage</label>
+              <input
+                type="date"
+                value={nativeDateInput}
+                min={todayIso}
+                max={maxIso}
+                onFocus={handleNativeDateFocus}
+                onChange={e => handleNativeDateInput(e.target.value)}
+                onBlur={e => { if (checkDateTimeoutRef.current) clearTimeout(checkDateTimeoutRef.current); checkNativeDate(e.target.value); }}
+                onKeyDown={e => { if (e.key === 'Enter') { if (checkDateTimeoutRef.current) clearTimeout(checkDateTimeoutRef.current); checkNativeDate(e.target.value); } }}
+                disabled={availLoading}
+                style={{ ...input, opacity: availLoading ? 0.5 : 1 }}
+              />
+              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 8 }}>
+                Choisissez votre date avec votre propre calendrier — nous vous disons tout de suite si elle est disponible.
               </p>
-            )}
-          </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-            <div><label style={label}>Nombre de personnes</label><input type="number" min={1} value={guests} onFocus={touch} onChange={e => setGuests(e.target.value)} placeholder="ex. 120" style={input} /></div>
-            <div><label style={label}>Lieu de l'événement</label><AddressAutocomplete value={lieu} onChange={(v) => { touch(); setLieu(v); }} onSelect={(s) => setLieu(s.label)} placeholder="Commune ou lieu de réception" inputStyle={input} /></div>
-          </div>
+              {availLoading && (
+                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 6 }}>Chargement des disponibilités…</p>
+              )}
 
-          <div style={{ marginBottom: 12 }}>
-            <label style={label}>Votre projet <span style={{ textTransform: 'none', fontWeight: 400, color: 'rgba(255,255,255,0.3)' }}>(optionnel)</span></label>
-            <textarea value={message} onFocus={touch} onChange={e => setMessage(e.target.value)} placeholder="Un mot sur vos envies, votre ambiance, vos questions…" rows={3} style={{ ...input, resize: 'vertical' }} />
-          </div>
+              {dateFeedback?.type === 'disponible' && dateFeedback.date === nativeDateInput && (
+                <div style={{ marginTop: 10, padding: '10px 14px', borderRadius: 8, background: 'rgba(184,239,11,0.08)', border: '1px solid rgba(184,239,11,0.3)', fontSize: 13, color: 'rgba(255,255,255,0.85)' }}>
+                  <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <CheckCircle2 size={15} color="var(--lime)" /> {fmtDateFr(dateFeedback.date)} — disponible
+                  </p>
+                  {dateFeedback.pending > 0 && (
+                    <p style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12, color: '#f59e0b', margin: '8px 0 0' }}>
+                      <AlertTriangle size={13} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
+                      <span><strong>{dateFeedback.pending} devis déjà demandé{dateFeedback.pending > 1 ? 's' : ''}</strong> pour cette date — répondez rapidement à notre appel pour être prioritaire.</span>
+                    </p>
+                  )}
+                  <button onClick={() => confirmDate(dateFeedback.date, 'native')} className="btn-primary" style={{ marginTop: 10, justifyContent: 'center' }}>
+                    Valider cette date →
+                  </button>
+                </div>
+              )}
 
-          <div style={{ marginBottom: 20 }}>
-            <label style={label}>Comment nous avez-vous connu ? <span style={{ textTransform: 'none', fontWeight: 400, color: 'rgba(255,255,255,0.3)' }}>(optionnel)</span></label>
-            <select value={sourceDeclared} onChange={e => setSourceDeclared(e.target.value)} style={{ ...input, color: sourceDeclared ? '#fff' : 'rgba(255,255,255,0.4)' }}>
-              <option value="">— Sélectionner —</option>
-              {SOURCE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-            </select>
-          </div>
+              {dateFeedback?.type === 'indisponible' && (
+                <div style={{ marginTop: 10, padding: '10px 14px', borderRadius: 8, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.35)', fontSize: 13, color: 'rgba(255,255,255,0.8)' }}>
+                  <p style={{ margin: 0 }}>Nous sommes déjà réservés le {fmtDateFr(dateFeedback.date)}.</p>
+                  {dateFeedback.suggestions?.length > 0 && (
+                    <>
+                      <p style={{ fontSize: 12, margin: '8px 0 6px' }}>Prochaines dates libres :</p>
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        {dateFeedback.suggestions.map(s => (
+                          <button key={s} onClick={() => confirmDate(s, 'native_suggestion')} style={chipStyle}>
+                            {fmtDateFr(s)}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
 
-          {error && <p style={{ color: '#ef4444', fontSize: 14, marginBottom: 14 }}>{error}</p>}
+              <div>
+                <button onClick={openBrowseCalendar} style={linkBtn}>
+                  {showBrowseCalendar ? 'Masquer le calendrier' : "Je ne sais pas encore ma date — voir les disponibilités"}
+                </button>
+              </div>
 
-          <button onClick={submit} disabled={sending || !valid} className="btn-primary"
-            style={{ width: '100%', justifyContent: 'center', opacity: sending || !valid ? 0.5 : 1, cursor: sending || !valid ? 'not-allowed' : 'pointer' }}>
-            {sending ? <><Loader2 size={16} style={{ animation: 'spin 0.8s linear infinite' }} /> Envoi…</> : 'Demander mon devis gratuit →'}
-          </button>
-          {!valid && (
-            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', textAlign: 'center', marginTop: 10 }}>
-              Remplissez vos coordonnées, la date, le nombre de personnes et le lieu pour continuer.
-            </p>
+              {showBrowseCalendar && (
+                <div style={{ marginTop: 12 }}>
+                  <MiniCal
+                    selected={date}
+                    onSelect={(k) => confirmDate(k, 'calendrier_visuel')}
+                    onBookedClick={(k) => notifyBooked(k, 'calendrier_visuel')}
+                    onPendingClick={(k) => confirmDate(k, 'calendrier_visuel')}
+                    devisPending={pendingDates}
+                    bookedDates={bookedDates}
+                    loading={availLoading}
+                    yearsAhead={2}
+                  />
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              {/* Bandeau date confirmée */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, background: 'rgba(184,239,11,0.08)', border: '1px solid rgba(184,239,11,0.25)', borderRadius: 8, padding: '10px 14px', marginBottom: 16 }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 14 }}>
+                  <CheckCircle2 size={16} color="var(--lime)" /> {fmtDateFr(date)} — disponible
+                </span>
+                <button onClick={() => { gtagEvent('date_modifiee', { profil: 'mariage', step: 'date', step_name: 'retour_etape1' }); setFormPhase('date'); }} style={{ background: 'none', border: 'none', color: 'var(--lime)', fontSize: 13, cursor: 'pointer', textDecoration: 'underline', fontFamily: 'inherit', whiteSpace: 'nowrap' }}>
+                  Modifier
+                </button>
+              </div>
+              {date && (pendingDates[date] ?? 0) > 0 && (
+                <p style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12, color: '#f59e0b', marginBottom: 16, marginTop: -8 }}>
+                  <AlertTriangle size={13} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
+                  <span><strong>{pendingDates[date]} devis déjà demandé{pendingDates[date] > 1 ? 's' : ''}</strong> pour cette date — répondez rapidement à notre appel pour être prioritaire.</span>
+                </p>
+              )}
+
+              {/* Formulaire */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                <div><label style={label}>Prénom</label><input value={firstName} onFocus={() => touch('prenom')} onChange={e => setFirstName(e.target.value)} placeholder="Prénom" style={input} /></div>
+                <div><label style={label}>Nom</label><input value={lastName} onFocus={() => touch('nom')} onChange={e => setLastName(e.target.value)} placeholder="Nom" style={input} /></div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                <div><label style={label}>Téléphone</label><input type="tel" value={phone} onFocus={() => touch('telephone')} onChange={e => setPhone(e.target.value)} placeholder="06 12 34 56 78" style={input} /></div>
+                <div><label style={label}>Email</label><input type="email" value={email} onFocus={() => touch('email')} onChange={e => setEmail(e.target.value)} placeholder="vous@email.com" style={input} /></div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                <div><label style={label}>Nombre de personnes</label><input type="number" min={1} value={guests} onFocus={() => touch('personnes')} onChange={e => setGuests(e.target.value)} placeholder="ex. 120" style={input} /></div>
+                <div><label style={label}>Lieu de l'événement</label><AddressAutocomplete value={lieu} onChange={(v) => { touch('lieu'); setLieu(v); }} onSelect={(s) => setLieu(s.label)} placeholder="Commune ou lieu de réception" inputStyle={input} /></div>
+              </div>
+
+              <div style={{ marginBottom: 12 }}>
+                <label style={label}>Votre projet <span style={{ textTransform: 'none', fontWeight: 400, color: 'rgba(255,255,255,0.3)' }}>(optionnel)</span></label>
+                <textarea value={message} onFocus={() => touch('message')} onChange={e => setMessage(e.target.value)} placeholder="Un mot sur vos envies, votre ambiance, vos questions…" rows={3} style={{ ...input, resize: 'vertical' }} />
+              </div>
+
+              <div style={{ marginBottom: 20 }}>
+                <label style={label}>Comment nous avez-vous connu ? <span style={{ textTransform: 'none', fontWeight: 400, color: 'rgba(255,255,255,0.3)' }}>(optionnel)</span></label>
+                <select value={sourceDeclared} onChange={e => setSourceDeclared(e.target.value)} style={{ ...input, color: sourceDeclared ? '#fff' : 'rgba(255,255,255,0.4)' }}>
+                  <option value="">— Sélectionner —</option>
+                  {SOURCE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </div>
+
+              {error && <p style={{ color: '#ef4444', fontSize: 14, marginBottom: 14 }}>{error}</p>}
+
+              <button onClick={submit} disabled={sending || !valid} className="btn-primary"
+                style={{ width: '100%', justifyContent: 'center', opacity: sending || !valid ? 0.5 : 1, cursor: sending || !valid ? 'not-allowed' : 'pointer' }}>
+                {sending ? <><Loader2 size={16} style={{ animation: 'spin 0.8s linear infinite' }} /> Envoi…</> : 'Demander mon devis gratuit →'}
+              </button>
+              {!valid && (
+                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', textAlign: 'center', marginTop: 10 }}>
+                  Remplissez vos coordonnées, le nombre de personnes et le lieu pour continuer.
+                </p>
+              )}
+            </>
           )}
 
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       )}
 
-      {/* Pop-up date réservée */}
+      {/* Pop-up date réservée (calendrier visuel) */}
       {bookedNotice && typeof document !== 'undefined' && createPortal(
         <div onClick={() => setBookedNotice('')} style={{
           position: 'fixed', inset: 0, zIndex: 2000, background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)',

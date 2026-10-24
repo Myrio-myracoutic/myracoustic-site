@@ -16,6 +16,11 @@ const RAISONS = {
 // Second niveau de détail, seulement pour les raisons où ça apporte un vrai signal actionnable
 // (annulé / plus besoin / autre n'ont pas besoin d'être creusés davantage).
 const SOUS_RAISONS = {
+  prix: {
+    total: 'Le montant total',
+    acompte: "L'acompte demandé",
+    autre: 'Autre raison',
+  },
   autre_prestataire: {
     moins_cher: 'Moins cher',
     offre_plus_interessante: 'Offre plus intéressante',

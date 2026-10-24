@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Loader2, CheckCircle2 } from 'lucide-react';
+import { Loader2, CheckCircle2, Phone } from 'lucide-react';
 
 const RAISONS = [
   { key: 'prix', label: 'Le budget ne correspondait pas' },
@@ -16,6 +16,14 @@ const RAISONS = [
 // Second niveau, seulement pour les raisons où creuser apporte un vrai signal (voir
 // app/api/proposition/[token]/refuser/route.js, SOUS_RAISONS côté serveur — à garder synchro).
 const SOUS_RAISONS = {
+  prix: {
+    question: "Qu'est-ce qui était trop élevé ?",
+    options: [
+      { key: 'total', label: 'Le montant total' },
+      { key: 'acompte', label: "L'acompte demandé" },
+      { key: 'autre', label: 'Autre raison' },
+    ],
+  },
   autre_prestataire: {
     question: "Qu'est-ce qui vous a fait choisir cet autre prestataire ?",
     options: [
@@ -52,6 +60,13 @@ const COMMENT_PLACEHOLDER = {
   'autre_prestataire.offre_plus_interessante': 'Qu\'est-ce qui vous a semblé plus intéressant ?',
 };
 
+// Combinaisons raison+sous-raison où un souci d'argent est peut-être réglable par téléphone
+// (paiement échelonné, formule ajustée, réduction ponctuelle) plutôt qu'une vraie fin de non-recevoir.
+const CALL_OFFER = {
+  'prix.acompte': "Le montant total vous convient, mais l'acompte est trop lourd à sortir maintenant ? On a peut-être une solution de paiement plus souple à vous proposer.",
+  'prix.total': 'Un budget serré ne doit pas vous arrêter. Parlons-en, on a sûrement une solution adaptée.',
+};
+
 const textarea = {
   width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)',
   borderRadius: 8, padding: '12px 14px', color: '#fff', fontSize: 14.5, fontFamily: 'inherit',
@@ -82,6 +97,19 @@ export default function RefuserClient({ token }) {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
+  const [callLoading, setCallLoading] = useState(false);
+  const callOffer = CALL_OFFER[`${raison}.${sousRaison}`];
+
+  const requestCall = async () => {
+    if (callLoading) return;
+    setCallLoading(true);
+    try {
+      const res = await fetch(`/api/proposition/${token}/call-link`);
+      const d = await res.json();
+      if (res.ok && d.token) { window.location.href = `/rendez-vous/${d.token}`; return; }
+    } catch {}
+    setCallLoading(false);
+  };
 
   useEffect(() => {
     fetch(`/api/proposition/${token}`)
@@ -191,6 +219,23 @@ export default function RefuserClient({ token }) {
                     </>
                   )}
 
+                  {callOffer && (
+                    <div style={{ background: 'rgba(184,239,11,0.08)', border: '1px solid rgba(184,239,11,0.25)', borderRadius: 10, padding: '14px 16px', marginBottom: 16 }}>
+                      <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,0.85)', lineHeight: 1.6, marginBottom: 12 }}>
+                        {callOffer}
+                      </p>
+                      <button onClick={requestCall} disabled={callLoading} style={{
+                        width: '100%', justifyContent: 'center', display: 'flex', alignItems: 'center', gap: 8,
+                        background: 'var(--lime)', border: 'none', color: '#0d1b2a',
+                        borderRadius: 8, padding: '11px 16px', fontSize: 13.5, fontFamily: 'var(--font-display), sans-serif', fontWeight: 700,
+                        cursor: callLoading ? 'not-allowed' : 'pointer', opacity: callLoading ? 0.6 : 1,
+                      }}>
+                        {callLoading ? <Loader2 size={15} style={{ animation: 'spin 0.8s linear infinite' }} /> : <Phone size={14} />}
+                        Réserver un appel
+                      </button>
+                    </div>
+                  )}
+
                   <label style={{ display: 'block', fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 7 }}>
                     Un mot de plus ? (facultatif)
                   </label>
@@ -205,10 +250,14 @@ export default function RefuserClient({ token }) {
 
       {error && <p style={{ color: '#ef4444', fontSize: 14, marginBottom: 14 }}>{error}</p>}
 
-      <button onClick={submit} disabled={sending || !canSubmit} className="btn-primary" style={{
+      <button onClick={submit} disabled={sending || !canSubmit} className={callOffer ? undefined : 'btn-primary'} style={callOffer ? {
+        width: '100%', justifyContent: 'center', background: 'none', border: '1px solid rgba(255,255,255,0.18)', color: 'rgba(255,255,255,0.6)',
+        borderRadius: 10, padding: '12px 18px', fontSize: 13.5, fontFamily: 'var(--font-display), sans-serif', fontWeight: 600,
+        opacity: sending || !canSubmit ? 0.5 : 1, cursor: sending || !canSubmit ? 'not-allowed' : 'pointer',
+      } : {
         width: '100%', justifyContent: 'center', opacity: sending || !canSubmit ? 0.5 : 1, cursor: sending || !canSubmit ? 'not-allowed' : 'pointer',
       }}>
-        {sending ? <><Loader2 size={16} style={{ animation: 'spin 0.8s linear infinite' }} /> Envoi…</> : 'Envoyer mon retour'}
+        {sending ? <><Loader2 size={16} style={{ animation: 'spin 0.8s linear infinite' }} /> Envoi…</> : callOffer ? 'Non merci, j\'envoie juste mon retour' : 'Envoyer mon retour'}
       </button>
       {raison && sousRaisons && !sousRaison && (
         <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', textAlign: 'center', marginTop: 10 }}>Choisissez une précision ci-dessus pour valider.</p>

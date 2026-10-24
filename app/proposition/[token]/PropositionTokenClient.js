@@ -280,11 +280,14 @@ export default function PropositionTokenClient({ token }) {
         Besoin qu&apos;on vous réexplique l&apos;offre ? Réservez un appel
       </button>
 
-      <p style={{ textAlign: 'center', marginTop: 22 }}>
-        <Link href={`/proposition/${token}/refuser`} style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12.5, textDecoration: 'underline' }}>
-          Cette offre ne vous convient pas ? Dites-nous pourquoi
-        </Link>
-      </p>
+      <Link href={`/proposition/${token}/refuser`} style={{
+        display: 'flex', justifyContent: 'center', alignItems: 'center',
+        background: 'none', border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.55)',
+        borderRadius: 10, padding: '12px 18px', marginTop: 12, fontSize: 13.5, fontFamily: 'var(--font-display), sans-serif', fontWeight: 600,
+        textDecoration: 'none',
+      }}>
+        Cette offre ne me convient pas
+      </Link>
       </>}
 
       {screen === 'billing' && <>

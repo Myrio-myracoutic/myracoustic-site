@@ -34,7 +34,7 @@ const LEGAL_LINKS = [
 
 export default function Footer() {
   const pathname = usePathname();
-  if (pathname?.startsWith('/mon-espace') || pathname?.startsWith('/auth') || pathname?.startsWith('/devis') || pathname?.startsWith('/admin') || pathname?.startsWith('/invitation') || pathname?.startsWith('/proposition') || pathname === '/mariage' || pathname === '/dj-mariage' || pathname === '/mariage-sans-stress') return null;
+  if (pathname?.startsWith('/mon-espace') || pathname?.startsWith('/auth') || pathname?.startsWith('/devis') || pathname?.startsWith('/admin') || pathname?.startsWith('/invitation') || pathname?.startsWith('/proposition') || pathname?.startsWith('/rendez-vous') || pathname === '/mariage' || pathname === '/dj-mariage' || pathname === '/mariage-sans-stress') return null;
   return (
     <footer style={{
       background: '#060e16',

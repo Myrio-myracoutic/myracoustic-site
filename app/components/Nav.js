@@ -24,7 +24,7 @@ export default function Nav() {
     return () => window.removeEventListener('scroll', h);
   }, []);
 
-  if (pathname?.startsWith('/mon-espace') || pathname?.startsWith('/auth') || pathname?.startsWith('/devis') || pathname?.startsWith('/admin') || pathname?.startsWith('/invitation') || pathname?.startsWith('/proposition') || pathname === '/mariage' || pathname === '/dj-mariage' || pathname === '/mariage-sans-stress') return null;
+  if (pathname?.startsWith('/mon-espace') || pathname?.startsWith('/auth') || pathname?.startsWith('/devis') || pathname?.startsWith('/admin') || pathname?.startsWith('/invitation') || pathname?.startsWith('/proposition') || pathname?.startsWith('/rendez-vous') || pathname === '/mariage' || pathname === '/dj-mariage' || pathname === '/mariage-sans-stress') return null;
 
 
   const isActive = (href) =>

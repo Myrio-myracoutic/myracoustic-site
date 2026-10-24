@@ -5,7 +5,9 @@ const NOTIF_EMAIL = 'contact@myracoustic.com';
 
 const RAISONS = {
   prix: 'Le budget ne correspondait pas',
+  offre_mismatch: "L'offre ne correspondait pas à ce qui était imaginé",
   autre_prestataire: 'A choisi un autre prestataire',
+  parcours_confus: 'Le parcours a été trop long ou confus',
   annule: 'Le mariage est annulé ou reporté',
   sans_suite: "N'a plus besoin de prestataire",
   autre: 'Autre raison',

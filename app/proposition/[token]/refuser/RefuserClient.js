@@ -5,7 +5,9 @@ import { Loader2, CheckCircle2 } from 'lucide-react';
 
 const RAISONS = [
   { key: 'prix', label: 'Le budget ne correspondait pas' },
+  { key: 'offre_mismatch', label: "L'offre ne correspondait pas à ce que j'imaginais" },
   { key: 'autre_prestataire', label: "J'ai choisi un autre prestataire" },
+  { key: 'parcours_confus', label: 'Le parcours a été trop long ou confus' },
   { key: 'annule', label: 'Mon mariage est annulé ou reporté' },
   { key: 'sans_suite', label: "Je n'ai plus besoin de prestataire" },
   { key: 'autre', label: 'Autre raison' },

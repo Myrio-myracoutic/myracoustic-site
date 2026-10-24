@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { CheckCircle2, Loader2, MapPin, Check, CalendarClock } from 'lucide-react';
+import { CheckCircle2, Loader2, MapPin, Check, CalendarClock, Phone } from 'lucide-react';
 import AddressAutocomplete from '@/app/components/AddressAutocomplete';
 import { FORMULES, POLES } from '@/app/lib/formules';
 
@@ -52,6 +52,17 @@ export default function PropositionTokenClient({ token }) {
   const [screen, setScreen] = useState('recap');
   const goToBilling = () => { setScreen('billing'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   const backToRecap = () => { setScreen('recap'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  const [callLoading, setCallLoading] = useState(false);
+  const requestCall = async () => {
+    if (callLoading) return;
+    setCallLoading(true);
+    try {
+      const res = await fetch(`/api/proposition/${token}/call-link`);
+      const d = await res.json();
+      if (res.ok && d.token) { window.location.href = `/rendez-vous/${d.token}`; return; }
+    } catch {}
+    setCallLoading(false);
+  };
 
   useEffect(() => {
     const id = setInterval(() => setNowMs(Date.now()), 1000);
@@ -258,6 +269,22 @@ export default function PropositionTokenClient({ token }) {
       <button onClick={goToBilling} className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
         J'accepte la proposition →
       </button>
+
+      <button onClick={requestCall} disabled={callLoading} style={{
+        width: '100%', justifyContent: 'center', display: 'flex', alignItems: 'center', gap: 8,
+        background: 'none', border: '1px solid rgba(255,255,255,0.18)', color: 'rgba(255,255,255,0.75)',
+        borderRadius: 10, padding: '13px 18px', marginTop: 12, fontSize: 14, fontFamily: 'var(--font-display), sans-serif', fontWeight: 600,
+        cursor: callLoading ? 'not-allowed' : 'pointer', opacity: callLoading ? 0.6 : 1,
+      }}>
+        {callLoading ? <Loader2 size={16} style={{ animation: 'spin 0.8s linear infinite' }} /> : <Phone size={15} />}
+        Besoin qu&apos;on vous réexplique l&apos;offre ? Réservez un appel
+      </button>
+
+      <p style={{ textAlign: 'center', marginTop: 22 }}>
+        <Link href={`/proposition/${token}/refuser`} style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12.5, textDecoration: 'underline' }}>
+          Cette offre ne vous convient pas ? Dites-nous pourquoi
+        </Link>
+      </p>
       </>}
 
       {screen === 'billing' && <>

@@ -284,6 +284,7 @@ export default function MariageSansStressClient({ availability }) {
         }
         @media (prefers-reduced-motion: reduce) {
           .mss-focusable { transition: none !important; }
+          .mss-hero-video { display: none !important; }
         }
       `}</style>
 
@@ -359,6 +360,19 @@ export default function MariageSansStressClient({ availability }) {
         backgroundSize: 'cover', backgroundPosition: 'center',
         position: 'relative', overflow: 'hidden',
       }}>
+        {/* Vidéo en fond — masquée si "réduire les animations" est activé,
+            l'image de fond du <section> sert alors de secours statique. */}
+        <video
+          className="mss-hero-video"
+          autoPlay muted loop playsInline
+          poster="/ban_mariage_sans-stress.jpg"
+          style={{
+            position: 'absolute', inset: 0, zIndex: 0,
+            width: '100%', height: '100%', objectFit: 'cover',
+          }}
+        >
+          <source src="/ban_mariage_sans-stress.mp4" type="video/mp4" />
+        </video>
         <div style={{
           position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
           background: 'linear-gradient(to right,rgba(13,27,42,0.92) 0%,rgba(13,27,42,0.55) 60%,rgba(13,27,42,0.2) 100%)',

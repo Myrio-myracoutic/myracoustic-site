@@ -286,6 +286,21 @@ export default function MariageSansStressClient({ availability }) {
           .mss-focusable { transition: none !important; }
           .mss-hero-video { display: none !important; }
         }
+        .mss-hero {
+          min-height: calc(100vh - var(--mss-banner-h, 0px));
+          min-height: calc(100dvh - var(--mss-banner-h, 0px));
+          box-sizing: border-box;
+          display: flex;
+          align-items: center;
+        }
+        .mss-hero > .mss-hero-content {
+          width: 100%;
+        }
+        @media (max-width: 768px) {
+          .mss-hero-h1 { margin-bottom: 32px !important; }
+          .mss-hero-subtitle { margin-bottom: 40px !important; }
+          .mss-hero-typewriter { margin-bottom: 44px !important; }
+        }
       `}</style>
 
       {/* ── BANDEAU DISPONIBILITÉ + EN-TÊTE ─────────────────────── */}
@@ -354,7 +369,8 @@ export default function MariageSansStressClient({ availability }) {
       <div style={{ height: bannerHeight }} />
 
       {/* ── HERO ────────────────────────────────────────────────── */}
-      <section style={{
+      <section className="mss-hero" style={{
+        '--mss-banner-h': `${bannerHeight}px`,
         padding: 'clamp(66px,7vw,80px) 32px clamp(80px,10vw,120px)',
         backgroundImage: 'url(/ban_mariage_sans-stress.jpg)',
         backgroundSize: 'cover', backgroundPosition: 'center',
@@ -382,24 +398,24 @@ export default function MariageSansStressClient({ availability }) {
           background: 'radial-gradient(ellipse 70% 60% at 80% 40%,rgba(184,239,11,0.08) 0%,transparent 55%)',
         }} />
 
-        <div style={{ maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 2 }}>
+        <div className="mss-hero-content" style={{ maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 2 }}>
           <div style={{ maxWidth: 620 }}>
             <SectionLabel>Mariage</SectionLabel>
-            <h1 style={{
+            <h1 className="mss-hero-h1" style={{
               fontFamily: 'var(--font-display), sans-serif',
               fontSize: 'clamp(34px,6vw,64px)', fontWeight: 700,
               lineHeight: 1.05, letterSpacing: '-0.02em', marginBottom: 20,
             }}>
               Votre mariage, une soirée inoubliable pour vous et vos invités, sans aucun stress.
             </h1>
-            <p style={{
+            <p className="mss-hero-subtitle" style={{
               color: 'rgba(255,255,255,0.56)',
               fontSize: 'clamp(15px,1.5vw,18px)', lineHeight: 1.75,
               marginBottom: 28,
             }}>
               Son, lumière, vidéo et DJ, pilotés de A à Z, pour que vous profitiez de chaque instant.
             </p>
-            <p style={{
+            <p className="mss-hero-typewriter" style={{
               fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(16px,2vw,20px)', fontWeight: 700,
               lineHeight: 1.3, marginBottom: 36, minHeight: 56,
             }}>

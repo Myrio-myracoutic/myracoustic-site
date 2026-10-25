@@ -444,6 +444,13 @@ export default function MariageSansStressClient({ availability }) {
         </Reveal>
       </section>
 
+      {/* ── BANNIÈRE PHOTO ──────────────────────────────────────── */}
+      <div style={{
+        height: 'clamp(220px,32vw,420px)',
+        backgroundImage: 'url(/Ban_bretignolle.jpg)',
+        backgroundSize: 'cover', backgroundPosition: 'center',
+      }} />
+
       {/* ── FONCTIONNALITÉS ─────────────────────────────────────── */}
       <section id="approche" style={{ padding: 'clamp(56px,7vw,88px) 32px' }}>
         <Reveal style={{ maxWidth: 1280, margin: '0 auto' }}>

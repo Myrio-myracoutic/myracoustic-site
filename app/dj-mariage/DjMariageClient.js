@@ -84,6 +84,22 @@ function AvailabilityLine({ availability }) {
 export default function DjMariageClient({ availability }) {
   return (
     <div>
+      <style>{`
+        @media (prefers-reduced-motion: reduce) {
+          .mss-hero-video { display: none !important; }
+        }
+        .mss-hero {
+          min-height: calc(100vh - 70px);
+          min-height: calc(100dvh - 70px);
+          box-sizing: border-box;
+          display: flex;
+          align-items: center;
+        }
+        @media (max-width: 768px) {
+          .mss-hero-h1 { margin-bottom: 32px !important; }
+          .mss-hero-subtitle { margin-bottom: 40px !important; }
+        }
+      `}</style>
 
       {/* ── EN-TÊTE ─────────────────────────────────────────────── */}
       {/* Logo + téléphone/horaires, sans menu ni lien de sortie : une page pub à une seule
@@ -112,27 +128,38 @@ export default function DjMariageClient({ availability }) {
       </div>
 
       {/* ── HERO ────────────────────────────────────────────────── */}
-      <section style={{
-        padding: 'clamp(64px,9vw,110px) 32px clamp(80px,10vw,120px)',
+      <section className="mss-hero" style={{
+        padding: 'clamp(48px,6vw,70px) 32px clamp(48px,6vw,70px)',
         backgroundImage: 'url(/particuliers-hero.jpg)',
         backgroundSize: 'cover', backgroundPosition: 'center',
         position: 'relative', overflow: 'hidden',
       }}>
+        <video
+          className="mss-hero-video"
+          autoPlay muted loop playsInline
+          poster="/particuliers-hero.jpg"
+          style={{
+            position: 'absolute', inset: 0, zIndex: 0,
+            width: '100%', height: '100%', objectFit: 'cover',
+          }}
+        >
+          <source src="/ban_mariage_sans-stress.mp4" type="video/mp4" />
+        </video>
         <div style={{
           position: 'absolute', inset: 0, zIndex: 0,
           background: 'linear-gradient(135deg,#1a050e 0%,#4a0e24 40%,#2a0a16 70%,#0d1b2a 100%)',
-          opacity: 0.5,
+          opacity: 0.25,
         }} />
         <div style={{
           position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
-          background: 'linear-gradient(to right,rgba(13,27,42,0.92) 0%,rgba(13,27,42,0.55) 60%,rgba(13,27,42,0.2) 100%)',
+          background: 'linear-gradient(to right,rgba(13,27,42,0.75) 0%,rgba(13,27,42,0.4) 60%,rgba(13,27,42,0.1) 100%)',
         }} />
         <div style={{
           position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
           background: 'radial-gradient(ellipse 70% 60% at 80% 40%,rgba(184,239,11,0.05) 0%,transparent 55%)',
         }} />
 
-        <div style={{ maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 2 }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 2, width: '100%' }}>
           <SectionLabel>Mariage</SectionLabel>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 18,
@@ -143,14 +170,14 @@ export default function DjMariageClient({ availability }) {
             <span style={{ color: 'rgba(255,255,255,0.3)' }}>·</span>
             <span style={{ color: 'rgba(255,255,255,0.72)', fontSize: 13, fontFamily: 'var(--font-display), sans-serif' }}>200+ mariages orchestrés</span>
           </div>
-          <h1 style={{
+          <h1 className="mss-hero-h1" style={{
             fontFamily: 'var(--font-display), sans-serif',
             fontSize: 'clamp(42px,7vw,96px)', fontWeight: 700,
             lineHeight: 0.95, letterSpacing: '-0.02em', marginBottom: 24,
           }}>
             VOTRE MARIAGE,<br /><span style={{ color: 'var(--lime)' }}>ORCHESTRÉ AVEC EXIGENCE</span>
           </h1>
-          <p style={{
+          <p className="mss-hero-subtitle" style={{
             color: 'rgba(255,255,255,0.56)',
             fontSize: 'clamp(15px,1.5vw,18px)', lineHeight: 1.75,
             maxWidth: 540, marginBottom: 36,

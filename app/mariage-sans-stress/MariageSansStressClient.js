@@ -194,6 +194,23 @@ function availabilityText(availability) {
   return `Encore ${available} samedis disponibles sur la saison ${year}.`;
 }
 
+/* Image de fond posée seulement à l'approche du bloc (~1 écran avant), pour ne pas
+   concurrencer le héro au chargement. Sans IntersectionObserver : chargée tout de suite. */
+function useLazyBackground(url) {
+  const ref = useRef(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === 'undefined') { setVisible(true); return; }
+    const obs = new IntersectionObserver((entries) => {
+      if (entries.some(e => e.isIntersecting)) { setVisible(true); obs.disconnect(); }
+    }, { rootMargin: '100% 0px' });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return [ref, visible ? `url(${url})` : 'none'];
+}
+
 function AvailabilityBanner({ availability }) {
   return (
     <div style={{
@@ -273,6 +290,10 @@ export default function MariageSansStressClient({ availability }) {
      (5 Mo) sur ordinateur. Rien n'est téléchargé avant ce choix (l'image de fond s'affiche en attendant),
      ni du tout si "réduire les animations" est activé. */
   const [heroVideoSrc, setHeroVideoSrc] = useState(null);
+  const [bannerPhotoRef, bannerPhotoBg] = useLazyBackground('/Ban_bretignolle.jpg');
+  const [avisRef, avisBg] = useLazyBackground('/ban_mariage_sans-stress-3.jpg');
+  const [parcoursRef, parcoursBg] = useLazyBackground('/ban_prestation_son.jpg');
+  const [ctaFinalRef, ctaFinalBg] = useLazyBackground('/ban_mariage_sans-stress-2.jpg');
   useEffect(() => {
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
     setHeroVideoSrc(window.matchMedia?.('(max-width: 640px)').matches
@@ -461,9 +482,9 @@ export default function MariageSansStressClient({ availability }) {
       </section>
 
       {/* ── BANNIÈRE PHOTO ──────────────────────────────────────── */}
-      <div style={{
+      <div ref={bannerPhotoRef} style={{
         height: 'clamp(220px,32vw,420px)',
-        backgroundImage: 'url(/Ban_bretignolle.jpg)',
+        backgroundImage: bannerPhotoBg,
         backgroundSize: 'cover', backgroundPosition: 'center',
       }} />
 
@@ -501,9 +522,9 @@ export default function MariageSansStressClient({ availability }) {
       </section>
 
       {/* ── TÉMOIGNAGES ─────────────────────────────────────────── */}
-      <section id="avis" style={{
+      <section id="avis" ref={avisRef} style={{
         padding: 'clamp(56px,7vw,88px) 32px',
-        backgroundImage: 'url(/ban_mariage_sans-stress-3.jpg)',
+        backgroundImage: avisBg,
         backgroundSize: 'cover', backgroundPosition: 'center',
         position: 'relative', overflow: 'hidden',
       }}>
@@ -606,9 +627,9 @@ export default function MariageSansStressClient({ availability }) {
       </section>
 
       {/* ── PARCOURS D'ACCOMPAGNEMENT ───────────────────────────── */}
-      <section id="parcours" style={{
+      <section id="parcours" ref={parcoursRef} style={{
         padding: 'clamp(56px,7vw,88px) 32px',
-        backgroundImage: 'url(/ban_prestation_son.jpg)',
+        backgroundImage: parcoursBg,
         backgroundSize: 'cover', backgroundPosition: 'center',
         position: 'relative', overflow: 'hidden',
       }}>
@@ -665,9 +686,9 @@ export default function MariageSansStressClient({ availability }) {
       </section>
 
       {/* ── CTA FINAL ───────────────────────────────────────────── */}
-      <section style={{
+      <section ref={ctaFinalRef} style={{
         padding: 'clamp(56px,7vw,88px) 32px', textAlign: 'center',
-        backgroundImage: 'url(/ban_mariage_sans-stress-2.jpg)',
+        backgroundImage: ctaFinalBg,
         backgroundSize: 'cover', backgroundPosition: 'center',
         position: 'relative', overflow: 'hidden',
       }}>

@@ -22,7 +22,7 @@ export function AnimatedWave({ bars = 48, height = 100, style = {}, opacity = 1,
     }}>
       {Array.from({ length: bars }).map((_, i) => {
         const ci = Math.floor((i / bars) * WAVE_COLORS.length);
-        const h = Math.max(8, getBarH(i, bars) * 94);
+        const h = Math.round(Math.max(8, getBarH(i, bars) * 94) * 100) / 100;
         const dur = 0.42 + (i % 9) * 0.09;
         const delay = -(i * 0.065) % 1.6;
         return (
@@ -59,7 +59,7 @@ export function WaveBullet({ size = 18 }) {
     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 1.5, height: size, flexShrink: 0 }}>
       {Array.from({ length: 9 }).map((_, i) => {
         const ci = Math.floor((i / 9) * WAVE_COLORS.length);
-        const h = 20 + Math.abs(Math.sin(i * 1.1 + 0.5)) * 80;
+        const h = Math.round((20 + Math.abs(Math.sin(i * 1.1 + 0.5)) * 80) * 100) / 100;
         const dur = 0.38 + (i % 5) * 0.11;
         const delay = -(i * 0.09) % 1.1;
         return (

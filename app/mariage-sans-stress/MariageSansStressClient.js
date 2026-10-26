@@ -269,6 +269,16 @@ export default function MariageSansStressClient({ availability }) {
     ro.observe(bannerRef.current);
     return () => ro.disconnect();
   }, []);
+  /* Vidéo du héro choisie côté client : version recadrée/compressée (~1 Mo) sur mobile, originale
+     (5 Mo) sur ordinateur. Rien n'est téléchargé avant ce choix (l'image de fond s'affiche en attendant),
+     ni du tout si "réduire les animations" est activé. */
+  const [heroVideoSrc, setHeroVideoSrc] = useState(null);
+  useEffect(() => {
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    setHeroVideoSrc(window.matchMedia?.('(max-width: 640px)').matches
+      ? '/ban_mariage_sans-stress-mobile.mp4'
+      : '/ban_mariage_sans-stress.mp4');
+  }, []);
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     onScroll();
@@ -277,6 +287,8 @@ export default function MariageSansStressClient({ availability }) {
   }, []);
   return (
     <div>
+      {/* Image du héro mobile demandée en priorité, avant les photos plus bas dans la page */}
+      <link rel="preload" as="image" href="/ban_mariage_sans-stress-mobile.webp" media="(max-width: 640px)" fetchPriority="high" />
       <style>{`
         .mss-focusable:focus-visible {
           outline: 2px solid var(--lime);
@@ -285,6 +297,9 @@ export default function MariageSansStressClient({ availability }) {
         @media (prefers-reduced-motion: reduce) {
           .mss-focusable { transition: none !important; }
           .mss-hero-video { display: none !important; }
+        }
+        @media (max-width: 640px) {
+          .mss-hero { background-image: url(/ban_mariage_sans-stress-mobile.webp) !important; }
         }
         .mss-hero {
           min-height: calc(100vh - var(--mss-banner-h, 0px));
@@ -376,19 +391,20 @@ export default function MariageSansStressClient({ availability }) {
         backgroundSize: 'cover', backgroundPosition: 'center',
         position: 'relative', overflow: 'hidden',
       }}>
-        {/* Vidéo en fond — masquée si "réduire les animations" est activé,
+        {/* Vidéo en fond — absente si "réduire les animations" est activé,
             l'image de fond du <section> sert alors de secours statique. */}
-        <video
-          className="mss-hero-video"
-          autoPlay muted loop playsInline
-          poster="/ban_mariage_sans-stress.jpg"
-          style={{
-            position: 'absolute', inset: 0, zIndex: 0,
-            width: '100%', height: '100%', objectFit: 'cover',
-          }}
-        >
-          <source src="/ban_mariage_sans-stress.mp4" type="video/mp4" />
-        </video>
+        {heroVideoSrc && (
+          <video
+            className="mss-hero-video"
+            autoPlay muted loop playsInline
+            poster={heroVideoSrc.endsWith('-mobile.mp4') ? '/ban_mariage_sans-stress-mobile.webp' : '/ban_mariage_sans-stress.jpg'}
+            src={heroVideoSrc}
+            style={{
+              position: 'absolute', inset: 0, zIndex: 0,
+              width: '100%', height: '100%', objectFit: 'cover',
+            }}
+          />
+        )}
         <div style={{
           position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
           background: 'linear-gradient(to right,rgba(13,27,42,0.92) 0%,rgba(13,27,42,0.55) 60%,rgba(13,27,42,0.2) 100%)',

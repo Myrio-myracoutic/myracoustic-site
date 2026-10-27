@@ -132,7 +132,7 @@ async function findOrCreateClient({ type, firstName, lastName, societe, email, p
 
 export async function POST(request) {
   try {
-    const { client, event, items, draft, note, expiryDate: expiryOverride, discountPct } = await request.json();
+    const { client, event, items, draft, note, expiryDate: expiryOverride, discountPct, paymentTerms } = await request.json();
 
     const clientId = await findOrCreateClient(client);
 
@@ -172,7 +172,8 @@ export async function POST(request) {
       expiry_date: expiryDate,
       currency: 'EUR',
       // Test 2 mois (15/10/2026) : 50/50 au lieu de 60/40, pour voir si ça convertit plus.
-      terms_and_conditions: 'Acompte de 50 % à la signature du devis — Solde de 50 % le jour de la prestation.',
+      // paymentTerms : échéancier propre à la proposition (ex. paiement échelonné, voir payment-plan.js).
+      terms_and_conditions: paymentTerms || 'Acompte de 50 % à la signature du devis — Solde de 50 % le jour de la prestation.',
       header: headerParts.join(' · '),
       footer: giftFooter,
       // Remise native Qonto (ex. réduction « du moment ») — en pourcentage du devis

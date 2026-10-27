@@ -98,7 +98,16 @@ export async function GET(request, { params }) {
     pay_url:   i.invoice_url || null,
   }));
 
+  // Paiement échelonné : rappelle au client la date limite du 2e acompte (40 %) tant que sa
+  // facture n'est pas encore émise dans Qonto (proposition retrouvée par son devis Qonto).
+  const { data: prop } = await supabaseAdmin
+    .from('devis_proposals').select('payment_mode, second_payment_due')
+    .eq('qonto_quote_id', ev.qonto_quote_id).maybeSingle();
+
   return NextResponse.json({
+    payment_plan: prop?.payment_mode === 'echelonne'
+      ? { mode: 'echelonne', second_payment_due: prop.second_payment_due }
+      : null,
     quote: quote ? {
       id:     quote.id,
       number: quote.number,

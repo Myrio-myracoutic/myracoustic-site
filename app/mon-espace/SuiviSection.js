@@ -291,6 +291,20 @@ export function FacturationTab({ ev, token }) {
         );
       })}
 
+      {/* Paiement échelonné : 2e acompte (40 %) annoncé tant que sa facture n'est pas émise */}
+      {data.payment_plan?.second_payment_due
+        && (data.invoices || []).filter(i => i.type === 'deposit').length < 2 && (
+        <DocRow
+          icon={CreditCard}
+          iconColor="#f59e0b"
+          title="2e acompte (40 %)"
+          subtitle={`${data.quote?.total > 0 ? fmtEur(Math.round(data.quote.total * 0.4)) + ' · ' : ''}À régler avant le ${fmtDate(data.payment_plan.second_payment_due)} — facture envoyée prochainement`}
+          url={null}
+          badge="À venir"
+          badgeColor="#f59e0b"
+        />
+      )}
+
       {/* Résumé paiements si plusieurs factures */}
       {data.invoices?.length > 0 && (() => {
         // Reste à régler = ce qui reste vraiment dû d'après les FACTURES réelles

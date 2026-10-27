@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { CheckCircle2, Loader2, MapPin, Check, CalendarClock, Phone } from 'lucide-react';
 import AddressAutocomplete from '@/app/components/AddressAutocomplete';
 import { FORMULES, POLES } from '@/app/lib/formules';
+import { paymentSchedule } from '@/app/lib/payment-plan';
 
 const fmtPrice = (n) => Number(n).toLocaleString('fr-FR') + ' €';
 const fmtDate = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
@@ -158,12 +159,13 @@ export default function PropositionTokenClient({ token }) {
   const discEndMs = disc ? new Date(disc.until + 'T23:59:59').getTime() : 0;
   const discountLive = !!disc && nowMs <= discEndMs;
   const effTotal = discountLive ? p.total - disc.amount : p.total;
-  // Test 2 mois (15/10/2026) : 50/50 au lieu de 60/40, pour voir si ça convertit plus.
-  const acompte = Math.round(effTotal * 0.5);
-  const solde = effTotal - acompte;
+  // Recalcul en direct (la réduction peut expirer pendant la consultation) selon le mode choisi
+  // par l'admin : 50/50, ou échelonné 10 % / 40 % avant une date / 50 % le jour J.
+  const echelonne = p.payment_mode === 'echelonne';
+  const { first: acompte, second: secondAcompte, solde } = paymentSchedule(effTotal, p.payment_mode);
 
   const payCard = (title, amount, pct, accent) => (
-    <div style={{ flex: 1, background: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: '18px 16px', borderLeft: `3px solid ${accent}` }}>
+    <div style={{ flex: '1 1 140px', background: 'rgba(255,255,255,0.05)', borderRadius: 12, padding: '18px 16px', borderLeft: `3px solid ${accent}` }}>
       <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, marginBottom: 6, fontFamily: 'var(--font-display), sans-serif', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{title}</div>
       <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 800, fontSize: 30, color: '#fff', lineHeight: 1 }}>{fmtPrice(amount)}</div>
       <div style={{ color: accent, fontSize: 12, marginTop: 5, fontFamily: 'var(--font-display), sans-serif', fontWeight: 700 }}>{pct}</div>
@@ -257,13 +259,16 @@ export default function PropositionTokenClient({ token }) {
         </div>
       </div>
 
-      {/* Acompte 50 / solde 50 en grand */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 8 }}>
-        {payCard('À la signature du devis', acompte, 'Acompte · 50 %', 'var(--lime)')}
+      {/* Échéancier en grand : 50 / 50, ou 10 / 40 / 50 en paiement échelonné */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 8, flexWrap: 'wrap' }}>
+        {payCard('À la signature du devis', acompte, echelonne ? 'Acompte · 10 %' : 'Acompte · 50 %', 'var(--lime)')}
+        {echelonne && payCard(p.second_payment_due ? `Avant le ${fmtDate(p.second_payment_due)}` : '2e acompte', secondAcompte, '2e acompte · 40 %', 'rgba(184,239,11,0.5)')}
         {payCard('Solde le jour J', solde, '50 %', 'rgba(52,55,144,0.9)')}
       </div>
       <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textAlign: 'center', marginBottom: 26 }}>
-        L'acompte de <strong style={{ color: 'rgba(255,255,255,0.7)' }}>{fmtPrice(acompte)}</strong> se règle à la signature de votre devis, et réserve alors votre date.
+        {echelonne
+          ? <>Seulement <strong style={{ color: 'rgba(255,255,255,0.7)' }}>{fmtPrice(acompte)}</strong> à la signature de votre devis pour réserver votre date — le reste est réparti jusqu’au jour J.</>
+          : <>L'acompte de <strong style={{ color: 'rgba(255,255,255,0.7)' }}>{fmtPrice(acompte)}</strong> se règle à la signature de votre devis, et réserve alors votre date.</>}
       </p>
 
       <button onClick={goToBilling} className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>

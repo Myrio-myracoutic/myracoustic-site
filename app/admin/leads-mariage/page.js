@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { Plus, Minus, Trash2, X, FileText, Check, Loader2, Heart, Mail, CalendarClock, Percent, PhoneCall, AlertTriangle } from 'lucide-react';
 import { FORMULES, POLES, ALL_OPTIONS, PACK_BASE_ITEMS, EXTRA_HOUR_PRICE, fmtPrice } from '@/app/lib/formules';
 import { discountEuros, discountLabel } from '@/app/lib/discount';
+import { PAYMENT_MODES, paymentSchedule } from '@/app/lib/payment-plan';
 import { getTransportFee, getRoadKm } from '@/app/lib/transport';
 import { geocodeAddress } from '@/app/lib/geocode';
 import AddressAutocomplete from '@/app/components/AddressAutocomplete';
@@ -76,6 +77,9 @@ function DevisBuilder({ lead, proposal, bookedDates = new Set(), pendingDates = 
   const [eventDate, setEventDate] = useState(lead.event_date || '');
   const [venue, setVenue] = useState(lead.lieu || '');
   const [guests, setGuests] = useState(lead.guests ?? '');
+  // Mode de paiement : 50/50 (historique) ou échelonné 10/40/50 avec une date limite pour les 40 %
+  const [paymentMode, setPaymentMode] = useState(proposal?.payment_mode || 'deux_fois');
+  const [secondDue, setSecondDue] = useState(proposal?.second_payment_due || '');
 
   const formule = FORMULES.find(f => f.key === formuleKey);
   const isPack = formuleKey === PACK_KEY;
@@ -209,6 +213,7 @@ function DevisBuilder({ lead, proposal, bookedDates = new Set(), pendingDates = 
     const clean = items.filter(it => it.title.trim() && Number(it.price) >= 0)
       .map(it => ({ title: it.title.trim(), price: Number(it.price), source: it.source }));
     if (clean.length === 0) { setError('Ajoutez au moins une ligne (titre + prix).'); return; }
+    if (paymentMode === 'echelonne' && !secondDue) { setError('Indiquez la date limite du 2e acompte (40 %).'); return; }
     setSaving(true); setError('');
     const res = await fetch('/api/admin/devis-proposal', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -217,6 +222,7 @@ function DevisBuilder({ lead, proposal, bookedDates = new Set(), pendingDates = 
         formuleName: formule ? formule.name : (isPack ? (packName.trim() || 'Pack personnalisé') : 'Sur-mesure'),
         items: clean, total, adminNote: note.trim(),
         eventDate: eventDate || null, venue: venue.trim() || null, guests: guests || null,
+        paymentMode, secondPaymentDue: paymentMode === 'echelonne' ? secondDue : null,
       }),
     });
     setSaving(false);
@@ -430,6 +436,36 @@ function DevisBuilder({ lead, proposal, bookedDates = new Set(), pendingDates = 
           ))}
         </div>
         <button onClick={addCustom} style={{ ...btnSm, marginBottom: 18 }}><Plus size={13} style={{ verticalAlign: '-2px' }} /> Ajouter une ligne sur-mesure</button>
+
+        {/* Mode de paiement */}
+        <label style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 8 }}>Mode de paiement</label>
+        <div style={{ display: 'flex', gap: 7, marginBottom: 10, flexWrap: 'wrap' }}>
+          {Object.entries(PAYMENT_MODES).map(([key, lbl]) => (
+            <button key={key} onClick={() => setPaymentMode(key)} style={{
+              ...btnSm,
+              border: `1px solid ${paymentMode === key ? 'var(--lime)' : 'rgba(255,255,255,0.15)'}`,
+              background: paymentMode === key ? 'rgba(184,239,11,0.1)' : 'rgba(255,255,255,0.05)',
+              color: paymentMode === key ? 'var(--lime)' : 'rgba(255,255,255,0.8)',
+            }}>{lbl}</button>
+          ))}
+        </div>
+        {(() => {
+          const sch = paymentSchedule(total, paymentMode);
+          return paymentMode === 'echelonne' ? (
+            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, padding: '12px 14px', marginBottom: 18, fontSize: 13, color: 'rgba(255,255,255,0.7)', lineHeight: 1.7 }}>
+              10 % à la signature : <strong style={{ color: '#fff' }}>{fmtPrice(sch.first)}</strong> (bloque la date)<br />
+              40 % avant le
+              <input type="date" min={new Date().toISOString().slice(0, 10)} max={eventDate || undefined} value={secondDue}
+                onChange={e => setSecondDue(e.target.value)} style={{ ...inp, padding: '4px 8px', fontSize: 13, margin: '0 8px' }} />
+              : <strong style={{ color: '#fff' }}>{fmtPrice(sch.second)}</strong><br />
+              50 % le jour J : <strong style={{ color: '#fff' }}>{fmtPrice(sch.solde)}</strong>
+            </div>
+          ) : (
+            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.55)', margin: '0 0 18px' }}>
+              50 % à la signature ({fmtPrice(sch.first)}) · 50 % le jour J ({fmtPrice(sch.solde)})
+            </p>
+          );
+        })()}
 
         {/* Note + total */}
         <textarea value={note} onChange={e => setNote(e.target.value)} placeholder="Note interne (optionnel)" rows={2} style={{ ...inp, width: '100%', resize: 'vertical', marginBottom: 16 }} />
@@ -651,6 +687,7 @@ export default function LeadsMariagePage() {
   const [busy, setBusy] = useState(null);
   const [newContact, setNewContact] = useState(false);
   const [validityEdit, setValidityEdit] = useState(null); // { id, value }
+  const [dueEdit, setDueEdit] = useState(null); // { id, value } — date limite du 2e acompte (échelonné)
   const [discountFor, setDiscountFor] = useState(null); // proposal
   const [callSlotFor, setCallSlotFor] = useState(null); // { lead, mode: 'schedule' | 'reschedule' }
   const [tab, setTab] = useState('actifs');
@@ -703,6 +740,20 @@ export default function LeadsMariagePage() {
     setBusy(null);
     if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || 'Erreur'); return; }
     setValidityEdit(null);
+    load();
+  };
+
+  const saveSecondDue = async (proposalId) => {
+    const value = dueEdit?.value;
+    if (!value) return;
+    setBusy('due-' + proposalId);
+    const res = await fetch('/api/admin/devis-proposal', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ proposalId, secondPaymentDue: value }),
+    });
+    setBusy(null);
+    if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || 'Erreur'); return; }
+    setDueEdit(null);
     load();
   };
 
@@ -898,6 +949,30 @@ export default function LeadsMariagePage() {
                     else { text = '🗓️ Devis valable jusqu’au ' + fmtDate(vu); }
                     return <><br /><span style={{ color, fontWeight: 600 }}>{text}</span></>;
                   })()}
+                  {l.proposal?.payment_mode === 'echelonne' && (
+                    <><br /><span style={{ color: 'var(--lime)', fontWeight: 600 }}>
+                      💳 Paiement échelonné · 2e acompte (40 %) avant le{' '}
+                      {dueEdit?.id === l.proposal.id ? (
+                        <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center', verticalAlign: 'middle' }}>
+                          <input type="date" value={dueEdit.value} min={todayStr} max={l.proposal.event_date || undefined}
+                            onChange={e => setDueEdit({ id: l.proposal.id, value: e.target.value })}
+                            style={{ ...inp, padding: '3px 6px', fontSize: 12.5 }} />
+                          <button onClick={() => saveSecondDue(l.proposal.id)} disabled={busy === 'due-' + l.proposal.id} style={{
+                            border: 'none', background: '#b8ef0b', color: '#060e16', borderRadius: 6, padding: '4px 10px',
+                            cursor: busy === 'due-' + l.proposal.id ? 'wait' : 'pointer', fontSize: 12, fontWeight: 700,
+                          }}>OK</button>
+                          <button onClick={() => setDueEdit(null)} title="Annuler" style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: 2 }}><X size={14} /></button>
+                        </span>
+                      ) : (
+                        <>
+                          {fmtDate(l.proposal.second_payment_due)}{' '}
+                          <button onClick={() => setDueEdit({ id: l.proposal.id, value: l.proposal.second_payment_due || todayStr })} style={{
+                            background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', textDecoration: 'underline', fontSize: 12, padding: 0,
+                          }}>modifier</button>
+                        </>
+                      )}
+                    </span></>
+                  )}
                   {l.proposal?.discount_type && (
                     <><br /><span style={{ color: 'var(--lime)', fontWeight: 600 }}>
                       🎁 Réduction {discountLabel(l.proposal.discount_type, l.proposal.discount_value)}{l.proposal.discount_until ? ` jusqu’au ${fmtDate(l.proposal.discount_until)}` : ''}

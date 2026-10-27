@@ -39,7 +39,11 @@ const ARTICLES = [
     body: (
       <p>
         50 % du montant total TTC est exigible à la signature du devis à titre d'acompte, le solde de 50 % étant
-        exigible le jour de la prestation, au plus tard avant le début de celle-ci. Tout retard de paiement entraîne
+        exigible le jour de la prestation, au plus tard avant le début de celle-ci. Lorsque le devis prévoit un
+        paiement échelonné, l'acompte est versé en deux fois : 10 % du montant total TTC à la signature du devis,
+        qui réserve la date, puis 40 % au plus tard à la date indiquée sur le devis ; le solde de 50 % reste exigible
+        le jour de la prestation. À défaut de versement du second acompte à la date prévue, Myracoustic se réserve
+        le droit de libérer la date réservée. Tout retard de paiement entraîne
         l'application de pénalités légales, majorées le cas échéant d'une indemnité forfaitaire pour frais de recouvrement.
       </p>
     ),
@@ -79,7 +83,9 @@ const ARTICLES = [
     body: (
       <>
         <p style={{ marginBottom: 10 }}>
-          <strong>8.1 Annulation par le client :</strong> l'acompte versé reste acquis à Myracoustic. Toute annulation
+          <strong>8.1 Annulation par le client :</strong> l'acompte versé reste acquis à Myracoustic (en cas de
+          paiement échelonné, les sommes déjà versées restent acquises ; aucune somme supplémentaire n'est réclamée au
+          titre de l'acompte). Toute annulation
           intervenant moins de 7 jours avant la date de l'événement entraîne la facturation de la totalité du montant prévu au devis.
         </p>
         <p>

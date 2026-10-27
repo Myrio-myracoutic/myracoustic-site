@@ -49,13 +49,35 @@ async function sendProposalLink(toEmail, firstName, token, validUntilDate, isUpd
   });
 }
 
+// Paiement échelonné : la date limite du 2e versement (40 %) est obligatoire, pas dans le passé,
+// et avant le jour J (le solde de 50 % tombe le jour J). Renvoie un message d'erreur ou null.
+function checkSecondDue(due, evDate) {
+  if (!due || !/^\d{4}-\d{2}-\d{2}$/.test(due)) return 'Indiquez la date limite du 2e acompte (40 %).';
+  if (due < new Date().toISOString().slice(0, 10)) return 'La date du 2e acompte doit être aujourd’hui ou plus tard.';
+  if (evDate && due >= evDate) return 'La date du 2e acompte doit être avant la date du mariage.';
+  return null;
+}
+
 // PATCH /api/admin/devis-proposal — repousser seulement la date de validité (le client attend des retours,
-// ça ne veut pas dire qu'il refuse). Aucun email envoyé, le devis n'est pas régénéré.
+// ça ne veut pas dire qu'il refuse), ou modifier la date limite du 2e acompte d'un paiement échelonné.
+// Aucun email envoyé, le devis n'est pas régénéré.
 export async function PATCH(request) {
   if (!(await verifyAdminCookie())) {
     return Response.json({ error: 'Non autorisé' }, { status: 401 });
   }
-  const { proposalId, validUntil: newValidUntil } = await request.json();
+  const { proposalId, validUntil: newValidUntil, secondPaymentDue } = await request.json();
+  if (proposalId && secondPaymentDue !== undefined) {
+    const { data: existing } = await supabaseAdmin
+      .from('devis_proposals').select('event_date, payment_mode').eq('id', proposalId).maybeSingle();
+    if (!existing) return Response.json({ error: 'Proposition introuvable' }, { status: 404 });
+    if (existing.payment_mode !== 'echelonne') return Response.json({ error: 'Ce devis n’est pas en paiement échelonné.' }, { status: 400 });
+    const dueErr = checkSecondDue(secondPaymentDue, existing.event_date);
+    if (dueErr) return Response.json({ error: dueErr }, { status: 400 });
+    const { error } = await supabaseAdmin
+      .from('devis_proposals').update({ second_payment_due: secondPaymentDue }).eq('id', proposalId);
+    if (error) return Response.json({ error: 'Modification échouée : ' + error.message }, { status: 500 });
+    return Response.json({ ok: true });
+  }
   if (!proposalId || !newValidUntil || !/^\d{4}-\d{2}-\d{2}$/.test(newValidUntil)) {
     return Response.json({ error: 'Données manquantes' }, { status: 400 });
   }
@@ -75,10 +97,12 @@ export async function POST(request) {
     return Response.json({ error: 'Non autorisé' }, { status: 401 });
   }
 
-  const { proposalId, leadId, formule, formuleName, items, total, adminNote, eventDate, venue, guests } = await request.json();
+  const { proposalId, leadId, formule, formuleName, items, total, adminNote, eventDate, venue, guests, paymentMode, secondPaymentDue } = await request.json();
   if (!Array.isArray(items) || items.length === 0) {
     return Response.json({ error: 'Données manquantes' }, { status: 400 });
   }
+  const mode = paymentMode === 'echelonne' ? 'echelonne' : 'deux_fois';
+  const payment = { payment_mode: mode, second_payment_due: mode === 'echelonne' ? secondPaymentDue : null };
   // Fige le contenu de la formule tel qu'il est MAINTENANT : la proposition envoyée au client ne
   // doit plus bouger si formules.js change ensuite (voir migration formule_snapshot).
   const formuleSnapshot = formule ? FORMULES.find(f => f.key === formule) || null : null;
@@ -94,10 +118,14 @@ export async function POST(request) {
     const evVenue = venue || existing.venue;
     const evGuests = guests || existing.guests;
     const validUntilDate = validUntil(evDate);
+    if (mode === 'echelonne') {
+      const dueErr = checkSecondDue(secondPaymentDue, evDate);
+      if (dueErr) return Response.json({ error: dueErr }, { status: 400 });
+    }
     const { error: uErr } = await supabaseAdmin.from('devis_proposals').update({
       formule: formule || null, formule_name: formuleName || null, formule_snapshot: formuleSnapshot,
       items, total: Number(total) || 0, admin_note: adminNote || null,
-      event_date: evDate, venue: evVenue, guests: evGuests,
+      event_date: evDate, venue: evVenue, guests: evGuests, ...payment,
       status: 'proposee', valid_until: validUntilDate, reminder_sent_at: null, reminder_stage: 0,
       qonto_quote_id: null, qonto_quote_url: null, validated_at: null,
     }).eq('id', proposalId);
@@ -128,6 +156,10 @@ export async function POST(request) {
   const evVenue = venue || lead.lieu;
   const evGuests = guests || lead.guests;
   const validUntilDate = validUntil(evDate);
+  if (mode === 'echelonne') {
+    const dueErr = checkSecondDue(secondPaymentDue, evDate);
+    if (dueErr) return Response.json({ error: dueErr }, { status: 400 });
+  }
 
   const { data: proposal, error: pErr } = await supabaseAdmin
     .from('devis_proposals')
@@ -135,7 +167,7 @@ export async function POST(request) {
       lead_id: leadId,
       formule: formule || null, formule_name: formuleName || null, formule_snapshot: formuleSnapshot,
       items, total: Number(total) || 0,
-      event_date: evDate, venue: evVenue, guests: evGuests,
+      event_date: evDate, venue: evVenue, guests: evGuests, ...payment,
       admin_note: adminNote || null, status: 'proposee', valid_until: validUntilDate,
     })
     .select('id, token').single();

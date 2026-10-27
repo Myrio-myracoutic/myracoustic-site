@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/app/lib/supabase-admin';
 import { ensureAuthUser, setupTempPassword, sendCredentialsEmail } from '@/app/lib/account-access';
 import { formuleInclusionsText, formuleInclusionsTextFromObj } from '@/app/lib/formules';
 import { discountEuros, discountActive } from '@/app/lib/discount';
+import { paymentSchedule, paymentTermsText } from '@/app/lib/payment-plan';
 
 const NOTIF_EMAIL = 'contact@myracoustic.com';
 
@@ -38,9 +39,7 @@ export async function GET(_req, { params }) {
   const dActive = discountActive(p.discount_until);
   const dEuros = dActive ? discountEuros(p.total, p.discount_type, p.discount_value) : 0;
   const netTotal = Number(p.total) - dEuros;
-  // Test 2 mois (15/10/2026) : 50/50 au lieu de 60/40, pour voir si ça convertit plus.
-  const acompte = Math.round(netTotal * 0.5);
-  const solde = netTotal - acompte;
+  const schedule = paymentSchedule(netTotal, p.payment_mode);
 
   return NextResponse.json({
     proposal: {
@@ -49,7 +48,9 @@ export async function GET(_req, { params }) {
       net_total: netTotal,
       discount: dEuros > 0 ? { amount: dEuros, until: p.discount_until, type: p.discount_type, value: Number(p.discount_value) } : null,
       event_date: p.event_date, venue: p.venue, guests: p.guests, status: p.status,
-      valid_until: p.valid_until, acompte, solde,
+      valid_until: p.valid_until,
+      payment_mode: p.payment_mode || 'deux_fois', second_payment_due: p.second_payment_due,
+      acompte: schedule.first, second_acompte: schedule.second, solde: schedule.solde,
       firstName: lead.prenom || '',
       unavailable: proposalUnavailable(p),
     },
@@ -136,6 +137,7 @@ export async function POST(request, { params }) {
         event: { type: 'Mariage', date: p.event_date, lieu: p.venue, formule: p.formule },
         items,
         discountPct,
+        paymentTerms: paymentTermsText(p.payment_mode, p.second_payment_due),
         note: `Formule ${p.formule_name || 'sur-mesure'} · validé en ligne par le client${dEuros > 0 ? ` · réduction du moment -${dEuros} €` : ''}`,
       }),
     });
@@ -173,7 +175,8 @@ export async function POST(request, { params }) {
         htmlContent: `<h2>Proposition validée par le client</h2>
           <p><strong>${lead.prenom} ${lead.nom}</strong> (${email}) a validé sa proposition (${netTotal} € TTC${dEuros > 0 ? ` — réduction du moment de ${dEuros} € appliquée` : ''}).</p>
           <p>${quoteId ? 'Un <strong>brouillon Qonto</strong> a été créé : ouvrez Qonto et envoyez-le pour signature.' : '⚠️ Brouillon Qonto NON créé automatiquement — à faire à la main.'}</p>
-          <p>Adresse de facturation : ${adresse}, ${cp} ${ville}</p>`,
+          <p>Adresse de facturation : ${adresse}, ${cp} ${ville}</p>
+          ${p.payment_mode === 'echelonne' ? `<p><strong>Paiement échelonné</strong> : 10 % à la signature, 40 % avant le ${p.second_payment_due || '(date à fixer)'}, 50 % le jour J — pensez à créer les factures d'acompte correspondantes dans Qonto.</p>` : ''}`,
       }),
     });
   } catch (err) { console.error('Notif Myrio error:', err.message); }

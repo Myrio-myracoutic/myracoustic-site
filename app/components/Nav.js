@@ -67,7 +67,7 @@ export default function Nav() {
               )}
             </Link>
           ))}
-          <a href="/mon-espace/connexion" style={{
+          <a href="https://app.myracoustic.com/connexion" style={{
             color: 'rgba(255,255,255,0.38)', fontSize: 13,
             fontFamily: "var(--font-display), sans-serif", fontWeight: 500,
             textDecoration: 'none', transition: 'color 0.2s',
@@ -130,7 +130,7 @@ export default function Nav() {
             Demander un devis
           </a>
           <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', marginTop: 16, paddingTop: 14 }}>
-            <a href="/mon-espace/connexion" onClick={() => setOpen(false)} style={{
+            <a href="https://app.myracoustic.com/connexion" onClick={() => setOpen(false)} style={{
               display: 'block', textAlign: 'center',
               color: 'rgba(255,255,255,0.35)', fontSize: 13,
               fontFamily: "var(--font-display), sans-serif", fontWeight: 500,

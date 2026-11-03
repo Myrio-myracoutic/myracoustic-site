@@ -192,7 +192,7 @@ export default function Footer() {
             <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: 13, whiteSpace: 'nowrap' }}>
               © 2026 Myracoustic.
             </p>
-            <a href="/mon-espace/connexion" style={{
+            <a href="https://app.myracoustic.com/connexion" style={{
               color: 'rgba(255,255,255,0.35)', fontSize: 12, fontWeight: 600,
               textDecoration: 'none', whiteSpace: 'nowrap',
               fontFamily: "var(--font-display), sans-serif",

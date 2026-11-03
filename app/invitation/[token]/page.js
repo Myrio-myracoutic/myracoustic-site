@@ -562,6 +562,7 @@ export default function InvitationPage({ params }) {
     const res = await fetch(`/api/invitation/${token}`);
     if (!res.ok) { setError("Lien d'invitation invalide ou expiré."); setLoading(false); return; }
     const d = await res.json();
+    if (d.movedTo) { window.location.replace(d.movedTo); return; }
     setData(d);
     setLoading(false);
   }, [token]);

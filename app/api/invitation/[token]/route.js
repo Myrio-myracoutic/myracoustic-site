@@ -2,10 +2,12 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
 import { getEventGallery } from '@/app/lib/gallery';
 
+const PLATEFORME_URL = 'https://app.myracoustic.com';
+
 async function getGuest(token) {
   const { data } = await supabaseAdmin
     .from('event_guests')
-    .select('*, events(id, event_type, event_date, venue_city, guests, clients(first_name, last_name))')
+    .select('*, events(id, event_type, event_date, venue_city, guests, espace_version, clients(first_name, last_name))')
     .eq('token', token)
     .single();
   return data;
@@ -16,6 +18,12 @@ export async function GET(request, { params }) {
   const { token } = await params;
   const guest = await getGuest(token);
   if (!guest) return NextResponse.json({ error: 'Invitation invalide' }, { status: 404 });
+
+  // Couple passé sur la nouvelle plateforme (bascule, voir plateforme/PLAN_BASCULE.md) : l'invité
+  // y a le même lien (jeton recopié), on l'y envoie.
+  if (guest.events?.espace_version === 'nouveau') {
+    return NextResponse.json({ movedTo: `${PLATEFORME_URL}/invitation/${token}` });
+  }
 
   // Playlists accessibles
   let playlists = [];

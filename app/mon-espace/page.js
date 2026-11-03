@@ -419,6 +419,13 @@ export default function MonEspacePage() {
     });
   }, []);
 
+  // Couple passé sur la nouvelle plateforme (bascule, voir plateforme/PLAN_BASCULE.md) : son
+  // espace est désormais sur app.myracoustic.com, mêmes identifiants (la session ne suit pas
+  // d'un domaine à l'autre, d'où la page de connexion).
+  useEffect(() => {
+    if (ev?.espace_version === 'nouveau') window.location.replace('https://app.myracoustic.com/connexion?bascule=1');
+  }, [ev?.espace_version]);
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.replace('/mon-espace/connexion');

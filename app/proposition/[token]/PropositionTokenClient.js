@@ -64,6 +64,17 @@ export default function PropositionTokenClient({ token }) {
     } catch {}
     setCallLoading(false);
   };
+  const [reactivating, setReactivating] = useState(false);
+  const [reactivated, setReactivated] = useState(false);
+  const requestReactivation = async () => {
+    if (reactivating || reactivated) return;
+    setReactivating(true);
+    try {
+      const res = await fetch(`/api/proposition/${token}/reactivate-request`, { method: 'POST' });
+      if (res.ok) setReactivated(true);
+    } catch {}
+    setReactivating(false);
+  };
 
   useEffect(() => {
     const id = setInterval(() => setNowMs(Date.now()), 1000);
@@ -120,6 +131,20 @@ export default function PropositionTokenClient({ token }) {
             : 'Contactez-nous si vous souhaitez reprendre l\'échange sur votre projet.'}
           {' '}Appelez-nous au 07 68 53 33 08.
         </p>
+        {reactivated || p.reactivationRequested ? (
+          <p style={{ color: 'var(--lime)', fontSize: 14, fontWeight: 600, marginTop: 24 }}>
+            <Check size={15} style={{ verticalAlign: '-2px' }} />{' '}Votre demande a bien été reçue, nous revenons vers vous rapidement.
+          </p>
+        ) : (
+          <button onClick={requestReactivation} disabled={reactivating} style={{
+            marginTop: 24, border: 'none', background: 'var(--lime)', color: '#0d1b2a',
+            padding: '13px 28px', borderRadius: 8, fontSize: 14.5, fontWeight: 700,
+            fontFamily: 'var(--font-display), sans-serif', cursor: reactivating ? 'wait' : 'pointer',
+            opacity: reactivating ? 0.7 : 1,
+          }}>
+            {reactivating ? 'Envoi…' : 'Demander la réactivation de mon offre'}
+          </button>
+        )}
       </div>
     </Shell>
   );

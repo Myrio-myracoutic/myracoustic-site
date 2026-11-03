@@ -65,7 +65,34 @@ export async function PATCH(request) {
   if (!(await verifyAdminCookie())) {
     return Response.json({ error: 'Non autorisé' }, { status: 401 });
   }
-  const { proposalId, validUntil: newValidUntil, secondPaymentDue } = await request.json();
+  const { proposalId, validUntil: newValidUntil, secondPaymentDue, reactivate } = await request.json();
+
+  // Réactivation d'une proposition refusée/expirée, suite à une demande du client (bouton sur
+  // /proposition/[token]) — remet le devis "en attente" avec une validité fraîche et renvoie le
+  // lien au client, exactement comme une modification de devis. Le lead repasse "en cours" s'il
+  // avait été marqué perdu (voir markLost dans mariage-leads).
+  if (proposalId && reactivate) {
+    const { data: existing } = await supabaseAdmin
+      .from('devis_proposals').select('*, mariage_leads(prenom, email, status)').eq('id', proposalId).maybeSingle();
+    if (!existing) return Response.json({ error: 'Proposition introuvable' }, { status: 404 });
+    const validUntilDate = validUntil(existing.event_date);
+    const { error } = await supabaseAdmin.from('devis_proposals').update({
+      status: 'proposee', valid_until: validUntilDate, reactivation_requested_at: null,
+      reminder_sent_at: null, reminder_stage: 0,
+    }).eq('id', proposalId);
+    if (error) return Response.json({ error: 'Réactivation échouée : ' + error.message }, { status: 500 });
+
+    const lead = existing.mariage_leads || {};
+    if (existing.lead_id && lead.status === 'perdu') {
+      await supabaseAdmin.from('mariage_leads').update({ status: 'en_cours' }).eq('id', existing.lead_id);
+    }
+    if (lead.email) {
+      try { await sendProposalLink(lead.email.toLowerCase(), lead.prenom, existing.token, validUntilDate, true); }
+      catch (err) { console.error('Proposal link email error:', err.message); }
+    }
+    return Response.json({ ok: true });
+  }
+
   if (proposalId && secondPaymentDue !== undefined) {
     const { data: existing } = await supabaseAdmin
       .from('devis_proposals').select('event_date, payment_mode').eq('id', proposalId).maybeSingle();

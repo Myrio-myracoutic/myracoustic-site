@@ -21,3 +21,11 @@ export function validityDays(eventDate, from = new Date()) {
 export function validUntil(eventDate, from = new Date()) {
   return addDays(from, validityDays(eventDate, from)).toISOString().slice(0, 10);
 }
+
+/* Une proposition refusée (marquée perdue en admin) ou expirée (délai de validité dépassé, jamais
+   validée) ne doit plus pouvoir être acceptée par le client — ni affichée comme si de rien n'était. */
+export function proposalUnavailable(p) {
+  if (p.status === 'refusee') return 'refusee';
+  if (p.status === 'proposee' && p.valid_until && p.valid_until < new Date().toISOString().slice(0, 10)) return 'expiree';
+  return null;
+}

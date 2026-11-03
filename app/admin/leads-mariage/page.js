@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Minus, Trash2, X, FileText, Check, Loader2, Heart, Mail, CalendarClock, Percent, PhoneCall, AlertTriangle } from 'lucide-react';
+import { Plus, Minus, Trash2, X, FileText, Check, Loader2, Heart, Mail, CalendarClock, Percent, PhoneCall, AlertTriangle, RotateCcw } from 'lucide-react';
 import { FORMULES, POLES, ALL_OPTIONS, PACK_BASE_ITEMS, EXTRA_HOUR_PRICE, fmtPrice } from '@/app/lib/formules';
 import { discountEuros, discountLabel } from '@/app/lib/discount';
 import { PAYMENT_MODES, paymentSchedule } from '@/app/lib/payment-plan';
@@ -767,6 +767,17 @@ export default function LeadsMariagePage() {
     alert('Relance envoyée par email au client.');
   };
 
+  const reactivateProposal = async (proposalId) => {
+    if (!confirm('Réactiver cette offre ? Le client reçoit un email avec une nouvelle date limite de validité.')) return;
+    setBusy('react-' + proposalId);
+    const res = await fetch('/api/admin/devis-proposal', {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ proposalId, reactivate: true }),
+    });
+    setBusy(null);
+    if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || 'Erreur'); return; }
+    load();
+  };
+
   const cancelCall = async (leadId) => {
     if (!confirm('Annuler ce rendez-vous téléphonique ?')) return;
     setBusy('cancel-' + leadId);
@@ -885,8 +896,10 @@ export default function LeadsMariagePage() {
               const vuDate = new Date(vu + 'T00:00:00');
               daysUntil = Math.round((vuDate - today) / 86400000);
             }
-            // Proposition en attente qui expire aujourd'hui/demain (ou déjà expirée) → fiche orange « à relancer d'urgence »
-            const needsAction = l.proposal?.status === 'proposee' && daysUntil !== null && daysUntil <= 1;
+            // Proposition en attente qui expire aujourd'hui/demain (ou déjà expirée), ou demande de
+            // réactivation reçue → fiche orange « à relancer d'urgence »
+            const needsAction = (l.proposal?.status === 'proposee' && daysUntil !== null && daysUntil <= 1)
+              || !!l.proposal?.reactivation_requested_at;
             return (
             <div key={l.id} style={{ ...card,
               border: needsAction ? '1px solid rgba(245,158,11,0.5)' : card.border,
@@ -988,6 +1001,11 @@ export default function LeadsMariagePage() {
                       👁️ Devis consulté {l.proposal.viewed_count} fois · dernière fois le {fmtCallDateTime(l.proposal.last_viewed_at)}
                     </span></>
                   )}
+                  {l.proposal?.reactivation_requested_at && (
+                    <><br /><span style={{ color: '#f59e0b', fontWeight: 700 }}>
+                      🔔 Demande de réactivation le {fmtCallDateTime(l.proposal.reactivation_requested_at)} — toujours intéressé(e)
+                    </span></>
+                  )}
                   {l.message && <><br /><span style={{ color: 'rgba(255,255,255,0.45)', fontStyle: 'italic' }}>« {l.message} »</span></>}
                 </div>
                 <div style={{ marginTop: 10 }}>
@@ -1054,6 +1072,14 @@ export default function LeadsMariagePage() {
                       borderRadius: 8, padding: '8px 16px', cursor: 'pointer', fontSize: 13, fontFamily: 'var(--font-display), sans-serif', fontWeight: 700,
                       display: 'inline-flex', alignItems: 'center', gap: 7, whiteSpace: 'nowrap',
                     }}>Modifier le devis</button>
+                    {l.proposal.status === 'refusee' && (
+                      <button onClick={() => reactivateProposal(l.proposal.id)} disabled={busy === 'react-' + l.proposal.id} title="Remet le devis en attente avec une nouvelle date limite, et renvoie le lien au client" style={{
+                        border: '1px solid rgba(184,239,11,0.35)', background: 'rgba(184,239,11,0.08)', color: 'var(--lime)',
+                        borderRadius: 8, padding: '8px 16px', cursor: busy === 'react-' + l.proposal.id ? 'wait' : 'pointer', fontSize: 13,
+                        fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 7,
+                        whiteSpace: 'nowrap', opacity: busy === 'react-' + l.proposal.id ? 0.6 : 1,
+                      }}><RotateCcw size={14} /> Réactiver l'offre</button>
+                    )}
                     {l.proposal.status === 'proposee' && (
                       <button onClick={() => sendReminder(l.proposal.id)} disabled={busy === 'rem-' + l.proposal.id} title="Envoyer un email de relance avant expiration" style={{
                         border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.85)',

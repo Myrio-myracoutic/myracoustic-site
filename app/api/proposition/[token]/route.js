@@ -4,6 +4,7 @@ import { ensureAuthUser, setupTempPassword, sendCredentialsEmail } from '@/app/l
 import { formuleInclusionsText, formuleInclusionsTextFromObj } from '@/app/lib/formules';
 import { discountEuros, discountActive } from '@/app/lib/discount';
 import { paymentSchedule, paymentTermsText } from '@/app/lib/payment-plan';
+import { proposalUnavailable } from '@/app/lib/devis-validity';
 
 const NOTIF_EMAIL = 'contact@myracoustic.com';
 
@@ -53,16 +54,9 @@ export async function GET(_req, { params }) {
       acompte: schedule.first, second_acompte: schedule.second, solde: schedule.solde,
       firstName: lead.prenom || '',
       unavailable: proposalUnavailable(p),
+      reactivationRequested: !!p.reactivation_requested_at,
     },
   });
-}
-
-// Une proposition refusée (marquée perdue en admin) ou expirée (délai de validité dépassé, jamais
-// validée) ne doit plus pouvoir être acceptée par le client — ni affichée comme si de rien n'était.
-function proposalUnavailable(p) {
-  if (p.status === 'refusee') return 'refusee';
-  if (p.status === 'proposee' && p.valid_until && p.valid_until < new Date().toISOString().slice(0, 10)) return 'expiree';
-  return null;
 }
 
 // POST — valider : crée le compte + le brouillon Qonto

@@ -12,7 +12,7 @@ export async function runRsvpReminders() {
 
   const { data: guests, error } = await supabaseAdmin
     .from('event_guests')
-    .select('id, email, first_name, token, created_at, events!inner(id, event_type, event_date, status, rsvp_reminder_enabled, clients(first_name))')
+    .select('id, email, first_name, token, created_at, events!inner(id, event_type, event_date, status, rsvp_reminder_enabled, espace_version, clients(first_name))')
     .is('attending', null)
     .not('email', 'is', null)
     .is('rsvp_reminder_sent_at', null)
@@ -24,6 +24,7 @@ export async function runRsvpReminders() {
     const ev = g.events;
     if (!ev) return false;
     if (ev.rsvp_reminder_enabled === false) return false;            // relance auto désactivée par le couple
+    if (ev.espace_version === 'nouveau') return false;               // couple passé sur app.myracoustic.com : relances faites là-bas
     if (['annule', 'termine'].includes(ev.status)) return false;     // événement annulé / terminé
     if (!ev.event_date || ev.event_date < todayStr) return false;    // pas de relance pour un événement passé
     return true;

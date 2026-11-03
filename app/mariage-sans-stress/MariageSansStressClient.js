@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Music, CheckCircle, Wrench, Users2, Phone, Sparkles, Menu, X } from 'lucide-react';
+import { Music, CheckCircle, Wrench, Users2, Phone, Sparkles, Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { AnimatedWave, SectionLabel } from '../components/AnimatedWave';
 import TestimonialCarousel from '../components/TestimonialCarousel';
 import StatItem from '../components/StatItem';
@@ -88,6 +89,182 @@ const TESTIMONIALS = [
   { name: 'Sandra et Stéphanie', event: 'Mariage', stars: 5, source: 'mariages.net',
     text: "Myrio a été à l'écoute de nos envies, on a tout calé ensemble. Ces propositions ont été pertinentes. Nous l'avions déjà vu comme dj dans des soirées repas d'entreprise et comme nous l'avions apprécié nous l'avons contacté pour notre mariage. Il est en plus super bien équipé en matériel du coup ça facilite pour faire des animations tout au long de la soirée." },
 ];
+
+// Photos réelles fournies par Myrio (03/11) : une galerie par couple, dans public/galerie/<slug>/,
+// en WebP (<slug>-01.webp en grand, <slug>-01-mini.webp pour la carte). 1re photo = couverture.
+const GALERIES = [
+  { slug: 'carine-et-sebastien', couple: 'Carine et Sébastien', photos: [
+    "Première danse de Carine et Sébastien entre deux fontaines d'étincelles froides, sur un nuage de fumée lourde",
+    "Entrée de Carine et Sébastien dans la salle, sous les applaudissements de leurs invités",
+    "Cérémonie laïque en plein air de Carine et Sébastien, face à leurs invités",
+    "Carine et Sébastien s'embrassent derrière leur gâteau illuminé de bougies étincelles",
+  ] },
+  { slug: 'ozanne-et-alexis', couple: 'Ozanne et Alexis', photos: [
+    "Invités qui dansent et applaudissent autour des tables au mariage d'Ozanne et Alexis",
+    "Salle de réception aux poutres apparentes, décorée pour le mariage d'Ozanne et Alexis",
+    "Moment complice face à la caméra pendant le mariage d'Ozanne et Alexis",
+    "Piste de danse pleine, bras levés, au mariage d'Ozanne et Alexis",
+    "Invités qui dansent près d'un jeu de lumière au mariage d'Ozanne et Alexis",
+  ] },
+  { slug: 'clarisse-et-olivier', couple: 'Clarisse et Olivier', photos: [
+    "Clarisse et Olivier sur une terrasse face à l'océan, entourés de fleurs blanches et bleues",
+    "Vue d'ensemble de la villa où sont réunis les invités de Clarisse et Olivier",
+    "Invités réunis autour de la piscine pour le mariage de Clarisse et Olivier",
+    "Piste de danse sous les lumières violettes au mariage de Clarisse et Olivier",
+    "Invités qui dansent sous les lumières orangées au mariage de Clarisse et Olivier",
+  ] },
+  // Tiret insécable (‑) : « J-Yves » ne doit pas se couper en fin de ligne sur téléphone.
+  { slug: 'dominique-et-j-yves', couple: 'Dominique et J‑Yves', photos: [
+    "Dominique et J-Yves à leur table, derrière une composition de roses blanches et bleues",
+    "Invités réunis pour le cocktail du mariage de Dominique et J-Yves",
+    "Invités qui lèvent les bras pendant le repas du mariage de Dominique et J-Yves",
+    "Piste de danse sous les lumières au mariage de Dominique et J-Yves",
+    "Dominique et J-Yves trinquent près du buffet de desserts",
+  ] },
+  { slug: 'chafika-et-michael', couple: 'Chafika et Michael', photos: [
+    "Chafika et Michael dansent sous une lumière rouge, entourés de leurs invités",
+    "Invités de tous âges sur la piste de danse du mariage de Chafika et Michael",
+  ] },
+];
+
+const photoSrc = (slug, i, mini) =>
+  `/galerie/${slug}/${slug}-${String(i + 1).padStart(2, '0')}${mini ? '-mini' : ''}.webp`;
+
+// « du mariage d'Ozanne », « du mariage de Carine »
+const deCouple = (couple) => (/^[aeiouyâàéèêîïôûù]/i.test(couple) ? `d'${couple}` : `de ${couple}`);
+
+// Fond plein : les boutons doivent rester visibles sur une photo claire (étincelles, plein jour).
+const BOUTON_ROND = {
+  width: 44, height: 44, borderRadius: '50%', border: '1px solid var(--separator)', cursor: 'pointer',
+  background: 'var(--card)', color: 'var(--text)',
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+};
+
+/* Photos d'un couple en plein écran : flèches, clavier (← → Échap), glisser sur téléphone.
+   Rendue dans document.body : le parent <Reveal> applique un transform qui décalerait un position:fixed. */
+function Visionneuse({ galerie, index, onIndex, onClose }) {
+  const closeRef = useRef(null);
+  const touchX = useRef(null);
+  const total = galerie.photos.length;
+  const prev = () => onIndex((index - 1 + total) % total);
+  const next = () => onIndex((index + 1) % total);
+  useEffect(() => {
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    closeRef.current?.focus();
+    return () => { document.body.style.overflow = overflow; };
+  }, []);
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowLeft') onIndex((index - 1 + total) % total);
+      if (e.key === 'ArrowRight') onIndex((index + 1) % total);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [index, total, onIndex, onClose]);
+  useEffect(() => {
+    // Photo suivante préchargée : pas d'attente au clic sur la flèche.
+    const img = new window.Image();
+    img.src = photoSrc(galerie.slug, (index + 1) % total, false);
+  }, [galerie.slug, index, total]);
+  return createPortal(
+    <div
+      role="dialog" aria-modal="true" aria-label={`Photos du mariage ${deCouple(galerie.couple)}`}
+      onClick={onClose}
+      onTouchStart={(e) => { touchX.current = e.touches[0].clientX; }}
+      onTouchEnd={(e) => {
+        if (touchX.current === null) return;
+        const dx = e.changedTouches[0].clientX - touchX.current;
+        touchX.current = null;
+        if (Math.abs(dx) > 40) (dx > 0 ? prev : next)();
+      }}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 2000,
+        background: 'var(--bg-dark)',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        padding: '64px 16px 24px',
+      }}
+    >
+      <button ref={closeRef} onClick={onClose} aria-label="Fermer" className="mss-focusable"
+        style={{ ...BOUTON_ROND, position: 'absolute', top: 12, right: 12 }}>
+        <X size={22} />
+      </button>
+      {/* WebP déjà compressés à la bonne taille : pas d'optimisation Next à refaire */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        key={index} src={photoSrc(galerie.slug, index, false)} alt={galerie.photos[index]}
+        width={1366} height={768} onClick={(e) => e.stopPropagation()}
+        style={{
+          maxWidth: '100%', maxHeight: 'calc(100vh - 150px)', width: 'auto', height: 'auto',
+          objectFit: 'contain', borderRadius: 8,
+        }}
+      />
+      <p onClick={(e) => e.stopPropagation()}
+        style={{ marginTop: 14, color: 'var(--text-muted)', fontSize: 14, textAlign: 'center' }}>
+        {galerie.couple} — {index + 1} / {total}
+      </p>
+      {total > 1 && (
+        <>
+          <button onClick={(e) => { e.stopPropagation(); prev(); }} aria-label="Photo précédente" className="mss-focusable"
+            style={{ ...BOUTON_ROND, position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }}>
+            <ChevronLeft size={24} />
+          </button>
+          <button onClick={(e) => { e.stopPropagation(); next(); }} aria-label="Photo suivante" className="mss-focusable"
+            style={{ ...BOUTON_ROND, position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)' }}>
+            <ChevronRight size={24} />
+          </button>
+        </>
+      )}
+    </div>,
+    document.body,
+  );
+}
+
+function GalerieMariages() {
+  const [ouverte, setOuverte] = useState(null); // { g: galerie, i: photo }
+  const declencheur = useRef(null);
+  const fermer = useCallback(() => {
+    setOuverte(null);
+    declencheur.current?.focus();
+  }, []);
+  const changerPhoto = useCallback((i) => setOuverte((o) => (o ? { ...o, i } : o)), []);
+  return (
+    <>
+      <div className="mss-galerie-grid">
+        {GALERIES.map((g, k) => (
+          <button
+            key={g.slug} type="button" className="mss-galerie-carte mss-focusable"
+            aria-label={`Voir les ${g.photos.length} photos du mariage ${deCouple(g.couple)}`}
+            onClick={(e) => { declencheur.current = e.currentTarget; setOuverte({ g: k, i: 0 }); }}
+            style={{
+              position: 'relative', padding: 0, border: '1px solid var(--separator)', borderRadius: 12,
+              overflow: 'hidden', cursor: 'pointer', background: 'var(--card)', textAlign: 'left',
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={photoSrc(g.slug, 0, true)} alt="" width={640} height={360} loading="lazy" decoding="async"
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            <span style={{
+              position: 'absolute', left: 0, right: 0, bottom: 0, padding: '28px 14px 12px',
+              background: 'linear-gradient(to top, color-mix(in srgb, var(--bg-dark) 88%, transparent), transparent)',
+              display: 'flex', flexDirection: 'column', gap: 2,
+            }}>
+              <span className="mss-galerie-titre"
+                style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, color: 'var(--text)' }}>
+                {g.couple}
+              </span>
+              <span style={{ fontSize: 12.5, color: 'var(--text-muted)' }}>{g.photos.length} photos</span>
+            </span>
+          </button>
+        ))}
+      </div>
+      {ouverte && (
+        <Visionneuse galerie={GALERIES[ouverte.g]} index={ouverte.i} onIndex={changerPhoto} onClose={fermer} />
+      )}
+    </>
+  );
+}
 
 const LEGAL_LINKS = [
   { href: '/mentions-legales',          label: 'Mentions légales' },
@@ -339,6 +516,23 @@ export default function MariageSansStressClient({ availability }) {
           .mss-hero-subtitle { margin-bottom: 40px !important; }
           .mss-hero-typewriter { margin-bottom: 44px !important; }
         }
+        .mss-galerie-grid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 18px;
+        }
+        .mss-galerie-carte { aspect-ratio: 16 / 9; }
+        .mss-galerie-carte img { transition: transform 0.4s ease; }
+        .mss-galerie-carte:hover img { transform: scale(1.04); }
+        .mss-galerie-titre { font-size: 15px; line-height: 1.25; }
+        @media (max-width: 640px) {
+          .mss-galerie-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+          .mss-galerie-carte { aspect-ratio: 4 / 3; }
+          .mss-galerie-titre { font-size: 13.5px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .mss-galerie-carte img { transition: none; }
+        }
       `}</style>
 
       {/* ── BANDEAU DISPONIBILITÉ + EN-TÊTE ─────────────────────── */}
@@ -555,6 +749,20 @@ export default function MariageSansStressClient({ availability }) {
             C&apos;est Myrio qui vous répond, prépare votre soirée avec vous et la fait vivre le jour J :
             des tubes des grands-parents à ceux des copains, il sait faire danser tout le monde.
           </p>
+        </Reveal>
+      </section>
+
+      {/* ── GALERIE ─────────────────────────────────────────────── */}
+      {/* Suite directe de « Qui sommes-nous » (même fond) : une carte par couple, demandé par Myrio le 03/11. */}
+      <section style={{ padding: '0 32px clamp(56px,7vw,88px)', background: 'var(--bg-dark)' }}>
+        <Reveal style={{ maxWidth: 1100, margin: '0 auto' }}>
+          <h3 style={{
+            fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.2vw,22px)', fontWeight: 700,
+            textAlign: 'center', marginBottom: 22,
+          }}>
+            Quelques mariages que nous avons fait danser
+          </h3>
+          <GalerieMariages />
         </Reveal>
       </section>
 

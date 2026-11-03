@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, CheckCircle2, Loader2, ShieldCheck, Phone, Clock, CalendarX, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, Loader2, ShieldCheck, Phone, Clock, CalendarX, AlertTriangle } from 'lucide-react';
 import MiniCal from '@/app/components/MiniCal';
 import AddressAutocomplete from '@/app/components/AddressAutocomplete';
 import TestimonialCarousel from '@/app/components/TestimonialCarousel';
@@ -239,12 +239,9 @@ export default function MariageContactClient() {
       {/* En-tête */}
       <div style={{
         borderBottom: '1px solid rgba(255,255,255,0.07)', padding: '14px 20px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
         position: 'sticky', top: 0, background: 'rgba(6,14,22,0.95)', backdropFilter: 'blur(12px)', zIndex: 50,
       }}>
-        <Link href="/mariage" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: 'rgba(255,255,255,0.6)', fontSize: 13, fontFamily: 'var(--font-display), sans-serif', textDecoration: 'none' }}>
-          <ArrowLeft size={16} /> Retour
-        </Link>
         <Image src="/logo.png" alt="Myracoustic" width={110} height={37} style={{ height: 34, width: 'auto' }} priority />
       </div>
 

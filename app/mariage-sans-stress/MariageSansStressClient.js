@@ -95,15 +95,17 @@ const LEGAL_LINKS = [
   { href: '/politique-confidentialite', label: 'Politique de confidentialité' },
 ];
 
+// Ordre tiré des appels Plaud (03/11) : la piste « pour toutes les générations » est la 1re attente
+// des couples ; la panne de matériel n'a été évoquée spontanément par aucun d'eux.
 const FEATURES = [
+  { icon: Users2, title: 'DJ expert en ambiance multigénérationnelle',
+    text: "Un DJ qui lit la salle et adapte la musique pour que la piste reste pleine, toutes générations confondues." },
   { icon: Music, title: 'Ambiance personnalisée & sur mesure',
     text: "Une playlist construite avec vous : vos goûts, vos souvenirs, l'ambiance que vous imaginez." },
   { icon: CheckCircle, title: 'Coordination technique globale',
     text: "Un seul interlocuteur pour le son, la lumière, le DJ et la vidéo. Vous n'avez plus à coordonner vos prestataires." },
   { icon: Wrench, title: 'Matériel son & lumière premium',
     text: "Du matériel professionnel et un plan de secours. Si quelque chose lâche, on le gère." },
-  { icon: Users2, title: 'DJ expert en ambiance multigénérationnelle',
-    text: "Un DJ qui lit la salle et adapte la musique pour que la piste reste pleine, toutes générations confondues." },
 ];
 
 // Tous les services réunis, sans distinction de formule ni de prix — l'offre exacte
@@ -142,7 +144,7 @@ const SERVICE_CATEGORIES = [
 
 const FAQ = [
   { q: "Comment être sûr que la musique correspondra à nos goûts ?",
-    a: "Nous commençons par un échange et un questionnaire sur vos goûts, vos souvenirs et l'ambiance souhaitée. La playlist est construite à partir de ces éléments. Le jour J, notre DJ adapte la musique en direct selon la réaction de la piste." },
+    a: "Tout commence par notre échange sur vos goûts et l'ambiance souhaitée. Vous ajoutez ensuite vos coups de cœur et vos interdits dans votre espace en ligne, seuls ou avec vos proches grâce à une playlist partagée : quelques repères suffisent. Myrio construit la soirée à partir de là, puis l'adapte en direct selon la réaction de la piste." },
   { q: "Que se passe-t-il en cas de problème technique le jour du mariage ?",
     a: "Nous utilisons du matériel professionnel et prévoyons un plan de secours. Un technicien est présent du début à la fin de la prestation. Si un incident survient, il est pris en charge par notre équipe, sans que vous ayez à intervenir." },
   { q: "Serons-nous accompagnés tout au long des préparatifs ?",
@@ -443,14 +445,14 @@ export default function MariageSansStressClient({ availability }) {
               fontSize: 'clamp(34px,6vw,64px)', fontWeight: 700,
               lineHeight: 1.05, letterSpacing: '-0.02em', marginBottom: 20,
             }}>
-              Votre mariage, une soirée inoubliable pour vous et vos invités, sans aucun stress.
+              Des grands-parents aux copains, une piste pleine toute la nuit.
             </h1>
             <p className="mss-hero-subtitle" style={{
               color: 'rgba(255,255,255,0.56)',
               fontSize: 'clamp(15px,1.5vw,18px)', lineHeight: 1.75,
               marginBottom: 28,
             }}>
-              Son, lumière, vidéo et DJ, pilotés de A à Z, pour que vous profitiez de chaque instant.
+              DJ, son, lumière et le film de votre soirée : tout compris, un seul contact, un devis clair.
             </p>
             <p className="mss-hero-typewriter" style={{
               fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(16px,2vw,20px)', fontWeight: 700,
@@ -537,6 +539,27 @@ export default function MariageSansStressClient({ availability }) {
             </h2>
           </div>
           <TestimonialCarousel items={TESTIMONIALS} />
+        </Reveal>
+      </section>
+
+      {/* ── QUI SOMMES-NOUS ─────────────────────────────────────── */}
+      {/* « Vous êtes seul ou plusieurs ? » revient dans 3 premiers appels sur 9 (Plaud, 03/11). */}
+      <section style={{ padding: 'clamp(56px,7vw,88px) 32px', background: 'var(--bg-dark)', borderTop: '1px solid var(--separator)' }}>
+        <Reveal style={{ maxWidth: 720, margin: '0 auto', textAlign: 'center' }}>
+          <SectionLabel style={{ justifyContent: 'center' }}>Qui sommes-nous</SectionLabel>
+          <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(22px,3vw,32px)', fontWeight: 700, marginBottom: 14 }}>
+            Une équipe à deux, du premier appel à la dernière danse
+          </h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: 15, lineHeight: 1.8, marginBottom: 22 }}>
+            Myrio est aux platines depuis 26 ans, et son épouse l&apos;accompagne à la vidéo et à la technique.
+            C&apos;est Myrio qui vous répond, prépare votre soirée avec vous et la fait vivre le jour J :
+            des tubes des grands-parents à ceux des copains, il sait faire danser tout le monde.
+          </p>
+          <a href="https://www.instagram.com/myracoustic.com_off/" target="_blank" rel="noopener noreferrer"
+            className="mss-focusable"
+            style={{ color: 'var(--lime)', fontSize: 14.5, fontWeight: 600, textUnderlineOffset: 4 }}>
+            Voir nos mariages sur Instagram →
+          </a>
         </Reveal>
       </section>
 

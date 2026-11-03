@@ -244,6 +244,8 @@ function GalerieMariages() {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={photoSrc(g.slug, 0, true)} alt="" width={640} height={360} loading="lazy" decoding="async"
+              srcSet={`${photoSrc(g.slug, 0, true)} 640w, ${photoSrc(g.slug, 0, false)} 1366w`}
+              sizes="(max-width: 640px) 100vw, 360px"
               style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
             <span style={{
               position: 'absolute', left: 0, right: 0, bottom: 0, padding: '28px 14px 12px',
@@ -526,9 +528,7 @@ export default function MariageSansStressClient({ availability }) {
         .mss-galerie-carte:hover img { transform: scale(1.04); }
         .mss-galerie-titre { font-size: 15px; line-height: 1.25; }
         @media (max-width: 640px) {
-          .mss-galerie-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-          .mss-galerie-carte { aspect-ratio: 4 / 3; }
-          .mss-galerie-titre { font-size: 13.5px; }
+          .mss-galerie-grid { grid-template-columns: minmax(0, 1fr); gap: 14px; }
         }
         @media (prefers-reduced-motion: reduce) {
           .mss-galerie-carte img { transition: none; }

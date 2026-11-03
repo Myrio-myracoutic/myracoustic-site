@@ -14,6 +14,10 @@ const nextConfig = {
       // Ancien tunnel formules mariage (obsolète, remplacé par le modèle lead → appel) → page mariage
       { source: '/devis/mariage', destination: '/mariage', permanent: true },
       { source: '/devis/mariage/:formule', destination: '/mariage', permanent: true },
+      // Depuis le 03/11, toutes les signatures se font sur la plateforme : anciens liens de
+      // proposition (emails déjà envoyés, relances du cron devis-reminder) → même proposition
+      // là-bas (table devis_proposals partagée). Temporaire (non permanent) : réversible.
+      { source: '/proposition/:token', destination: 'https://app.myracoustic.com/proposition/:token', permanent: false },
     ];
   },
 };

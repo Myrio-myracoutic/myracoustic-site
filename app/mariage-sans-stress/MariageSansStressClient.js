@@ -745,7 +745,7 @@ export default function MariageSansStressClient({ availability }) {
             Une équipe à deux, du premier appel à la dernière danse
           </h2>
           <p style={{ color: 'var(--text-muted)', fontSize: 15, lineHeight: 1.8 }}>
-            Derrière Myracoustic, il y a un couple. Myrio est aux platines depuis 26 ans, son épouse
+            Derrière Myracoustic, il y a un couple. Myrio est aux platines depuis 26 ans, Virginie
             s&apos;occupe de la vidéo et de la technique. C&apos;est lui qui vous répond, prépare votre soirée
             avec vous et l&apos;anime le jour J. Des grands-parents aux copains, il sait faire danser tout le monde.
           </p>

@@ -75,13 +75,20 @@ export async function PATCH(request) {
     const { data: existing } = await supabaseAdmin
       .from('devis_proposals').select('*, mariage_leads(prenom, email, status)').eq('id', proposalId).maybeSingle();
     if (!existing) return Response.json({ error: 'Proposition introuvable' }, { status: 404 });
-    const validUntilDate = validUntil(existing.event_date);
+    // Si le client a proposé une date en demandant la réactivation, on reprend celle-ci
+    // (la même qu'avant, ou une nouvelle) plutôt que l'ancienne date figée.
+    const newEventDate = existing.reactivation_requested_date || existing.event_date;
+    const validUntilDate = validUntil(newEventDate);
     const { error } = await supabaseAdmin.from('devis_proposals').update({
-      status: 'proposee', valid_until: validUntilDate, reactivation_requested_at: null,
+      status: 'proposee', valid_until: validUntilDate, event_date: newEventDate,
+      reactivation_requested_at: null, reactivation_requested_date: null,
       reminder_sent_at: null, reminder_stage: 0,
     }).eq('id', proposalId);
     if (error) return Response.json({ error: 'Réactivation échouée : ' + error.message }, { status: 500 });
 
+    if (existing.lead_id) {
+      await supabaseAdmin.from('mariage_leads').update({ event_date: newEventDate }).eq('id', existing.lead_id);
+    }
     const lead = existing.mariage_leads || {};
     if (existing.lead_id && lead.status === 'perdu') {
       await supabaseAdmin.from('mariage_leads').update({ status: 'en_cours' }).eq('id', existing.lead_id);

@@ -4,11 +4,13 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { CheckCircle2, Loader2, MapPin, Check, CalendarClock, Phone } from 'lucide-react';
 import AddressAutocomplete from '@/app/components/AddressAutocomplete';
+import MiniCal from '@/app/components/MiniCal';
 import { FORMULES, POLES } from '@/app/lib/formules';
 import { paymentSchedule } from '@/app/lib/payment-plan';
 
 const fmtPrice = (n) => Number(n).toLocaleString('fr-FR') + ' €';
 const fmtDate = (d) => d ? new Date(d + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+const toISODate = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 // Compte à rebours lisible, avec les secondes qui défilent toujours (effet d'urgence).
 const fmtCountdown = (ms) => {
@@ -66,11 +68,33 @@ export default function PropositionTokenClient({ token }) {
   };
   const [reactivating, setReactivating] = useState(false);
   const [reactivated, setReactivated] = useState(false);
+  const [showReactivateDate, setShowReactivateDate] = useState(false);
+  const [reactivateDate, setReactivateDate] = useState('');
+  const [reactivateBookedDates, setReactivateBookedDates] = useState(new Set());
+  const [reactivatePendingDates, setReactivatePendingDates] = useState({});
+  const [reactivateAvailLoading, setReactivateAvailLoading] = useState(true);
+
+  const openReactivateDatePicker = () => {
+    setShowReactivateDate(true);
+    setReactivateDate(p?.event_date || '');
+    const t = new Date();
+    const start = toISODate(t);
+    const end = toISODate(new Date(t.getFullYear() + 2, t.getMonth(), t.getDate()));
+    fetch(`/api/availability?start=${start}&end=${end}`, { cache: 'no-store' })
+      .then(r => r.json())
+      .then(d => { if (d.bookedDates) setReactivateBookedDates(new Set(d.bookedDates)); if (d.pendingDates) setReactivatePendingDates(d.pendingDates); })
+      .catch(() => {})
+      .finally(() => setReactivateAvailLoading(false));
+  };
+
   const requestReactivation = async () => {
     if (reactivating || reactivated) return;
     setReactivating(true);
     try {
-      const res = await fetch(`/api/proposition/${token}/reactivate-request`, { method: 'POST' });
+      const res = await fetch(`/api/proposition/${token}/reactivate-request`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: reactivateDate || null }),
+      });
       if (res.ok) setReactivated(true);
     } catch {}
     setReactivating(false);
@@ -127,23 +151,44 @@ export default function PropositionTokenClient({ token }) {
         </h1>
         <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 15, lineHeight: 1.7 }}>
           {p.unavailable === 'expiree'
-            ? 'Le délai de validité de cette proposition est dépassé. Contactez-nous et nous vous en préparons une nouvelle avec plaisir.'
-            : 'Contactez-nous si vous souhaitez reprendre l\'échange sur votre projet.'}
-          {' '}Appelez-nous au 07 68 53 33 08.
+            ? 'Le délai de validité de cette proposition est dépassé.'
+            : 'Vous êtes toujours intéressé(e) ?'}
+          {' '}Appelez-nous au 07 68 53 33 08, ou cliquez sur le bouton ci-dessous pour réactiver votre offre.
         </p>
         {reactivated || p.reactivationRequested ? (
           <p style={{ color: 'var(--lime)', fontSize: 14, fontWeight: 600, marginTop: 24 }}>
-            <Check size={15} style={{ verticalAlign: '-2px' }} />{' '}Votre demande a bien été reçue, nous revenons vers vous rapidement.
+            <Check size={15} style={{ verticalAlign: '-2px' }} />{' '}Votre demande a bien été reçue, nous revenons vers vous sous 48h.
           </p>
-        ) : (
-          <button onClick={requestReactivation} disabled={reactivating} style={{
+        ) : !showReactivateDate ? (
+          <button onClick={openReactivateDatePicker} style={{
             marginTop: 24, border: 'none', background: 'var(--lime)', color: '#0d1b2a',
             padding: '13px 28px', borderRadius: 8, fontSize: 14.5, fontWeight: 700,
-            fontFamily: 'var(--font-display), sans-serif', cursor: reactivating ? 'wait' : 'pointer',
-            opacity: reactivating ? 0.7 : 1,
+            fontFamily: 'var(--font-display), sans-serif', cursor: 'pointer',
           }}>
-            {reactivating ? 'Envoi…' : 'Demander la réactivation de mon offre'}
+            Demander la réactivation de mon offre
           </button>
+        ) : (
+          <div style={{ marginTop: 24, textAlign: 'left' }}>
+            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, marginBottom: 10, textAlign: 'center' }}>
+              Quelle date pour votre mariage — la même qu'avant, ou une nouvelle ?
+            </p>
+            <MiniCal
+              selected={reactivateDate}
+              onSelect={(k) => setReactivateDate(k)}
+              devisPending={reactivatePendingDates}
+              bookedDates={reactivateBookedDates}
+              loading={reactivateAvailLoading}
+              yearsAhead={2}
+            />
+            <button onClick={requestReactivation} disabled={reactivating || !reactivateDate} style={{
+              marginTop: 16, width: '100%', border: 'none', background: 'var(--lime)', color: '#0d1b2a',
+              padding: '13px 28px', borderRadius: 8, fontSize: 14.5, fontWeight: 700,
+              fontFamily: 'var(--font-display), sans-serif', cursor: (reactivating || !reactivateDate) ? 'default' : 'pointer',
+              opacity: (reactivating || !reactivateDate) ? 0.6 : 1,
+            }}>
+              {reactivating ? 'Envoi…' : 'Confirmer ma demande'}
+            </button>
+          </div>
         )}
       </div>
     </Shell>

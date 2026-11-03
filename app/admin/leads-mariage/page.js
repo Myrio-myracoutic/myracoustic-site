@@ -1004,6 +1004,11 @@ export default function LeadsMariagePage() {
                   {l.proposal?.reactivation_requested_at && (
                     <><br /><span style={{ color: '#f59e0b', fontWeight: 700 }}>
                       🔔 Demande de réactivation le {fmtCallDateTime(l.proposal.reactivation_requested_at)} — toujours intéressé(e)
+                      {l.proposal.reactivation_requested_date && (
+                        l.proposal.reactivation_requested_date === l.proposal.event_date
+                          ? ' · garde la même date'
+                          : ` · nouvelle date souhaitée : ${fmtDate(l.proposal.reactivation_requested_date)}`
+                      )}
                     </span></>
                   )}
                   {l.message && <><br /><span style={{ color: 'rgba(255,255,255,0.45)', fontStyle: 'italic' }}>« {l.message} »</span></>}

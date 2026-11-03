@@ -550,16 +550,11 @@ export default function MariageSansStressClient({ availability }) {
           <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(22px,3vw,32px)', fontWeight: 700, marginBottom: 14 }}>
             Une équipe à deux, du premier appel à la dernière danse
           </h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: 15, lineHeight: 1.8, marginBottom: 22 }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: 15, lineHeight: 1.8 }}>
             Myrio est aux platines depuis 26 ans, et son épouse l&apos;accompagne à la vidéo et à la technique.
             C&apos;est Myrio qui vous répond, prépare votre soirée avec vous et la fait vivre le jour J :
             des tubes des grands-parents à ceux des copains, il sait faire danser tout le monde.
           </p>
-          <a href="https://www.instagram.com/myracoustic.com_off/" target="_blank" rel="noopener noreferrer"
-            className="mss-focusable"
-            style={{ color: 'var(--lime)', fontSize: 14.5, fontWeight: 600, textUnderlineOffset: 4 }}>
-            Voir nos mariages sur Instagram →
-          </a>
         </Reveal>
       </section>
 

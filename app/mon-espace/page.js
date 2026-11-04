@@ -22,6 +22,10 @@ import MenuSection from './MenuSection';
 import PlanTableSection from './PlanTableSection';
 import FairepartSection from './FairepartSection';
 
+// Colonnes lues depuis le navigateur : toutes sauf admin_notes, que le compte client n'a pas le droit
+// de lire (audit de sécurité du 04/11). Un `select('*')` serait refusé par la base.
+const EVENT_COLUMNS = 'id, client_id, event_date, event_type, venue, venue_cp, venue_city, guests, status, qonto_quote_id, qonto_quote_url, created_at, updated_at, client_message, checklist_checked, payment_reminder_sent_at, billing_email, rsvp_reminder_enabled, gallery_published, formule, checklist_items, avis_email_sent_at, avis_google_clicked_at, avis_mariagenet_clicked_at, drive_video_url, vertical, confirmed_at, theme, color_palette, music_style, dress_code, venue_constraints, venue_url, espace_version';
+
 const STATUS_LABELS = {
   devis_envoye: { label: 'Devis envoyé',          color: '#f59e0b' },
   accepte:      { label: 'Devis signé',   color: '#b8ef0b' },
@@ -391,7 +395,7 @@ export default function MonEspacePage() {
 
       if (clientData) {
         const { data: eventsData } = await supabase
-          .from('events').select('*').eq('client_id', clientData.id)
+          .from('events').select(EVENT_COLUMNS).eq('client_id', clientData.id)
           .order('event_date', { ascending: true });
         const evs = eventsData || [];
         setEvents(evs);

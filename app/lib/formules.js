@@ -66,6 +66,7 @@ export const FORMULES = [
       dj: 'Soirée complète, sans limite d’heures',
       son: 'Adaptée au nombre d’invités',
       lumiere: 'Piste de danse + mise en lumière de la salle',
+      video: 'Vidéoprojecteur inclus',
       effets: 'Fumée lourde et étincelles froides incluses',
       photobooth: 'Inclus',
       livre_or: 'Inclus',
@@ -83,7 +84,7 @@ export const FORMULES = [
       { key: 'murled4',     label: 'Mur LED 4 m²',                  price: 600, category: 'video' },
     ],
     packPreset: {
-      base: ['dj', 'son', 'lumiere_piste', 'fumee', 'etincelles', 'installation', 'captation', 'film', 'espace_en_ligne'],
+      base: ['dj', 'son', 'lumiere_piste', 'videoproj', 'fumee', 'etincelles', 'installation', 'captation', 'film', 'espace_en_ligne'],
       options: ['photobooth', 'livre_or', 'vin'],
     },
   },

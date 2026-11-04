@@ -14,6 +14,7 @@ export const POLES = [
   { key: 'photobooth', label: 'Photobooth' },
   { key: 'livre_or',  label: 'Livre d’or vidéo & audio' },
   { key: 'captation', label: 'Captures vidéo' },
+  { key: 'film',      label: 'Film souvenir' },
   { key: 'ceremonie', label: 'Cérémonie & vin d’honneur' },
   { key: 'jourJ',     label: 'Le jour J' },
 ];
@@ -31,7 +32,8 @@ export const FORMULES = [
       lumiere: 'Piste de danse',
       video: 'Vidéoprojecteur inclus',
       effets: 'Fumée lourde et étincelles froides incluses',
-      captation: 'Soirée filmée par notre équipe (durée de présence du DJ), film souvenir monté offert sous un mois',
+      captation: 'Captation de la soirée (durée de présence du DJ)',
+      film: 'Monté par notre équipe et offert sous un mois',
       ceremonie: 'En option (cérémonie laïque, vin d’honneur)',
       jourJ: 'Installation & technicien inclus',
     },
@@ -50,7 +52,7 @@ export const FORMULES = [
     // Pour le bouton "Personnaliser cette formule" du DevisBuilder admin : ce qui est inclus
     // de base, à cocher automatiquement en basculant vers un Pack personnalisé (décochable).
     packPreset: {
-      base: ['dj', 'son', 'lumiere_piste', 'videoproj', 'fumee', 'etincelles', 'installation', 'captation', 'espace_en_ligne'],
+      base: ['dj', 'son', 'lumiere_piste', 'videoproj', 'fumee', 'etincelles', 'installation', 'captation', 'film', 'espace_en_ligne'],
       options: [],
     },
   },
@@ -68,7 +70,8 @@ export const FORMULES = [
       effets: 'Fumée lourde et étincelles froides incluses',
       photobooth: 'Inclus',
       livre_or: 'Inclus',
-      captation: 'Vin d’honneur et soirée filmés par notre équipe, film souvenir monté offert sous un mois',
+      captation: 'Vin d’honneur et soirée filmés par notre équipe',
+      film: 'Monté par notre équipe et offert sous un mois',
       ceremonie: 'Vin d’honneur inclus',
       jourJ: 'Installation & technicien dédié, accompagnement prioritaire',
     },
@@ -81,7 +84,7 @@ export const FORMULES = [
       { key: 'murled4',     label: 'Mur LED 4 m²',                  price: 600, category: 'video' },
     ],
     packPreset: {
-      base: ['dj', 'son', 'lumiere_piste', 'fumee', 'etincelles', 'installation', 'captation', 'espace_en_ligne'],
+      base: ['dj', 'son', 'lumiere_piste', 'fumee', 'etincelles', 'installation', 'captation', 'film', 'espace_en_ligne'],
       options: ['photobooth', 'livre_or', 'vin'],
     },
   },
@@ -98,7 +101,8 @@ export const FORMULES = [
       effets: 'Fumée lourde + étincelles froides incluses',
       photobooth: 'Inclus',
       livre_or: 'Inclus',
-      captation: 'Cérémonie et soirée filmées par notre équipe, film souvenir monté offert sous un mois',
+      captation: 'Cérémonie et soirée filmées par notre équipe',
+      film: 'Monté par notre équipe et offert sous un mois',
       ceremonie: 'Toute cérémonie (laïque, religieuse, symbolique) + vin d’honneur inclus',
       jourJ: 'Installation + équipe dédiée, suivi en temps réel et communication prioritaire',
     },
@@ -107,7 +111,7 @@ export const FORMULES = [
       { key: 'karaoke',  label: 'Karaoké & blind test',     price: 100, category: 'animation' },
     ],
     packPreset: {
-      base: ['dj', 'son', 'lumiere_piste', 'fumee', 'etincelles', 'installation', 'captation', 'espace_en_ligne'],
+      base: ['dj', 'son', 'lumiere_piste', 'fumee', 'etincelles', 'installation', 'captation', 'film', 'espace_en_ligne'],
       options: ['photobooth', 'livre_or', 'vin', 'ceremonie'],
     },
   },
@@ -159,6 +163,7 @@ export const PACK_BASE_ITEMS = [
   { key: 'etincelles',     label: 'Étincelles froides' },
   { key: 'installation',   label: 'Installation / désinstallation' },
   { key: 'captation',      label: 'Captures vidéo professionnelles' },
+  { key: 'film',           label: 'Film souvenir monté, offert sous un mois' },
   { key: 'espace_en_ligne', label: 'Espace en ligne' },
 ];
 

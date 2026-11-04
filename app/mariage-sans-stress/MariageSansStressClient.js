@@ -366,15 +366,6 @@ function CtaButton({ children = 'Vérifier la disponibilité de ma date →', st
   );
 }
 
-function availabilityText(availability) {
-  if (!availability) return 'Votre date part vite.';
-  const { available, year } = availability;
-  if (available === 0) return `Tous les samedis de la saison ${year} sont déjà réservés.`;
-  if (available === 1) return `Plus qu'un seul samedi disponible sur la saison ${year}.`;
-  if (available >= 20) return `Plus que 20 samedis disponibles sur la saison ${year}.`;
-  return `Encore ${available} samedis disponibles sur la saison ${year}.`;
-}
-
 /* Image de fond posée seulement à l'approche du bloc (~1 écran avant), pour ne pas
    concurrencer le héro au chargement. Sans IntersectionObserver : chargée tout de suite. */
 function useLazyBackground(url) {
@@ -390,18 +381,6 @@ function useLazyBackground(url) {
     return () => obs.disconnect();
   }, []);
   return [ref, visible ? `url(${url})` : 'none'];
-}
-
-function AvailabilityBanner({ availability }) {
-  return (
-    <div style={{
-      background: 'var(--lime)', color: '#0d1b2a', textAlign: 'center',
-      padding: '10px 16px', fontSize: 13.5, fontWeight: 700,
-      fontFamily: 'var(--font-display), sans-serif',
-    }}>
-      {availabilityText(availability)}
-    </div>
-  );
 }
 
 function Typewriter({ words }) {
@@ -453,20 +432,10 @@ const NAV_LINKS = [
   { href: '#faq',      label: 'FAQ' },
 ];
 
-export default function MariageSansStressClient({ availability }) {
+export default function MariageSansStressClient() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const barRef = useRef(null);
-  const bannerRef = useRef(null);
-  const [bannerHeight, setBannerHeight] = useState(0);
-  useEffect(() => {
-    if (!bannerRef.current) return;
-    const update = () => setBannerHeight(bannerRef.current.offsetHeight);
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(bannerRef.current);
-    return () => ro.disconnect();
-  }, []);
   /* Vidéo du héro choisie côté client : version recadrée/compressée (~1 Mo) sur mobile, originale
      (5 Mo) sur ordinateur. Rien n'est téléchargé avant ce choix (l'image de fond s'affiche en attendant),
      ni du tout si "réduire les animations" est activé. */
@@ -504,8 +473,8 @@ export default function MariageSansStressClient({ availability }) {
           .mss-hero { background-image: url(/ban_mariage_sans-stress-mobile.webp) !important; }
         }
         .mss-hero {
-          min-height: calc(100vh - var(--mss-banner-h, 0px));
-          min-height: calc(100dvh - var(--mss-banner-h, 0px));
+          min-height: 100vh;
+          min-height: 100dvh;
           box-sizing: border-box;
           display: flex;
           align-items: center;
@@ -535,13 +504,8 @@ export default function MariageSansStressClient({ availability }) {
         }
       `}</style>
 
-      {/* ── BANDEAU DISPONIBILITÉ + EN-TÊTE ─────────────────────── */}
-      {/* Regroupés dans un même bloc collant : le bandeau reste visible pendant le
-          défilement, comme le CTA fixe en bas d'écran sur mobile. */}
+      {/* ── EN-TÊTE ─────────────────────────────────────────────── */}
       <div ref={barRef} style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100 }}>
-        <div ref={bannerRef}>
-          <AvailabilityBanner availability={availability} />
-        </div>
         <div style={{
           background: (scrolled || menuOpen) ? 'rgba(6,14,22,0.85)' : 'transparent',
           backdropFilter: (scrolled || menuOpen) ? 'blur(12px)' : 'none',
@@ -596,13 +560,8 @@ export default function MariageSansStressClient({ availability }) {
         )}
         </div>
       </div>
-      {/* Réserve l'espace occupé par le bandeau+en-tête fixe (hauteur mesurée dynamiquement :
-          le bandeau peut passer sur 2 lignes sur les très petits écrans). */}
-      <div style={{ height: bannerHeight }} />
-
       {/* ── HERO ────────────────────────────────────────────────── */}
       <section className="mss-hero" style={{
-        '--mss-banner-h': `${bannerHeight}px`,
         padding: 'clamp(66px,7vw,80px) 32px clamp(80px,10vw,120px)',
         backgroundImage: 'url(/ban_mariage_sans-stress.jpg)',
         backgroundSize: 'cover', backgroundPosition: 'center',

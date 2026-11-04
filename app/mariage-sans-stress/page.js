@@ -1,5 +1,4 @@
 import MariageSansStressClient from './MariageSansStressClient';
-import { getAvailableSaturdays } from '../../lib/get-available-saturdays';
 
 const TITLE = "Votre mariage, sans aucun stress — Son, Lumière & DJ | Myracoustic";
 const DESCRIPTION =
@@ -21,9 +20,6 @@ export const metadata = {
   twitter: { images: ['/particuliers-hero.jpg'] },
 };
 
-export const revalidate = 3600;
-
-export default async function Page() {
-  const availability = await getAvailableSaturdays();
-  return <MariageSansStressClient availability={availability} />;
+export default function Page() {
+  return <MariageSansStressClient />;
 }

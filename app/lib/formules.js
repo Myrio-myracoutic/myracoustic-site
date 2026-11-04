@@ -31,7 +31,7 @@ export const FORMULES = [
       lumiere: 'Piste de danse',
       video: 'Vidéoprojecteur inclus',
       effets: 'Fumée lourde et étincelles froides incluses',
-      captation: 'Captation de la soirée (durée de présence du DJ)',
+      captation: 'Soirée filmée par notre équipe (durée de présence du DJ), film souvenir monté offert sous un mois',
       ceremonie: 'En option (cérémonie laïque, vin d’honneur)',
       jourJ: 'Installation & technicien inclus',
     },

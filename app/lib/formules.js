@@ -30,7 +30,6 @@ export const FORMULES = [
       dj: '6h · heures supplémentaires en option',
       son: 'Adaptée au nombre d’invités',
       lumiere: 'Piste de danse',
-      video: 'Vidéoprojecteur inclus',
       effets: 'Fumée lourde et étincelles froides incluses',
       captation: 'Captation de la soirée (durée de présence du DJ)',
       film: 'Monté par notre équipe et offert sous un mois',
@@ -52,7 +51,7 @@ export const FORMULES = [
     // Pour le bouton "Personnaliser cette formule" du DevisBuilder admin : ce qui est inclus
     // de base, à cocher automatiquement en basculant vers un Pack personnalisé (décochable).
     packPreset: {
-      base: ['dj', 'son', 'lumiere_piste', 'videoproj', 'fumee', 'etincelles', 'installation', 'captation', 'film', 'espace_en_ligne'],
+      base: ['dj', 'son', 'lumiere_piste', 'fumee', 'etincelles', 'installation', 'captation', 'film', 'espace_en_ligne'],
       options: [],
     },
   },

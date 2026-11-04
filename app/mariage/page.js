@@ -1,6 +1,5 @@
 import MariageClient from './MariageClient';
 import { FAQ_ITEMS } from './faq-data';
-import { getAvailableSaturdays } from '../../lib/get-available-saturdays';
 
 export const metadata = {
   title: "DJ Mariage Nantes — Sonorisation & Animation | Myracoustic",
@@ -31,17 +30,14 @@ const FAQ_JSON_LD = {
   })),
 };
 
-export const revalidate = 3600;
-
-export default async function Page() {
-  const availability = await getAvailableSaturdays();
+export default function Page() {
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_JSON_LD) }}
       />
-      <MariageClient availability={availability} />
+      <MariageClient />
     </>
   );
 }

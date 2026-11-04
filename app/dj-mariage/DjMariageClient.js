@@ -55,33 +55,7 @@ function CtaButton({ children = 'Vérifier la disponibilité de ma date →', st
   );
 }
 
-function AvailabilityLine({ availability }) {
-  if (!availability) {
-    return (
-      <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginTop: 12 }}>
-        Votre date part vite — vérifiez si elle est encore libre.
-      </p>
-    );
-  }
-  const { available, year } = availability;
-  let text;
-  if (available === 0) {
-    text = `Tous les samedis de la saison ${year} sont réservés — contactez-nous, d'autres dates restent parfois envisageables.`;
-  } else if (available === 1) {
-    text = `Plus qu'un seul samedi disponible sur la saison ${year} — vérifiez si c'est le vôtre.`;
-  } else if (available > 20) {
-    text = `Plus de 20 samedis disponibles sur la saison ${year} — vérifiez si le vôtre en fait partie.`;
-  } else {
-    text = `Encore ${available} samedis disponibles sur la saison ${year} — vérifiez si le vôtre en fait partie.`;
-  }
-  return (
-    <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginTop: 12 }}>
-      {text}
-    </p>
-  );
-}
-
-export default function DjMariageClient({ availability }) {
+export default function DjMariageClient() {
   return (
     <div>
       <style>{`
@@ -289,7 +263,6 @@ export default function DjMariageClient({ availability }) {
           <TestimonialCarousel items={TESTIMONIALS} />
           <Reveal style={{ textAlign: 'center', marginTop: 44 }}>
             <CtaButton style={{ padding: '15px 34px' }} />
-            <AvailabilityLine availability={availability} />
           </Reveal>
         </Reveal>
       </section>

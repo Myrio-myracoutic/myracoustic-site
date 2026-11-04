@@ -1,5 +1,4 @@
 import DjMariageClient from './DjMariageClient';
-import { getAvailableSaturdays } from '../../lib/get-available-saturdays';
 
 const TITLE = "Mariage Haut de Gamme — Son, Lumière & DJ en Pays de la Loire | Myracoustic";
 const DESCRIPTION =
@@ -21,9 +20,6 @@ export const metadata = {
   twitter: { images: ['/particuliers-hero.jpg'] },
 };
 
-export const revalidate = 3600;
-
-export default async function Page() {
-  const availability = await getAvailableSaturdays();
-  return <DjMariageClient availability={availability} />;
+export default function Page() {
+  return <DjMariageClient />;
 }

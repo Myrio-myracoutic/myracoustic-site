@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Music, CheckCircle, Wrench, Users2, Phone, Sparkles, Menu, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Music, CheckCircle, Wrench, Users2, Phone, Menu, X, ChevronLeft, ChevronRight, ShieldCheck } from 'lucide-react';
 import { AnimatedWave, SectionLabel } from '../components/AnimatedWave';
 import TestimonialCarousel from '../components/TestimonialCarousel';
 import StatItem from '../components/StatItem';
@@ -68,7 +68,7 @@ function TimelineStep({ index, total, when, title, text, highlight }) {
         <h3 style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 19, marginBottom: 8 }}>
           {title}
         </h3>
-        <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 14.5, lineHeight: 1.7, maxWidth: 460 }}>
+        <p style={{ color: 'var(--text-muted)', fontSize: 16, lineHeight: 1.7, maxWidth: 460 }}>
           {text}
         </p>
       </div>
@@ -221,6 +221,23 @@ function Visionneuse({ galerie, index, onIndex, onClose }) {
   );
 }
 
+// Cadre de téléphone en CSS : l'animation de Myrio pourra remplacer la capture sans le refaire.
+function TelephoneApp() {
+  return (
+    <div className="mss-tel">
+      <div className="mss-tel-ecran">
+        <span className="mss-tel-ilot" aria-hidden="true" />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/app-playlist-propositions.webp" width={780} height={1688} loading="lazy" decoding="async"
+          alt="Application Myracoustic sur téléphone : chansons proposées par les invités, à accepter ou refuser, au-dessus de la playlist de la soirée"
+          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', display: 'block' }}
+        />
+      </div>
+    </div>
+  );
+}
+
 function GalerieMariages() {
   const [ouverte, setOuverte] = useState(null); // { g: galerie, i: photo }
   const declencheur = useRef(null);
@@ -245,7 +262,7 @@ function GalerieMariages() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={photoSrc(g.slug, 0, true)} alt="" width={640} height={360} loading="lazy" decoding="async"
               srcSet={`${photoSrc(g.slug, 0, true)} 640w, ${photoSrc(g.slug, 0, false)} 1366w`}
-              sizes="(max-width: 640px) 100vw, 360px"
+              sizes="(max-width: 640px) 100vw, 540px"
               style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
             <span style={{
               position: 'absolute', left: 0, right: 0, bottom: 0, padding: '28px 14px 12px',
@@ -287,38 +304,25 @@ const FEATURES = [
     text: "Du matériel professionnel et un plan de secours. Si quelque chose lâche, on le gère." },
 ];
 
-// Tous les services réunis, sans distinction de formule ni de prix — l'offre exacte
-// (durée, options retenues) se construit par téléphone selon le besoin du client.
-// Regroupés par catégorie pour montrer l'étendue réelle de l'offre.
-const SERVICE_CATEGORIES = [
-  { icon: Wrench, title: 'Son, lumière & vidéo', items: [
-    'DJ & animation musicale, adaptés à la durée et à l’ambiance de votre soirée',
-    'Sonorisation adaptée au nombre d’invités',
-    'Éclairage piste de danse & mise en lumière de la salle',
-    'Vidéoprojecteur ou mur LED',
-    'Effets spéciaux : fumée lourde, étincelles froides',
-    'Sonorisation & gestion technique de la cérémonie (laïque, religieuse, symbolique)',
-    'Coordination du déroulé & sonorisation du vin d’honneur',
-    'Installation, désinstallation & technicien dédié',
-  ] },
-  { icon: Sparkles, title: 'Animations & souvenirs', items: [
-    'Photobooth',
-    'Livre d’or vidéo & audio',
-    { type: 'video', title: 'Captures vidéo professionnelles', steps: [
-      'Captation continue, de notre arrivée jusqu’à la dernière danse',
-      'Montage d’un film souvenir, offert aux mariés',
-      'Partage de l’intégralité des fichiers bruts',
-    ] },
-  ] },
-  { icon: Users2, title: 'Accompagnement & espace en ligne', items: [
-    'Accompagnement personnalisé, du premier contact au jour J',
-    'Gestion proactive des imprévus',
-    'Suivi en temps réel avec votre équipe dédiée le jour J',
-    'Playlists & programmation musicale',
-    'Déroulé de la soirée',
-    'Invités & informations pratiques',
-    'Suivi de votre projet à deux, au même endroit',
-  ] },
+// Grandes lignes seulement, le détail se fait par téléphone. Valable pour toutes les formules (formules.js).
+const SERVICE_SPLITS = [
+  { label: 'Son', title: 'Le son, géré de A à Z',
+    text: "Installation, réglages, plan de secours, technicien présent du début à la fin : nous prenons tout en charge, pour un son adapté à votre lieu et à vos invités. Vous n'avez rien à gérer.",
+    photo: { slug: 'ozanne-et-alexis', index: 4, position: 'right' } },
+  { label: 'Lumière', title: 'Des lumières réglées pour votre salle',
+    text: "Chaque lumière est placée et réglée selon votre lieu et vos couleurs, de la piste de danse à vos moments forts. Le rendu est plus beau dans la salle, comme sur vos photos et votre film.",
+    photo: { slug: 'clarisse-et-olivier', index: 3 } },
+  { label: 'Application', title: 'Vos playlists, dans votre téléphone',
+    text: "Dans votre application Myracoustic, vous construisez vos playlists à deux, à votre rythme, en écoutant un extrait avant de choisir. Vos invités proposent leurs chansons : à vous d'accepter ou de refuser." },
+  { label: 'Captation vidéo', title: 'Votre soirée, à revivre en film',
+    text: "Nous filmons de notre arrivée jusqu'à la dernière danse, puis notre équipe monte votre film souvenir, offert sous un mois. Vous recevez aussi toutes les images tournées.",
+    photo: { slug: 'ozanne-et-alexis', index: 2 } },
+  { label: 'Cérémonie', title: "Votre cérémonie, entendue jusqu'au dernier rang",
+    text: "Laïque, religieuse ou symbolique, en salle ou en plein air : chaque mot porte, et vos musiques d'entrée tombent juste.",
+    photo: { slug: 'carine-et-sebastien', index: 2 } },
+  { label: 'Temps forts', title: "Du vin d'honneur à la dernière danse, tout s'enchaîne",
+    text: "Vin d'honneur, repas, discours, ouverture de bal : nous suivons votre déroulé, sans temps mort.",
+    photo: { slug: 'dominique-et-j-yves', index: 2 } },
 ];
 
 const FAQ = [
@@ -404,23 +408,25 @@ function FaqItem({ q, a }) {
       background: 'var(--card)', border: `1px solid ${open ? 'var(--lime)' : 'rgba(255,255,255,0.07)'}`,
       borderRadius: 10, overflow: 'hidden', transition: 'border-color 0.2s',
     }}>
-      <button onClick={() => setOpen((o) => !o)} className="mss-focusable" style={{
+      <button onClick={() => setOpen((o) => !o)} aria-expanded={open} className="mss-focusable" style={{
         width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
         background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left',
         padding: '18px 22px', color: '#fff',
-        fontFamily: 'var(--font-display), sans-serif', fontSize: 15, fontWeight: 600,
+        fontFamily: 'var(--font-display), sans-serif', fontSize: 16, fontWeight: 600,
       }}>
-        {q}
-        <span style={{
-          flexShrink: 0, color: open ? 'var(--lime)' : 'rgba(255,255,255,0.35)',
-          fontSize: 18, transform: open ? 'rotate(45deg)' : 'none', transition: 'transform 0.2s',
+        {q.replace(' ?', ' ?')}
+        <span aria-hidden="true" style={{
+          flexShrink: 0, color: open ? 'var(--lime)' : 'var(--text-muted)',
+          fontSize: 20, transform: open ? 'rotate(45deg)' : 'none', transition: 'transform 0.2s',
         }}>+</span>
       </button>
-      {open && (
-        <p style={{ margin: 0, padding: '0 22px 20px', color: 'rgba(255,255,255,0.55)', fontSize: 14, lineHeight: 1.7 }}>
-          {a}
-        </p>
-      )}
+      <div className="mss-faq-reponse" data-open={open}>
+        <div>
+          <p style={{ margin: 0, padding: '0 22px 20px', color: 'var(--text-muted)', fontSize: 16, lineHeight: 1.7 }}>
+            {a}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -457,7 +463,7 @@ export default function MariageSansStressClient() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
   return (
-    <div>
+    <div className="mss-page">
       {/* Image du héro mobile demandée en priorité, avant les photos plus bas dans la page */}
       <link rel="preload" as="image" href="/ban_mariage_sans-stress-mobile.webp" media="(max-width: 640px)" fetchPriority="high" />
       <style>{`
@@ -468,6 +474,70 @@ export default function MariageSansStressClient() {
         @media (prefers-reduced-motion: reduce) {
           .mss-focusable { transition: none !important; }
           .mss-hero-video { display: none !important; }
+          .mss-faq-reponse { transition: none !important; }
+        }
+        .mss-page h1, .mss-page h2, .mss-page h3 { text-wrap: balance; }
+        .mss-page p { text-wrap: pretty; }
+        .mss-page section[id] { scroll-margin-top: 64px; }
+        .mss-hero-voile {
+          background: linear-gradient(to right,rgba(13,27,42,0.92) 0%,rgba(13,27,42,0.55) 60%,rgba(13,27,42,0.2) 100%);
+        }
+        .mss-nav-lien {
+          color: rgba(255,255,255,0.78);
+          font-size: 14px;
+          font-family: var(--font-display), sans-serif;
+          text-decoration: none;
+          transition: color 0.2s;
+        }
+        .mss-nav-lien:hover { color: var(--lime); }
+        .mss-stats {
+          max-width: 1280px;
+          margin: 0 auto;
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 32px;
+        }
+        .mss-atouts {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 20px;
+          max-width: 1180px;
+          margin: 0 auto;
+        }
+        .mss-atout {
+          padding: 28px 24px;
+          border-radius: 16px;
+          background: var(--card);
+          border: 1px solid var(--separator);
+        }
+        .mss-engagement {
+          box-sizing: border-box;
+          max-width: 760px;
+          margin: 0 auto;
+          padding: clamp(28px,5vw,48px);
+          text-align: center;
+          border-radius: 20px;
+          background: var(--card);
+          border: 1px solid color-mix(in srgb, var(--lime) 30%, transparent);
+        }
+        .mss-faq-reponse {
+          display: grid;
+          grid-template-rows: 0fr;
+          visibility: hidden;
+          transition: grid-template-rows 0.25s ease, visibility 0.25s;
+        }
+        .mss-faq-reponse[data-open="true"] { grid-template-rows: 1fr; visibility: visible; }
+        .mss-faq-reponse > div { overflow: hidden; min-height: 0; }
+        @media (max-width: 1024px) {
+          .mss-atouts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 640px) {
+          .mss-hero-voile {
+            background: linear-gradient(to bottom,rgba(13,27,42,0.2) 0%,rgba(13,27,42,0.66) 30%,rgba(13,27,42,0.86) 100%);
+          }
+          .mss-stats { gap: 12px; }
+          .mss-stats > div { padding: 0 !important; }
+          .mss-atouts { grid-template-columns: minmax(0, 1fr); gap: 14px; }
         }
         @media (max-width: 640px) {
           .mss-hero { background-image: url(/ban_mariage_sans-stress-mobile.webp) !important; }
@@ -487,17 +557,72 @@ export default function MariageSansStressClient() {
           .mss-hero-subtitle { margin-bottom: 40px !important; }
           .mss-hero-typewriter { margin-bottom: 44px !important; }
         }
+        .mss-splits {
+          display: flex;
+          flex-direction: column;
+          gap: clamp(48px,7vw,88px);
+        }
+        .mss-split {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: clamp(32px,5vw,64px);
+          align-items: center;
+        }
+        .mss-split:nth-child(even) > :first-child { order: 2; }
+        .mss-split-photo {
+          aspect-ratio: 4 / 3;
+          border-radius: 16px;
+          overflow: hidden;
+          border: 1px solid var(--separator);
+        }
+        .mss-tel {
+          position: relative;
+          box-sizing: border-box;
+          width: min(270px, 68vw);
+          margin: 0 auto;
+          padding: 9px;
+          border-radius: 46px;
+          background: var(--bg-dark);
+          border: 1px solid color-mix(in srgb, var(--text) 26%, transparent);
+          box-shadow: 0 24px 80px color-mix(in srgb, var(--lime) 16%, transparent);
+        }
+        .mss-tel-ecran {
+          position: relative;
+          box-sizing: border-box;
+          overflow: hidden;
+          aspect-ratio: 390 / 844;
+          padding-top: 11%;
+          border-radius: 37px;
+          background: var(--bg);
+        }
+        .mss-tel-ilot {
+          position: absolute;
+          top: 10px;
+          left: 50%;
+          z-index: 1;
+          width: 31%;
+          height: 20px;
+          border-radius: 12px;
+          background: #000;
+          transform: translateX(-50%);
+        }
+        @media (max-width: 768px) {
+          .mss-split { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+          .mss-split:nth-child(even) > :first-child { order: 0; }
+        }
         .mss-galerie-grid {
           display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
+          grid-template-columns: repeat(6, minmax(0, 1fr));
           gap: 18px;
         }
-        .mss-galerie-carte { aspect-ratio: 16 / 9; }
+        .mss-galerie-carte { aspect-ratio: 16 / 9; grid-column: span 2; }
+        .mss-galerie-carte:nth-child(n+4) { grid-column: span 3; }
         .mss-galerie-carte img { transition: transform 0.4s ease; }
         .mss-galerie-carte:hover img { transform: scale(1.04); }
         .mss-galerie-titre { font-size: 15px; line-height: 1.25; }
         @media (max-width: 640px) {
           .mss-galerie-grid { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+          .mss-galerie-carte, .mss-galerie-carte:nth-child(n+4) { grid-column: auto; }
         }
         @media (prefers-reduced-motion: reduce) {
           .mss-galerie-carte img { transition: none; }
@@ -519,7 +644,7 @@ export default function MariageSansStressClient() {
           <Image src="/logo.png" alt="Myracoustic" width={140} height={47} style={{ height: 38, width: 'auto' }} priority />
           <nav className="hide-mobile" style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
             {NAV_LINKS.map((l) => (
-              <a key={l.href} href={l.href} className="mss-focusable" style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, textDecoration: 'none', fontFamily: 'var(--font-display), sans-serif' }}>{l.label}</a>
+              <a key={l.href} href={l.href} className="mss-focusable mss-nav-lien">{l.label}</a>
             ))}
             <CtaButton location="header" style={{ padding: '9px 20px', fontSize: 13.5 }} />
           </nav>
@@ -531,7 +656,7 @@ export default function MariageSansStressClient() {
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               width: 44, height: 44, margin: '-4px -4px -4px 0',
             }}
-            aria-label="Menu"
+            aria-label="Menu" aria-expanded={menuOpen}
           >
             {menuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -581,10 +706,7 @@ export default function MariageSansStressClient() {
             }}
           />
         )}
-        <div style={{
-          position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
-          background: 'linear-gradient(to right,rgba(13,27,42,0.92) 0%,rgba(13,27,42,0.55) 60%,rgba(13,27,42,0.2) 100%)',
-        }} />
+        <div className="mss-hero-voile" style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none' }} />
         <div style={{
           position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
           background: 'radial-gradient(ellipse 70% 60% at 80% 40%,rgba(184,239,11,0.08) 0%,transparent 55%)',
@@ -601,9 +723,9 @@ export default function MariageSansStressClient() {
               Des grands-parents aux copains, une piste pleine toute la nuit.
             </h1>
             <p className="mss-hero-subtitle" style={{
-              color: 'rgba(255,255,255,0.56)',
-              fontSize: 'clamp(15px,1.5vw,18px)', lineHeight: 1.75,
-              marginBottom: 28,
+              color: 'rgba(255,255,255,0.88)',
+              fontSize: 'clamp(16px,1.5vw,18px)', lineHeight: 1.75,
+              marginBottom: 28, textShadow: '0 1px 14px rgba(13,27,42,0.7)',
             }}>
               DJ, son, lumière et le film de votre soirée : tout compris, un seul contact, un devis clair.
             </p>
@@ -625,11 +747,8 @@ export default function MariageSansStressClient() {
       </section>
 
       {/* ── STATS ───────────────────────────────────────────────── */}
-      <section style={{ padding: '72px 32px', background: '#060e16', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <Reveal style={{
-          maxWidth: 1280, margin: '0 auto',
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: 32,
-        }}>
+      <section style={{ padding: 'clamp(44px,7vw,72px) 32px', background: '#060e16', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <Reveal className="mss-stats">
           <StatItem value="26" suffix="+" label="Années d'expérience" />
           <StatItem value="200" suffix="+" label="Mariages orchestrés" />
           <StatItem value="5" suffix="★" label="Note sur Google" />
@@ -648,26 +767,23 @@ export default function MariageSansStressClient() {
         <Reveal style={{ maxWidth: 1280, margin: '0 auto' }}>
           <div style={{ maxWidth: 640, margin: '0 auto 44px', textAlign: 'center' }}>
             <SectionLabel style={{ justifyContent: 'center' }}>Notre approche</SectionLabel>
-            <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(24px,3.5vw,42px)', fontWeight: 700, marginBottom: 12 }}>
-              Une soirée coordonnée de A à Z, sans stress technique
+            <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(26px,3.5vw,42px)', fontWeight: 700, marginBottom: 12 }}>
+              Une soirée coordonnée de A&nbsp;à&nbsp;Z, <span style={{ color: 'var(--lime)', display: 'inline-block' }}>sans stress technique</span>
             </h2>
           </div>
-          <div style={{
-            display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 32,
-            maxWidth: 1100, margin: '0 auto',
-          }}>
+          <div className="mss-atouts">
             {FEATURES.map((f, i) => (
-              <div key={i} style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div key={i} className="mss-atout">
                 <div style={{
                   width: 44, height: 44, borderRadius: '50%', background: 'rgba(184,239,11,0.12)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18,
                 }}>
                   <f.icon size={20} color="var(--lime)" />
                 </div>
-                <h3 style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 17, marginBottom: 10 }}>
+                <h3 style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 18, lineHeight: 1.25, marginBottom: 10 }}>
                   {f.title}
                 </h3>
-                <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 14.5, lineHeight: 1.7 }}>
+                <p style={{ color: 'var(--text-muted)', fontSize: 16, lineHeight: 1.65 }}>
                   {f.text}
                 </p>
               </div>
@@ -687,11 +803,14 @@ export default function MariageSansStressClient() {
         <Reveal style={{ position: 'relative', zIndex: 1, maxWidth: 1280, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 48 }}>
             <SectionLabel style={{ justifyContent: 'center' }}>Ils en parlent</SectionLabel>
-            <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(24px,3.5vw,42px)', fontWeight: 700, marginBottom: 12 }}>
+            <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(26px,3.5vw,42px)', fontWeight: 700, marginBottom: 12 }}>
               Ce que disent les couples que nous avons accompagnés
             </h2>
           </div>
           <TestimonialCarousel items={TESTIMONIALS} />
+          <div className="hide-mobile" style={{ textAlign: 'center', marginTop: 36 }}>
+            <CtaButton location="avis" />
+          </div>
         </Reveal>
       </section>
 
@@ -700,10 +819,10 @@ export default function MariageSansStressClient() {
       <section style={{ padding: 'clamp(56px,7vw,88px) 32px', background: 'var(--bg-dark)', borderTop: '1px solid var(--separator)' }}>
         <Reveal style={{ maxWidth: 720, margin: '0 auto', textAlign: 'center' }}>
           <SectionLabel style={{ justifyContent: 'center' }}>Qui sommes-nous</SectionLabel>
-          <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(22px,3vw,32px)', fontWeight: 700, marginBottom: 14 }}>
+          <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(26px,3.5vw,42px)', fontWeight: 700, marginBottom: 14 }}>
             Une équipe à deux, du premier appel à la dernière danse
           </h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: 15, lineHeight: 1.8 }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: 16, lineHeight: 1.8 }}>
             Derrière Myracoustic, il y a un couple. Myrio est aux platines depuis 26 ans, Virginie, son épouse,
             s&apos;occupe de la vidéo et de la technique. C&apos;est lui qui vous répond, prépare votre soirée
             avec vous et l&apos;anime le jour J. Des grands-parents aux copains, il sait faire danser tout le monde.
@@ -727,88 +846,63 @@ export default function MariageSansStressClient() {
 
       {/* ── SERVICES ────────────────────────────────────────────── */}
       <section id="services" style={{ padding: 'clamp(56px,7vw,88px) 32px' }}>
-        <Reveal style={{ maxWidth: 1100, margin: '0 auto' }}>
-          <div style={{ maxWidth: 640, margin: '0 auto 44px', textAlign: 'center' }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+          <Reveal style={{ maxWidth: 640, margin: '0 auto 56px', textAlign: 'center' }}>
             <SectionLabel style={{ justifyContent: 'center' }}>Nos services</SectionLabel>
-            <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(24px,3.5vw,42px)', fontWeight: 700, marginBottom: 12 }}>
+            <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(26px,3.5vw,42px)', fontWeight: 700, marginBottom: 12 }}>
               Tout ce que nous mettons en œuvre pour votre mariage
             </h2>
-            <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 15, lineHeight: 1.7 }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: 16, lineHeight: 1.7 }}>
               Chaque mariage est différent : après un premier échange téléphonique, nous construisons avec vous une proposition sur mesure, adaptée à votre lieu, votre date et vos besoins.
             </p>
-          </div>
-          <div style={{
-            display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(min(320px,100%),1fr))', gap: 32,
-          }}>
-            {SERVICE_CATEGORIES.map((cat, i) => (
-              <div key={i} style={{
-                background: 'var(--card)', border: '1px solid rgba(255,255,255,0.08)',
-                borderRadius: 16, padding: '28px 26px',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
-                  <div style={{
-                    width: 38, height: 38, borderRadius: '50%', background: 'rgba(184,239,11,0.12)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                  }}>
-                    <cat.icon size={18} color="var(--lime)" />
+          </Reveal>
+
+          <div className="mss-splits">
+            {SERVICE_SPLITS.map((s) => (
+              <Reveal key={s.label} className="mss-split">
+                {s.photo ? (
+                  <div className="mss-split-photo">
+                    {/* WebP déjà compressés à la bonne taille : pas d'optimisation Next à refaire */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={photoSrc(s.photo.slug, s.photo.index, false)}
+                      srcSet={`${photoSrc(s.photo.slug, s.photo.index, true)} 640w, ${photoSrc(s.photo.slug, s.photo.index, false)} 1366w`}
+                      sizes="(max-width: 768px) 100vw, 520px"
+                      alt={GALERIES.find((g) => g.slug === s.photo.slug).photos[s.photo.index]}
+                      width={1366} height={768} loading="lazy" decoding="async"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: s.photo.position, display: 'block' }}
+                    />
                   </div>
-                  <h3 style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 18 }}>
-                    {cat.title}
+                ) : (
+                  <TelephoneApp />
+                )}
+                <div>
+                  <p style={{
+                    fontFamily: 'var(--font-mono), monospace', fontSize: 12, letterSpacing: '0.18em',
+                    textTransform: 'uppercase', color: 'var(--lime)', marginBottom: 12,
+                  }}>
+                    {s.label}
+                  </p>
+                  <h3 style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 'clamp(21px,2.4vw,27px)', lineHeight: 1.2, marginBottom: 12 }}>
+                    {s.title}
                   </h3>
+                  <p style={{ color: 'var(--text-muted)', fontSize: 16, lineHeight: 1.75 }}>
+                    {s.text}
+                  </p>
                 </div>
-                <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-                  {cat.items.map((item, j) => {
-                    if (typeof item === 'object' && item.type === 'video') {
-                      return (
-                        <li key={j} style={{
-                          marginTop: 16, marginBottom: 6, paddingTop: 16,
-                          borderTop: '1px solid rgba(255,255,255,0.08)',
-                        }}>
-                          <p style={{
-                            fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 14.5,
-                            color: '#fff', marginBottom: 10,
-                          }}>
-                            {item.title}
-                          </p>
-                          <ol style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-                            {item.steps.map((step, k) => (
-                              <li key={k} style={{
-                                display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 9,
-                                color: 'rgba(255,255,255,0.72)', fontSize: 14, lineHeight: 1.5,
-                              }}>
-                                <span style={{
-                                  flexShrink: 0, width: 18, height: 18, borderRadius: '50%',
-                                  background: 'rgba(184,239,11,0.15)', color: 'var(--lime)',
-                                  fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 10.5,
-                                  display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 1,
-                                }}>
-                                  {k + 1}
-                                </span>
-                                {step}
-                              </li>
-                            ))}
-                          </ol>
-                        </li>
-                      );
-                    }
-                    return (
-                      <li key={j} style={{
-                        display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 11,
-                        color: 'rgba(255,255,255,0.72)', fontSize: 14.5, lineHeight: 1.5,
-                      }}>
-                        <CheckCircle size={15} color="var(--lime)" style={{ flexShrink: 0, marginTop: 2 }} />
-                        {item}
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
+              </Reveal>
             ))}
           </div>
-          <div className="hide-mobile" style={{ textAlign: 'center', marginTop: 44 }}>
-            <CtaButton location="services" />
-          </div>
-        </Reveal>
+
+          <Reveal style={{ textAlign: 'center', marginTop: 'clamp(48px,7vw,72px)' }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: 16, lineHeight: 1.7, maxWidth: 640, margin: '0 auto' }}>
+              Photobooth, livre d&apos;or vidéo, mur LED, fumée lourde, étincelles froides : nous en parlons ensemble lors de notre échange.
+            </p>
+            <div className="hide-mobile" style={{ marginTop: 28 }}>
+              <CtaButton location="services" />
+            </div>
+          </Reveal>
+        </div>
       </section>
 
       {/* ── PARCOURS D'ACCOMPAGNEMENT ───────────────────────────── */}
@@ -824,11 +918,11 @@ export default function MariageSansStressClient() {
             <SectionLabel style={{ justifyContent: 'center' }}>Votre accompagnement</SectionLabel>
             <h2 style={{
               fontFamily: 'var(--font-display), sans-serif',
-              fontSize: 'clamp(24px,3.5vw,42px)', fontWeight: 700, marginBottom: 12,
+              fontSize: 'clamp(26px,3.5vw,42px)', fontWeight: 700, marginBottom: 12,
             }}>
-              Du premier contact au <span style={{ color: 'var(--lime)' }}>jour J</span>
+              Du premier contact au <span style={{ color: 'var(--lime)' }}>jour&nbsp;J</span>
             </h2>
-            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 15, lineHeight: 1.7 }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: 16, lineHeight: 1.7 }}>
               Sur la base d&apos;un mariage organisé un an à l&apos;avance, voici comment se déroule un accompagnement Myracoustic, étape par étape.
             </p>
           </Reveal>
@@ -844,12 +938,18 @@ export default function MariageSansStressClient() {
 
       {/* ── NOTRE ENGAGEMENT (garantie allégée) ─────────────────── */}
       <section style={{ padding: 'clamp(56px,7vw,88px) 32px', background: '#060e16', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-        <Reveal style={{ maxWidth: 720, margin: '0 auto', textAlign: 'center' }}>
+        <Reveal className="mss-engagement">
+          <div style={{
+            width: 48, height: 48, borderRadius: '50%', background: 'rgba(184,239,11,0.12)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px',
+          }}>
+            <ShieldCheck size={22} color="var(--lime)" />
+          </div>
           <SectionLabel style={{ justifyContent: 'center' }}>Notre engagement</SectionLabel>
-          <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(22px,3vw,32px)', fontWeight: 700, marginBottom: 14 }}>
+          <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(24px,3vw,32px)', fontWeight: 700, marginBottom: 14 }}>
             Votre sérénité, notre priorité
           </h2>
-          <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 15, lineHeight: 1.8 }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: 16, lineHeight: 1.8 }}>
             Votre mariage ne se rejoue pas. Nous prévoyons tout en amont : matériel professionnel, systèmes de secours et équipe dédiée. Si un imprévu de notre fait venait perturber votre soirée, nous nous engageons à intervenir rapidement, selon les conditions prévues dans nos CGV.
           </p>
         </Reveal>
@@ -860,7 +960,7 @@ export default function MariageSansStressClient() {
         <Reveal style={{ maxWidth: 760, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 40 }}>
             <SectionLabel style={{ justifyContent: 'center' }}>FAQ</SectionLabel>
-            <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(24px,3.5vw,38px)', fontWeight: 700, marginBottom: 12 }}>
+            <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(26px,3.5vw,42px)', fontWeight: 700, marginBottom: 12 }}>
               Vos questions, nos réponses
             </h2>
           </div>
@@ -880,13 +980,13 @@ export default function MariageSansStressClient() {
         <div style={{ position: 'absolute', inset: 0, zIndex: 0, background: 'linear-gradient(135deg,rgba(13,27,42,0.9) 0%,rgba(26,5,16,0.9) 50%,rgba(13,27,42,0.9) 100%)' }} />
         <Reveal style={{ position: 'relative', zIndex: 1 }}>
           <AnimatedWave bars={48} height={50} style={{ maxWidth: 560, margin: '0 auto 28px' }} opacity={0.55} />
-          <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(24px,3.5vw,44px)', fontWeight: 700, marginBottom: 12 }}>
-            Prêts à vivre le mariage de vos rêves ?
+          <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(26px,3.5vw,44px)', fontWeight: 700, marginBottom: 12 }}>
+            Prêts à vivre le mariage <span style={{ color: 'var(--lime)' }}>de vos rêves</span>&nbsp;?
           </h2>
-          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 16, marginBottom: 32 }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: 16, marginBottom: 32 }}>
             Un devis personnalisé, sans engagement.
           </p>
-          <div className="hide-mobile"><CtaButton location="final" children="Demander mon devis" style={{ padding: '16px 40px', fontSize: 17 }} /></div>
+          <div className="hide-mobile"><CtaButton location="final" style={{ padding: '16px 40px', fontSize: 17 }}>Demander mon devis</CtaButton></div>
         </Reveal>
       </section>
 
@@ -896,30 +996,31 @@ export default function MariageSansStressClient() {
           maxWidth: 1280, margin: '0 auto',
           display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 24, flexWrap: 'wrap',
         }}>
-          <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: 13, whiteSpace: 'nowrap' }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: 13, whiteSpace: 'nowrap' }}>
             © 2026 Myracoustic.
           </p>
           {LEGAL_LINKS.map((l) => (
-            <Link key={l.href} href={l.href} style={{
-              color: 'rgba(255,255,255,0.22)', fontSize: 12,
-              textDecoration: 'underline', textDecorationColor: 'rgba(255,255,255,0.12)',
+            <Link key={l.href} href={l.href} className="mss-focusable" style={{
+              color: 'var(--text-muted)', fontSize: 13, padding: '8px 0',
+              textDecoration: 'underline', textDecorationColor: 'var(--separator)',
               transition: 'color 0.2s', whiteSpace: 'nowrap',
             }}
               onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--lime)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.22)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; }}
             >
               {l.label}
             </Link>
           ))}
           <button
             onClick={() => window.dispatchEvent(new Event('myra-cookie-prefs'))}
+            className="mss-focusable"
             style={{
-              color: 'rgba(255,255,255,0.22)', fontSize: 12, background: 'none', border: 'none', padding: 0,
-              cursor: 'pointer', textDecoration: 'underline', textDecorationColor: 'rgba(255,255,255,0.12)',
+              color: 'var(--text-muted)', fontSize: 13, background: 'none', border: 'none', padding: '8px 0',
+              cursor: 'pointer', textDecoration: 'underline', textDecorationColor: 'var(--separator)',
               transition: 'color 0.2s', whiteSpace: 'nowrap', fontFamily: 'inherit',
             }}
             onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--lime)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.22)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text-muted)'; }}
           >
             Préférences cookies
           </button>

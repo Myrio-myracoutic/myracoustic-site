@@ -15,6 +15,9 @@ import { gtagEvent } from '../lib/gtag';
    Même base visuelle que /dj-mariage et /mariage. CTA unifié vers le tunnel existant
    (/devis/mariage-contact) : pas de formulaire embarqué sur cette page, volontairement. */
 
+// Espace insécable devant la ponctuation double : jamais de « : » ou « ? » en début de ligne.
+const insecable = (texte) => texte.replace(/ ([:;?!])/g, ' $1');
+
 // Même parcours d'accompagnement que /mariage (voir MariageClient.js) — contenu identique.
 const JOURNEY = [
   { when: 'Premier contact', title: 'On découvre votre projet',
@@ -69,7 +72,7 @@ function TimelineStep({ index, total, when, title, text, highlight }) {
           {title}
         </h3>
         <p style={{ color: 'var(--text-muted)', fontSize: 16, lineHeight: 1.7, maxWidth: 460 }}>
-          {text}
+          {insecable(text)}
         </p>
       </div>
     </div>
@@ -414,7 +417,7 @@ function FaqItem({ q, a }) {
         padding: '18px 22px', color: '#fff',
         fontFamily: 'var(--font-display), sans-serif', fontSize: 16, fontWeight: 600,
       }}>
-        {q.replace(' ?', ' ?')}
+        {insecable(q)}
         <span aria-hidden="true" style={{
           flexShrink: 0, color: open ? 'var(--lime)' : 'var(--text-muted)',
           fontSize: 20, transform: open ? 'rotate(45deg)' : 'none', transition: 'transform 0.2s',
@@ -423,7 +426,7 @@ function FaqItem({ q, a }) {
       <div className="mss-faq-reponse" data-open={open}>
         <div>
           <p style={{ margin: 0, padding: '0 22px 20px', color: 'var(--text-muted)', fontSize: 16, lineHeight: 1.7 }}>
-            {a}
+            {insecable(a)}
           </p>
         </div>
       </div>
@@ -727,7 +730,7 @@ export default function MariageSansStressClient() {
               fontSize: 'clamp(16px,1.5vw,18px)', lineHeight: 1.75,
               marginBottom: 28, textShadow: '0 1px 14px rgba(13,27,42,0.7)',
             }}>
-              DJ, son, lumière et le film de votre soirée : tout compris, un seul contact, un devis clair.
+              DJ, son, lumière et le film de votre soirée&nbsp;: tout compris, un seul contact, un devis clair.
             </p>
             <p className="mss-hero-typewriter" style={{
               fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(16px,2vw,20px)', fontWeight: 700,
@@ -784,7 +787,7 @@ export default function MariageSansStressClient() {
                   {f.title}
                 </h3>
                 <p style={{ color: 'var(--text-muted)', fontSize: 16, lineHeight: 1.65 }}>
-                  {f.text}
+                  {insecable(f.text)}
                 </p>
               </div>
             ))}
@@ -853,7 +856,7 @@ export default function MariageSansStressClient() {
               Tout ce que nous mettons en œuvre pour votre mariage
             </h2>
             <p style={{ color: 'var(--text-muted)', fontSize: 16, lineHeight: 1.7 }}>
-              Chaque mariage est différent : après un premier échange téléphonique, nous construisons avec vous une proposition sur mesure, adaptée à votre lieu, votre date et vos besoins.
+              Chaque mariage est différent&nbsp;: après un premier échange téléphonique, nous construisons avec vous une proposition sur mesure, adaptée à votre lieu, votre date et vos besoins.
             </p>
           </Reveal>
 
@@ -887,7 +890,7 @@ export default function MariageSansStressClient() {
                     {s.title}
                   </h3>
                   <p style={{ color: 'var(--text-muted)', fontSize: 16, lineHeight: 1.75 }}>
-                    {s.text}
+                    {insecable(s.text)}
                   </p>
                 </div>
               </Reveal>
@@ -896,7 +899,7 @@ export default function MariageSansStressClient() {
 
           <Reveal style={{ textAlign: 'center', marginTop: 'clamp(48px,7vw,72px)' }}>
             <p style={{ color: 'var(--text-muted)', fontSize: 16, lineHeight: 1.7, maxWidth: 640, margin: '0 auto' }}>
-              Photobooth, livre d&apos;or vidéo, mur LED, fumée lourde, étincelles froides : nous en parlons ensemble lors de notre échange.
+              Photobooth, livre d&apos;or vidéo, mur LED, fumée lourde, étincelles froides&nbsp;: nous en parlons ensemble lors de notre échange.
             </p>
             <div className="hide-mobile" style={{ marginTop: 28 }}>
               <CtaButton location="services" />

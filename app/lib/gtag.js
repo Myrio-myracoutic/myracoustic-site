@@ -1,6 +1,24 @@
+import { metaTrack } from './meta-pixel';
+
 export const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
+/* Chaque demande (generate_lead) est aussi envoyée à Meta comme « Lead » :
+   un seul endroit à maintenir pour les deux régies.
+   content_name distingue une vraie demande d'un téléchargement du guide gratuit. */
+function metaLead(params) {
+  const lead = {
+    content_category: params.profil,
+    content_name: params.lead_magnet ? 'guide' : 'demande',
+  };
+  if (params.value) {
+    lead.value = params.value;
+    lead.currency = params.currency || 'EUR';
+  }
+  metaTrack('Lead', lead);
+}
+
 export function gtagEvent(action, params = {}) {
+  if (action === 'generate_lead') metaLead(params);
   if (typeof window === 'undefined' || !window.gtag) return;
   window.gtag('event', action, params);
 }

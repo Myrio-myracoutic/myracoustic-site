@@ -61,7 +61,7 @@ export default function CookieConsent() {
         <div style={{ flex: '1 1 360px' }}>
           <p style={{ fontSize: 13, color: '#1a2a3a', lineHeight: 1.6, margin: 0 }}>
             Avec votre accord, Myracoustic utilise des cookies de mesure d'audience et de suivi publicitaire
-            (Google Ads).{' '}
+            (Google Ads, Meta).{' '}
             <a href="/politique-confidentialite" style={{ color: '#1a2a3a', textDecoration: 'underline', fontWeight: 600 }}>
               En savoir plus →
             </a>

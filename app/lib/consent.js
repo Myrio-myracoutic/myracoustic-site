@@ -1,4 +1,6 @@
 export const CONSENT_COOKIE = 'myra_consent';
+/* Événement navigateur émis à chaque choix dans le bandeau (écouté par MetaPixel). */
+export const CONSENT_EVENT = 'myra-consent-change';
 
 /* Cookie posé sur .myracoustic.com pour être partagé entre
    myracoustic.com et devis.myracoustic.com (un seul bandeau pour les deux). */
@@ -28,5 +30,12 @@ export function setConsent(value) {
   }
   if (typeof window !== 'undefined' && window.clarity) {
     window.clarity('consent', value === 'granted');
+  }
+  // Pixel Meta déjà chargé (accord donné plus tôt) : on suit le nouveau choix.
+  if (typeof window !== 'undefined' && window.fbq) {
+    window.fbq('consent', value === 'granted' ? 'grant' : 'revoke');
+  }
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(CONSENT_EVENT));
   }
 }

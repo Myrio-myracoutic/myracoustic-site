@@ -70,6 +70,9 @@ export default function MariageContactClient() {
   const formPhaseRef = useRef('date');
   const submittedRef = useRef(false);
   const abandonFiredRef = useRef(false);
+  const pendingCheckRef = useRef(null); // date saisie avant la fin du chargement des disponibilités
+  const checkNativeDateRef = useRef(null); // toujours la dernière version de checkNativeDate (appelée après un délai)
+  const feedbackRef = useRef(null);
   const checkDateTimeoutRef = useRef(null); // vérification différée après une saisie native (voir handleNativeDateInput)
 
   const fmtDateFr = (k) => {
@@ -155,6 +158,9 @@ export default function MariageContactClient() {
     }
   };
 
+  const todayIso = toISODate(new Date());
+  const maxIso = toISODate(new Date(new Date().getFullYear() + 2, new Date().getMonth(), new Date().getDate()));
+
   const handleNativeDateFocus = () => { dateStartedRef.current = true; dateMethodRef.current = 'native'; };
 
   /* Un input type="date" déclenche onChange dès qu'UN segment (jour/mois/année) devient complet —
@@ -166,8 +172,9 @@ export default function MariageContactClient() {
   const handleNativeDateInput = (k) => {
     setNativeDateInput(k);
     setDateFeedback(null);
+    pendingCheckRef.current = null;
     if (checkDateTimeoutRef.current) clearTimeout(checkDateTimeoutRef.current);
-    checkDateTimeoutRef.current = setTimeout(() => checkNativeDate(k), 500);
+    checkDateTimeoutRef.current = setTimeout(() => checkNativeDateRef.current?.(k), 500);
   };
 
   const checkNativeDate = (k) => {
@@ -178,10 +185,31 @@ export default function MariageContactClient() {
     if (k < todayIso || k > maxIso) return;
     dateStartedRef.current = true;
     dateMethodRef.current = 'native';
+    // Disponibilités pas encore chargées : le champ reste utilisable, la vérification repart à la fin du chargement.
+    if (availLoading) { pendingCheckRef.current = k; return; }
     if (bookedDates.has(k)) { notifyBooked(k, 'native'); return; }
     gtagEvent('date_verifiee_disponible', { profil: 'mariage', step: 'date', step_name: 'native' });
     setDateFeedback({ type: 'disponible', date: k, pending: pendingDates[k] ?? 0 });
   };
+
+  useEffect(() => {
+    checkNativeDateRef.current = checkNativeDate;
+    if (!availLoading && pendingCheckRef.current) {
+      const k = pendingCheckRef.current;
+      pendingCheckRef.current = null;
+      checkNativeDate(k);
+    }
+  });
+
+  /* Sur téléphone, le résultat (et le bouton « Valider cette date ») peut tomber sous le bandeau
+     cookies ou sous le bas de l'écran, sans rien qui indique de descendre : on le ramène à l'écran. */
+  useEffect(() => {
+    if (!dateFeedback || !feedbackRef.current) return;
+    const reserve = parseInt(document.body.style.paddingBottom, 10) || 0;
+    if (feedbackRef.current.getBoundingClientRect().bottom > window.innerHeight - reserve) {
+      feedbackRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [dateFeedback]);
 
   const openBrowseCalendar = () => {
     if (!showBrowseCalendar) {
@@ -191,8 +219,6 @@ export default function MariageContactClient() {
     setShowBrowseCalendar(s => !s);
   };
 
-  const todayIso = toISODate(new Date());
-  const maxIso = toISODate(new Date(new Date().getFullYear() + 2, new Date().getMonth(), new Date().getDate()));
 
   const emailValid = /\S+@\S+\.\S+/.test(email);
   const phoneValid = /^[0-9+\s().-]{6,}$/.test(phone);
@@ -322,13 +348,14 @@ export default function MariageContactClient() {
                 onChange={e => handleNativeDateInput(e.target.value)}
                 onBlur={e => { if (checkDateTimeoutRef.current) clearTimeout(checkDateTimeoutRef.current); checkNativeDate(e.target.value); }}
                 onKeyDown={e => { if (e.key === 'Enter') { if (checkDateTimeoutRef.current) clearTimeout(checkDateTimeoutRef.current); checkNativeDate(e.target.value); } }}
-                disabled={availLoading}
-                style={{ ...input, opacity: availLoading ? 0.5 : 1 }}
+                style={input}
               />
 
-              {availLoading && (
-                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 6 }}>Chargement des disponibilités…</p>
+              {availLoading && nativeDateInput && (
+                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 6 }}>Vérification de la disponibilité…</p>
               )}
+
+              <div ref={feedbackRef}>
 
               {dateFeedback?.type === 'disponible' && dateFeedback.date === nativeDateInput && (
                 <div style={{ marginTop: 10, padding: '10px 14px', borderRadius: 8, background: 'rgba(184,239,11,0.08)', border: '1px solid rgba(184,239,11,0.3)', fontSize: 13, color: 'rgba(255,255,255,0.85)' }}>
@@ -364,6 +391,7 @@ export default function MariageContactClient() {
                   )}
                 </div>
               )}
+              </div>
 
               <div>
                 <button onClick={openBrowseCalendar} style={linkBtn}>

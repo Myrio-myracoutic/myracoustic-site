@@ -1,6 +1,6 @@
 import MariageSansStressClient from './MariageSansStressClient';
 
-const TITLE = "Votre mariage, sans aucun stress — Son, Lumière & DJ | Myracoustic";
+const TITLE = "DJ mariage sans stress — Son, Lumière & Vidéo";
 const DESCRIPTION =
   "L'architecte de votre ambiance sonore et lumineuse pour un mariage qui vous ressemble, parfaitement orchestré. Devis personnalisé sous 48h.";
 

@@ -88,7 +88,6 @@ export default function CookieConsent() {
           <button
             onClick={() => choose('granted')}
             className="btn-primary"
-            style={{ background: 'var(--bg)', color: '#ffffff' }}
           >
             Accepter &amp; Fermer
           </button>

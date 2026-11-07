@@ -717,7 +717,7 @@ export default function MariageSansStressClient() {
 
         <div className="mss-hero-content" style={{ maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 2 }}>
           <div style={{ maxWidth: 620 }}>
-            <SectionLabel>Mariage</SectionLabel>
+            <SectionLabel>DJ mariage</SectionLabel>
             <h1 className="mss-hero-h1" style={{
               fontFamily: 'var(--font-display), sans-serif',
               fontSize: 'clamp(34px,6vw,64px)', fontWeight: 700,

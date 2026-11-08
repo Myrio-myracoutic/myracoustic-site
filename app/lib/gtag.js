@@ -1,4 +1,4 @@
-import { metaTrack } from './meta-pixel';
+import { metaTrack, metaTrackCustom } from './meta-pixel';
 
 export const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
@@ -19,6 +19,9 @@ function metaLead(params) {
 
 export function gtagEvent(action, params = {}) {
   if (action === 'generate_lead') metaLead(params);
+  // Date déjà réservée : ces visiteurs sont exclus des audiences de retargeting
+  // (inutile de payer de la pub pour une date qu'on ne pourra pas assurer).
+  if (action === 'date_indisponible') metaTrackCustom('DateIndisponible', { content_category: params.profil });
   if (typeof window === 'undefined' || !window.gtag) return;
   window.gtag('event', action, params);
 }

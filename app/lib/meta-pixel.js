@@ -21,3 +21,9 @@ export function metaTrack(event, params = {}) {
   if (typeof window === 'undefined' || !window.fbq) return;
   window.fbq('track', event, params);
 }
+
+/* Événement propre à Myracoustic (non standard Meta), ex. DateIndisponible. */
+export function metaTrackCustom(event, params = {}) {
+  if (typeof window === 'undefined' || !window.fbq) return;
+  window.fbq('trackCustom', event, params);
+}

@@ -2,11 +2,14 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Building2, Calendar, PartyPopper, Volume2, Headphones, Lightbulb, Mic, Video, Wrench, MapPin, Mail, Send, Search, AlertTriangle, Car, SlidersHorizontal, Users, CreditCard, User, Heart, Gift, Check, ClipboardList, X } from 'lucide-react';
+import { Building2, Calendar, PartyPopper, Volume2, Headphones, Lightbulb, Mic, Video, Wrench, MapPin, Mail, Send, Search, AlertTriangle, Car, SlidersHorizontal, Users, CreditCard, User, Heart, Gift, Check, ClipboardList, X, Landmark } from 'lucide-react';
 import { AnimatedWave } from './AnimatedWave';
 import CallSlotPicker from './CallSlotPicker';
 import { gtagEvent, gtagBeacon, gtagSetUserData } from '../lib/gtag';
 import { readAttribution, SOURCE_OPTIONS_PRO } from '../lib/attribution';
+import { STRUCTURES, BESOINS_PRO } from '../lib/pro-demande';
+
+const STRUCTURE_ICONS = { entreprise: Building2, collectivite: Landmark, association: Users };
 
 /* ════════════════════════════════════════════════════════════════════
    TARIFS — source : docs/grilles-tarifaires.md
@@ -413,7 +416,10 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
 
   /* ── Navigation tunnel ─────────────────────────────────────────── */
   const [profil, setProfil] = useState(forcedProfil || '');
-  const [step,   setStep]   = useState(forcedProfil === 'particulier' ? 1 : forcedProfil === 'professionnel' ? 9 : -1);
+  // Professionnel : directement la demande (10). Depuis le 09/11 (choix de Myrio, pas de prix en
+  // libre-service pour les pros), l'aiguillage (9) et le calculateur « prestation ciblée » (19 à 21)
+  // ne sont plus proposés.
+  const [step,   setStep]   = useState(forcedProfil === 'particulier' ? 1 : forcedProfil === 'professionnel' ? 10 : -1);
   const [sent,        setSent]        = useState(false);
   const [pendingReview, setPendingReview] = useState(false); /* devis parti en brouillon (infos manquantes) → à finaliser par Myrio */
   const [callTrackingId, setCallTrackingId] = useState(null); /* id qonto_quotes_tracking / pro_contact_leads renvoyé à la soumission */
@@ -547,6 +553,8 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
 
   /* ── Professionnel ─────────────────────────────────────────────── */
   const [proBesoin,   setProBesoin]   = useState(''); /* 'cible' | 'evenement' */
+  const [proStructure,setProStructure]= useState(''); /* lib/pro-demande.js */
+  const [proBesoins,  setProBesoins]  = useState([]);
   const [proPrenom,   setProPrenom]   = useState('');
   const [proNom,      setProNom]      = useState('');
   const [proSociete,  setProSociete]  = useState('');
@@ -625,11 +633,11 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
       }
       setStep(prev[step] ?? 1); return;
     }
-    if (step === 9) {
+    if (step === 9 || step === 10) {
       if (forcedProfil) { router.back(); return; }
       setStep(-1); setProfil(''); return;
     }
-    if (step === 10 || step === 19) { setStep(9); setProBesoin(''); return; }
+    if (step === 19) { setStep(9); setProBesoin(''); return; }
     if (step === 20) { setStep(19); return; }
     if (step === 21) { setStep(20); return; }
     setStep(s => s - 1);
@@ -1040,6 +1048,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prenom: proPrenom, nom: proNom, societe: proSociete, email: proEmail, tel: proTel, poste: proPoste,
+          structure: proStructure, besoins: proBesoins,
           type: proType, personnes: proPersonnes, date: proDate, budget: proBudget, lieu: proLieu, description: proDesc,
           ...readAttribution(), sourceDeclared: proSource || null,
         }),
@@ -2785,11 +2794,28 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
       </h2>
       <p className="devis-step-sub" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 22 }}>Étape 1 sur 2 · Informations de contact</p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div role="radiogroup" aria-label="Vous êtes" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 10, marginBottom: 6 }}>
+          {STRUCTURES.map(({ value, label }) => {
+            const Icon = STRUCTURE_ICONS[value];
+            const on = proStructure === value;
+            return (
+              <button key={value} type="button" role="radio" aria-checked={on} onClick={() => setProStructure(value)} style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9, minHeight: 52, padding: '10px 14px',
+                background: on ? 'rgba(184,239,11,0.08)' : 'rgba(255,255,255,0.04)',
+                border: `1px solid ${on ? 'var(--lime)' : 'rgba(255,255,255,0.1)'}`, borderRadius: 10, cursor: 'pointer',
+                color: on ? 'var(--lime)' : 'white', fontSize: 14, fontWeight: 600, fontFamily: 'var(--font-display), sans-serif',
+              }}>
+                <Icon size={18} strokeWidth={1.75} aria-hidden="true" /> {label}
+              </button>
+            );
+          })}
+        </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <input placeholder="Prénom *" value={proPrenom} onChange={e => setProPrenom(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
           <input placeholder="Nom *" value={proNom} onChange={e => setProNom(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
         </div>
-        <input placeholder="Société / Raison sociale *" value={proSociete} onChange={e => setProSociete(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
+        <input placeholder={proStructure === 'collectivite' ? 'Collectivité (ex. Mairie de…) *' : proStructure === 'association' ? "Nom de l'association *" : 'Société / Raison sociale *'}
+          value={proSociete} onChange={e => setProSociete(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <div>
             <input type="email" placeholder="Email professionnel *" value={proEmail} onChange={e => setProEmail(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
@@ -2806,7 +2832,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
         </div>
         <input placeholder="Poste / Fonction" value={proPoste} onChange={e => setProPoste(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
         <BtnPrimary onClick={() => goStep(11)}
-          disabled={!proPrenom || !proNom || !proSociete || !proEmail || !proTel
+          disabled={!proStructure || !proPrenom || !proNom || !proSociete || !proEmail || !proTel
             || !/^[0-9+\s().-]{6,}$/.test(proTel) || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(proEmail)}
           style={{ marginTop: 8 }}>
           Continuer →
@@ -2862,11 +2888,32 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
               style={{ ...IS, cursor: 'pointer', color: proType ? 'white' : 'rgba(255,255,255,0.35)', appearance: 'none' }}
               onFocus={fo} onBlur={bl}>
               <option value="" disabled>Type d'événement *</option>
-              {["Séminaire", "Gala / Soirée de prestige", "Lancement produit", "Soirée d'entreprise", "Conférence", "Autre"].map(t => (
+              {["Séminaire", "Conférence", "Soirée d'entreprise", "Gala / Soirée de prestige", "Lancement produit", "Vœux / Cérémonie", "Fête locale / Festivité", "Spectacle / Concert", "Autre"].map(t => (
                 <option key={t} value={t}>{t}</option>
               ))}
             </select>
             <input placeholder="Effectif estimé *" value={proPersonnes} onChange={e => setProPersonnes(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
+          </div>
+
+          <div>
+            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 10 }}>Vos besoins (plusieurs choix possibles)</div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {BESOINS_PRO.map(b => {
+                const on = proBesoins.includes(b);
+                return (
+                  <button key={b} type="button" aria-pressed={on}
+                    onClick={() => setProBesoins(list => (on ? list.filter(x => x !== b) : [...list, b]))}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 40, padding: '8px 14px',
+                      background: on ? 'rgba(184,239,11,0.08)' : 'rgba(255,255,255,0.04)',
+                      border: `1px solid ${on ? 'var(--lime)' : 'rgba(255,255,255,0.1)'}`, borderRadius: 20, cursor: 'pointer',
+                      color: on ? 'var(--lime)' : 'rgba(255,255,255,0.8)', fontSize: 13, fontFamily: 'var(--font-body), sans-serif',
+                    }}>
+                    {on && <Check size={13} aria-hidden="true" />}{b}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <div>

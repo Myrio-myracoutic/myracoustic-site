@@ -14,7 +14,9 @@ export function fmtSlotDateTime(date, time) {
   return `${dateLabel} à ${heureLabel}`;
 }
 
-function emailShell(bodyHtml) {
+// Cadre des emails aux couleurs Myracoustic (logo, fond sombre, pied de page), repris aussi par
+// la confirmation de demande pro (lib/pro-demande-email.js).
+export function emailShell(bodyHtml) {
   return `<!DOCTYPE html><html lang="fr"><body style="margin:0;padding:0;background:#060e16;font-family:sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:40px 20px;">
 <table width="560" cellpadding="0" cellspacing="0" style="background:#0d1b2a;border-radius:12px;overflow:hidden;">

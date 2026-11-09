@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
+import { STRUCTURES, BESOINS_PRO } from '@/app/lib/pro-demande';
+import { proDemandeConfirmationHtml } from '@/app/lib/pro-demande-email';
 
 const NOTIF_EMAIL = process.env.GOOGLE_CALENDAR_ID || 'contact@myracoustic.com';
 
@@ -11,6 +13,9 @@ export async function POST(request) {
     gclid, utm_source, utm_medium, utm_campaign, sourceDeclared,
   } = body;
   const source = gclid ? 'google_ads' : (sourceDeclared || null);
+  // Seules les valeurs proposées par le formulaire sont gardées (elles vont aussi dans l'email).
+  const structure = STRUCTURES.find((s) => s.value === body.structure) || null;
+  const besoins = Array.isArray(body.besoins) ? BESOINS_PRO.filter((b) => body.besoins.includes(b)) : [];
 
   if (!prenom || !nom || !societe || !email || !tel || !type || !personnes) {
     return NextResponse.json({ error: 'Champs requis manquants' }, { status: 400 });
@@ -22,6 +27,7 @@ export async function POST(request) {
   try {
     const { data: lead } = await supabaseAdmin.from('pro_contact_leads').insert({
       prenom, nom, societe, email, tel, poste: poste || null,
+      structure: structure?.value || null, besoins: besoins.length ? besoins : null,
       event_type: type, personnes, event_date: date || null,
       budget: budget || null, lieu: lieu || null, description: description || null,
       gclid: gclid || null, utm_source: utm_source || null, utm_medium: utm_medium || null,
@@ -33,12 +39,14 @@ export async function POST(request) {
   }
 
   const lines = [
+    ['Structure', structure ? structure.label.replace(/^Une /, '') : 'Non précisée'],
     ['Société', societe],
     ['Contact', `${prenom} ${nom}${poste ? ` — ${poste}` : ''}`],
     ['Email', email],
     ['Téléphone', tel],
     ['Type d\'événement', type],
     ['Effectif estimé', personnes],
+    ['Besoins', besoins.length ? besoins.join(', ') : 'Non précisés'],
     ['Date souhaitée', date || 'Non précisée'],
     ['Budget indicatif', budget || 'Non précisé'],
     ['Lieu prévu', lieu || 'Non précisé'],
@@ -52,11 +60,9 @@ export async function POST(request) {
     ${description ? `<p><strong>Description du projet :</strong><br>${description.replace(/\n/g, '<br>')}</p>` : ''}
   `;
 
-  const confirmationHtml = `
-    <p>Bonjour ${prenom},</p>
-    <p>Nous avons bien reçu votre demande de contact pour <strong>${societe}</strong>. Un conseiller Myracoustic vous recontactera sous 24 à 48 heures.</p>
-    <p>À très vite,<br>L'équipe Myracoustic</p>
-  `;
+  const confirmationHtml = proDemandeConfirmationHtml({
+    prenom, societe, structure: structure?.value, type, date, personnes, lieu, besoins,
+  });
 
   try {
     const res = await fetch('https://api.brevo.com/v3/smtp/email', {

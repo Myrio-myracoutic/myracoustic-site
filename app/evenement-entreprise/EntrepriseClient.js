@@ -221,7 +221,7 @@ export default function EntreprisesPage() {
               onMouseEnter={(e) => { e.currentTarget.style.background = '#5558d4'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--indigo-vif)'; e.currentTarget.style.transform = 'translateY(0)'; }}
             >
-              Calculer mon devis →
+              Recevoir une proposition sur mesure →
             </a>
           </div>
         </div>

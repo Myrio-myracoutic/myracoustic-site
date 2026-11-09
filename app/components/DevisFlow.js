@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Building2, Calendar, PartyPopper, Volume2, Headphones, Lightbulb, Mic, Video, Wrench, MapPin, Mail, Send, Search, AlertTriangle, Car, SlidersHorizontal, Users, CreditCard, User, Heart, Gift, Check, ClipboardList, X, Landmark } from 'lucide-react';
 import { AnimatedWave } from './AnimatedWave';
 import CallSlotPicker from './CallSlotPicker';
@@ -315,7 +316,7 @@ function ProfileCard({ icon: Icon, title, sub, badge, onClick }) {
 }
 
 /* Champ adresse avec suggestions Mapbox (autocomplete) */
-function AddressAutocomplete({ value, onChange, onSelect, placeholder, onEnter, wrapperStyle }) {
+function AddressAutocomplete({ value, onChange, onSelect, placeholder, onEnter, wrapperStyle, id, inputStyle }) {
   const [suggestions, setSuggestions] = useState([]);
   const [open, setOpen] = useState(false);
   const debounceRef = useRef(null);
@@ -346,13 +347,14 @@ function AddressAutocomplete({ value, onChange, onSelect, placeholder, onEnter, 
   return (
     <div style={{ position: 'relative', flex: '1 1 240px', ...wrapperStyle }}>
       <input
+        id={id}
         placeholder={placeholder}
         value={value}
         onChange={handleChange}
         onFocus={fo}
         onBlur={handleBlur}
         onKeyDown={onEnter}
-        style={{ ...IS, width: '100%' }} />
+        style={{ ...IS, width: '100%', ...inputStyle }} />
       {open && suggestions.length > 0 && (
         <div style={{
           position: 'absolute', top: '100%', left: 0, right: 0,
@@ -405,6 +407,97 @@ const BtnPrimary = ({ children, onClick, disabled, style, className }) => (
     {children}
   </button>
 );
+
+/* ── Demande pro (étapes 10 et 11) ─────────────────────────────────────
+   Libellés toujours visibles (pas seulement en placeholder), champs à 16 px (pas de zoom forcé
+   sur iPhone), et encart « Ce qui se passe ensuite » à côté du formulaire. */
+const PRO_IS = { ...IS, fontSize: 16, minHeight: 48 };
+const PRO_EYEBROW = {
+  margin: 0, fontSize: 11.5, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
+  color: 'rgba(255,255,255,0.55)', fontFamily: 'var(--font-display), sans-serif',
+};
+const PRO_TYPES = ['Séminaire', 'Conférence', "Soirée d'entreprise", 'Gala / Soirée de prestige', 'Lancement produit', 'Vœux / Cérémonie', 'Fête locale / Festivité', 'Spectacle / Concert', 'Autre'];
+
+// `group` : pour un ensemble sans champ unique (calendrier, choix multiples), le libellé nomme le groupe.
+function ProField({ id, label, required, optional, hint, group, children }) {
+  const text = (
+    <>
+      {label}
+      {required && <span aria-hidden="true" style={{ color: 'var(--lime)' }}> *</span>}
+      {optional && <span style={{ color: 'rgba(255,255,255,0.45)', fontWeight: 400 }}> (facultatif)</span>}
+      {hint && <span style={{ color: 'rgba(255,255,255,0.45)', fontWeight: 400 }}> · {hint}</span>}
+    </>
+  );
+  const labelStyle = {
+    display: 'block', fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.8)', marginBottom: 8,
+    fontFamily: 'var(--font-display), sans-serif',
+  };
+  if (group) {
+    return (
+      <div role="group" aria-labelledby={`${id}-label`} style={{ minWidth: 0 }}>
+        <span id={`${id}-label`} style={labelStyle}>{text}</span>
+        {children}
+      </div>
+    );
+  }
+  return (
+    <div style={{ minWidth: 0 }}>
+      <label htmlFor={id} style={labelStyle}>{text}</label>
+      {children}
+    </div>
+  );
+}
+
+function ProSection({ title, children }) {
+  return (
+    <section style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+      <h3 style={PRO_EYEBROW}>{title}</h3>
+      {children}
+    </section>
+  );
+}
+
+// Uniquement du réel : la référence Keolis Littoral telle qu'affichée sur /evenement-entreprise.
+function ProAside({ structure }) {
+  const etapes = [
+    'Un conseiller vous rappelle sous 24 h ouvrées pour comprendre vos enjeux : le lieu, le déroulé, l’ambiance attendue.',
+    structure === 'collectivite'
+      ? 'Vous recevez une proposition sur mesure, détaillée et chiffrée en HT, à faire valider selon votre circuit interne.'
+      : 'Vous recevez une proposition sur mesure, détaillée et chiffrée en HT.',
+    'Le jour J, nous prenons en charge toute la technique, de l’installation au démontage.',
+  ];
+  const divider = { borderTop: '1px solid rgba(255,255,255,0.08)', margin: '22px 0' };
+  return (
+    <aside className="pro-aside" style={{ background: 'var(--card)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '24px 22px' }}>
+      <h3 style={{ ...PRO_EYEBROW, marginBottom: 16 }}>Ce qui se passe ensuite</h3>
+      <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {etapes.map((e, i) => (
+          <li key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+            <span aria-hidden="true" style={{
+              flexShrink: 0, width: 26, height: 26, borderRadius: 13, background: 'rgba(184,239,11,0.12)', color: 'var(--lime)',
+              fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display), sans-serif',
+            }}>{i + 1}</span>
+            <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 14, lineHeight: 1.6 }}>{e}</span>
+          </li>
+        ))}
+      </ol>
+      <div style={divider} />
+      <h3 style={{ ...PRO_EYEBROW, marginBottom: 10 }}>Ils nous ont fait confiance</h3>
+      <p style={{ margin: '0 0 4px', fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 16, color: 'white' }}>Keolis Littoral</p>
+      <p style={{ margin: 0, color: 'rgba(255,255,255,0.6)', fontSize: 13, lineHeight: 1.65 }}>
+        Prestation technique complète — sonorisation, éclairage et animation pour événement d’entreprise.
+      </p>
+      <div style={divider} />
+      <p style={{ margin: '0 0 10px', color: 'rgba(255,255,255,0.8)', fontSize: 14 }}>
+        Une question ?{' '}
+        <a href="tel:+33768533308" style={{ color: 'var(--lime)', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>07 68 53 33 08</a>
+      </p>
+      <p style={{ margin: 0, color: 'rgba(255,255,255,0.6)', fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
+        <Check size={14} aria-hidden="true" style={{ color: 'var(--lime)', flexShrink: 0 }} /> Devis gratuit, sans engagement
+      </p>
+    </aside>
+  );
+}
 
 /* ════════════════════════════════════════════════════════════════════
    PAGE PRINCIPALE
@@ -1108,32 +1201,52 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
   );
 
   /* Barre étape mobile — affichée au-dessus du titre, masquée sur desktop */
-  const MobileStepBar = ({ current, total }) => (
+  // Collée en haut de l'écran : le menu du site est masqué sur /devis (Nav.js), il n'y a rien au-dessus.
+  // `logo` (demande pro, demande de Myrio du 09/11) : le logo remplace « Retour » ; une étape déjà
+  // passée se rouvre en touchant son numéro (`onStepClick`).
+  const MobileStepBar = ({ current, total, logo = false, onStepClick }) => (
     <div className="hide-desktop" style={{
-      position: 'fixed', top: 70, left: 0, right: 0, zIndex: 75,
+      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 75,
       background: 'rgba(6,14,22,0.97)', backdropFilter: 'blur(16px)',
       borderBottom: '1px solid rgba(255,255,255,0.07)',
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      height: 52, padding: '0 20px',
+      // Avec le logo : 3 colonnes (vide, logo centré, étapes à droite).
+      ...(logo
+        ? { display: 'grid', gridTemplateColumns: '1fr auto 1fr', alignItems: 'center' }
+        : { display: 'flex', alignItems: 'center', justifyContent: 'space-between' }),
+      height: 'calc(52px + env(safe-area-inset-top))', padding: '0 20px', paddingTop: 'env(safe-area-inset-top)',
     }}>
-      <button onClick={goBack} style={{
-        background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)',
-        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, padding: 0,
-        fontSize: 13, fontFamily: 'var(--font-display), sans-serif', fontWeight: 500,
-      }}>← Retour</button>
-      <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
+      {logo ? (
+        <>
+          <span aria-hidden="true" />
+          <Image src="/logo.png" alt="Myracoustic" width={126} height={42} style={{ height: 42, width: 'auto' }} priority />
+        </>
+      ) : (
+        <button onClick={goBack} style={{
+          background: 'none', border: 'none', color: 'rgba(255,255,255,0.6)',
+          cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, padding: '0 4px 0 0', minHeight: 44,
+          fontSize: 13, fontFamily: 'var(--font-display), sans-serif', fontWeight: 500,
+        }}>← Retour</button>
+      )}
+      <div style={{ display: 'flex', gap: 5, alignItems: 'center', justifySelf: 'end' }}>
         {Array.from({ length: total }).map((_, i) => {
           const done = current > i;
+          const pastille = (
+            <div style={{
+              width: 22, height: 22, borderRadius: '50%',
+              background: done ? 'var(--lime)' : 'rgba(255,255,255,0.07)',
+              color: done ? '#0d1b2a' : 'rgba(255,255,255,0.3)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 10,
+              transition: 'all 0.3s',
+            }}>{i + 1}</div>
+          );
           return (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <div style={{
-                width: 22, height: 22, borderRadius: '50%',
-                background: done ? 'var(--lime)' : 'rgba(255,255,255,0.07)',
-                color: done ? '#0d1b2a' : 'rgba(255,255,255,0.3)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 10,
-                transition: 'all 0.3s',
-              }}>{i + 1}</div>
+              {onStepClick && i + 1 < current ? (
+                <button type="button" onClick={() => onStepClick(i + 1)} aria-label={`Revenir à l'étape ${i + 1}`} style={{
+                  background: 'none', border: 'none', padding: 11, margin: -11, cursor: 'pointer',
+                }}>{pastille}</button>
+              ) : pastille}
               {i < total - 1 && (
                 <div style={{ width: 12, height: 1, background: done ? 'var(--lime)' : 'rgba(255,255,255,0.1)' }} />
               )}
@@ -2785,61 +2898,98 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
     );
   };
 
-  const renderStep10 = () => (
-    <div style={{ flex: 1, padding: '28px 24px 60px', maxWidth: 680, margin: '0 auto', width: '100%' }}>
-      <MobileStepBar current={1} total={2} />
-      <DesktopStepBar current={1} total={2} />
-      <h2 className="devis-step-title" style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
-        Vos coordonnées
-      </h2>
-      <p className="devis-step-sub" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 22 }}>Étape 1 sur 2 · Informations de contact</p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <div role="radiogroup" aria-label="Vous êtes" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 10, marginBottom: 6 }}>
-          {STRUCTURES.map(({ value, label }) => {
-            const Icon = STRUCTURE_ICONS[value];
-            const on = proStructure === value;
-            return (
-              <button key={value} type="button" role="radio" aria-checked={on} onClick={() => setProStructure(value)} style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9, minHeight: 52, padding: '10px 14px',
-                background: on ? 'rgba(184,239,11,0.08)' : 'rgba(255,255,255,0.04)',
-                border: `1px solid ${on ? 'var(--lime)' : 'rgba(255,255,255,0.1)'}`, borderRadius: 10, cursor: 'pointer',
-                color: on ? 'var(--lime)' : 'white', fontSize: 14, fontWeight: 600, fontFamily: 'var(--font-display), sans-serif',
-              }}>
-                <Icon size={18} strokeWidth={1.75} aria-hidden="true" /> {label}
-              </button>
-            );
-          })}
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <input placeholder="Prénom *" value={proPrenom} onChange={e => setProPrenom(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
-          <input placeholder="Nom *" value={proNom} onChange={e => setProNom(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
-        </div>
-        <input placeholder={proStructure === 'collectivite' ? 'Collectivité (ex. Mairie de…) *' : proStructure === 'association' ? "Nom de l'association *" : 'Société / Raison sociale *'}
-          value={proSociete} onChange={e => setProSociete(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <div>
-            <input type="email" placeholder="Email professionnel *" value={proEmail} onChange={e => setProEmail(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
-            {proEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(proEmail) && (
-              <p style={{ fontSize: 11, color: '#ef4444', marginTop: 6 }}><AlertTriangle size={13} style={{ verticalAlign: '-2px' }} />{' '}Format attendu : nom@domaine.fr</p>
-            )}
+  const renderStep10 = () => {
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(proEmail);
+    const telOk = /^[0-9+\s().-]{6,}$/.test(proTel);
+    const pret = proStructure && proPrenom && proNom && proSociete && emailOk && telOk;
+    const [nomLabel, nomExemple] = {
+      entreprise: ['Société', 'Raison sociale'],
+      collectivite: ['Collectivité', 'Ex. Mairie de …'],
+      association: ['Association', "Nom de l'association"],
+    }[proStructure] || ['Structure', 'Raison sociale, collectivité ou association'];
+    const erreur = { display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, color: '#f87171', margin: '6px 0 0' };
+    return (
+      <div style={{ flex: 1, padding: '28px 24px 60px', maxWidth: 1080, margin: '0 auto', width: '100%' }}>
+        <div className="pro-cols">
+          <div style={{ minWidth: 0 }}>
+            <MobileStepBar current={1} total={2} logo />
+            <DesktopStepBar current={1} total={2} />
+            <h2 className="devis-step-title" style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(20px,2.6vw,28px)', fontWeight: 700, marginBottom: 6 }}>
+              Parlons de votre événement
+            </h2>
+            <p className="devis-step-sub" style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, lineHeight: 1.6, marginBottom: 26 }}>
+              Étape 1 sur 2 · Vos coordonnées, pour préparer notre premier échange.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              <div>
+                <span id="pro-structure-label" style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.8)', marginBottom: 8, fontFamily: 'var(--font-display), sans-serif' }}>
+                  Vous êtes<span aria-hidden="true" style={{ color: 'var(--lime)' }}> *</span>
+                </span>
+                <div role="radiogroup" aria-labelledby="pro-structure-label" className="pro-structure">
+                  {STRUCTURES.map(({ value, label }) => {
+                    const Icon = STRUCTURE_ICONS[value];
+                    const on = proStructure === value;
+                    return (
+                      <button key={value} type="button" role="radio" aria-checked={on} className="pro-choice" onClick={() => setProStructure(value)} style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9, minHeight: 54, padding: '10px 14px',
+                        background: on ? 'rgba(184,239,11,0.08)' : 'rgba(255,255,255,0.04)',
+                        border: `1px solid ${on ? 'var(--lime)' : 'rgba(255,255,255,0.12)'}`, borderRadius: 10, cursor: 'pointer',
+                        color: on ? 'var(--lime)' : 'white', fontSize: 14, fontWeight: 600, fontFamily: 'var(--font-display), sans-serif',
+                        transition: 'border-color 0.2s, background 0.2s, color 0.2s',
+                      }}>
+                        <Icon size={18} strokeWidth={1.75} aria-hidden="true" /> {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="pro-grid-2">
+                <ProField id="pro-prenom" label="Prénom" required>
+                  <input id="pro-prenom" name="given-name" autoComplete="given-name" value={proPrenom} onChange={e => setProPrenom(e.target.value)} style={PRO_IS} onFocus={fo} onBlur={bl} />
+                </ProField>
+                <ProField id="pro-nom" label="Nom" required>
+                  <input id="pro-nom" name="family-name" autoComplete="family-name" value={proNom} onChange={e => setProNom(e.target.value)} style={PRO_IS} onFocus={fo} onBlur={bl} />
+                </ProField>
+              </div>
+              <ProField id="pro-societe" label={nomLabel} required>
+                <input id="pro-societe" name="organization" autoComplete="organization" placeholder={nomExemple}
+                  value={proSociete} onChange={e => setProSociete(e.target.value)} style={PRO_IS} onFocus={fo} onBlur={bl} />
+              </ProField>
+              <div className="pro-grid-2">
+                <ProField id="pro-email" label="Email professionnel" required>
+                  <input id="pro-email" type="email" name="email" autoComplete="email" inputMode="email" value={proEmail} onChange={e => setProEmail(e.target.value)} style={PRO_IS} onFocus={fo} onBlur={bl}
+                    aria-invalid={!!proEmail.trim() && !emailOk} aria-describedby={proEmail.trim() && !emailOk ? 'pro-email-erreur' : undefined} />
+                  {proEmail.trim() && !emailOk && (
+                    <p id="pro-email-erreur" style={erreur}><AlertTriangle size={13} aria-hidden="true" /> Format attendu : nom@domaine.fr</p>
+                  )}
+                </ProField>
+                <ProField id="pro-tel" label="Téléphone" required>
+                  <input id="pro-tel" type="tel" name="tel" autoComplete="tel" value={proTel} onChange={e => setProTel(e.target.value)} style={PRO_IS} onFocus={fo} onBlur={bl}
+                    aria-invalid={!!proTel.trim() && !telOk} aria-describedby={proTel.trim() && !telOk ? 'pro-tel-erreur' : undefined} />
+                  {proTel.trim() && !telOk && (
+                    <p id="pro-tel-erreur" style={erreur}><AlertTriangle size={13} aria-hidden="true" /> Numéro invalide : chiffres uniquement</p>
+                  )}
+                </ProField>
+              </div>
+              <ProField id="pro-poste" label="Fonction" optional>
+                <input id="pro-poste" name="organization-title" autoComplete="organization-title" placeholder="Ex. Responsable communication"
+                  value={proPoste} onChange={e => setProPoste(e.target.value)} style={PRO_IS} onFocus={fo} onBlur={bl} />
+              </ProField>
+              <BtnPrimary onClick={() => goStep(11)} disabled={!pret} style={{ marginTop: 6, minHeight: 52 }}>
+                Continuer →
+              </BtnPrimary>
+              {!pret && (
+                <p style={{ margin: '-6px 0 0', textAlign: 'center', color: 'rgba(255,255,255,0.55)', fontSize: 12.5 }}>
+                  Choisissez votre structure et complétez les champs marqués *.
+                </p>
+              )}
+            </div>
           </div>
-          <div>
-            <input type="tel" placeholder="Téléphone *" value={proTel} onChange={e => setProTel(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
-            {proTel.trim() && !/^[0-9+\s().-]{6,}$/.test(proTel) && (
-              <p style={{ fontSize: 11, color: '#ef4444', marginTop: 6 }}><AlertTriangle size={13} style={{ verticalAlign: '-2px' }} />{' '}Numéro invalide — chiffres uniquement</p>
-            )}
-          </div>
+          <ProAside structure={proStructure} />
         </div>
-        <input placeholder="Poste / Fonction" value={proPoste} onChange={e => setProPoste(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
-        <BtnPrimary onClick={() => goStep(11)}
-          disabled={!proStructure || !proPrenom || !proNom || !proSociete || !proEmail || !proTel
-            || !/^[0-9+\s().-]{6,}$/.test(proTel) || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(proEmail)}
-          style={{ marginTop: 8 }}>
-          Continuer →
-        </BtnPrimary>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderStep11 = () => {
     if (sent && callTrackingId && !callDone) return (
@@ -2863,7 +3013,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
             Demande reçue !
           </h2>
           <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, lineHeight: 1.8, marginBottom: 24 }}>
-            Notre équipe vous contactera sous 24h à <strong style={{ color: 'white' }}>{proEmail}</strong> pour planifier votre rendez-vous.
+            Un conseiller vous rappelle sous 24 h ouvrées. Le récapitulatif de votre demande vient de vous être envoyé à <strong style={{ color: 'white' }}>{proEmail}</strong>.
           </p>
           <a href="https://myracoustic.com" style={{
             background: 'var(--lime)', color: '#0d1b2a',
@@ -2874,103 +3024,124 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
       </div>
     );
 
+    const selectStyle = (valeur) => ({ ...PRO_IS, cursor: 'pointer', color: valeur ? 'white' : 'rgba(255,255,255,0.45)', appearance: 'none' });
     return (
-      <div style={{ flex: 1, padding: '28px 24px 60px', maxWidth: 680, margin: '0 auto', width: '100%' }}>
-        <MobileStepBar current={2} total={2} />
-        <DesktopStepBar current={2} total={2} />
-        <h2 className="devis-step-title" style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(18px,2.5vw,26px)', fontWeight: 700, marginBottom: 4 }}>
-          Votre événement
-        </h2>
-        <p className="devis-step-sub" style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13, marginBottom: 22 }}>Étape 2 sur 2 · Détails de la prestation souhaitée</p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <select value={proType} onChange={e => setProType(e.target.value)}
-              style={{ ...IS, cursor: 'pointer', color: proType ? 'white' : 'rgba(255,255,255,0.35)', appearance: 'none' }}
-              onFocus={fo} onBlur={bl}>
-              <option value="" disabled>Type d'événement *</option>
-              {["Séminaire", "Conférence", "Soirée d'entreprise", "Gala / Soirée de prestige", "Lancement produit", "Vœux / Cérémonie", "Fête locale / Festivité", "Spectacle / Concert", "Autre"].map(t => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
-            <input placeholder="Effectif estimé *" value={proPersonnes} onChange={e => setProPersonnes(e.target.value)} style={IS} onFocus={fo} onBlur={bl} />
-          </div>
+      <div style={{ flex: 1, padding: '28px 24px 60px', maxWidth: 1080, margin: '0 auto', width: '100%' }}>
+        <div className="pro-cols">
+          <div style={{ minWidth: 0 }}>
+            <MobileStepBar current={2} total={2} logo onStepClick={() => goStep(10)} />
+            <DesktopStepBar current={2} total={2} />
+            <h2 className="devis-step-title" style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(20px,2.6vw,28px)', fontWeight: 700, marginBottom: 6 }}>
+              Votre événement
+            </h2>
+            <p className="devis-step-sub" style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, lineHeight: 1.6, marginBottom: 26 }}>
+              Étape 2 sur 2 · Pour vous proposer le dispositif adapté.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 34 }}>
+              <ProSection title="L'événement">
+                <div className="pro-grid-2">
+                  <ProField id="pro-type" label="Type d'événement" required>
+                    <select id="pro-type" value={proType} onChange={e => setProType(e.target.value)} style={selectStyle(proType)} onFocus={fo} onBlur={bl}>
+                      <option value="" disabled>Choisir…</option>
+                      {PRO_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </ProField>
+                  <ProField id="pro-personnes" label="Effectif estimé" required>
+                    <input id="pro-personnes" placeholder="Ex. 150" value={proPersonnes} onChange={e => setProPersonnes(e.target.value)} style={PRO_IS} onFocus={fo} onBlur={bl} />
+                  </ProField>
+                </div>
+                <ProField id="pro-date" label="Date envisagée" optional group>
+                  <MiniCal selected={proDate} onSelect={d => {
+                    if (bookedDates.has(d)) { setBlockedDateThankYou(false); setBlockedDateModal(d); return; }
+                    const n = pendingDates[d] ?? 0;
+                    if (n > 0) { setPendingDateInfo({ date: d, count: n, apply: () => setProDate(d) }); return; }
+                    setProDate(d);
+                  }} devisPending={pendingDates} bookedDates={bookedDates} yearsAhead={2} loading={availabilityLoading} />
+                  {proDate && (
+                    <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 13, color: 'var(--lime)', fontFamily: 'var(--font-display), sans-serif' }}>
+                        <Check size={13} style={{ verticalAlign: '-2px' }} aria-hidden="true" />{' '}{new Date(proDate + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                      </span>
+                      <button type="button" onClick={() => setProDate('')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.55)', fontSize: 13, textDecoration: 'underline', cursor: 'pointer', fontFamily: 'inherit', minHeight: 36 }}>
+                        Effacer
+                      </button>
+                    </div>
+                  )}
+                  {proDate && (pendingDates[proDate] ?? 0) > 0 && (
+                    <div style={{ marginTop: 8, padding: '10px 12px', background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.28)', borderRadius: 8, fontSize: 12.5, color: '#f97316', lineHeight: 1.6, display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+                      <AlertTriangle size={13} strokeWidth={2} style={{ flexShrink: 0, marginTop: 2 }} aria-hidden="true" /> <span><strong>{pendingDates[proDate]} devis déjà demandé{pendingDates[proDate] > 1 ? 's' : ''}</strong> pour cette date — un conseiller vous recontacte rapidement pour confirmer.</span>
+                    </div>
+                  )}
+                </ProField>
+                <ProField id="pro-lieu" label="Lieu prévu" optional>
+                  <AddressAutocomplete id="pro-lieu" inputStyle={{ fontSize: 16, minHeight: 48 }} placeholder="Ville, salle ou adresse" value={proLieu}
+                    onChange={setProLieu}
+                    onSelect={s => setProLieu(s.label)} />
+                </ProField>
+              </ProSection>
 
-          <div>
-            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 10 }}>Vos besoins (plusieurs choix possibles)</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {BESOINS_PRO.map(b => {
-                const on = proBesoins.includes(b);
-                return (
-                  <button key={b} type="button" aria-pressed={on}
-                    onClick={() => setProBesoins(list => (on ? list.filter(x => x !== b) : [...list, b]))}
-                    style={{
-                      display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 40, padding: '8px 14px',
-                      background: on ? 'rgba(184,239,11,0.08)' : 'rgba(255,255,255,0.04)',
-                      border: `1px solid ${on ? 'var(--lime)' : 'rgba(255,255,255,0.1)'}`, borderRadius: 20, cursor: 'pointer',
-                      color: on ? 'var(--lime)' : 'rgba(255,255,255,0.8)', fontSize: 13, fontFamily: 'var(--font-body), sans-serif',
-                    }}>
-                    {on && <Check size={13} aria-hidden="true" />}{b}
-                  </button>
-                );
-              })}
+              <ProSection title="Vos besoins">
+                <ProField id="pro-besoins" label="Prestations souhaitées" hint="plusieurs choix possibles" group>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {BESOINS_PRO.map(b => {
+                      const on = proBesoins.includes(b);
+                      return (
+                        <button key={b} type="button" aria-pressed={on} className="pro-choice"
+                          onClick={() => setProBesoins(list => (on ? list.filter(x => x !== b) : [...list, b]))}
+                          style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 6, minHeight: 44, padding: '8px 15px',
+                            background: on ? 'rgba(184,239,11,0.08)' : 'rgba(255,255,255,0.04)',
+                            border: `1px solid ${on ? 'var(--lime)' : 'rgba(255,255,255,0.12)'}`, borderRadius: 22, cursor: 'pointer',
+                            color: on ? 'var(--lime)' : 'rgba(255,255,255,0.85)', fontSize: 14, fontFamily: 'var(--font-body), sans-serif',
+                            transition: 'border-color 0.2s, background 0.2s, color 0.2s',
+                          }}>
+                          {on && <Check size={14} aria-hidden="true" />}{b}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </ProField>
+                <ProField id="pro-desc" label="Votre projet en quelques mots" optional>
+                  <textarea id="pro-desc" placeholder="Déroulé, temps forts, contraintes du lieu…"
+                    value={proDesc} onChange={e => setProDesc(e.target.value)} rows={4}
+                    style={{ ...PRO_IS, resize: 'vertical', lineHeight: 1.65 }}
+                    onFocus={fo} onBlur={bl} />
+                </ProField>
+              </ProSection>
+
+              <ProSection title="Pour finir">
+                <div className="pro-grid-2">
+                  <ProField id="pro-budget" label="Budget indicatif" optional>
+                    <select id="pro-budget" value={proBudget} onChange={e => setProBudget(e.target.value)} style={selectStyle(proBudget)} onFocus={fo} onBlur={bl}>
+                      <option value="">Je ne sais pas encore</option>
+                      {['< 3 000 €', '3 000 – 6 000 €', '6 000 – 12 000 €', '12 000 – 25 000 €', '> 25 000 €'].map(b => (
+                        <option key={b} value={b}>{b}</option>
+                      ))}
+                    </select>
+                  </ProField>
+                  <ProField id="pro-source" label="Comment nous avez-vous connu ?" optional>
+                    <select id="pro-source" value={proSource} onChange={e => setProSource(e.target.value)} style={selectStyle(proSource)} onFocus={fo} onBlur={bl}>
+                      <option value="">Choisir…</option>
+                      {SOURCE_OPTIONS_PRO.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    </select>
+                  </ProField>
+                </div>
+              </ProSection>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <BtnPrimary onClick={submitContactPro} disabled={!proType || !proPersonnes || qontoLoading} style={{ minHeight: 52, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+                  {qontoLoading ? 'Envoi en cours…' : <><Send size={15} strokeWidth={2} aria-hidden="true" /> Envoyer ma demande →</>}
+                </BtnPrimary>
+                {qontoError && <p role="alert" style={{ textAlign: 'center', color: '#f87171', fontSize: 13, margin: 0 }}><AlertTriangle size={13} style={{ verticalAlign: '-2px' }} aria-hidden="true" />{' '}{qontoError}</p>}
+                <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.55)', fontSize: 12.5, margin: 0 }}>
+                  {!proType || !proPersonnes
+                    ? "Indiquez le type d'événement et l'effectif estimé."
+                    : 'Un conseiller vous rappelle sous 24 h ouvrées · Sans engagement'}
+                </p>
+              </div>
             </div>
           </div>
-
-          <div>
-            <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12, marginBottom: 10 }}>Date envisagée (facultatif)</div>
-            <MiniCal selected={proDate} onSelect={d => {
-              if (bookedDates.has(d)) { setBlockedDateThankYou(false); setBlockedDateModal(d); return; }
-              const n = pendingDates[d] ?? 0;
-              if (n > 0) { setPendingDateInfo({ date: d, count: n, apply: () => setProDate(d) }); return; }
-              setProDate(d);
-            }} devisPending={pendingDates} bookedDates={bookedDates} yearsAhead={2} loading={availabilityLoading} />
-            {proDate && (
-              <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: 12, color: 'var(--lime)', fontFamily: 'var(--font-display), sans-serif' }}>
-                  <Check size={13} style={{ verticalAlign: '-2px' }} />{' '}{new Date(proDate + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-                </span>
-                <button onClick={() => setProDate('')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.35)', fontSize: 12, textDecoration: 'underline', cursor: 'pointer', fontFamily: 'inherit' }}>
-                  Effacer
-                </button>
-              </div>
-            )}
-            {proDate && (pendingDates[proDate] ?? 0) > 0 && (
-              <div style={{ marginTop: 8, padding: '10px 12px', background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.28)', borderRadius: 8, fontSize: 12, color: '#f97316', lineHeight: 1.6, display: 'flex', alignItems: 'flex-start', gap: 6 }}>
-                <AlertTriangle size={13} strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} /> <span><strong>{pendingDates[proDate]} devis déjà demandé{pendingDates[proDate] > 1 ? 's' : ''}</strong> pour cette date — un conseiller vous recontacte rapidement pour confirmer.</span>
-              </div>
-            )}
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <AddressAutocomplete placeholder="Lieu prévu (ville, salle, adresse)" value={proLieu}
-              onChange={setProLieu}
-              onSelect={s => setProLieu(s.label)} />
-            <select value={proBudget} onChange={e => setProBudget(e.target.value)}
-              style={{ ...IS, cursor: 'pointer', color: proBudget ? 'white' : 'rgba(255,255,255,0.35)', appearance: 'none' }}
-              onFocus={fo} onBlur={bl}>
-              <option value="" disabled>Budget indicatif</option>
-              {['< 3 000 €', '3 000 – 6 000 €', '6 000 – 12 000 €', '12 000 – 25 000 €', '> 25 000 €'].map(b => (
-                <option key={b} value={b}>{b}</option>
-              ))}
-            </select>
-          </div>
-          <textarea placeholder="Décrivez votre projet et vos besoins…"
-            value={proDesc} onChange={e => setProDesc(e.target.value)} rows={4}
-            style={{ ...IS, resize: 'vertical', lineHeight: 1.65 }}
-            onFocus={fo} onBlur={bl} />
-          <select value={proSource} onChange={e => setProSource(e.target.value)}
-            style={{ ...IS, cursor: 'pointer', color: proSource ? 'white' : 'rgba(255,255,255,0.35)', appearance: 'none' }}
-            onFocus={fo} onBlur={bl}>
-            <option value="">Comment nous avez-vous connu ? (optionnel)</option>
-            {SOURCE_OPTIONS_PRO.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-          </select>
-          <BtnPrimary onClick={submitContactPro} disabled={!proType || !proPersonnes || qontoLoading} style={{ marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-            {qontoLoading ? 'Envoi en cours…' : <><Send size={14} strokeWidth={2} /> Envoyer ma demande de contact →</>}
-          </BtnPrimary>
-          {qontoError && <p style={{ textAlign: 'center', color: '#ef4444', fontSize: 12, marginTop: 8 }}><AlertTriangle size={13} style={{ verticalAlign: '-2px' }} />{' '}{qontoError}</p>}
-          <p style={{ textAlign: 'center', color: 'rgba(255,255,255,0.28)', fontSize: 12 }}>
-            Notre équipe vous recontacte sous 24h ouvrées
-          </p>
+          <ProAside structure={proStructure} />
         </div>
       </div>
     );
@@ -2981,9 +3152,15 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
     <div className="devis-outer" style={{ minHeight: '100vh', background: 'var(--bg)', display: 'flex', flexDirection: 'column', paddingTop: 70 }}>
       <style>{`
         @keyframes spin{to{transform:rotate(360deg)}}
+        .pro-cols { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 48px; align-items: start; }
+        .pro-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .pro-structure { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .pro-choice:focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; }
+        @media (max-width: 960px) { .pro-cols { grid-template-columns: 1fr; gap: 36px; } }
+        @media (max-width: 560px) { .pro-grid-2, .pro-structure { grid-template-columns: 1fr; } .pro-structure .pro-choice { justify-content: flex-start !important; } }
         @media (max-width: 768px) {
           .devis-tunnel-header { display: none !important; }
-          .devis-outer { padding-top: 122px !important; }
+          .devis-outer { padding-top: calc(52px + env(safe-area-inset-top)) !important; }
           .gate-profile-grid { grid-template-columns: 1fr !important; }
           .step4-container { padding-bottom: 100px !important; }
           .submit-cta-bar {

@@ -34,7 +34,8 @@ function fmtDate(d) {
   });
 }
 
-async function sendReminderEmail(toEmail, firstName, eventType, eventDate, amount, payUrl, ccEmail) {
+// avecEspace : un client pro n'a pas encore d'espace personnel (parcours pro de la plateforme).
+async function sendReminderEmail(toEmail, firstName, eventType, eventDate, amount, payUrl, ccEmail, avecEspace = true) {
   const html = `
 <!DOCTYPE html><html lang="fr"><body style="margin:0;padding:0;background:#060e16;font-family:sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:40px 20px;">
@@ -73,14 +74,14 @@ async function sendReminderEmail(toEmail, firstName, eventType, eventDate, amoun
       </td></tr>
     </table>
 
-    <p style="color:rgba(255,255,255,0.35);font-size:12px;margin:0 0 8px;line-height:1.6;">
+    ${avecEspace ? `<p style="color:rgba(255,255,255,0.35);font-size:12px;margin:0 0 8px;line-height:1.6;">
       Vous pouvez également accéder à votre facture depuis votre espace personnel :
     </p>
     <p style="margin:0;">
       <a href="${APP_URL}/mon-espace" style="color:#b8ef0b;font-size:13px;">
         ${APP_URL}/mon-espace
       </a>
-    </p>
+    </p>` : ''}
   </td></tr>
 
   <tr><td style="padding:24px 40px;border-top:1px solid rgba(255,255,255,0.07);text-align:center;">
@@ -133,7 +134,7 @@ export async function GET(request) {
   // Événements demain, non annulés, rappel pas encore envoyé, avec devis Qonto
   const { data: events, error } = await supabaseAdmin
     .from('events')
-    .select('id, event_type, event_date, qonto_quote_id, status, billing_email, clients(first_name, last_name, email)')
+    .select('id, event_type, event_date, qonto_quote_id, status, billing_email, vertical, paiement_apres_prestation, clients(first_name, last_name, email, company_name)')
     .eq('event_date', tomorrowStr)
     .not('status', 'eq', 'annule')
     .not('status', 'eq', 'termine')
@@ -153,7 +154,13 @@ export async function GET(request) {
     const client = ev.clients;
     if (!client?.email) continue;
 
-    const clientQonto = normName(`${client.first_name} ${client.last_name}`);
+    // Collectivité : rien n'est dû avant la prestation (paiement à 30 jours, sur facture).
+    if (ev.paiement_apres_prestation) {
+      results.push({ event: ev.id, status: 'skipped', reason: 'Paiement après la prestation' });
+      continue;
+    }
+    // Un client pro est facturé par Qonto au nom de sa société, pas au sien.
+    const clientQonto = normName(ev.vertical === 'professionnel' && client.company_name ? client.company_name : `${client.first_name} ${client.last_name}`);
     const eventDateMs = new Date(ev.event_date).getTime();
 
     // Chercher la facture de solde liée à cet événement
@@ -185,6 +192,7 @@ export async function GET(request) {
         fmtAmount(balanceInv.total_amount),
         balanceInv.invoice_url,
         reminderCc,
+        ev.vertical !== 'professionnel',
       );
 
       await supabaseAdmin

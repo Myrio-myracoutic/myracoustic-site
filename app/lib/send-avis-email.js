@@ -14,7 +14,7 @@ function trackedAvisLink(eventId, type) {
   return `${APP_URL}/api/track/avis?eventId=${eventId}&type=${type}`;
 }
 
-function buildAvisEmail({ firstName, eventType, eventId }) {
+function buildAvisEmail({ firstName, eventType, eventId, pro = false }) {
   const isWedding = eventType?.toLowerCase().includes('mariage');
   const googleLink = trackedAvisLink(eventId, 'google');
   const mariagenetLink = trackedAvisLink(eventId, 'mariagenet');
@@ -56,7 +56,9 @@ function buildAvisEmail({ firstName, eventType, eventId }) {
     <table cellpadding="0" cellspacing="0" style="width:100%;margin:24px 0 0;border-top:1px solid rgba(255,255,255,0.07);padding-top:24px;">
       <tr><td>
         <p style="color:rgba(255,255,255,0.5);font-size:13.5px;line-height:1.7;margin:0;">
-          Vous connaissez un couple qui prépare son mariage, ou une occasion à célébrer ? Parlez-leur de nous — c'est le plus beau des compliments.
+          ${pro
+            ? "Vous connaissez une entreprise ou une collectivité qui prépare un événement ? Parlez-leur de nous : c'est la plus belle des recommandations."
+            : "Vous connaissez un couple qui prépare son mariage, ou une occasion à célébrer ? Parlez-leur de nous — c'est le plus beau des compliments."}
         </p>
       </td></tr>
     </table>
@@ -71,8 +73,9 @@ function buildAvisEmail({ firstName, eventType, eventId }) {
 </body></html>`;
 }
 
-export async function sendAvisEmail({ toEmail, firstName, eventType, eventId }) {
-  const html = buildAvisEmail({ firstName, eventType, eventId });
+// pro : événement d'une entreprise ou d'une collectivité (vertical professionnel), recommandation adaptée.
+export async function sendAvisEmail({ toEmail, firstName, eventType, eventId, pro = false }) {
+  const html = buildAvisEmail({ firstName, eventType, eventId, pro });
 
   const res = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',

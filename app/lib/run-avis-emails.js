@@ -13,7 +13,7 @@ export async function runAvisEmails() {
 
   const { data: events, error } = await supabaseAdmin
     .from('events')
-    .select('id, event_type, clients(first_name, email)')
+    .select('id, event_type, vertical, clients(first_name, email)')
     .lte('event_date', yesterdayStr)
     .in('status', ['confirme', 'termine'])
     .is('avis_email_sent_at', null);
@@ -30,6 +30,7 @@ export async function runAvisEmails() {
         firstName: client.first_name || 'Client',
         eventType: ev.event_type,
         eventId: ev.id,
+        pro: ev.vertical === 'professionnel',
       });
       results.push({ event: ev.id, status: 'sent' });
     } catch (e) {

@@ -29,6 +29,9 @@ Next.js 16 App Router, JavaScript SANS TypeScript, React 19, Supabase, hébergé
   ou pire un horaire précis sur un seul jour (RDV 15h-16h au lieu de journée entière), fait qu'aucune
   date n'est bloquée sur `/api/availability`. Bug réel du 06/08/2026 : un mariage confirmé saisi
   à la main comme un simple RDV n'a rien bloqué → un devis envoyé à un autre prospect pour la même date.
+- `lib/qonto-sync.js` lit la date de prestation dans l'**en-tête de la facture payée** pour bloquer
+  l'agenda : toute facture créée par code (site ou plateforme) doit recopier `header` du devis.
+  Sinon le paiement est enregistré mais la date reste libre, sans alerte (bug réel du 05/11/2026).
 
 ## Conventions
 - Couleurs uniquement via les variables de `app/globals.css`

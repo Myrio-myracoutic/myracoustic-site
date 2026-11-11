@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Mic, Building2, BarChart3, Scissors, Rocket, Wine, Music, Volume2, Lightbulb, Monitor, SlidersHorizontal, Handshake, FileText, Shield, MapPin, ClipboardList } from 'lucide-react';
+import { Mic, Building2, BarChart3, Scissors, Rocket, Wine, Music, Volume2, Lightbulb, Monitor, SlidersHorizontal, Handshake, FileText, Shield, MapPin, ClipboardList, Users, UtensilsCrossed, LayoutGrid, Camera, CalendarClock } from 'lucide-react';
 import { AnimatedWave, SectionLabel } from '../components/AnimatedWave';
 import { FAQ_ITEMS } from './faq-data';
 import Reveal from '../components/Reveal';
@@ -154,6 +154,23 @@ const PILLARS = [
   { icon: SlidersHorizontal, title: "Régie technique", desc: "Une supervision en temps réel, la gestion des transitions et l’anticipation des imprévus." },
 ];
 
+// Espace d'organisation (11/11) : la plateforme incluse dans chaque prestation d'entreprise.
+// Uniquement ce qui existe vraiment sur app.myracoustic.com ; les trois captures sont réelles
+// (compte de démonstration, « Votre entreprise »).
+const ORGANISATION = [
+  { icon: Users, title: "Inscriptions", desc: "Un lien à diffuser en interne. Chaque collaborateur s’inscrit et confirme sa présence ; vous suivez les réponses en direct." },
+  { icon: UtensilsCrossed, title: "Repas", desc: "Chacun choisit son repas et signale ses allergies. La feuille destinée à votre traiteur se remplit toute seule." },
+  { icon: LayoutGrid, title: "Plan de table", desc: "Vous placez vos participants table par table. Le service reçoit le plan, avec les places numérotées et le plat de chacun." },
+  { icon: Music, title: "Musique", desc: "Vos collaborateurs proposent les titres qu’ils souhaitent entendre. Notre DJ prépare la soirée à partir de leurs choix." },
+  { icon: Camera, title: "Photos", desc: "Un QR code sur les tables : chacun prend ses photos avec son téléphone, la galerie se dévoile à tous le lendemain." },
+  { icon: CalendarClock, title: "Programme et logistique", desc: "Le déroulé de l’événement et les informations du lieu, partagés avec notre équipe technique." },
+];
+const CAPTURES = [
+  { src: '/app-pro-inscription.webp', legende: "L’inscription", alt: "Page d’inscription à une soirée d’entreprise sur téléphone : nom de la structure, date, lieu et formulaire en trois champs" },
+  { src: '/app-pro-repas.webp', legende: "Le choix du repas", alt: "Choix du repas sur téléphone : entrée, plat, dessert, boisson et allergies" },
+  { src: '/app-pro-musique.webp', legende: "Les titres de la soirée", alt: "Page où un participant recherche un titre et le propose pour la soirée" },
+];
+
 const STEPS = [
   { num: '01', title: 'Analyse & préparation', desc: 'Étude du besoin, cadrage technique et définition du dispositif adapté au lieu et au format de votre événement.' },
   { num: '02', title: 'Repérage technique', desc: 'Validation des accès, des implantations, des alimentations électriques et des contraintes propres au site.' },
@@ -270,6 +287,63 @@ export default function EntreprisesPage() {
             Vidéo uniquement via écran LED — pas de captation, pas de streaming.
           </p>
         </Reveal>
+      </section>
+
+      {/* ── ESPACE D'ORGANISATION ───────────────────────────────── */}
+      <section style={{
+        padding: 'clamp(56px,7vw,88px) 32px',
+        background: 'linear-gradient(180deg, rgba(66,69,184,0.16) 0%, rgba(66,69,184,0.05) 100%)',
+        borderTop: '1px solid rgba(255,255,255,0.06)',
+      }}>
+        <Reveal style={{ maxWidth: 1280, margin: '0 auto' }}>
+          <SectionLabel>Inclus dans chaque prestation</SectionLabel>
+          <h2 style={{
+            fontFamily: 'var(--font-display), sans-serif',
+            fontSize: 'clamp(24px,3.5vw,44px)', fontWeight: 700, marginBottom: 12,
+          }}>
+            Au-delà de la technique, un espace pour <span style={{ color: 'var(--lime)' }}>organiser</span> votre événement
+          </h2>
+          <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 15, lineHeight: 1.7, maxWidth: 680, marginBottom: 44 }}>
+            Dès la validation de votre devis, vous disposez d’un espace en ligne à votre nom. Vous y préparez l’événement avec vos équipes, sans tableur ni relances ; vos collaborateurs y accèdent par un simple lien, sans créer de compte.
+          </p>
+
+          <div className="ent-tels">
+            {CAPTURES.map((c) => (
+              <figure key={c.src} className="ent-tel-bloc">
+                <div className="ent-tel">
+                  <div className="ent-tel-ecran">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={c.src} width={780} height={1688} loading="lazy" decoding="async" alt={c.alt}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', display: 'block' }} />
+                  </div>
+                </div>
+                <figcaption>{c.legende}</figcaption>
+              </figure>
+            ))}
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(300px,1fr))', gap: 28, marginTop: 52, maxWidth: 1100 }}>
+            {ORGANISATION.map((g) => <GuaranteeItem key={g.title} {...g} />)}
+          </div>
+
+          <div style={{ marginTop: 44 }}>
+            <a href="/devis/professionnel" style={{
+              background: 'var(--indigo-vif)', color: 'white',
+              padding: '14px 28px', borderRadius: 8, fontSize: 15, fontWeight: 700,
+              fontFamily: 'var(--font-display), sans-serif', textDecoration: 'none', display: 'inline-block',
+            }}>
+              Recevoir une proposition sur mesure →
+            </a>
+          </div>
+        </Reveal>
+        <style>{`
+          .ent-tels { display: flex; justify-content: center; align-items: flex-start; gap: clamp(10px, 3vw, 44px); }
+          .ent-tel-bloc { margin: 0; flex: 0 1 230px; min-width: 0; text-align: center; }
+          .ent-tel-bloc figcaption { margin-top: 14px; font-family: var(--font-display), sans-serif; font-size: clamp(12px, 1.4vw, 15px); font-weight: 600; color: rgba(255,255,255,0.8); }
+          .ent-tel { box-sizing: border-box; padding: clamp(4px, 0.9vw, 9px); border-radius: clamp(18px, 4vw, 40px); background: #060e16; border: 1px solid rgba(255,255,255,0.22); box-shadow: 0 24px 70px rgba(66,69,184,0.35); }
+          .ent-tel-ecran { overflow: hidden; aspect-ratio: 390 / 844; border-radius: clamp(14px, 3.2vw, 32px); background: #0d1b2a; }
+          .ent-tel-bloc:nth-child(2) { margin-top: clamp(0px, 3vw, 36px); }
+        `}</style>
       </section>
 
       {/* ── MÉTHODE ─────────────────────────────────────────────── */}

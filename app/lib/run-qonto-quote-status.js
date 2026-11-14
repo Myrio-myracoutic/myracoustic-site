@@ -27,6 +27,18 @@ export async function runQontoQuoteStatus() {
   for (const row of pending || []) {
     try {
       const res = await fetch(`${QONTO_BASE}/quotes/${row.qonto_quote_id}`, { headers: qHeaders() });
+      // 404 = devis supprimé dans Qonto : il ne reviendra pas. On le passe en « annulé » pour ne
+      // plus le redemander toutes les 10 min (6 devis dans ce cas le 14/11/2026). Toute autre
+      // erreur (panne Qonto, identifiants) reste un simple échec, réessayé au passage suivant.
+      if (res.status === 404) {
+        await supabaseAdmin
+          .from('qonto_quotes_tracking')
+          .update({ qonto_status: 'canceled', last_checked_at: new Date().toISOString() })
+          .eq('id', row.id);
+        updated++;
+        results.push({ id: row.id, status: 'deleted_in_qonto' });
+        continue;
+      }
       if (!res.ok) { results.push({ id: row.id, status: 'fetch_error' }); continue; }
       const data = await res.json();
       const qontoStatus = data.quote?.status; // pending_approval | approved | canceled

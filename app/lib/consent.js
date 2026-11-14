@@ -1,5 +1,5 @@
 export const CONSENT_COOKIE = 'myra_consent';
-/* Événement navigateur émis à chaque choix dans le bandeau (écouté par MetaPixel). */
+/* Événement navigateur émis à chaque choix dans le bandeau (écouté par MetaPixel et OpenAIPixel). */
 export const CONSENT_EVENT = 'myra-consent-change';
 
 /* Cookie posé sur .myracoustic.com pour être partagé entre
@@ -34,6 +34,10 @@ export function setConsent(value) {
   // Pixel Meta déjà chargé (accord donné plus tôt) : on suit le nouveau choix.
   if (typeof window !== 'undefined' && window.fbq) {
     window.fbq('consent', value === 'granted' ? 'grant' : 'revoke');
+  }
+  // Pixel OpenAI déjà chargé : un refus efface aussi ses cookies (__oppref, __obref).
+  if (typeof window !== 'undefined' && window.oaiq) {
+    window.oaiq('consent', value === 'granted');
   }
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new Event(CONSENT_EVENT));

@@ -16,7 +16,7 @@ const SECTIONS = [
           <a href="mailto:contact@myracoustic.com" style={{ color: 'var(--lime)' }}>contact@myracoustic.com</a>.
         </p>
         <p>
-          Le site utilise Elementor Forms ainsi que des traceurs publicitaires Google Ads, Meta Pixel et TikTok Pixel.
+          Le site utilise Elementor Forms ainsi que des traceurs publicitaires Google Ads, Meta Pixel, Pixel OpenAI et TikTok Pixel.
           Ces traceurs sont soumis à votre consentement via la bannière cookies (lorsqu'elle est mise en place).
         </p>
       </>
@@ -48,6 +48,10 @@ const SECTIONS = [
         <ul style={{ margin: '0 0 10px', paddingLeft: 20 }}>
           <li style={{ marginBottom: 6 }}>Google Ads : conversions, remarketing</li>
           <li style={{ marginBottom: 6 }}>Meta Pixel : conversions, audiences, retargeting</li>
+          <li style={{ marginBottom: 6 }}>
+            Pixel OpenAI (publicités ChatGPT) : mesure des demandes issues de nos publicités. Les coordonnées saisies
+            dans un formulaire peuvent être transmises sous forme hachée (SHA-256, procédé irréversible), jamais en clair
+          </li>
           <li>TikTok Pixel : conversions, audiences, retargeting</li>
         </ul>
         <p>Le site n'utilise ni Google Analytics (GA4), ni Google Tag Manager (GTM).</p>
@@ -86,7 +90,7 @@ const SECTIONS = [
         <ul style={{ margin: 0, paddingLeft: 20 }}>
           <li style={{ marginBottom: 6 }}>Hébergement : IONOS</li>
           <li style={{ marginBottom: 6 }}>Site et formulaires : WordPress / Elementor</li>
-          <li>Traceurs publicitaires : Google, Meta, TikTok (sous réserve de votre consentement)</li>
+          <li>Traceurs publicitaires : Google, Meta, OpenAI, TikTok (sous réserve de votre consentement)</li>
         </ul>
       </>
     ),
@@ -95,7 +99,7 @@ const SECTIONS = [
     title: '7. Transferts hors Union européenne',
     body: (
       <p>
-        Le recours à des services tiers (Google, Meta, TikTok) peut entraîner des transferts de données en dehors de
+        Le recours à des services tiers (Google, Meta, OpenAI, TikTok) peut entraîner des transferts de données en dehors de
         l'Union européenne. Le cas échéant, ces transferts s'appuient sur des mécanismes de protection adaptés
         (par exemple des clauses contractuelles types) et/ou sur les garanties fournies par ces prestataires.
       </p>
@@ -142,6 +146,7 @@ const SECTIONS = [
         <ul style={{ margin: '0 0 16px', paddingLeft: 20 }}>
           <li style={{ marginBottom: 6 }}>Google Ads : paramètres de publicité Google</li>
           <li style={{ marginBottom: 6 }}>Meta : paramètres de publicité Facebook / Instagram</li>
+          <li style={{ marginBottom: 6 }}>OpenAI : paramètres de publicité de votre compte ChatGPT</li>
           <li>TikTok : paramètres de confidentialité et de publicité TikTok</li>
         </ul>
         <CookiePrefsButtonInline />

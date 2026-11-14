@@ -11,7 +11,7 @@ import { META_PIXEL_ID, loadMetaPixel, metaTrack } from '../lib/meta-pixel';
    Idem si l'adresse contient un e-mail (lien de reprise du devis). */
 const PRIVATE_PREFIXES = ['/admin', '/mon-espace', '/proposition', '/rendez-vous', '/invitation', '/auth'];
 
-function isPrivatePage(pathname) {
+export function isPrivatePage(pathname) {
   if (pathname && PRIVATE_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + '/'))) return true;
   return typeof window !== 'undefined' && /[?&]email=/.test(window.location.search);
 }

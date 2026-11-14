@@ -5,6 +5,7 @@ import Footer from "./components/Footer";
 import GoogleAnalytics from "./components/GoogleAnalytics";
 import Clarity from "./components/Clarity";
 import MetaPixel from "./components/MetaPixel";
+import OpenAIPixel from "./components/OpenAIPixel";
 import AttributionCapture from "./components/AttributionCapture";
 import CookieConsent from "./components/CookieConsent";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -113,6 +114,7 @@ export default function RootLayout({ children }) {
         <GoogleAnalytics />
         <Clarity />
         <MetaPixel />
+        <OpenAIPixel />
         <AttributionCapture />
         <Nav />
         <main style={{ flexGrow: 1 }}>{children}</main>

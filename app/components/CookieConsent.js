@@ -68,7 +68,7 @@ export default function CookieConsent() {
         padding: '8px 16px 14px',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderBottom: '1px solid #d5dae0', paddingBottom: 4, marginBottom: 10 }}>
         {/* Logo version fond clair (texte sombre) : la carte est blanche. */}
         <Image src="/logo-light.png" alt="Myracoustic" width={750} height={380} style={{ height: 48, width: 'auto', flexShrink: 0, marginLeft: -8 }} />
         <button
@@ -77,15 +77,15 @@ export default function CookieConsent() {
           onMouseLeave={() => setRefuserHover(false)}
           style={{
             minHeight: 44, padding: '0 8px', marginRight: -8, border: 'none', borderRadius: 2, cursor: 'pointer',
-            font: 'inherit', fontSize: 14, fontWeight: 500, textDecoration: 'underline',
-            color: '#1a2a3a', background: refuserHover ? '#f2f4f6' : 'transparent',
+            font: 'inherit', fontSize: 12.5, fontWeight: 500, textDecoration: 'underline',
+            color: '#415266', background: refuserHover ? '#f2f4f6' : 'transparent',
             transition: 'background 150ms ease-out',
           }}
         >
           Continuer sans accepter
         </button>
       </div>
-      <p style={{ fontSize: 13.5, color: '#1a2a3a', lineHeight: 1.55, margin: '2px 0 12px' }}>
+      <p style={{ fontSize: 13.5, color: '#1a2a3a', lineHeight: 1.55, margin: '0 0 12px' }}>
         <strong>Acceptez-vous nos cookies ?</strong> Ils nous aident à comprendre comment le site est utilisé
         pour l'améliorer, et à mesurer l'efficacité de nos publicités (Google, Meta, OpenAI).
         Vous pouvez refuser : le site fonctionne de la même façon.{' '}

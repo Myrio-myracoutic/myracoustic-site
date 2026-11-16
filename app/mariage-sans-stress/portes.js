@@ -5,6 +5,9 @@ import { Users, Armchair, UtensilsCrossed, MailOpen, ListMusic } from 'lucide-re
    que tout est déjà compris avec le DJ. Chaque porte réutilise la page /mariage-sans-stress :
    seuls le haut de page, le bloc dédié et quelques questions changent (voir PorteSection.js).
 
+   Captures de l'application : écrans réels du compte de démonstration Camille Test (invités
+   d'exemple), pris en 390 × 844 double densité (780 × 1688), comme /app-playlist-propositions.webp.
+
    Règles de contenu : rien d'inventé. Chaque phrase vient de docs/plateforme-fonctionnement.md
    ou de lib/formules.js, et chaque capture est un écran réel de l'application.
    La clé d'une porte doit exister dans PORTES_LABELS (app/lib/lead-source.js) : c'est elle
@@ -28,22 +31,22 @@ export const PORTES = {
         {
           cle: 'invites', icone: Users, titre: 'Invités et réponses', court: 'Invités',
           texte: "Vous ajoutez vos invités : leur invitation part par e-mail, ou par un lien à partager. Chacun répond en ligne, et une relance peut partir toute seule vers ceux qui n'ont pas répondu.",
-          capture: { src: '/app-mariage-invites.webp', alt: "Application Myracoustic sur téléphone : liste des invités et suivi de leurs réponses" },
+          capture: { src: '/app-mariage-invites.webp', alt: "Application Myracoustic sur téléphone : 22 invités, 17 présents, 3 en attente, et le rappel automatique activé" },
         },
         {
           cle: 'plan-de-table', icone: Armchair, titre: 'Plan de table', court: 'Plan de table',
           texte: "Vous créez vos tables et placez chaque invité à sa place. Une alerte vous prévient si une table est trop pleine.",
-          capture: { src: '/app-mariage-plan-de-table.webp', alt: "Application Myracoustic sur téléphone : plan de table avec les invités placés" },
+          capture: { src: '/app-mariage-plan-de-table.webp', alt: "Application Myracoustic sur téléphone : plan de table avec la table d'honneur et quatre tables rondes, chaque invité à sa place" },
         },
         {
           cle: 'menu', icone: UtensilsCrossed, titre: 'Menu des invités', court: 'Menu',
           texte: "Chaque invité choisit son plat et signale ses allergies. Vous exportez un récapitulatif prêt pour votre traiteur.",
-          capture: { src: '/app-mariage-menu.webp', alt: "Application Myracoustic sur téléphone : choix du menu par les invités" },
+          capture: { src: '/app-mariage-menu.webp', alt: "Application Myracoustic sur téléphone : feuille pour le traiteur avec 29 couverts, les allergies et le total par plat" },
         },
         {
           cle: 'faire-part', icone: MailOpen, titre: 'Faire-part en ligne', court: 'Faire-part',
           texte: "Vous rédigez votre page d'invitation : horaires, accès, hébergement. Chaque invité la retrouve sur sa page personnelle.",
-          capture: { src: '/app-mariage-faire-part.webp', alt: "Application Myracoustic sur téléphone : faire-part en ligne avec les infos pratiques" },
+          capture: { src: '/app-mariage-faire-part.webp', alt: "Page d'invitation vue par un invité sur téléphone : message des mariés, réponse de présence et horaires de la journée" },
         },
         {
           cle: 'playlists', icone: ListMusic, titre: 'Playlists à deux', court: 'Playlists',

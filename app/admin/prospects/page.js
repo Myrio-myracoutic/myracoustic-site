@@ -5,7 +5,7 @@ import { Trash2, Mail, MousePointerClick, Send, FileText, ChevronDown, ExternalL
 import CallSlotModal from '@/app/components/CallSlotModal';
 
 // Même vocabulaire que app/lib/attribution.js / app/admin/leads-mariage/page.js.
-const SOURCE_LABELS = { google_ads: 'Google Ads', recherche_google: 'Recherche Google', reseaux_sociaux: 'Réseaux sociaux', bouche_a_oreille: 'Bouche-à-oreille', salon_du_mariage: 'Salon du mariage', bark: 'Bark.com', mariages_net: 'Mariages.net', autre: 'Autre' };
+const SOURCE_LABELS = { google_ads: 'Google Ads', meta_ads: 'Pub Facebook / Instagram', chatgpt_ads: 'Pub ChatGPT', recherche_google: 'Recherche Google', instagram: 'Instagram', facebook: 'Facebook', chatgpt: 'ChatGPT', reseaux_sociaux: 'Réseaux sociaux', bouche_a_oreille: 'Bouche-à-oreille', salon_du_mariage: 'Salon du mariage', bark: 'Bark.com', mariages_net: 'Mariages.net', autre: 'Autre' };
 
 const QUOTE_STATUS_LABEL = {
   pending_approval: { label: 'En attente', color: '#f59e0b' },

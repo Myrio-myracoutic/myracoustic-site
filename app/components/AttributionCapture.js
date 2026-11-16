@@ -1,6 +1,7 @@
 import Script from 'next/script';
 
-/* Capture l'origine d'un visiteur (clic pub Google Ads via gclid, ou utm_*) au premier
+/* Capture l'origine d'un visiteur (clic pub Google Ads via gclid, clic Facebook/Instagram via fbclid,
+   clic pub ChatGPT via oppref, ou utm_*) au premier
    atterrissage sur le site, et la garde en localStorage jusqu'à ce qu'un des 3 formulaires
    d'entrée (mariage-contact, tunnel particulier/pro, contact pro) la lise et la transmette.
    Premier contact gagne : on n'écrase jamais une attribution déjà stockée, sinon un visiteur
@@ -15,12 +16,16 @@ export default function AttributionCapture() {
           if (!window.localStorage.getItem('myr_attribution')) {
             var p = new URLSearchParams(window.location.search);
             var gclid = p.get('gclid');
+            var fbclid = p.get('fbclid');
+            var oppref = p.get('oppref');
             var utmSource = p.get('utm_source');
             var utmMedium = p.get('utm_medium');
             var utmCampaign = p.get('utm_campaign');
-            if (gclid || utmSource) {
+            if (gclid || fbclid || oppref || utmSource) {
               window.localStorage.setItem('myr_attribution', JSON.stringify({
                 gclid: gclid || null,
+                fbclid: fbclid || null,
+                oppref: oppref || null,
                 utm_source: utmSource || null,
                 utm_medium: utmMedium || null,
                 utm_campaign: utmCampaign || null,

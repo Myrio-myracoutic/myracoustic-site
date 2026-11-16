@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
+import { resolveSource } from '@/app/lib/lead-source';
 
 export async function GET(request) {
   const email = request.nextUrl.searchParams.get('email');
@@ -16,7 +17,7 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const { email, step, data, gclid, utm_source, utm_medium, utm_campaign, sourceDeclared } = await request.json();
+  const { email, step, data, gclid, fbclid, oppref, utm_source, utm_medium, utm_campaign, sourceDeclared } = await request.json();
   if (!email) return NextResponse.json({ error: 'Email requis' }, { status: 400 });
 
   const upsertRow = { email, step, data, updated_at: new Date().toISOString() };
@@ -30,7 +31,7 @@ export async function POST(request) {
     .eq('email', email)
     .maybeSingle();
   if (!existing?.gclid && !existing?.source) {
-    const source = gclid ? 'google_ads' : (sourceDeclared || null);
+    const source = resolveSource({ gclid, fbclid, oppref, utm_source, utm_medium, sourceDeclared });
     Object.assign(upsertRow, {
       gclid: gclid || null, utm_source: utm_source || null,
       utm_medium: utm_medium || null, utm_campaign: utm_campaign || null, source,

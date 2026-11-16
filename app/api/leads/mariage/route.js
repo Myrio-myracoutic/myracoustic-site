@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
+import { resolveSource } from '@/app/lib/lead-source';
 
 const NOTIF_EMAIL = 'contact@myracoustic.com';
 
@@ -24,10 +25,10 @@ async function sendEmail(payload) {
 
 export async function POST(request) {
   const body = await request.json();
-  const { prenom, nom, tel, email, date, guests, lieu, message, gclid, utm_source, utm_medium, utm_campaign, sourceDeclared } = body;
-  // Détection auto (pub Google Ads) prioritaire sur le déclaratif — plus fiable qu'une réponse
+  const { prenom, nom, tel, email, date, guests, lieu, message, gclid, fbclid, oppref, utm_source, utm_medium, utm_campaign, sourceDeclared } = body;
+  // Détection auto (clic pub Google, Meta ou ChatGPT) prioritaire sur le déclaratif — plus fiable qu'une réponse
   // de visiteur qui ne sait pas toujours distinguer une pub d'une recherche Google classique.
-  const source = gclid ? 'google_ads' : (sourceDeclared || null);
+  const source = resolveSource({ gclid, fbclid, oppref, utm_source, utm_medium, sourceDeclared });
 
   if (!prenom || !nom || !tel || !email) {
     return NextResponse.json({ error: 'Champs requis manquants' }, { status: 400 });

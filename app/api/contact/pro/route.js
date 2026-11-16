@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
+import { resolveSource } from '@/app/lib/lead-source';
 import { STRUCTURES, BESOINS_PRO } from '@/app/lib/pro-demande';
 import { proDemandeConfirmationHtml } from '@/app/lib/pro-demande-email';
 
@@ -10,9 +11,9 @@ export async function POST(request) {
   const {
     prenom, nom, societe, email, tel, poste,
     type, personnes, date, budget, lieu, description,
-    gclid, utm_source, utm_medium, utm_campaign, sourceDeclared,
+    gclid, fbclid, oppref, utm_source, utm_medium, utm_campaign, sourceDeclared,
   } = body;
-  const source = gclid ? 'google_ads' : (sourceDeclared || null);
+  const source = resolveSource({ gclid, fbclid, oppref, utm_source, utm_medium, sourceDeclared });
   // Seules les valeurs proposées par le formulaire sont gardées (elles vont aussi dans l'email).
   const structure = STRUCTURES.find((s) => s.value === body.structure) || null;
   const besoins = Array.isArray(body.besoins) ? BESOINS_PRO.filter((b) => body.besoins.includes(b)) : [];

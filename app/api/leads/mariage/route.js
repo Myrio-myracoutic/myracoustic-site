@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
-import { resolveSource } from '@/app/lib/lead-source';
+import { resolveSource, campagneAvecPorte, libellePorte } from '@/app/lib/lead-source';
 
 const NOTIF_EMAIL = 'contact@myracoustic.com';
 
@@ -25,10 +25,13 @@ async function sendEmail(payload) {
 
 export async function POST(request) {
   const body = await request.json();
-  const { prenom, nom, tel, email, date, guests, lieu, message, gclid, fbclid, oppref, utm_source, utm_medium, utm_campaign, sourceDeclared } = body;
+  const { prenom, nom, tel, email, date, guests, lieu, message, gclid, fbclid, oppref, utm_source, utm_medium, utm_campaign, sourceDeclared, porte } = body;
   // Détection auto (clic pub Google, Meta ou ChatGPT) prioritaire sur le déclaratif — plus fiable qu'une réponse
   // de visiteur qui ne sait pas toujours distinguer une pub d'une recherche Google classique.
   const source = resolveSource({ gclid, fbclid, oppref, utm_source, utm_medium, sourceDeclared });
+  // Porte d'entrée (page application, film, photobooth) : voir lead-source.js.
+  const campagne = campagneAvecPorte(utm_campaign, porte);
+  const porteLabel = libellePorte(campagne);
 
   if (!prenom || !nom || !tel || !email) {
     return NextResponse.json({ error: 'Champs requis manquants' }, { status: 400 });
@@ -51,7 +54,7 @@ export async function POST(request) {
       gclid: gclid || null,
       utm_source: utm_source || null,
       utm_medium: utm_medium || null,
-      utm_campaign: utm_campaign || null,
+      utm_campaign: campagne,
       source,
     }).select('id').single();
     leadId = inserted?.id || null;
@@ -68,6 +71,8 @@ export async function POST(request) {
     ['Date du mariage', fmtDate(date)],
     ['Nombre de personnes', guests || 'Non précisé'],
     ['Lieu', lieu || 'Non précisé'],
+    // Ce que la personne cherchait en arrivant : utile pour ouvrir l'appel sur le bon sujet.
+    ...(porteLabel ? [['Arrivé par', `Page « ${porteLabel} »`]] : []),
   ];
   const notifHtml = `
     <h2>Nouveau lead mariage — à rappeler sous 24h</h2>

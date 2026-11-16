@@ -234,6 +234,8 @@ export default function MariageContactClient() {
           prenom: firstName.trim(), nom: lastName.trim(), tel: phone.trim(),
           email: email.trim().toLowerCase(), date, guests, lieu: lieu.trim(), message: message.trim(),
           ...readAttribution(), sourceDeclared: sourceDeclared || null,
+          // Porte d'entrée : posée par le bouton des pages application / film / photobooth.
+          porte: new URLSearchParams(window.location.search).get('porte'),
         }),
       });
       setSending(false);

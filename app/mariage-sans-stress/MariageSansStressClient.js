@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -10,6 +10,8 @@ import TestimonialCarousel from '../components/TestimonialCarousel';
 import StatItem from '../components/StatItem';
 import Reveal from '../components/Reveal';
 import { gtagEvent } from '../lib/gtag';
+import { PORTES } from './portes';
+import PorteSection from './PorteSection';
 
 /* Landing page dédiée — persona "premier mariage, zéro stress technique".
    Même base visuelle que /dj-mariage et /mariage. CTA unifié vers le tunnel existant
@@ -356,9 +358,15 @@ const TYPEWRITER_WORDS = [
   'Une soirée dont vous profitez vraiment',
 ];
 
+/* Destination et nom de suivi des boutons. Par défaut, ceux de /mariage-sans-stress. Une porte
+   d'entrée (portes.js) y met les siens : le formulaire sait alors par quelle page on est arrivé. */
+const CTA_DEFAUT = { href: '/devis/mariage-contact', suivi: 'mariage_sans_stress' };
+const CtaContext = createContext(CTA_DEFAUT);
+
 function CtaButton({ children = 'Vérifier la disponibilité de ma date →', style, location = 'autre' }) {
+  const { href, suivi } = useContext(CtaContext);
   return (
-    <a href="/devis/mariage-contact" className="mss-focusable" onClick={() => gtagEvent('funnel_step', { profil: 'mariage', step_name: `mariage_sans_stress_cta_${location}` })} style={{
+    <a href={href} className="mss-focusable" onClick={() => gtagEvent('funnel_step', { profil: 'mariage', step_name: `${suivi}_cta_${location}` })} style={{
       background: 'var(--lime)', color: '#0d1b2a',
       padding: '15px 32px', borderRadius: 8, fontSize: 16, fontWeight: 700,
       fontFamily: 'var(--font-display), sans-serif',
@@ -441,7 +449,13 @@ const NAV_LINKS = [
   { href: '#faq',      label: 'FAQ' },
 ];
 
-export default function MariageSansStressClient() {
+/* `porte` : clé d'une porte d'entrée (portes.js), ou rien pour la page d'origine. Sans porte,
+   le rendu est strictement celui d'avant — c'est la page qui reçoit les pubs « dj mariage ». */
+export default function MariageSansStressClient({ porte = null }) {
+  const p = porte ? PORTES[porte] : null;
+  const cta = p ? { href: `/devis/mariage-contact?porte=${p.slug}`, suivi: p.suivi } : CTA_DEFAUT;
+  // Sur une porte, le premier lien du menu mène au bloc dédié (à la place de « Notre approche »).
+  const navLinks = p ? [{ href: `#${p.section.id}`, label: p.navLabel }, ...NAV_LINKS.slice(1)] : NAV_LINKS;
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const barRef = useRef(null);
@@ -466,6 +480,7 @@ export default function MariageSansStressClient() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
   return (
+    <CtaContext.Provider value={cta}>
     <div className="mss-page">
       {/* Image du héro mobile demandée en priorité, avant les photos plus bas dans la page */}
       <link rel="preload" as="image" href="/ban_mariage_sans-stress-mobile.webp" media="(max-width: 640px)" fetchPriority="high" />
@@ -646,7 +661,7 @@ export default function MariageSansStressClient() {
         }}>
           <Image src="/logo.png" alt="Myracoustic" width={140} height={47} style={{ height: 38, width: 'auto' }} priority />
           <nav className="hide-mobile" style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
-            {NAV_LINKS.map((l) => (
+            {navLinks.map((l) => (
               <a key={l.href} href={l.href} className="mss-focusable mss-nav-lien">{l.label}</a>
             ))}
             <CtaButton location="header" style={{ padding: '9px 20px', fontSize: 13.5 }} />
@@ -671,7 +686,7 @@ export default function MariageSansStressClient() {
             borderTop: '1px solid rgba(255,255,255,0.08)',
             padding: '16px 32px 24px',
           }}>
-            {NAV_LINKS.map((l) => (
+            {navLinks.map((l) => (
               <a key={l.href} href={l.href} className="mss-focusable" onClick={() => setMenuOpen(false)} style={{
                 display: 'block', color: 'rgba(255,255,255,0.8)',
                 fontFamily: 'var(--font-display), sans-serif', fontWeight: 500, fontSize: 16,
@@ -717,20 +732,20 @@ export default function MariageSansStressClient() {
 
         <div className="mss-hero-content" style={{ maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 2 }}>
           <div style={{ maxWidth: 620 }}>
-            <SectionLabel>DJ mariage</SectionLabel>
+            <SectionLabel>{p?.hero.label ?? 'DJ mariage'}</SectionLabel>
             <h1 className="mss-hero-h1" style={{
               fontFamily: 'var(--font-display), sans-serif',
               fontSize: 'clamp(34px,6vw,64px)', fontWeight: 700,
               lineHeight: 1.05, letterSpacing: '-0.02em', marginBottom: 20,
             }}>
-              Des grands-parents aux copains, une piste pleine toute la nuit.
+              {p ? insecable(p.hero.titre) : 'Des grands-parents aux copains, une piste pleine toute la nuit.'}
             </h1>
             <p className="mss-hero-subtitle" style={{
               color: 'rgba(255,255,255,0.88)',
               fontSize: 'clamp(16px,1.5vw,18px)', lineHeight: 1.75,
               marginBottom: 28, textShadow: '0 1px 14px rgba(13,27,42,0.7)',
             }}>
-              DJ, son, lumière et le film de votre soirée&nbsp;: tout compris, un seul contact, un devis clair.
+              {p ? insecable(p.hero.sousTitre) : <>DJ, son, lumière et le film de votre soirée&nbsp;: tout compris, un seul contact, un devis clair.</>}
             </p>
             <p className="mss-hero-typewriter" style={{
               fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(16px,2vw,20px)', fontWeight: 700,
@@ -748,6 +763,9 @@ export default function MariageSansStressClient() {
           <AnimatedWave bars={60} height={80} opacity={0.6} />
         </div>
       </section>
+
+      {/* ── PORTE D'ENTRÉE (pages application, film, photobooth) ── */}
+      {p && <PorteSection porte={p} cta={<CtaButton location="porte" />} />}
 
       {/* ── STATS ───────────────────────────────────────────────── */}
       <section style={{ padding: 'clamp(44px,7vw,72px) 32px', background: '#060e16', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
@@ -968,7 +986,7 @@ export default function MariageSansStressClient() {
             </h2>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {FAQ.map((item, i) => <FaqItem key={i} {...item} />)}
+            {[...(p?.faq ?? []), ...FAQ].map((item, i) => <FaqItem key={i} {...item} />)}
           </div>
         </Reveal>
       </section>
@@ -1046,5 +1064,6 @@ export default function MariageSansStressClient() {
       </div>
 
     </div>
+    </CtaContext.Provider>
   );
 }

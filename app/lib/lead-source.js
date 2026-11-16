@@ -28,3 +28,28 @@ export function resolveSource({ gclid, fbclid, oppref, utm_source, utm_medium, s
   if (fbclid || meta) return 'reseaux_sociaux';
   return null;
 }
+
+/* Portes d'entrée (16/11) : pages qui captent une autre recherche que « dj mariage »
+   (application d'organisation, film de la soirée, photobooth) et montrent que tout est
+   compris avec le DJ. La porte est rangée dans `utm_campaign` sous la forme « porte-<nom> » :
+   c'est aussi l'étiquette que posent les pubs de la campagne Portes (suffixe d'URL), donc
+   une seule lecture côté admin, et aucune nouvelle colonne en base. */
+export const PORTES_LABELS = {
+  organisation: "Application d'organisation",
+  video: 'Film de la soirée',
+  photobooth: 'Photobooth',
+};
+export const PORTES_VALUES = Object.keys(PORTES_LABELS);
+
+/* Étiquette de campagne à enregistrer : celle captée à l'arrivée (pub) si elle existe,
+   sinon la porte par laquelle le visiteur est passé (paramètre ?porte= du bouton). */
+export function campagneAvecPorte(utm_campaign, porte) {
+  if (utm_campaign) return utm_campaign;
+  return PORTES_VALUES.includes(porte) ? `porte-${porte}` : null;
+}
+
+/* Libellé lisible de la porte d'une demande, ou null si elle n'est pas passée par une porte. */
+export function libellePorte(utm_campaign) {
+  const m = /^porte-([a-z]+)$/.exec(String(utm_campaign || ''));
+  return m ? PORTES_LABELS[m[1]] || null : null;
+}

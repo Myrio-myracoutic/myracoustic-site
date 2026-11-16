@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import { getConsent, setConsent } from '../lib/consent';
 
 export default function CookieConsent() {
@@ -59,15 +60,22 @@ export default function CookieConsent() {
         padding: '8px 16px',
       }}
     >
-      {/* Bandeau compact (16/11) : une question courte, « OK » bien visible, « Refuser » juste
-          à côté en lien simple — toujours accessible en un clic, comme l'exige la CNIL. */}
-      <div style={{ maxWidth: 1080, margin: '0 auto', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', columnGap: 20, rowGap: 2 }}>
-        <p style={{ flex: '1 1 300px', fontSize: 13, color: '#1a2a3a', lineHeight: 1.5, margin: 0 }}>
-          Acceptez-vous les cookies de mesure d'audience et de publicité (Google, Meta, OpenAI) ?{' '}
+      {/* Bandeau compact (16/11) : logo en haut à gauche, une question + à quoi servent les
+          cookies, « OK pour moi » bien visible, « Refuser » juste à côté en lien simple —
+          toujours accessible en un clic, comme l'exige la CNIL. */}
+      <div style={{ maxWidth: 1180, margin: '0 auto', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'flex-end', columnGap: 20, rowGap: 2 }}>
+        <div style={{ flex: '1 1 320px', display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+          {/* Logo version fond clair (texte sombre) : le bandeau est blanc. */}
+          <Image src="/logo-light.png" alt="Myracoustic" width={750} height={380} style={{ height: 48, width: 'auto', flexShrink: 0, marginLeft: -8 }} />
+        <p style={{ flex: 1, fontSize: 13, color: '#1a2a3a', lineHeight: 1.5, margin: 0 }}>
+          <strong>Acceptez-vous nos cookies ?</strong> Ils nous aident à comprendre comment le site est utilisé
+          pour l'améliorer, et à mesurer l'efficacité de nos publicités (Google, Meta, OpenAI).
+          Vous pouvez refuser : le site fonctionne de la même façon.{' '}
           <a href="/politique-confidentialite" style={{ color: '#1a2a3a', textDecoration: 'underline', fontWeight: 600, whiteSpace: 'nowrap' }}>
             En savoir plus
           </a>
         </p>
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           <button
             onClick={() => choose('denied')}
@@ -85,9 +93,9 @@ export default function CookieConsent() {
           <button
             onClick={() => choose('granted')}
             className="btn-primary"
-            style={{ minHeight: 44, minWidth: 96, padding: '0 28px', justifyContent: 'center' }}
+            style={{ minHeight: 44, padding: '0 24px', justifyContent: 'center', whiteSpace: 'nowrap' }}
           >
-            OK
+            OK pour moi
           </button>
         </div>
       </div>

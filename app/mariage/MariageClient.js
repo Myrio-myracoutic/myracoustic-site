@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Sparkles, Download } from 'lucide-react';
 import { AnimatedWave, SectionLabel } from '../components/AnimatedWave';
 import { FAQ_ITEMS } from './faq-data';
@@ -331,6 +332,15 @@ export default function MariageClient() {
             <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 15, lineHeight: 1.75 }}>
               {ENGAGEMENT.text}
             </p>
+            {/* Lien vers la page de l'application (porte d'entrée « organisation », 16/11). /mariage est la
+                page que Google connaît le mieux : ce lien aide la nouvelle page à être trouvée. */}
+            <Link href="/organisation-mariage" style={{
+              display: 'inline-flex', alignItems: 'center', minHeight: 44, marginTop: 6,
+              color: 'var(--lime)', fontSize: 15, fontWeight: 600,
+              textDecoration: 'underline', textUnderlineOffset: 4,
+            }}>
+              Découvrir l&apos;application pour organiser votre mariage →
+            </Link>
           </div>
 
           {/* Preuve vécue — vrai avis client, pas une promesse : phrase de transition

@@ -4,6 +4,8 @@ import { Users, Armchair, UtensilsCrossed, MailOpen, ListMusic } from 'lucide-re
    « dj mariage » — un outil pour organiser son mariage, un vidéaste, un photobooth — et montrent
    que tout est déjà compris avec le DJ. Chaque porte réutilise la page /mariage-sans-stress :
    seuls le haut de page, le bloc dédié et quelques questions changent (voir PorteSection.js).
+   Une porte est une page indexée (demande de Myrio du 16/11) : à sa création, l'ajouter à
+   app/sitemap.js, au pied de page (Footer.js) et à public/llms.txt, comme /organisation-mariage.
 
    Captures de l'application : écrans réels du compte de démonstration Camille Test (invités
    d'exemple), pris en 390 × 844 double densité (780 × 1688), comme /app-playlist-propositions.webp.

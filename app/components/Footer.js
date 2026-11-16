@@ -13,6 +13,7 @@ const NAV_LINKS = [
   { href: '/evenements-prives',    label: 'Particuliers' },
   { href: '/evenement-entreprise', label: 'Entreprises' },
   { href: '/mariage',              label: 'Mariages' },
+  { href: '/organisation-mariage', label: 'Application de mariage' },
 ];
 
 const CITY_LINKS = [

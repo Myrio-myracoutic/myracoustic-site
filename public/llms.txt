@@ -2,13 +2,25 @@
 
 > Myracoustic est un prestataire événementiel basé à Nort-sur-Erdre (Loire-Atlantique, France), spécialisé en sonorisation, éclairage, vidéo et animation DJ pour mariages, événements privés et événements professionnels. Zone d'intervention principale : Pays de la Loire (Nantes, Angers, Rennes, Saint-Nazaire) et Bretagne.
 
-Myracoustic réunit dans une seule équipe les métiers de DJ, sonorisation, éclairage événementiel et vidéo/diaporama, avec plus de 26 ans d'expérience et 200+ mariages animés. Pour les mariages, chaque client dispose d'un espace personnel en ligne (« espace de mariage ») pour organiser son programme, ses playlists musicales, ses invités (RSVP), son menu et son faire-part jusqu'au jour J.
+Myracoustic réunit dans une seule équipe les métiers de DJ, sonorisation, éclairage événementiel et vidéo, avec plus de 26 ans d'expérience et 200+ mariages animés.
+
+Pour les mariages, Myracoustic propose trois formules tout compris : Ambiance Festive, Expérience Signature et Mariage d'Exception. Toutes comprennent le DJ, la sonorisation, l'éclairage de la piste de danse, le film souvenir de la soirée (monté et offert sous un mois) et l'application d'organisation. Le devis est personnalisé après un échange téléphonique.
+
+L'application de mariage Myracoustic est un espace en ligne compris dans la prestation, quelle que soit la formule. Elle n'est pas proposée seule. Elle s'ouvre dans un navigateur, sur téléphone ou sur ordinateur, sans rien installer. L'accès est ouvert dès la signature du devis, et les invités n'ont pas de compte à créer. Les mariés y gèrent :
+
+- la liste d'invités et les réponses en ligne (invitation personnelle par e-mail ou par lien, relance automatique possible) ;
+- le plan de table (tables rondes, carrées ou rectangulaires, placement des invités, impression) ;
+- le menu (choix des plats par invité, allergies et régimes, feuille pour le traiteur) ;
+- le faire-part en ligne et les infos pratiques (horaires, adresse, accès, hébergement, covoiturage) ;
+- les playlists (construites à deux, chansons proposées par les invités) ;
+- le déroulé du jour J, les animations et les surprises ;
+- les photos des invités par QR code, révélées le lendemain du mariage.
 
 ## Pages clés
 
 - [Accueil](https://myracoustic.com/) : présentation générale — son, lumière, vidéo et DJ pour mariages, événements privés et entreprises.
-- [Mariage](https://myracoustic.com/mariage) : prestations, accompagnement et formules mariage (Essentiel, Signature, Prestige). Devis personnalisé après un échange avec un conseiller.
-- [Application de mariage](https://myracoustic.com/organisation-mariage) : invités et réponses, plan de table, menu, faire-part et playlists dans une seule application, comprise dans la prestation mariage (elle n'est pas proposée seule).
+- [Mariage](https://myracoustic.com/mariage) : prestations, accompagnement et formules mariage (Ambiance Festive, Expérience Signature, Mariage d'Exception). Devis personnalisé après un échange avec un conseiller.
+- [Application de mariage](https://myracoustic.com/organisation-mariage) : l'application pour organiser son mariage, comprise avec la prestation DJ — liste d'invités et réponses, plan de table, menu, faire-part, playlists, déroulé du jour J, photos des invités.
 - [Événements privés](https://myracoustic.com/evenements-prives) : anniversaires, soirées privées, fêtes de famille. [Devis en ligne](https://myracoustic.com/devis/particulier).
 - [Événements professionnels](https://myracoustic.com/evenement-entreprise) : séminaires, galas, soirées d'entreprise. [Devis en ligne](https://myracoustic.com/devis/professionnel).
 - DJ mariage par ville : [Nantes](https://myracoustic.com/dj-mariage-nantes), [Rennes](https://myracoustic.com/dj-mariage-rennes), [Angers](https://myracoustic.com/dj-mariage-angers), [Saint-Nazaire](https://myracoustic.com/dj-mariage-saint-nazaire).
@@ -19,3 +31,5 @@ Myracoustic réunit dans une seule équipe les métiers de DJ, sonorisation, éc
 - Téléphone : 07 68 53 33 08
 - Email : contact@myracoustic.com
 - Adresse : 4 bis la Haute Cosnière, 44390 Nort-sur-Erdre, France
+
+Mis à jour le 16 novembre 2026.

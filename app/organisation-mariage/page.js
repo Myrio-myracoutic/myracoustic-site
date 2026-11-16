@@ -1,9 +1,11 @@
 import MariageSansStressClient from '../mariage-sans-stress/MariageSansStressClient';
 import { PORTES } from '../mariage-sans-stress/portes';
 
-const TITLE = "Application pour organiser votre mariage, comprise avec votre DJ";
+// Recherche visée : « application pour organiser son mariage » (et ses proches : application
+// mariage, organisation de mariage en ligne, plan de table, liste d'invités, faire-part en ligne).
+const TITLE = "Application pour organiser son mariage, comprise avec votre DJ";
 const DESCRIPTION =
-  "Invités, plan de table, menu, faire-part et playlists dans une seule application, comprise avec votre DJ, le son, la lumière et le film de votre soirée.";
+  "Liste d'invités, réponses en ligne, plan de table, menu, faire-part et playlists : l'application pour organiser votre mariage est comprise avec votre DJ.";
 
 // Porte d'entrée « organisation » (voir mariage-sans-stress/portes.js) : capte ceux qui cherchent
 // un outil pour organiser leur mariage et leur montre qu'il est compris avec le DJ.
@@ -24,6 +26,17 @@ export const metadata = {
   twitter: { images: ['/particuliers-hero.jpg'] },
 };
 
+// Fil d'Ariane : situe la page dans le site (Accueil › Mariage › Application de mariage).
+const FIL_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Accueil", item: "https://myracoustic.com/" },
+    { "@type": "ListItem", position: 2, name: "Mariage", item: "https://myracoustic.com/mariage" },
+    { "@type": "ListItem", position: 3, name: "Application de mariage", item: "https://myracoustic.com/organisation-mariage" },
+  ],
+};
+
 // Uniquement les questions propres à cette porte : elles sont affichées en tête de la FAQ.
 const FAQ_JSON_LD = {
   "@context": "https://schema.org",
@@ -38,6 +51,10 @@ const FAQ_JSON_LD = {
 export default function Page() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(FIL_JSON_LD) }}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_JSON_LD) }}

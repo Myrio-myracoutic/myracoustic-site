@@ -1,13 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { Check } from 'lucide-react';
+import Link from 'next/link';
+import { Check, ChevronDown } from 'lucide-react';
 import { SectionLabel } from '../components/AnimatedWave';
 import Reveal from '../components/Reveal';
 
 /* Bloc propre à une porte d'entrée (voir portes.js), placé juste sous le héro :
    1. ce que la personne cherchait — ici les écrans de l'application, un par un ;
-   2. le pivot — « ce n'est pas vendu seul, c'est compris avec votre DJ ».
+   2. le détail — une définition, puis un bloc par usage (contenu pour la recherche classique) ;
+   3. le pivot — « ce n'est pas vendu seul, c'est compris avec votre DJ ».
    Le cadre de téléphone reprend les classes .mss-tel de MariageSansStressClient.js.
 
    Ordinateur : la liste (titre + texte) à gauche, le téléphone à droite.
@@ -19,6 +21,8 @@ const insecable = (texte) => texte.replace(/ ([:;?!])/g, ' $1');
 export default function PorteSection({ porte, cta }) {
   const { section } = porte;
   const [actif, setActif] = useState(0);
+  // Sur téléphone, les blocs de détail au-delà du 4e se déplient à la demande (ils restent dans la page).
+  const [toutVoir, setToutVoir] = useState(false);
   const total = section.ecrans.length;
   const ecran = section.ecrans[actif];
 
@@ -77,6 +81,33 @@ export default function PorteSection({ porte, cta }) {
           transition: opacity 0.25s ease-out;
         }
         .porte-legende { display: none; }
+        .porte-details { margin-top: clamp(56px,8vw,96px); }
+        .porte-details-grille {
+          display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px;
+        }
+        .porte-detail {
+          padding: 22px; border-radius: 16px;
+          border: 1px solid var(--separator); background: var(--card);
+        }
+        .porte-detail-icone {
+          width: 40px; height: 40px; border-radius: 10px; margin-bottom: 14px;
+          display: inline-flex; align-items: center; justify-content: center;
+          background: color-mix(in srgb, var(--lime) 12%, transparent); color: var(--lime);
+        }
+        .porte-detail h3 {
+          font-family: var(--font-display), sans-serif; font-weight: 700;
+          font-size: 17.5px; line-height: 1.3; margin: 0 0 8px;
+        }
+        .porte-detail p { color: var(--text-muted); font-size: 15px; line-height: 1.65; margin: 0; }
+        .porte-liens {
+          margin: 28px auto 0; max-width: 760px; text-align: center;
+          color: var(--text-muted); font-size: 15px; line-height: 1.9;
+        }
+        .porte-liens a {
+          color: var(--text); text-decoration: underline; text-underline-offset: 3px;
+          transition: color 0.2s ease-out;
+        }
+        .porte-liens a:hover { color: var(--lime); }
         .porte-pivot {
           margin-top: clamp(40px,6vw,72px);
           display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -90,6 +121,21 @@ export default function PorteSection({ porte, cta }) {
           flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; margin-top: 1px;
           display: inline-flex; align-items: center; justify-content: center;
           background: color-mix(in srgb, var(--lime) 16%, transparent); color: var(--lime);
+        }
+        @media (max-width: 1020px) {
+          .porte-details-grille { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        .porte-details-plus { display: none; }
+        @media (max-width: 640px) {
+          .porte-details-grille { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+          .porte-detail { padding: 18px; }
+          .porte-details-grille:not(.porte-details-tout) .porte-detail:nth-child(n+5) { display: none; }
+          .porte-details-plus {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%; min-height: 48px; margin-top: 12px; padding: 0 18px;
+            border-radius: 12px; border: 1px solid var(--separator); background: transparent;
+            color: var(--text); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
+          }
         }
         @media (max-width: 860px) {
           .porte-grille { grid-template-columns: minmax(0, 1fr); gap: 24px; }
@@ -109,7 +155,7 @@ export default function PorteSection({ porte, cta }) {
           .porte-pivot { grid-template-columns: minmax(0, 1fr); }
         }
         @media (prefers-reduced-motion: reduce) {
-          .porte-item, .porte-item-icone, .porte-capture { transition: none; }
+          .porte-item, .porte-item-icone, .porte-capture, .porte-liens a { transition: none; }
         }
       `}</style>
 
@@ -169,11 +215,47 @@ export default function PorteSection({ porte, cta }) {
           </div>
         </Reveal>
 
+        {section.details && (
+          <div className="porte-details">
+            <Reveal style={{ textAlign: 'center', maxWidth: 780, margin: '0 auto clamp(28px,4vw,44px)' }}>
+              <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(24px,3.2vw,38px)', fontWeight: 700, marginBottom: 14 }}>
+                {insecable(section.details.titre)}
+              </h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: 16, lineHeight: 1.75 }}>
+                {insecable(section.details.intro)}
+              </p>
+            </Reveal>
+            <Reveal id="porte-details-grille" className={`porte-details-grille${toutVoir ? ' porte-details-tout' : ''}`}>
+              {section.details.blocs.map((b) => {
+                const Icone = b.icone;
+                return (
+                  <article key={b.titre} className="porte-detail">
+                    <span className="porte-detail-icone" aria-hidden="true"><Icone size={20} strokeWidth={1.8} /></span>
+                    <h3>{b.titre}</h3>
+                    <p>{insecable(b.texte)}</p>
+                  </article>
+                );
+              })}
+            </Reveal>
+            {!toutVoir && section.details.blocs.length > 4 && (
+              <button type="button" className="porte-details-plus mss-focusable" aria-expanded="false" aria-controls="porte-details-grille" onClick={() => setToutVoir(true)}>
+                <ChevronDown size={18} aria-hidden="true" />
+                Voir les {section.details.blocs.length - 4} autres usages
+              </button>
+            )}
+            <p className="porte-liens">
+              {section.details.liens.map((l, i) => (l.href
+                ? <Link key={i} href={l.href} className="mss-focusable">{l.t}</Link>
+                : <span key={i}>{insecable(l.t)}</span>))}
+            </p>
+          </div>
+        )}
+
         <Reveal className="porte-pivot">
           <div>
-            <h3 style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 'clamp(22px,2.6vw,30px)', lineHeight: 1.2, marginBottom: 14 }}>
+            <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 'clamp(22px,2.6vw,30px)', lineHeight: 1.2, marginBottom: 14 }}>
               {section.pivot.titre}
-            </h3>
+            </h2>
             <p style={{ color: 'var(--text-muted)', fontSize: 16, lineHeight: 1.75 }}>
               {insecable(section.pivot.texte)}
             </p>

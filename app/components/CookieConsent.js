@@ -45,6 +45,8 @@ export default function CookieConsent() {
   return (
     <div
       ref={barRef}
+      role="region"
+      aria-label="Cookies"
       style={{
         position: 'fixed',
         bottom: 0,
@@ -54,33 +56,28 @@ export default function CookieConsent() {
         background: '#ffffff',
         borderTop: '1px solid #dfe3e8',
         boxShadow: '0 -4px 16px rgba(0,0,0,0.12)',
-        padding: '16px 24px',
+        padding: '8px 16px',
       }}
     >
-      <div style={{ maxWidth: 1280, margin: '0 auto', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
-        <div style={{ flex: '1 1 360px' }}>
-          <p style={{ fontSize: 13, color: '#1a2a3a', lineHeight: 1.6, margin: 0 }}>
-            Avec votre accord, Myracoustic utilise des cookies de mesure d'audience et de suivi publicitaire
-            (Google Ads, Meta, OpenAI).{' '}
-            <a href="/politique-confidentialite" style={{ color: '#1a2a3a', textDecoration: 'underline', fontWeight: 600 }}>
-              En savoir plus →
-            </a>
-          </p>
-          <p className="hide-mobile" style={{ fontSize: 13, color: '#415266', lineHeight: 1.6, margin: '8px 0 0' }}>
-            En cas de refus, seuls les cookies techniques nécessaires au fonctionnement du site seront déposés.
-            Vous pourrez modifier votre choix à tout moment via le lien « Préférences cookies » en bas de page.
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+      {/* Bandeau compact (16/11) : une question courte, « OK » bien visible, « Refuser » juste
+          à côté en lien simple — toujours accessible en un clic, comme l'exige la CNIL. */}
+      <div style={{ maxWidth: 1080, margin: '0 auto', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', columnGap: 20, rowGap: 2 }}>
+        <p style={{ flex: '1 1 300px', fontSize: 13, color: '#1a2a3a', lineHeight: 1.5, margin: 0 }}>
+          Acceptez-vous les cookies de mesure d'audience et de publicité (Google, Meta, OpenAI) ?{' '}
+          <a href="/politique-confidentialite" style={{ color: '#1a2a3a', textDecoration: 'underline', fontWeight: 600, whiteSpace: 'nowrap' }}>
+            En savoir plus
+          </a>
+        </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           <button
             onClick={() => choose('denied')}
             onMouseEnter={() => setRefuserHover(true)}
             onMouseLeave={() => setRefuserHover(false)}
-            className="btn-secondary"
             style={{
-              color: '#1a2a3a',
-              borderColor: refuserHover ? '#8a94a0' : '#c7cdd4',
-              background: refuserHover ? '#f2f4f6' : 'transparent',
+              minHeight: 44, padding: '0 14px', border: 'none', borderRadius: 2, cursor: 'pointer',
+              font: 'inherit', fontSize: 14, fontWeight: 500, textDecoration: 'underline',
+              color: '#1a2a3a', background: refuserHover ? '#f2f4f6' : 'transparent',
+              transition: 'background 150ms ease-out',
             }}
           >
             Refuser
@@ -88,8 +85,9 @@ export default function CookieConsent() {
           <button
             onClick={() => choose('granted')}
             className="btn-primary"
+            style={{ minHeight: 44, minWidth: 96, padding: '0 28px', justifyContent: 'center' }}
           >
-            Accepter &amp; Fermer
+            OK
           </button>
         </div>
       </div>

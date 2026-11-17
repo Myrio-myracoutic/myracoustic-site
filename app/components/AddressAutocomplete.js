@@ -3,7 +3,8 @@ import { useState, useRef } from 'react';
 import { geocodeAddress } from '../lib/geocode';
 
 /* Champ adresse/lieu avec suggestions Mapbox. */
-export default function AddressAutocomplete({ value, onChange, onSelect, placeholder, inputStyle }) {
+// `inputId` (facultatif) : identifiant du champ, pour le relier à son libellé (<label htmlFor>).
+export default function AddressAutocomplete({ value, onChange, onSelect, placeholder, inputStyle, inputId }) {
   const [suggestions, setSuggestions] = useState([]);
   const [open, setOpen] = useState(false);
   const debounceRef = useRef(null);
@@ -24,6 +25,7 @@ export default function AddressAutocomplete({ value, onChange, onSelect, placeho
   return (
     <div style={{ position: 'relative' }}>
       <input
+        id={inputId}
         placeholder={placeholder}
         value={value}
         onChange={handleChange}

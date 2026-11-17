@@ -6,7 +6,8 @@ export const dynamic = 'force-dynamic';
 
 const QONTO_BASE = 'https://thirdparty.qonto.com/v2';
 const SENDER     = 'contact@myracoustic.com';
-const APP_URL    = process.env.NEXT_PUBLIC_APP_URL || 'https://myracoustic.com';
+// Espace client : sur la plateforme (l'ancien espace du site est fermé depuis le 17/11).
+const ESPACE_URL = 'https://app.myracoustic.com/connexion';
 
 function qHeaders() {
   return {
@@ -78,8 +79,8 @@ async function sendReminderEmail(toEmail, firstName, eventType, eventDate, amoun
       Vous pouvez également accéder à votre facture depuis votre espace personnel :
     </p>
     <p style="margin:0;">
-      <a href="${APP_URL}/mon-espace" style="color:#b8ef0b;font-size:13px;">
-        ${APP_URL}/mon-espace
+      <a href="${ESPACE_URL}" style="color:#b8ef0b;font-size:13px;">
+        app.myracoustic.com
       </a>
     </p>` : ''}
   </td></tr>

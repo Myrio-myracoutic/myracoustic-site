@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Sparkles, ShieldCheck, Download } from 'lucide-react';
 import { AnimatedWave, SectionLabel } from '../components/AnimatedWave';
@@ -13,6 +12,7 @@ import { CITIES } from '../lib/cities';
 import { gtagEvent } from '../lib/gtag';
 import {
   FaqItem, useLazyBackground, ENGAGEMENT_SERENITE, MARIAGE_BLOCS_CSS,
+  FondHeroMariage, HERO_MARIAGE_PHOTO, HERO_MARIAGE_CSS,
   BlocApproche, BlocQuiSommesNous, BlocGalerie, BlocServices,
 } from '../components/MariageBlocs';
 
@@ -127,42 +127,18 @@ export default function MariageClient() {
   // Photos de fond posées seulement à l'approche du bloc, pour ne pas ralentir le haut de page.
   const [avisRef, avisBg] = useLazyBackground('/ban_mariage_sans-stress-3.jpg');
   const [parcoursRef, parcoursBg] = useLazyBackground('/ban_prestation_son.jpg');
-  /* En-tête identique à /mariage-sans-stress (demande de Myrio, 18/11) : la photo affichée pendant le
-     chargement est une image de la vidéo elle-même, et le téléphone reçoit la version recadrée et
-     allégée. Rien n'est téléchargé avant ce choix, ni du tout si « réduire les animations » est activé. */
-  const [heroVideoSrc, setHeroVideoSrc] = useState(null);
-  useEffect(() => {
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
-    setHeroVideoSrc(window.matchMedia?.('(max-width: 640px)').matches
-      ? '/ban_mariage_sans-stress-mobile.mp4'
-      : '/ban_mariage_sans-stress.mp4');
-  }, []);
 
   return (
     <div className="mss-page">
-      {/* Photo d'en-tête du téléphone demandée en priorité, avant les photos plus bas dans la page */}
-      <link rel="preload" as="image" href="/ban_mariage_sans-stress-mobile.webp" media="(max-width: 640px)" fetchPriority="high" />
       <style>{`
 ${MARIAGE_BLOCS_CSS}
-        @media (prefers-reduced-motion: reduce) {
-          .mss-hero-video { display: none !important; }
-        }
+${HERO_MARIAGE_CSS}
         .mss-hero {
           min-height: 100vh;
           min-height: 100dvh;
           box-sizing: border-box;
           display: flex;
           align-items: center;
-        }
-        /* Voile réglé pour cette photo (tenues blanches) : mêmes valeurs que sur /mariage-sans-stress. */
-        .mar-hero-voile {
-          background: linear-gradient(to right,rgba(13,27,42,0.92) 0%,rgba(13,27,42,0.55) 60%,rgba(13,27,42,0.2) 100%);
-        }
-        @media (max-width: 640px) {
-          .mss-hero { background-image: url(/ban_mariage_sans-stress-mobile.webp) !important; }
-          .mar-hero-voile {
-            background: linear-gradient(to bottom,rgba(13,27,42,0.2) 0%,rgba(13,27,42,0.66) 30%,rgba(13,27,42,0.86) 100%);
-          }
         }
         @media (max-width: 768px) {
           .mss-hero-h1 { margin-bottom: 32px !important; }
@@ -183,30 +159,16 @@ ${MARIAGE_BLOCS_CSS}
       {/* ── HERO ────────────────────────────────────────────────── */}
       <section className="mss-hero" style={{
         padding: 'clamp(90px,8vw,110px) 32px clamp(90px,8vw,110px)',
-        backgroundImage: 'url(/ban_mariage_sans-stress.jpg)',
+        backgroundImage: HERO_MARIAGE_PHOTO,
         backgroundSize: 'cover', backgroundPosition: 'center',
         position: 'relative', overflow: 'hidden',
       }}>
-        {/* Vidéo en fond — absente tant que le choix n'est pas fait, ou si « réduire les animations »
-            est activé : la photo de fond du <section> reste alors affichée. */}
-        {heroVideoSrc && (
-          <video
-            className="mss-hero-video"
-            autoPlay muted loop playsInline
-            poster={heroVideoSrc.endsWith('-mobile.mp4') ? '/ban_mariage_sans-stress-mobile.webp' : '/ban_mariage_sans-stress.jpg'}
-            src={heroVideoSrc}
-            style={{
-              position: 'absolute', inset: 0, zIndex: 0,
-              width: '100%', height: '100%', objectFit: 'cover',
-            }}
-          />
-        )}
+        <FondHeroMariage />
         <div style={{
           position: 'absolute', inset: 0, zIndex: 0,
           background: 'linear-gradient(135deg,#1a050e 0%,#4a0e24 40%,#2a0a16 70%,#0d1b2a 100%)',
           opacity: 0.25,
         }} />
-        <div className="mar-hero-voile" style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none' }} />
         <div style={{
           position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
           background: 'radial-gradient(ellipse 70% 60% at 80% 40%,rgba(184,239,11,0.05) 0%,transparent 55%)',

@@ -8,6 +8,7 @@ import StatItem from './StatItem';
 import Reveal from './Reveal';
 import { CITIES } from '../lib/cities';
 import { gtagEvent } from '../lib/gtag';
+import { FondHeroMariage, HERO_MARIAGE_PHOTO, HERO_MARIAGE_CSS } from './MariageBlocs';
 
 /* Lien-pastille pour le maillage interne (villes & services liés) */
 function ChipLink({ href, children }) {
@@ -161,9 +162,7 @@ export default function MariageCityClient({ city }) {
   return (
     <div style={{ paddingTop: 70 }}>
       <style>{`
-        @media (prefers-reduced-motion: reduce) {
-          .mss-hero-video { display: none !important; }
-        }
+${HERO_MARIAGE_CSS}
         .mss-hero {
           min-height: calc(100vh - 70px);
           min-height: calc(100dvh - 70px);
@@ -180,29 +179,16 @@ export default function MariageCityClient({ city }) {
       {/* ── HERO ────────────────────────────────────────────────── */}
       <section className="mss-hero" style={{
         padding: 'clamp(48px,6vw,70px) 32px clamp(48px,6vw,70px)',
-        backgroundImage: 'url(/particuliers-hero.jpg)',
+        backgroundImage: HERO_MARIAGE_PHOTO,
         backgroundSize: 'cover', backgroundPosition: 'center',
         position: 'relative', overflow: 'hidden',
       }}>
-        <video
-          className="mss-hero-video"
-          autoPlay muted loop playsInline
-          poster="/particuliers-hero.jpg"
-          style={{
-            position: 'absolute', inset: 0, zIndex: 0,
-            width: '100%', height: '100%', objectFit: 'cover',
-          }}
-        >
-          <source src="/ban_mariage_sans-stress.mp4" type="video/mp4" />
-        </video>
+        {/* Même en-tête que /mariage : photo tirée de la vidéo, versions téléphone (18/11) */}
+        <FondHeroMariage />
         <div style={{
           position: 'absolute', inset: 0, zIndex: 0,
           background: 'linear-gradient(135deg,#1a050e 0%,#4a0e24 40%,#2a0a16 70%,#0d1b2a 100%)',
           opacity: 0.25,
-        }} />
-        <div style={{
-          position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
-          background: 'linear-gradient(to right,rgba(13,27,42,0.75) 0%,rgba(13,27,42,0.4) 60%,rgba(13,27,42,0.1) 100%)',
         }} />
         <div style={{ maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 2, width: '100%' }}>
           <SectionLabel>DJ Mariage</SectionLabel>
@@ -223,9 +209,9 @@ export default function MariageCityClient({ city }) {
             DJ MARIAGE<br /><span style={{ color: 'var(--lime)' }}>À {nom.toUpperCase()}</span>
           </h1>
           <p className="mss-hero-subtitle" style={{
-            color: 'rgba(255,255,255,0.56)',
+            color: 'rgba(255,255,255,0.88)',
             fontSize: 'clamp(15px,1.5vw,18px)', lineHeight: 1.75,
-            maxWidth: 520, marginBottom: 36,
+            maxWidth: 520, marginBottom: 36, textShadow: '0 1px 14px rgba(13,27,42,0.7)',
           }}>
             {intro}
           </p>
@@ -233,14 +219,14 @@ export default function MariageCityClient({ city }) {
             background: 'var(--lime)', color: '#0d1b2a',
             padding: '15px 32px', borderRadius: 8, fontSize: 16, fontWeight: 700,
             fontFamily: 'var(--font-display), sans-serif',
-            textDecoration: 'none', display: 'inline-block', transition: 'all 0.2s',
+            textDecoration: 'none', display: 'inline-block', transition: 'all 0.2s', textAlign: 'center', textWrap: 'balance',
           }}
             onMouseEnter={(e) => { e.currentTarget.style.background = '#ceff2a'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(0)'; }}
           >
             Vérifier la disponibilité de ma date →
           </a>
-          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 13, marginTop: 14, fontFamily: 'var(--font-display), sans-serif' }}>
+          <p style={{ color: 'rgba(255,255,255,0.78)', fontSize: 13, marginTop: 14, fontFamily: 'var(--font-display), sans-serif', textShadow: '0 1px 10px rgba(13,27,42,0.8)' }}>
             Gratuit · sans engagement · réponse sous 24h
           </p>
         </div>
@@ -297,7 +283,7 @@ export default function MariageCityClient({ city }) {
               background: 'var(--lime)', color: '#0d1b2a',
               padding: '15px 34px', borderRadius: 8, fontSize: 16, fontWeight: 700,
               fontFamily: 'var(--font-display), sans-serif',
-              textDecoration: 'none', display: 'inline-block', transition: 'all 0.2s',
+              textDecoration: 'none', display: 'inline-block', transition: 'all 0.2s', textAlign: 'center', textWrap: 'balance',
             }}
               onMouseEnter={(e) => { e.currentTarget.style.background = '#ceff2a'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(0)'; }}
@@ -361,7 +347,7 @@ export default function MariageCityClient({ city }) {
           background: 'var(--lime)', color: '#0d1b2a',
           padding: '16px 40px', borderRadius: 8, fontSize: 17, fontWeight: 700,
           fontFamily: 'var(--font-display), sans-serif',
-          textDecoration: 'none', display: 'inline-block', transition: 'all 0.2s',
+          textDecoration: 'none', display: 'inline-block', transition: 'all 0.2s', textAlign: 'center', textWrap: 'balance',
         }}
           onMouseEnter={(e) => { e.currentTarget.style.background = '#ceff2a'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(0)'; }}

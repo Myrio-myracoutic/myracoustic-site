@@ -406,6 +406,59 @@ export const MARIAGE_BLOCS_CSS = `
         }
 `;
 
+/* Fond d'en-tête des pages mariage (/mariage et les pages DJ mariage par ville) : la photo affichée
+   pendant le chargement est une image de la vidéo elle-même, et le téléphone reçoit la photo
+   recadrée et la vidéo allégée. À poser en premier dans une <section className="mss-hero"> dont
+   le fond est HERO_MARIAGE_PHOTO, avec HERO_MARIAGE_CSS dans le <style> de la page.
+   /mariage-sans-stress garde sa propre version (mêmes fichiers, même réglage du voile). */
+export const HERO_MARIAGE_PHOTO = 'url(/ban_mariage_sans-stress.jpg)';
+
+export const HERO_MARIAGE_CSS = `
+        /* Voile réglé pour cette photo (tenues blanches) : mêmes valeurs que sur /mariage-sans-stress. */
+        .mar-hero-voile {
+          background: linear-gradient(to right,rgba(13,27,42,0.92) 0%,rgba(13,27,42,0.55) 60%,rgba(13,27,42,0.2) 100%);
+        }
+        @media (max-width: 640px) {
+          .mss-hero { background-image: url(/ban_mariage_sans-stress-mobile.webp) !important; }
+          .mar-hero-voile {
+            background: linear-gradient(to bottom,rgba(13,27,42,0.2) 0%,rgba(13,27,42,0.66) 30%,rgba(13,27,42,0.86) 100%);
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .mss-hero-video { display: none !important; }
+        }
+`;
+
+export function FondHeroMariage() {
+  // Vidéo choisie côté client : rien n'est téléchargé avant, ni du tout si « réduire les animations » est activé.
+  const [videoSrc, setVideoSrc] = useState(null);
+  useEffect(() => {
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    setVideoSrc(window.matchMedia?.('(max-width: 640px)').matches
+      ? '/ban_mariage_sans-stress-mobile.mp4'
+      : '/ban_mariage_sans-stress.mp4');
+  }, []);
+  return (
+    <>
+      {/* Photo d'en-tête du téléphone demandée en priorité, avant les photos plus bas dans la page */}
+      <link rel="preload" as="image" href="/ban_mariage_sans-stress-mobile.webp" media="(max-width: 640px)" fetchPriority="high" />
+      {videoSrc && (
+        <video
+          className="mss-hero-video"
+          autoPlay muted loop playsInline
+          poster={videoSrc.endsWith('-mobile.mp4') ? '/ban_mariage_sans-stress-mobile.webp' : '/ban_mariage_sans-stress.jpg'}
+          src={videoSrc}
+          style={{
+            position: 'absolute', inset: 0, zIndex: 0,
+            width: '100%', height: '100%', objectFit: 'cover',
+          }}
+        />
+      )}
+      <div className="mar-hero-voile" style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none' }} />
+    </>
+  );
+}
+
 export function BlocApproche() {
   return (
     <>

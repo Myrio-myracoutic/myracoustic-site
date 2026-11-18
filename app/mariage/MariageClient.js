@@ -1,8 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
-import { Sparkles, Download } from 'lucide-react';
+import { Sparkles, ShieldCheck, Download } from 'lucide-react';
 import { AnimatedWave, SectionLabel } from '../components/AnimatedWave';
 import { FAQ_ITEMS } from './faq-data';
 import TestimonialCarousel from '../components/TestimonialCarousel';
@@ -11,6 +10,35 @@ import StatItem from '../components/StatItem';
 import Reveal from '../components/Reveal';
 import { CITIES } from '../lib/cities';
 import { gtagEvent } from '../lib/gtag';
+import {
+  FaqItem, useLazyBackground, ENGAGEMENT_SERENITE, MARIAGE_BLOCS_CSS,
+  BlocApproche, BlocQuiSommesNous, BlocGalerie, BlocServices,
+} from '../components/MariageBlocs';
+
+/* Page mariage principale (référencée, avec le menu et le pied de page du site). Depuis le 18/11,
+   elle reprend les blocs de /mariage-sans-stress (approche, équipe, galerie, services, engagement
+   « sérénité ») via components/MariageBlocs.js : un seul texte pour les deux pages. */
+
+// Bouton unique de la page : même destination partout, un nom de suivi par emplacement.
+function Cta({ location, style }) {
+  return (
+    <a href="/devis/mariage-contact" className="mss-focusable"
+      onClick={() => gtagEvent('funnel_step', { profil: 'mariage', step_name: `mariage_cta_${location}` })}
+      style={{
+        background: 'var(--lime)', color: '#0d1b2a',
+        padding: '15px 32px', borderRadius: 8, fontSize: 16, fontWeight: 700,
+        fontFamily: 'var(--font-display), sans-serif',
+        textDecoration: 'none', display: 'inline-block', transition: 'all 0.2s',
+        textAlign: 'center', textWrap: 'balance',
+        ...style,
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.background = '#ceff2a'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+    >
+      Vérifier la disponibilité de ma date →
+    </a>
+  );
+}
 
 function TimelineStep({ index, total, when, title, text, highlight }) {
   return (
@@ -51,34 +79,6 @@ function TimelineStep({ index, total, when, title, text, highlight }) {
   );
 }
 
-function FaqItem({ q, a }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div style={{
-      background: 'var(--card)', border: `1px solid ${open ? 'var(--lime)' : 'rgba(255,255,255,0.07)'}`,
-      borderRadius: 10, overflow: 'hidden', transition: 'border-color 0.2s',
-    }}>
-      <button onClick={() => setOpen(o => !o)} style={{
-        width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
-        background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left',
-        padding: '18px 22px', color: '#fff',
-        fontFamily: 'var(--font-display), sans-serif', fontSize: 15, fontWeight: 600,
-      }}>
-        {q}
-        <span style={{
-          flexShrink: 0, color: open ? 'var(--lime)' : 'rgba(255,255,255,0.35)',
-          fontSize: 18, transform: open ? 'rotate(45deg)' : 'none', transition: 'transform 0.2s',
-        }}>+</span>
-      </button>
-      {open && (
-        <p style={{ margin: 0, padding: '0 22px 20px', color: 'rgba(255,255,255,0.55)', fontSize: 14, lineHeight: 1.7 }}>
-          {a}
-        </p>
-      )}
-    </div>
-  );
-}
-
 const JOURNEY = [
   { when: 'Premier contact', title: 'On découvre votre projet',
     text: "Vous nous présentez votre mariage, on vous présente Myracoustic. Un devis clair et détaillé vous est envoyé, sans engagement." },
@@ -112,17 +112,25 @@ const TESTIMONIALS = [
     text: "Myrio a été à l'écoute de nos envies, on a tout calé ensemble. Ces propositions ont été pertinentes. Nous l'avions déjà vu comme dj dans des soirées repas d'entreprise et comme nous l'avions apprécié nous l'avons contacté pour notre mariage. Il est en plus super bien équipé en matériel du coup ça facilite pour faire des animations tout au long de la soirée." },
 ];
 
-const ENGAGEMENT = {
-  icon: Sparkles,
-  title: "Votre soirée, pas notre catalogue",
-  text: "Depuis votre espace personnel, vous construisez la musique et le déroulé de votre soirée avec nous — playlist, enchaînement des temps forts, ambiance. On vous conseille, on ne vous impose rien.",
-};
+// Les deux promesses de la section « Notre engagement ». La seconde vient de /mariage-sans-stress.
+const ENGAGEMENTS = [
+  { icon: Sparkles,
+    title: "Votre soirée, pas notre catalogue",
+    text: "Depuis votre espace personnel, vous construisez la musique et le déroulé de votre soirée avec nous — playlist, enchaînement des temps forts, ambiance. On vous conseille, on ne vous impose rien.",
+    // /mariage est la page que Google connaît le mieux : ce lien aide la page de l'application à être trouvée.
+    lien: { href: '/organisation-mariage', label: "Découvrir l'application pour organiser votre mariage →" } },
+  { icon: ShieldCheck, ...ENGAGEMENT_SERENITE },
+];
 
 export default function MariageClient() {
+  // Photos de fond posées seulement à l'approche du bloc, pour ne pas ralentir le haut de page.
+  const [avisRef, avisBg] = useLazyBackground('/ban_mariage_sans-stress-3.jpg');
+  const [parcoursRef, parcoursBg] = useLazyBackground('/ban_prestation_son.jpg');
 
   return (
-    <div>
+    <div className="mss-page">
       <style>{`
+${MARIAGE_BLOCS_CSS}
         @media (prefers-reduced-motion: reduce) {
           .mss-hero-video { display: none !important; }
         }
@@ -136,6 +144,16 @@ export default function MariageClient() {
         @media (max-width: 768px) {
           .mss-hero-h1 { margin-bottom: 32px !important; }
           .mss-hero-subtitle { margin-bottom: 40px !important; }
+        }
+        .mar-engagements {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 20px;
+          max-width: 940px;
+          margin: 0 auto;
+        }
+        @media (max-width: 768px) {
+          .mar-engagements { grid-template-columns: minmax(0, 1fr); gap: 14px; }
         }
       `}</style>
 
@@ -196,17 +214,7 @@ export default function MariageClient() {
           }}>
             Le jour où tout se joue. Nous orchestrons le son, la lumière et l&apos;émotion de votre cérémonie à la dernière danse — pour que vous n&apos;ayez qu&apos;à vivre l&apos;instant.
           </p>
-          <a href="/devis/mariage-contact" onClick={() => gtagEvent('funnel_step', { profil: 'mariage', step_name: 'mariage_cta_hero' })} style={{
-            background: 'var(--lime)', color: '#0d1b2a',
-            padding: '15px 32px', borderRadius: 8, fontSize: 16, fontWeight: 700,
-            fontFamily: 'var(--font-display), sans-serif',
-            textDecoration: 'none', display: 'inline-block', transition: 'all 0.2s',
-          }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = '#ceff2a'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(0)'; }}
-          >
-            Vérifier la disponibilité de ma date →
-          </a>
+          <Cta location="hero" />
           <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 13, marginTop: 14, fontFamily: 'var(--font-display), sans-serif' }}>
             Gratuit · sans engagement · réponse sous 24h
           </p>
@@ -238,10 +246,48 @@ export default function MariageClient() {
         </Reveal>
       </section>
 
-      {/* ── PARCOURS D'ACCOMPAGNEMENT ──────────────────────────────── */}
-      <section style={{
+      {/* ── NOTRE APPROCHE (bloc commun) ────────────────────────── */}
+      <BlocApproche />
+
+      {/* ── TÉMOIGNAGES ─────────────────────────────────────────── */}
+      <section ref={avisRef} style={{
         padding: 'clamp(56px,7vw,88px) 32px',
-        backgroundImage: 'url(/ban_prestation_son.jpg)',
+        backgroundImage: avisBg,
+        backgroundSize: 'cover', backgroundPosition: 'center',
+        position: 'relative', overflow: 'hidden',
+      }}>
+        <div style={{ position: 'absolute', inset: 0, zIndex: 0, background: 'rgba(6,14,22,0.88)' }} />
+        <Reveal style={{ position: 'relative', zIndex: 1, maxWidth: 1280, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 48 }}>
+            <SectionLabel style={{ justifyContent: 'center' }}>Ils en parlent</SectionLabel>
+            <h2 style={{
+              fontFamily: 'var(--font-display), sans-serif',
+              fontSize: 'clamp(24px,3.5vw,42px)', fontWeight: 700, marginBottom: 12,
+            }}>
+              Ils nous ont confié leur mariage
+            </h2>
+            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 15 }}>
+              Ils ont vécu cet accompagnement avant vous.
+            </p>
+          </div>
+          <TestimonialCarousel items={TESTIMONIALS} />
+          <Reveal style={{ textAlign: 'center', marginTop: 44 }}>
+            <Cta location="temoignages" style={{ padding: '15px 34px' }} />
+          </Reveal>
+        </Reveal>
+      </section>
+
+      {/* ── QUI SOMMES-NOUS + GALERIE (blocs communs) ───────────── */}
+      <BlocQuiSommesNous />
+      <BlocGalerie />
+
+      {/* ── NOS SERVICES (bloc commun) ──────────────────────────── */}
+      <BlocServices cta={<div style={{ marginTop: 28 }}><Cta location="services" /></div>} />
+
+      {/* ── PARCOURS D'ACCOMPAGNEMENT ──────────────────────────────── */}
+      <section ref={parcoursRef} style={{
+        padding: 'clamp(56px,7vw,88px) 32px',
+        backgroundImage: parcoursBg,
         backgroundSize: 'cover', backgroundPosition: 'center',
         position: 'relative', overflow: 'hidden',
       }}>
@@ -270,7 +316,7 @@ export default function MariageClient() {
       </section>
 
       {/* ── NOTRE ENGAGEMENT ────────────────────────────────────── */}
-      <section style={{ padding: 'clamp(56px,7vw,88px) 32px' }}>
+      <section style={{ padding: 'clamp(56px,7vw,88px) 32px', background: '#060e16', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
         <Reveal style={{ maxWidth: 1280, margin: '0 auto' }}>
           <div style={{ maxWidth: 640, margin: '0 auto 44px', textAlign: 'center' }}>
             <SectionLabel style={{ justifyContent: 'center' }}>Notre engagement</SectionLabel>
@@ -281,33 +327,36 @@ export default function MariageClient() {
               Ce qui ne change jamais
             </h2>
           </div>
-          {/* Notre promesse */}
-          <div style={{ maxWidth: 640, margin: '0 auto', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{
-              width: 44, height: 44, borderRadius: '50%', background: 'rgba(184,239,11,0.12)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16,
-            }}>
-              <ENGAGEMENT.icon size={20} color="var(--lime)" />
-            </div>
-            <h3 style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 19, marginBottom: 10 }}>
-              {ENGAGEMENT.title}
-            </h3>
-            <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 15, lineHeight: 1.75 }}>
-              {ENGAGEMENT.text}
-            </p>
-            {/* Lien vers la page de l'application (porte d'entrée « organisation », 16/11). /mariage est la
-                page que Google connaît le mieux : ce lien aide la nouvelle page à être trouvée. */}
-            <Link href="/organisation-mariage" style={{
-              display: 'inline-flex', alignItems: 'center', minHeight: 44, marginTop: 6,
-              color: 'var(--lime)', fontSize: 15, fontWeight: 600,
-              textDecoration: 'underline', textUnderlineOffset: 4,
-            }}>
-              Découvrir l&apos;application pour organiser votre mariage →
-            </Link>
+          <div className="mar-engagements">
+            {ENGAGEMENTS.map((e) => (
+              <div key={e.title} className="mss-atout">
+                <div style={{
+                  width: 44, height: 44, borderRadius: '50%', background: 'rgba(184,239,11,0.12)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18,
+                }}>
+                  <e.icon size={20} color="var(--lime)" aria-hidden="true" />
+                </div>
+                <h3 style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 19, lineHeight: 1.25, marginBottom: 10 }}>
+                  {e.title}
+                </h3>
+                <p style={{ color: 'var(--text-muted)', fontSize: 16, lineHeight: 1.7 }}>
+                  {e.text}
+                </p>
+                {e.lien && (
+                  <Link href={e.lien.href} className="mss-focusable" style={{
+                    display: 'inline-flex', alignItems: 'center', minHeight: 44, marginTop: 8,
+                    color: 'var(--lime)', fontSize: 15, fontWeight: 600,
+                    textDecoration: 'underline', textUnderlineOffset: 4,
+                  }}>
+                    {e.lien.label}
+                  </Link>
+                )}
+              </div>
+            ))}
           </div>
 
           {/* Preuve vécue — vrai avis client, pas une promesse : phrase de transition
-              explicite puis le même composant que la section Témoignages plus bas
+              explicite puis le même composant que la section Témoignages
               (étoiles, avatar, badge « Avis Google ») pour qu'on le reconnaisse
               immédiatement comme un témoignage réel, pas un argument marketing. */}
           <p style={{
@@ -320,38 +369,6 @@ export default function MariageClient() {
           <div style={{ maxWidth: 420, margin: '0 auto' }}>
             <TestimonialCard {...TESTIMONIALS[2]} />
           </div>
-        </Reveal>
-      </section>
-
-      {/* ── TÉMOIGNAGES ─────────────────────────────────────────── */}
-      <section style={{ padding: 'clamp(56px,7vw,88px) 32px' }}>
-        <Reveal style={{ maxWidth: 1280, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: 48 }}>
-            <SectionLabel style={{ justifyContent: 'center' }}>Ils en parlent</SectionLabel>
-            <h2 style={{
-              fontFamily: 'var(--font-display), sans-serif',
-              fontSize: 'clamp(24px,3.5vw,42px)', fontWeight: 700, marginBottom: 12,
-            }}>
-              Ils nous ont confié leur mariage
-            </h2>
-            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 15 }}>
-              Ils ont vécu cet accompagnement avant vous.
-            </p>
-          </div>
-          <TestimonialCarousel items={TESTIMONIALS} />
-          <Reveal style={{ textAlign: 'center', marginTop: 44 }}>
-            <a href="/devis/mariage-contact" onClick={() => gtagEvent('funnel_step', { profil: 'mariage', step_name: 'mariage_cta_temoignages' })} style={{
-              background: 'var(--lime)', color: '#0d1b2a',
-              padding: '15px 34px', borderRadius: 8, fontSize: 16, fontWeight: 700,
-              fontFamily: 'var(--font-display), sans-serif',
-              textDecoration: 'none', display: 'inline-block', transition: 'all 0.2s',
-            }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = '#ceff2a'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(0)'; }}
-            >
-              Vérifier la disponibilité de ma date →
-            </a>
-          </Reveal>
         </Reveal>
       </section>
 
@@ -452,17 +469,7 @@ export default function MariageClient() {
         <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 16, marginBottom: 32 }}>
           Trois formules claires, un conseiller vous rappelle sous 24h pour finaliser votre devis.
         </p>
-        <a href="/devis/mariage-contact" onClick={() => gtagEvent('funnel_step', { profil: 'mariage', step_name: 'mariage_cta_final' })} style={{
-          background: 'var(--lime)', color: '#0d1b2a',
-          padding: '16px 40px', borderRadius: 8, fontSize: 17, fontWeight: 700,
-          fontFamily: 'var(--font-display), sans-serif',
-          textDecoration: 'none', display: 'inline-block', transition: 'all 0.2s',
-        }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = '#ceff2a'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(0)'; }}
-        >
-          Vérifier la disponibilité de ma date →
-        </a>
+        <Cta location="final" style={{ padding: '16px 40px', fontSize: 17 }} />
         </Reveal>
       </section>
 

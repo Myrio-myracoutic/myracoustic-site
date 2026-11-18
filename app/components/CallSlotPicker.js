@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { Loader2, Phone, AlertTriangle } from 'lucide-react';
 
 const JOURS_FR = ['dim', 'lun', 'mar', 'mer', 'jeu', 'ven', 'sam'];
@@ -23,6 +23,13 @@ function nextDays(count) {
   return out;
 }
 
+// Créneaux libres d'un jour (AAAA-MM-JJ). Lève une erreur si le serveur ne répond pas.
+async function fetchSlots(date) {
+  const res = await fetch(`/api/call-availability?date=${date}`, { cache: 'no-store' });
+  if (!res.ok) throw new Error();
+  return (await res.json()).slots || [];
+}
+
 function fmtDateFr(k) {
   try { return new Date(k + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }); }
   catch { return k; }
@@ -34,7 +41,10 @@ function fmtDateFr(k) {
    plutôt que par refId direct — même mécanisme que le lien envoyé par email. */
 export default function CallSlotPicker({ kind = 'mariage', refId, token, firstName, subtitle, onBooked, onFallback }) {
   const days = nextDays(8);
-  const [selectedDate, setSelectedDate] = useState(days[0].key);
+  // Jour ouvert à l'arrivée : le premier qui a un créneau (cherché plus bas), pas forcément aujourd'hui.
+  const [selectedDate, setSelectedDate] = useState(null);
+  // Créneaux déjà reçus pendant cette recherche, pour ne pas les redemander : { date, slots }.
+  const dejaCharge = useRef(null);
   const [slots, setSlots] = useState([]);
   const [slotsLoading, setSlotsLoading] = useState(true);
   const [slotsError, setSlotsError] = useState(false);
@@ -44,10 +54,9 @@ export default function CallSlotPicker({ kind = 'mariage', refId, token, firstNa
   const loadSlots = useCallback(async (date) => {
     setSlotsLoading(true); setSlotsError(false); setBookError('');
     try {
-      const res = await fetch(`/api/call-availability?date=${date}`, { cache: 'no-store' });
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-      setSlots(data.slots || []);
+      const deja = dejaCharge.current;
+      dejaCharge.current = null;
+      setSlots(deja?.date === date ? deja.slots : await fetchSlots(date));
     } catch {
       setSlotsError(true);
     } finally {
@@ -55,7 +64,28 @@ export default function CallSlotPicker({ kind = 'mariage', refId, token, firstNa
     }
   }, []);
 
-  useEffect(() => { loadSlots(selectedDate); }, [selectedDate, loadSlots]);
+  /* À l'ouverture, on avance jour par jour jusqu'au premier créneau libre : les créneaux du jour même
+     sont souvent passés ou trop proches, et l'écran s'ouvrait sur « Aucun créneau disponible ».
+     Sans aucun créneau sur les 8 jours (ou si le serveur ne répond pas), on reste sur aujourd'hui. */
+  useEffect(() => {
+    let annule = false;
+    (async () => {
+      let choisi = days[0].key;
+      try {
+        for (const d of days) {
+          const s = await fetchSlots(d.key);
+          if (annule) return;
+          if (d.key === days[0].key || s.length) dejaCharge.current = { date: d.key, slots: s };
+          if (s.length) { choisi = d.key; break; }
+        }
+      } catch { /* loadSlots redemandera le jour choisi et affichera l'erreur si elle persiste */ }
+      if (!annule) setSelectedDate(choisi);
+    })();
+    return () => { annule = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- une seule fois, à l'ouverture
+  }, []);
+
+  useEffect(() => { if (selectedDate) loadSlots(selectedDate); }, [selectedDate, loadSlots]);
 
   const book = async (time) => {
     if (bookingTime) return;
@@ -100,7 +130,7 @@ export default function CallSlotPicker({ kind = 'mariage', refId, token, firstNa
       {/* Bandeau des 8 jours */}
       <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 6, marginBottom: 20 }}>
         {days.map(d => (
-          <button key={d.key} onClick={() => setSelectedDate(d.key)} style={{
+          <button key={d.key} onClick={() => setSelectedDate(d.key)} aria-pressed={selectedDate === d.key} style={{
             flex: '0 0 auto', width: 56, padding: '10px 0', borderRadius: 10, cursor: 'pointer',
             border: `1.5px solid ${selectedDate === d.key ? 'var(--lime)' : 'rgba(255,255,255,0.12)'}`,
             background: selectedDate === d.key ? 'rgba(184,239,11,0.12)' : 'rgba(255,255,255,0.03)',
@@ -114,7 +144,7 @@ export default function CallSlotPicker({ kind = 'mariage', refId, token, firstNa
       </div>
 
       <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', marginBottom: 14, textTransform: 'capitalize' }}>
-        {fmtDateFr(selectedDate)}
+        {selectedDate ? fmtDateFr(selectedDate) : '\u00a0'}
       </p>
 
       {/* Créneaux */}

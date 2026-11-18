@@ -8,15 +8,18 @@ Next.js 16 App Router, JavaScript SANS TypeScript, React 19, Supabase, hébergé
 `npm run dev` · `npm run build` (obligatoire avant tout push) · `npm run lint`
 
 ## Zones
-- `app/(devis)/` tunnel de devis · `app/mon-espace/` espace client · `app/admin/` back-office
+- `app/(devis)/` formulaires de demande : mariage, pro, particulier (plus de devis calculé en ligne)
+- `app/mon-espace/` et `app/admin/` : ancien espace client et ancien back-office, FERMÉS depuis le 17/11.
+  `next.config.mjs` les renvoie vers app.myracoustic.com (dossier `plateforme/`). Code mort gardé
+  jusqu'au nettoyage : ne rien y construire, tout nouvel écran client ou admin va dans `plateforme/`.
 - `app/api/` routes serveur (Qonto, Google Calendar, musique, crons)
 - `app/components/` composants partagés — réutiliser avant d'en créer un nouveau
 - `supabase-migrations/` — toute modif de schéma = fichier SQL daté ici (AAAA-MM-JJ_nom.sql)
 
 ## Pièges connus (chacun a déjà coûté une session)
 - Apostrophe française « ' » dans une string à guillemets simples → casse le build Vercel.
-- Nouvelle table Supabase exposée au client : la policy RLS ne suffit PAS —
-  `GRANT` à `authenticated` obligatoire.
+- Nouvelle table Supabase : la policy RLS ne suffit pas. Il faut aussi `GRANT` à `authenticated`
+  (table lue par le client) et à `service_role` (table lue par le serveur), sinon erreur 403 sans message visible.
 - Menu/dropdown en `position:fixed` → à rendre dans `document.body` via `createPortal`,
   sinon il sort de l'écran dans les longues listes.
 - Jamais de hook dans un `.map()`, jamais de composant défini dans le render du parent

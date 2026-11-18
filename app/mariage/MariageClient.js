@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
+import { useState } from 'react';
 import Link from 'next/link';
 import { Sparkles, Download } from 'lucide-react';
 import { AnimatedWave, SectionLabel } from '../components/AnimatedWave';
@@ -120,13 +119,6 @@ const ENGAGEMENT = {
 };
 
 export default function MariageClient() {
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    const h = () => setScrolled(window.scrollY > 40);
-    window.addEventListener('scroll', h, { passive: true });
-    return () => window.removeEventListener('scroll', h);
-  }, []);
 
   return (
     <div>
@@ -146,35 +138,6 @@ export default function MariageClient() {
           .mss-hero-subtitle { margin-bottom: 40px !important; }
         }
       `}</style>
-
-      {/* ── HEADER (pas de menu, pas de liens annexes — logo + un seul CTA) ──
-           Fixe, transparent au chargement, coloré au scroll (même mécanisme que Nav.js) ── */}
-      <div style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200,
-        background: scrolled ? 'rgba(13,27,42,0.96)' : 'transparent',
-        backdropFilter: scrolled ? 'blur(18px)' : 'none',
-        borderBottom: scrolled ? '1px solid rgba(255,255,255,0.07)' : 'none',
-        transition: 'all 0.35s ease',
-      }}>
-        <div style={{
-          padding: '20px 32px', maxWidth: 1280, margin: '0 auto', minHeight: 44,
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
-        }}>
-          <Image src="/logo.png" alt="Myracoustic" width={150} height={50} style={{ height: 44, width: 'auto' }} priority />
-          <a href="/devis/mariage-contact" onClick={() => gtagEvent('funnel_step', { profil: 'mariage', step_name: 'mariage_cta_header' })} style={{
-            background: 'var(--lime)', color: '#0d1b2a',
-            padding: '10px 20px', borderRadius: 6, fontSize: 14, fontWeight: 700,
-            fontFamily: 'var(--font-display), sans-serif',
-            textDecoration: 'none', display: 'inline-block', whiteSpace: 'nowrap', transition: 'all 0.2s',
-          }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = '#ceff2a'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; }}
-          >
-            <span className="hide-mobile">Vérifier ma disponibilité →</span>
-            <span className="hide-desktop">Devis →</span>
-          </a>
-        </div>
-      </div>
 
       {/* ── HERO ────────────────────────────────────────────────── */}
       <section className="mss-hero" style={{

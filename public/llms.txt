@@ -21,8 +21,8 @@ L'application de mariage Myracoustic est un espace en ligne compris dans la pres
 - [Accueil](https://myracoustic.com/) : présentation générale — son, lumière, vidéo et DJ pour mariages, événements privés et entreprises.
 - [Mariage](https://myracoustic.com/mariage) : prestations, accompagnement et formules mariage (Ambiance Festive, Expérience Signature, Mariage d'Exception). Devis personnalisé après un échange avec un conseiller.
 - [Application de mariage](https://myracoustic.com/organisation-mariage) : l'application pour organiser son mariage, comprise avec la prestation DJ — liste d'invités et réponses, plan de table, menu, faire-part, playlists, déroulé du jour J, photos des invités.
-- [Événements privés](https://myracoustic.com/evenements-prives) : anniversaires, soirées privées, fêtes de famille. [Devis en ligne](https://myracoustic.com/devis/particulier).
-- [Événements professionnels](https://myracoustic.com/evenement-entreprise) : séminaires, galas, soirées d'entreprise. [Devis en ligne](https://myracoustic.com/devis/professionnel).
+- [Événements professionnels](https://myracoustic.com/evenement-entreprise) : séminaires, galas, soirées d'entreprise. Devis personnalisé après un échange avec un conseiller. [Demande de devis](https://myracoustic.com/devis/professionnel).
+- [Événements privés](https://myracoustic.com/evenements-prives) : anniversaires, soirées privées, fêtes de famille. Devis personnalisé après un échange avec un conseiller. [Demande de devis](https://myracoustic.com/devis/particulier).
 - DJ mariage par ville : [Nantes](https://myracoustic.com/dj-mariage-nantes), [Rennes](https://myracoustic.com/dj-mariage-rennes), [Angers](https://myracoustic.com/dj-mariage-angers), [Saint-Nazaire](https://myracoustic.com/dj-mariage-saint-nazaire).
 - Sonorisation par ville : [Nantes](https://myracoustic.com/sonorisation-nantes), [Rennes](https://myracoustic.com/sonorisation-rennes), [Angers](https://myracoustic.com/sonorisation-angers), [Saint-Nazaire](https://myracoustic.com/sonorisation-saint-nazaire).
 
@@ -32,4 +32,4 @@ L'application de mariage Myracoustic est un espace en ligne compris dans la pres
 - Email : contact@myracoustic.com
 - Adresse : 4 bis la Haute Cosnière, 44390 Nort-sur-Erdre, France
 
-Mis à jour le 16 novembre 2026.
+Mis à jour le 18 novembre 2026.

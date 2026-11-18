@@ -10,9 +10,9 @@ const SERVICES = ['Sonorisation', 'Éclairage', 'Vidéo & Mapping', 'Animation D
 
 const NAV_LINKS = [
   { href: '/',                     label: 'Accueil' },
-  { href: '/evenements-prives',    label: 'Particuliers' },
-  { href: '/evenement-entreprise', label: 'Entreprises' },
   { href: '/mariage',              label: 'Mariages' },
+  { href: '/evenement-entreprise', label: 'Entreprises' },
+  { href: '/evenements-prives',    label: 'Particuliers' },
   { href: '/organisation-mariage', label: 'Application de mariage' },
 ];
 
@@ -98,7 +98,7 @@ export default function Footer() {
               onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--lime)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.45)'; }}
             >
-              Devis en ligne
+              Demander un devis
             </a>
           </div>
 

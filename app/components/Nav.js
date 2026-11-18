@@ -8,9 +8,9 @@ import { Menu, X } from 'lucide-react';
 
 const LINKS = [
   { href: '/',              label: 'Accueil' },
+  { href: '/mariage',        label: 'Mariages' },
   { href: '/evenement-entreprise',   label: 'Entreprises' },
   { href: '/evenements-prives',  label: 'Particuliers' },
-  { href: '/mariage',        label: 'Mariages' },
 ];
 
 export default function Nav() {

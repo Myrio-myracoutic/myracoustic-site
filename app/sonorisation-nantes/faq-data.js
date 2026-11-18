@@ -8,5 +8,5 @@ export const FAQ_ITEMS = [
   { q: 'Quel matériel de sonorisation utilisez-vous ?',
     a: "Le matériel est sélectionné selon la configuration du lieu, le nombre de participants et les contraintes acoustiques, avec pour objectif une intelligibilité optimale et une couverture homogène de l'espace." },
   { q: 'Comment obtenir un devis pour une prestation de sonorisation à Nantes ?',
-    a: "Le plus simple est de nous contacter via notre formulaire de devis en ligne. Selon votre projet (particulier ou professionnel), nous vous orientons vers la prestation la plus adaptée." },
+    a: "Remplissez notre formulaire de demande : date, lieu et besoins. Nous vous rappelons sous 24h (jours ouvrés), puis vous recevez une proposition sur mesure, gratuite et sans engagement." },
 ];

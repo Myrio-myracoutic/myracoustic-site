@@ -143,7 +143,7 @@ const INCLUDES = [
   'Visite technique du lieu avant l\'événement',
   'Installation et démontage inclus dans le devis',
   'Technicien présent toute la soirée',
-  'Devis personnalisé en ligne en moins de 2 minutes',
+  'Proposition sur mesure, gratuite et sans engagement',
   'Contrat clair avec engagement de qualité',
   'Assurance responsabilité civile professionnelle',
 ];
@@ -206,18 +206,19 @@ export default function ParticuliersPage() {
             fontSize: 'clamp(15px,1.5vw,18px)', lineHeight: 1.75,
             maxWidth: 520, marginBottom: 36,
           }}>
-            Mariage, anniversaire, fête de famille — nous créons l'ambiance sonore et visuelle parfaite pour que votre événement soit inoubliable.
+            Anniversaire, soirée privée, fête de famille — nous créons l'ambiance sonore et visuelle parfaite pour que votre événement soit inoubliable.
           </p>
           <a href="/devis/particulier" style={{
             background: 'var(--lime)', color: '#0d1b2a',
             padding: '15px 32px', borderRadius: 8, fontSize: 16, fontWeight: 700,
             fontFamily: 'var(--font-display), sans-serif',
             textDecoration: 'none', display: 'inline-block', transition: 'all 0.2s',
+            textAlign: 'center', textWrap: 'balance',
           }}
             onMouseEnter={(e) => { e.currentTarget.style.background = '#ceff2a'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(0)'; }}
           >
-            Calculer mon devis en ligne →
+            Vérifier la disponibilité de ma date →
           </a>
         </div>
 
@@ -348,18 +349,19 @@ export default function ParticuliersPage() {
           Prêt à commencer ?
         </h2>
         <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 16, marginBottom: 32 }}>
-          Calculez votre devis en ligne en moins de 3 minutes.
+          Dites-nous votre date : nous vous rappelons sous 24h pour imaginer votre soirée.
         </p>
         <a href="/devis/particulier" style={{
           background: 'var(--lime)', color: '#0d1b2a',
           padding: '16px 40px', borderRadius: 8, fontSize: 17, fontWeight: 700,
           fontFamily: 'var(--font-display), sans-serif',
           textDecoration: 'none', display: 'inline-block', transition: 'all 0.2s',
+          textAlign: 'center', textWrap: 'balance',
         }}
           onMouseEnter={(e) => { e.currentTarget.style.background = '#ceff2a'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(0)'; }}
         >
-          Calculer mon devis en ligne →
+          Vérifier la disponibilité de ma date →
         </a>
         </Reveal>
       </section>

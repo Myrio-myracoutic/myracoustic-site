@@ -12,13 +12,13 @@ const CITY = {
     { q: 'Proposez-vous la sonorisation pour des événements à Angers ?',
       a: "Oui. Basé à Nort-sur-Erdre, Myracoustic intervient régulièrement à Angers et dans tout le Maine-et-Loire pour des mariages, soirées d'entreprise, séminaires et événements privés." },
     { q: 'Quelle est la distance entre votre base et Angers ?',
-      a: "Environ 90 km depuis Nort-sur-Erdre, soit 50 à 55 minutes de trajet. Les frais de déplacement sont calculés automatiquement dans notre outil de devis selon la distance exacte de votre lieu." },
+      a: "Environ 90 km depuis Nort-sur-Erdre, soit 50 à 55 minutes de trajet. Les frais de déplacement sont calculés selon la distance exacte de votre lieu et indiqués en clair dans votre devis." },
     { q: 'Intervenez-vous pour des mariages en Maine-et-Loire ?',
       a: "Oui. Nous animons régulièrement des mariages en Maine-et-Loire, dans les domaines, châteaux et salles de réception de la région angevine et au-delà. Notre page dédiée mariage vous donnera un aperçu complet." },
     { q: 'Quelle est la différence entre vos prestations particuliers et entreprises ?',
       a: "Pour les particuliers (mariages, anniversaires), nous proposons sonorisation, éclairage et animation DJ. Pour les entreprises (séminaires, conventions, galas), nous proposons sonorisation, éclairage, écran LED et régie technique complète." },
     { q: 'Comment obtenir un devis pour une prestation à Angers ?',
-      a: "Utilisez notre outil de devis en ligne. Renseignez votre lieu (l'estimation de trajet est automatique), le type d'événement et vos besoins — vous obtenez une estimation en moins de 2 minutes." },
+      a: "Remplissez notre formulaire de demande : date, lieu et besoins. Nous vous rappelons sous 24h (jours ouvrés), puis vous recevez une proposition sur mesure, gratuite et sans engagement." },
   ],
 };
 

@@ -355,7 +355,7 @@ export default function MariageCityClient({ city }) {
           Disponible pour votre date à {nom} ?
         </h2>
         <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 16, marginBottom: 32 }}>
-          Calculez votre devis mariage en ligne en moins de 3 minutes.
+          Vérifiez votre date en ligne, puis parlons de votre mariage de vive voix.
         </p>
         <a href="/devis/mariage-contact" onClick={() => gtagEvent('funnel_step', { profil: 'mariage', step_name: 'mariage_cta' })} style={{
           background: 'var(--lime)', color: '#0d1b2a',

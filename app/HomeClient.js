@@ -278,7 +278,7 @@ export default function Home() {
           Prêt à créer un <span style={{ color: 'var(--lime)' }}>événement mémorable ?</span>
         </h2>
         <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 17, marginBottom: 36 }}>
-          Obtenez votre devis personnalisé en quelques minutes.
+          Dites-nous quel événement vous préparez : nous vous rappelons sous 24h pour construire votre proposition sur mesure.
         </p>
         <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
           <a href="/devis" style={{
@@ -290,7 +290,7 @@ export default function Home() {
             onMouseEnter={(e) => { e.currentTarget.style.background = '#ceff2a'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(0)'; }}
           >
-            Calculer mon devis →
+            Demander mon devis →
           </a>
           <Link href="/evenement-entreprise" style={{
             background: 'transparent', color: 'white',

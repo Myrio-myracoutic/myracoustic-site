@@ -17,7 +17,7 @@ const CITY = {
     { q: 'Quel délai pour réserver votre DJ pour un mariage sur la côte ?',
       a: "Idéalement 6 à 12 mois à l'avance, notamment pour les saisons de haute fréquentation en bord de mer. N'hésitez pas à nous contacter en dehors de ces créneaux — nous faisons notre possible." },
     { q: 'Comment obtenir un devis DJ mariage pour Saint-Nazaire ou La Baule ?',
-      a: "Utilisez notre outil de devis en ligne. Renseignez le lieu de votre mariage — les frais de déplacement depuis Nort-sur-Erdre sont calculés automatiquement." },
+      a: "Vérifiez la disponibilité de votre date via notre formulaire, puis choisissez un créneau d'appel. Après cet échange, vous recevez une proposition sur mesure, gratuite et sans engagement." },
   ],
 };
 

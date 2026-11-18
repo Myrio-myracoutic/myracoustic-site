@@ -9,7 +9,7 @@ const CITY = {
   intro: "À 100 km de Nort-sur-Erdre, Myracoustic anime des mariages à Rennes et dans toute l'Ille-et-Vilaine — DJ, sonorisation, éclairage et animation pour votre plus beau jour.",
   faq: [
     { q: 'Animez-vous des mariages à Rennes et en Ille-et-Vilaine ?',
-      a: "Oui. Myracoustic anime des mariages à Rennes et dans tout le département d'Ille-et-Vilaine. Les frais de déplacement depuis Nort-sur-Erdre sont calculés automatiquement dans notre devis en ligne." },
+      a: "Oui. Myracoustic anime des mariages à Rennes et dans tout le département d'Ille-et-Vilaine. Les frais de déplacement depuis Nort-sur-Erdre sont calculés selon la distance exacte de votre lieu et indiqués en clair dans votre devis." },
     { q: 'Gérez-vous la cérémonie laïque pour les mariages à Rennes ?',
       a: "Oui. Sonorisation de la cérémonie laïque, micro pour l'officiant, musique d'entrée et de sortie — nous couvrons tous les moments clés de votre journée de mariage à Rennes." },
     { q: 'Dans quels lieux intervenez-vous pour les mariages en Ille-et-Vilaine ?',
@@ -17,7 +17,7 @@ const CITY = {
     { q: 'Quel délai pour réserver votre DJ pour un mariage à Rennes ?',
       a: "Idéalement 6 à 12 mois à l'avance pour garantir notre disponibilité à votre date. N'hésitez pas à nous contacter même pour une date proche." },
     { q: 'Comment obtenir un devis DJ mariage pour Rennes ?',
-      a: "Utilisez notre outil de devis en ligne. Renseignez le lieu de votre mariage en Ille-et-Vilaine — les frais de déplacement depuis Nort-sur-Erdre sont calculés automatiquement." },
+      a: "Vérifiez la disponibilité de votre date via notre formulaire, puis choisissez un créneau d'appel. Après cet échange, vous recevez une proposition sur mesure, gratuite et sans engagement." },
   ],
 };
 

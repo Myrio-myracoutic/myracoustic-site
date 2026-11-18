@@ -12,13 +12,13 @@ const CITY = {
     { q: 'Proposez-vous la sonorisation à Rennes et en Bretagne ?',
       a: "Oui. Myracoustic intervient à Rennes et dans tout le département d'Ille-et-Vilaine pour des mariages, soirées d'entreprise, séminaires et événements privés. Nous couvrons également une partie de la Bretagne selon la nature du projet." },
     { q: 'Quelle est la distance entre votre base et Rennes ?',
-      a: "Environ 100 km depuis Nort-sur-Erdre, soit environ 1 heure de trajet. Les frais de déplacement sont calculés automatiquement dans notre outil de devis selon la distance exacte de votre lieu." },
+      a: "Environ 100 km depuis Nort-sur-Erdre, soit environ 1 heure de trajet. Les frais de déplacement sont calculés selon la distance exacte de votre lieu et indiqués en clair dans votre devis." },
     { q: 'Intervenez-vous pour des mariages en Ille-et-Vilaine ?',
       a: "Oui. Nous animons des mariages en Ille-et-Vilaine dans des domaines, châteaux et salles de réception. Notre page dédiée mariage vous donnera un aperçu complet de notre offre pour votre grand jour." },
     { q: 'Quelle est la différence entre vos prestations particuliers et entreprises ?',
       a: "Pour les particuliers (mariages, anniversaires), nous proposons sonorisation, éclairage et animation DJ. Pour les entreprises (séminaires, conventions, galas), nous proposons sonorisation, éclairage, écran LED et régie technique complète." },
     { q: 'Comment obtenir un devis pour un événement à Rennes ?',
-      a: "Utilisez notre outil de devis en ligne. Renseignez le lieu de l'événement, le type de prestation et vos besoins — vous obtenez une estimation en moins de 2 minutes avec les frais de déplacement inclus." },
+      a: "Remplissez notre formulaire de demande : date, lieu et besoins. Nous vous rappelons sous 24h (jours ouvrés), puis vous recevez une proposition sur mesure, gratuite et sans engagement." },
   ],
 };
 

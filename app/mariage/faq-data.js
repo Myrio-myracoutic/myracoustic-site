@@ -10,7 +10,7 @@ export const FAQ_ITEMS = [
   { q: 'Proposez-vous une animation avec micro pour les discours et animations ?',
     a: "Oui. Nous fournissons des micros sans fil pour les discours, l'ouverture de bal, le lancer de bouquet et toutes les prises de parole. L'animation au micro reste discrète et élégante, centrée sur vos invités et vos choix." },
   { q: 'Quel est le délai pour réserver votre prestation mariage ?',
-    a: "Nous recommandons de nous contacter le plus tôt possible, idéalement 6 à 12 mois à l'avance pour un mariage, afin de garantir notre disponibilité à votre date. N'hésitez pas à nous contacter même pour une date proche — nous faisons notre possible." },
+    a: "Il n'y a pas de délai fixe. Nous vous conseillons toutefois de nous contacter 12 à 18 mois avant votre mariage, afin de garantir notre disponibilité à votre date. N'hésitez pas à nous contacter même pour une date proche — nous faisons notre possible." },
   { q: "Travaillez-vous avec des wedding planners et d'autres prestataires ?",
     a: "Oui. Nous coordonnons régulièrement avec des wedding planners, traiteurs, photographes et vidéastes. Une bonne communication entre prestataires est essentielle pour que chaque moment se déroule sans accroc." },
   { q: 'Faut-il prévoir un repas pour le DJ ?',

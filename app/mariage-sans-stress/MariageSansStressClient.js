@@ -119,7 +119,7 @@ const FAQ = [
   { q: "Peut-on modifier la prestation après la réservation ?",
     a: "Oui, dans les conditions prévues par nos conditions générales de vente. Toute modification est confirmée par écrit." },
   { q: "Quand faut-il réserver ?",
-    a: "Nous conseillons de réserver 12 à 18 mois à l'avance, surtout pour les samedis de la saison. Les dates disponibles évoluent selon les réservations." },
+    a: "Il n'y a pas de délai fixe. Nous vous conseillons toutefois de nous contacter 12 à 18 mois à l'avance, surtout pour les samedis de la saison. Les dates disponibles évoluent selon les réservations." },
 ];
 
 const TYPEWRITER_WORDS = [

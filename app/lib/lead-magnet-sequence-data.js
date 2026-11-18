@@ -9,7 +9,7 @@ export const SEQUENCE_EMAILS = [
     title: 'Le bon moment pour réserver',
     body: [
       "Une question revient souvent : « on a le temps, non ? » Pour la sonorisation et l'animation d'un mariage, la réponse dépend surtout de votre date. Les samedis de printemps et d'été partent les premiers, parfois plus d'un an à l'avance.",
-      "En pratique, mieux vaut contacter les prestataires qui vous intéressent 6 à 12 mois avant votre mariage. Cela ne veut pas dire signer tout de suite — juste vérifier que votre date est encore disponible, et comprendre comment chacun travaille avant de vous décider.",
+      "En pratique, mieux vaut contacter les prestataires qui vous intéressent 12 à 18 mois avant votre mariage. Cela ne veut pas dire signer tout de suite — juste vérifier que votre date est encore disponible, et comprendre comment chacun travaille avant de vous décider.",
       "Si vous êtes déjà dans cette fenêtre, ce n'est pas un problème : contactez les prestataires qui vous plaisent et demandez-leur simplement si votre date est encore libre.",
     ],
   },

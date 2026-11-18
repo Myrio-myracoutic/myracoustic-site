@@ -15,7 +15,7 @@ const CITY = {
     { q: 'Dans quels lieux intervenez-vous pour les mariages en Ille-et-Vilaine ?',
       a: "Nous intervenons dans tous types de lieux : domaines et châteaux de la région rennaise, salles de réception, chapiteaux et espaces extérieurs. Une visite technique préalable est réalisée avant chaque prestation." },
     { q: 'Quel délai pour réserver votre DJ pour un mariage à Rennes ?',
-      a: "Idéalement 6 à 12 mois à l'avance pour garantir notre disponibilité à votre date. N'hésitez pas à nous contacter même pour une date proche." },
+      a: "Il n'y a pas de délai fixe. L'idéal est de nous contacter 12 à 18 mois à l'avance pour garantir notre disponibilité à votre date. N'hésitez pas à nous contacter même pour une date proche." },
     { q: 'Comment obtenir un devis DJ mariage pour Rennes ?',
       a: "Vérifiez la disponibilité de votre date via notre formulaire, puis choisissez un créneau d'appel. Après cet échange, vous recevez une proposition sur mesure, gratuite et sans engagement." },
   ],

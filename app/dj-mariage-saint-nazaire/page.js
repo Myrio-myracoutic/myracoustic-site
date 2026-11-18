@@ -15,7 +15,7 @@ const CITY = {
     { q: "Dans quels lieux intervenez-vous pour les mariages en presqu'île guérandaise ?",
       a: "Nous intervenons dans tous types de lieux de la presqu'île : salles de réception, domaines, espaces événementiels bord de mer, chapiteaux et jardins. Une visite technique préalable est systématique." },
     { q: 'Quel délai pour réserver votre DJ pour un mariage sur la côte ?',
-      a: "Idéalement 6 à 12 mois à l'avance, notamment pour les saisons de haute fréquentation en bord de mer. N'hésitez pas à nous contacter en dehors de ces créneaux — nous faisons notre possible." },
+      a: "Il n'y a pas de délai fixe. L'idéal est de nous contacter 12 à 18 mois à l'avance, notamment pour les saisons de haute fréquentation en bord de mer. N'hésitez pas à nous contacter en dehors de ces créneaux — nous faisons notre possible." },
     { q: 'Comment obtenir un devis DJ mariage pour Saint-Nazaire ou La Baule ?',
       a: "Vérifiez la disponibilité de votre date via notre formulaire, puis choisissez un créneau d'appel. Après cet échange, vous recevez une proposition sur mesure, gratuite et sans engagement." },
   ],

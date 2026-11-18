@@ -15,7 +15,7 @@ const CITY = {
     { q: 'Dans quels lieux intervenez-vous pour les mariages en Maine-et-Loire ?',
       a: "Nous intervenons dans tous types de lieux du Maine-et-Loire : domaines du Val de Loire, châteaux, salles de réception, chapiteaux et espaces extérieurs. Une visite technique préalable est systématique." },
     { q: 'Quel délai pour réserver votre DJ pour un mariage à Angers ?',
-      a: "Idéalement 6 à 12 mois à l'avance pour un mariage, pour garantir notre disponibilité. N'hésitez pas à nous contacter même pour une date proche — nous faisons notre possible." },
+      a: "Il n'y a pas de délai fixe. L'idéal est de nous contacter 12 à 18 mois à l'avance, pour garantir notre disponibilité. N'hésitez pas à nous contacter même pour une date proche — nous faisons notre possible." },
     { q: 'Comment obtenir un devis DJ mariage pour Angers ?',
       a: "Vérifiez la disponibilité de votre date via notre formulaire, puis choisissez un créneau d'appel. Après cet échange, vous recevez une proposition sur mesure, gratuite et sans engagement." },
   ],

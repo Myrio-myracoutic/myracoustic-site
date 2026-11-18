@@ -15,7 +15,7 @@ const CITY = {
     { q: 'Dans quels lieux intervenez-vous pour les mariages autour de Nantes ?',
       a: "Nous intervenons dans tous types de lieux : salles de réception, châteaux, domaines et manoirs du pays nantais, chapiteaux et espaces extérieurs. Une visite technique préalable est systématique pour garantir la qualité sonore." },
     { q: 'Quel délai pour réserver votre prestation mariage à Nantes ?',
-      a: "Nous recommandons de nous contacter 6 à 12 mois à l'avance pour un mariage, pour garantir notre disponibilité à votre date. N'hésitez pas à nous contacter même pour une date proche — nous faisons notre possible." },
+      a: "Il n'y a pas de délai fixe. Nous vous conseillons toutefois de nous contacter 12 à 18 mois avant votre mariage, pour garantir notre disponibilité à votre date. N'hésitez pas à nous contacter même pour une date proche — nous faisons notre possible." },
     { q: 'Peut-on choisir la playlist musicale pour notre mariage ?',
       a: "Absolument. Morceaux incontournables, styles à privilégier ou à éviter, ouverture de bal préparée ensemble — le DJ adapte ensuite le set en temps réel à l'ambiance de la piste et au profil de vos invités." },
   ],

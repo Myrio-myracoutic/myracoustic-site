@@ -289,7 +289,7 @@ function MiniCal({ selected, onSelect, devisPending = {}, bookedDates = new Set(
 function ProfileCard({ icon: Icon, title, sub, badge, onClick }) {
   const [hov, setHov] = useState(false);
   return (
-    <button onClick={onClick} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
+    <button type="button" className="profile-card" onClick={onClick} onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
       style={{
         background: hov ? 'rgba(184,239,11,0.08)' : 'var(--card)',
         border: `1px solid ${hov ? 'var(--lime)' : 'rgba(255,255,255,0.1)'}`,
@@ -297,12 +297,12 @@ function ProfileCard({ icon: Icon, title, sub, badge, onClick }) {
         transition: 'all 0.25s', transform: hov ? 'translateY(-4px)' : 'none',
         textAlign: 'center', width: '100%',
       }}>
-      <div style={{ marginBottom: 14, color: hov ? 'var(--lime)' : 'rgba(255,255,255,0.72)' }}><Icon size={40} strokeWidth={1.5} /></div>
-      <div style={{
+      <div className="profile-card-icon" style={{ marginBottom: 14, color: hov ? 'var(--lime)' : 'rgba(255,255,255,0.72)' }}><Icon size={40} strokeWidth={1.5} aria-hidden="true" /></div>
+      <div className="profile-card-title" style={{
         fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 22,
         marginBottom: 8, color: hov ? 'var(--lime)' : 'white',
       }}>{title}</div>
-      <div style={{ color: 'rgba(255,255,255,0.42)', fontSize: 13, lineHeight: 1.65, whiteSpace: 'pre-line' }}>{sub}</div>
+      {sub && <div style={{ color: 'rgba(255,255,255,0.42)', fontSize: 13, lineHeight: 1.65, whiteSpace: 'pre-line' }}>{sub}</div>}
       {badge && (
         <div style={{
           marginTop: 14, display: 'inline-block', padding: '4px 12px',
@@ -1329,7 +1329,8 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
      ÉTAPES PARTICULIER
   ══════════════════════════════════════════════════════════════════ */
 
-  /* Gate — choix du profil */
+  /* Gate — choix du type d'événement. Trois portes (18/11), le mariage en premier : chacune mène
+     à son formulaire de demande. */
   const renderGate = () => (
     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', position: 'relative' }}>
       <button onClick={goBack} className="hide-desktop" style={{
@@ -1338,18 +1339,20 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
         cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 7, padding: 0,
         fontSize: 13, fontFamily: 'var(--font-display), sans-serif', fontWeight: 500,
       }}>← Retour</button>
-      <div style={{ width: '100%', maxWidth: 640, textAlign: 'center' }}>
+      <div style={{ width: '100%', maxWidth: 940, textAlign: 'center' }}>
         <AnimatedWave bars={36} height={60} style={{ maxWidth: 480, margin: '0 auto 28px' }} />
         <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(22px,4vw,34px)', fontWeight: 700, marginBottom: 8 }}>
           Parlons de votre événement
         </h1>
         <p style={{ color: 'rgba(255,255,255,0.42)', fontSize: 14, marginBottom: 36, lineHeight: 1.7 }}>
-          Choisissez votre profil.
+          Quel événement préparez-vous ?
         </p>
-        <div className="gate-profile-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-          <ProfileCard icon={Building2} title="Professionnel"
+        <div className="gate-profile-grid gate-3" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+          <ProfileCard icon={Heart} title="Mariage"
+            onClick={() => router.push('/devis/mariage-contact')} />
+          <ProfileCard icon={Building2} title="Événement professionnel"
             onClick={() => router.push('/devis/professionnel')} />
-          <ProfileCard icon={PartyPopper} title="Particulier"
+          <ProfileCard icon={PartyPopper} title="Événement privé"
             onClick={() => router.push('/devis/particulier')} />
         </div>
         <p style={{ color: 'var(--lime)', fontSize: 12, fontWeight: 600, marginTop: 20 }}>
@@ -3156,12 +3159,24 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
         .pro-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
         .pro-structure { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         .pro-choice:focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; }
+        .profile-card:focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; }
+        /* Page /devis : trois portes côte à côte, icônes et titres alignés en haut. */
+        .gate-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+        .gate-3 .profile-card { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 32px 16px !important; }
+        /* 20px : « Événement professionnel » tient sur une ligne, les trois cartes restent identiques. */
+        .gate-3 .profile-card-title { font-size: 20px !important; }
         @media (max-width: 960px) { .pro-cols { grid-template-columns: 1fr; gap: 36px; } }
         @media (max-width: 560px) { .pro-grid-2, .pro-structure { grid-template-columns: 1fr; } .pro-structure .pro-choice { justify-content: flex-start !important; } }
         @media (max-width: 768px) {
           .devis-tunnel-header { display: none !important; }
           .devis-outer { padding-top: calc(52px + env(safe-area-inset-top)) !important; }
           .gate-profile-grid { grid-template-columns: 1fr !important; }
+          /* Téléphone : trois lignes compactes (icône à gauche, titre à droite), visibles sans défiler. */
+          .gate-3 { gap: 10px !important; }
+          .gate-3 .profile-card { flex-direction: row; gap: 16px; padding: 18px 20px !important; min-height: 68px; text-align: left !important; transform: none !important; }
+          .gate-3 .profile-card-icon { margin-bottom: 0 !important; display: flex; flex-shrink: 0; }
+          .gate-3 .profile-card-icon svg { width: 28px; height: 28px; }
+          .gate-3 .profile-card-title { margin-bottom: 0 !important; font-size: 18px !important; }
           .step4-container { padding-bottom: 100px !important; }
           .submit-cta-bar {
             position: fixed; bottom: 0; left: 0; right: 0; z-index: 60;

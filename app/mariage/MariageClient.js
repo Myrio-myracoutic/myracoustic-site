@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Sparkles, ShieldCheck, Download } from 'lucide-react';
 import { AnimatedWave, SectionLabel } from '../components/AnimatedWave';
@@ -126,9 +127,21 @@ export default function MariageClient() {
   // Photos de fond posées seulement à l'approche du bloc, pour ne pas ralentir le haut de page.
   const [avisRef, avisBg] = useLazyBackground('/ban_mariage_sans-stress-3.jpg');
   const [parcoursRef, parcoursBg] = useLazyBackground('/ban_prestation_son.jpg');
+  /* En-tête identique à /mariage-sans-stress (demande de Myrio, 18/11) : la photo affichée pendant le
+     chargement est une image de la vidéo elle-même, et le téléphone reçoit la version recadrée et
+     allégée. Rien n'est téléchargé avant ce choix, ni du tout si « réduire les animations » est activé. */
+  const [heroVideoSrc, setHeroVideoSrc] = useState(null);
+  useEffect(() => {
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    setHeroVideoSrc(window.matchMedia?.('(max-width: 640px)').matches
+      ? '/ban_mariage_sans-stress-mobile.mp4'
+      : '/ban_mariage_sans-stress.mp4');
+  }, []);
 
   return (
     <div className="mss-page">
+      {/* Photo d'en-tête du téléphone demandée en priorité, avant les photos plus bas dans la page */}
+      <link rel="preload" as="image" href="/ban_mariage_sans-stress-mobile.webp" media="(max-width: 640px)" fetchPriority="high" />
       <style>{`
 ${MARIAGE_BLOCS_CSS}
         @media (prefers-reduced-motion: reduce) {
@@ -140,6 +153,16 @@ ${MARIAGE_BLOCS_CSS}
           box-sizing: border-box;
           display: flex;
           align-items: center;
+        }
+        /* Voile réglé pour cette photo (tenues blanches) : mêmes valeurs que sur /mariage-sans-stress. */
+        .mar-hero-voile {
+          background: linear-gradient(to right,rgba(13,27,42,0.92) 0%,rgba(13,27,42,0.55) 60%,rgba(13,27,42,0.2) 100%);
+        }
+        @media (max-width: 640px) {
+          .mss-hero { background-image: url(/ban_mariage_sans-stress-mobile.webp) !important; }
+          .mar-hero-voile {
+            background: linear-gradient(to bottom,rgba(13,27,42,0.2) 0%,rgba(13,27,42,0.66) 30%,rgba(13,27,42,0.86) 100%);
+          }
         }
         @media (max-width: 768px) {
           .mss-hero-h1 { margin-bottom: 32px !important; }
@@ -160,30 +183,30 @@ ${MARIAGE_BLOCS_CSS}
       {/* ── HERO ────────────────────────────────────────────────── */}
       <section className="mss-hero" style={{
         padding: 'clamp(90px,8vw,110px) 32px clamp(90px,8vw,110px)',
-        backgroundImage: 'url(/particuliers-hero.jpg)',
+        backgroundImage: 'url(/ban_mariage_sans-stress.jpg)',
         backgroundSize: 'cover', backgroundPosition: 'center',
         position: 'relative', overflow: 'hidden',
       }}>
-        <video
-          className="mss-hero-video"
-          autoPlay muted loop playsInline
-          poster="/particuliers-hero.jpg"
-          style={{
-            position: 'absolute', inset: 0, zIndex: 0,
-            width: '100%', height: '100%', objectFit: 'cover',
-          }}
-        >
-          <source src="/ban_mariage_sans-stress.mp4" type="video/mp4" />
-        </video>
+        {/* Vidéo en fond — absente tant que le choix n'est pas fait, ou si « réduire les animations »
+            est activé : la photo de fond du <section> reste alors affichée. */}
+        {heroVideoSrc && (
+          <video
+            className="mss-hero-video"
+            autoPlay muted loop playsInline
+            poster={heroVideoSrc.endsWith('-mobile.mp4') ? '/ban_mariage_sans-stress-mobile.webp' : '/ban_mariage_sans-stress.jpg'}
+            src={heroVideoSrc}
+            style={{
+              position: 'absolute', inset: 0, zIndex: 0,
+              width: '100%', height: '100%', objectFit: 'cover',
+            }}
+          />
+        )}
         <div style={{
           position: 'absolute', inset: 0, zIndex: 0,
           background: 'linear-gradient(135deg,#1a050e 0%,#4a0e24 40%,#2a0a16 70%,#0d1b2a 100%)',
           opacity: 0.25,
         }} />
-        <div style={{
-          position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
-          background: 'linear-gradient(to right,rgba(13,27,42,0.75) 0%,rgba(13,27,42,0.4) 60%,rgba(13,27,42,0.1) 100%)',
-        }} />
+        <div className="mar-hero-voile" style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none' }} />
         <div style={{
           position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none',
           background: 'radial-gradient(ellipse 70% 60% at 80% 40%,rgba(184,239,11,0.05) 0%,transparent 55%)',
@@ -208,14 +231,14 @@ ${MARIAGE_BLOCS_CSS}
             VOTRE MARIAGE,<br /><span style={{ color: 'var(--lime)' }}>NOTRE MUSIQUE</span>
           </h1>
           <p className="mss-hero-subtitle" style={{
-            color: 'rgba(255,255,255,0.56)',
+            color: 'rgba(255,255,255,0.88)',
             fontSize: 'clamp(15px,1.5vw,18px)', lineHeight: 1.75,
-            maxWidth: 520, marginBottom: 36,
+            maxWidth: 520, marginBottom: 36, textShadow: '0 1px 14px rgba(13,27,42,0.7)',
           }}>
             Le jour où tout se joue. Nous orchestrons le son, la lumière et l&apos;émotion de votre cérémonie à la dernière danse — pour que vous n&apos;ayez qu&apos;à vivre l&apos;instant.
           </p>
           <Cta location="hero" />
-          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 13, marginTop: 14, fontFamily: 'var(--font-display), sans-serif' }}>
+          <p style={{ color: 'rgba(255,255,255,0.78)', fontSize: 13, marginTop: 14, fontFamily: 'var(--font-display), sans-serif', textShadow: '0 1px 10px rgba(13,27,42,0.8)' }}>
             Gratuit · sans engagement · réponse sous 24h
           </p>
         </div>

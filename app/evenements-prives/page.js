@@ -13,10 +13,10 @@ export const metadata = {
     title: "Anniversaire, Fête & Soirée Privée à Nantes — Myracoustic",
     description:
       "Anniversaire, fête de famille, soirée privée à Nantes et en Pays de la Loire : Myracoustic crée l'ambiance sonore et visuelle parfaite pour votre événement.",
-    images: [{ url: '/particuliers-hero.jpg', width: 1500, height: 780, alt: 'Événement privé Myracoustic' }],
+    images: [{ url: '/evenements-prives-hero.jpg', width: 1500, height: 843, alt: 'Événement privé Myracoustic' }],
   },
   twitter: {
-    images: ['/particuliers-hero.jpg'],
+    images: ['/evenements-prives-hero.jpg'],
   },
 };
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Volume2, Lightbulb, Video, Headphones } from 'lucide-react';
 import { AnimatedWave, WaveBullet, SectionLabel } from '../components/AnimatedWave';
 import { FAQ_ITEMS } from './faq-data';
@@ -173,7 +174,7 @@ export default function ParticuliersPage() {
       {/* ── HERO ────────────────────────────────────────────────── */}
       <section style={{
         padding: 'clamp(64px,9vw,110px) 32px clamp(80px,10vw,120px)',
-        backgroundImage: 'url(/particuliers-hero.jpg)',
+        backgroundImage: 'url(/evenements-prives-hero.jpg)', // piste pleine d'une soirée, plus la photo de mariés (18/11)
         backgroundSize: 'cover', backgroundPosition: 'center',
         position: 'relative', overflow: 'hidden',
       }}>
@@ -220,6 +221,16 @@ export default function ParticuliersPage() {
           >
             Vérifier la disponibilité de ma date →
           </a>
+          {/* Les pubs « DJ + ville » amènent aussi des futurs mariés sur cette page : on les oriente. */}
+          <p style={{ marginTop: 18, fontSize: 14, color: 'rgba(255,255,255,0.78)', textShadow: '0 1px 10px rgba(13,27,42,0.8)' }}>
+            Vous préparez un mariage ?{' '}
+            <Link href="/mariage" style={{
+              color: 'var(--lime)', fontWeight: 600, textDecoration: 'underline', textUnderlineOffset: 4,
+              display: 'inline-flex', alignItems: 'center', minHeight: 44,
+            }}>
+              Découvrez notre accompagnement mariage →
+            </Link>
+          </p>
         </div>
 
         {/* Onde décorative en bas du hero */}

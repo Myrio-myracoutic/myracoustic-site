@@ -270,7 +270,7 @@ export default function MariageContactClient() {
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         position: 'sticky', top: 0, background: 'rgba(6,14,22,0.95)', backdropFilter: 'blur(12px)', zIndex: 50,
       }}>
-        <Image src="/logo.png" alt="Myracoustic" width={110} height={37} style={{ height: 34, width: 'auto' }} priority />
+        <Image src="/logo.png" alt="Myracoustic" width={69} height={34} style={{ height: 34, width: 'auto' }} priority />
       </div>
 
       {step === 'slot' ? (

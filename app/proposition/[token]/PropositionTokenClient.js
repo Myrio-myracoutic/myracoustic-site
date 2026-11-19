@@ -31,7 +31,7 @@ function Shell({ children }) {
   return (
     <div style={{ minHeight: '100dvh', background: '#060e16', color: '#fff', fontFamily: 'var(--font-body), sans-serif' }}>
       <div style={{ borderBottom: '1px solid rgba(255,255,255,0.07)', padding: '14px 20px', display: 'flex', justifyContent: 'center' }}>
-        <Image src="/logo.png" alt="Myracoustic" width={110} height={37} style={{ height: 34, width: 'auto' }} priority />
+        <Image src="/logo.png" alt="Myracoustic" width={69} height={34} style={{ height: 34, width: 'auto' }} priority />
       </div>
       <div style={{ maxWidth: 580, margin: '0 auto', padding: '40px 20px 70px' }}>{children}</div>
     </div>

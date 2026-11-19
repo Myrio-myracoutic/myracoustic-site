@@ -44,7 +44,7 @@ export default function Nav() {
       }}>
         {/* Logo */}
         <Link href="/" style={{ display: 'flex', alignItems: 'center' }}>
-          <Image src="/logo.png" alt="Myracoustic" width={180} height={60} style={{ height: 60, width: 'auto' }} priority />
+          <Image src="/logo.png" alt="Myracoustic" width={122} height={60} style={{ height: 60, width: 'auto' }} priority />
         </Link>
 
         {/* Liens desktop */}

@@ -70,7 +70,7 @@ export default function CookieConsent() {
     >
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, borderBottom: '1px solid #d5dae0', paddingBottom: 4, marginBottom: 10 }}>
         {/* Logo version fond clair (texte sombre) : la carte est blanche. */}
-        <Image src="/logo-light.png" alt="Myracoustic" width={750} height={380} style={{ height: 48, width: 'auto', flexShrink: 0, marginLeft: -8 }} />
+        <Image src="/logo-light.png" alt="Myracoustic" width={97} height={48} style={{ height: 48, width: 'auto', flexShrink: 0, marginLeft: -8 }} />
         <button
           onClick={() => choose('denied')}
           onMouseEnter={() => setRefuserHover(true)}

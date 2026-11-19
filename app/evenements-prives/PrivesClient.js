@@ -300,7 +300,7 @@ export default function ParticuliersPage() {
           </div>
           <div style={{
             borderRadius: 16, minHeight: 380,
-            backgroundImage: 'url(/ban_fête_myr.jpg)',
+            backgroundImage: 'url(/ban-fete-myr.webp)',
             backgroundSize: 'cover', backgroundPosition: 'center',
           }} />
         </Reveal>

@@ -281,7 +281,7 @@ ${MARIAGE_BLOCS_CSS}
           padding: '14px 32px', display: 'flex',
           alignItems: 'center', justifyContent: 'space-between', gap: 12,
         }}>
-          <Image src="/logo.png" alt="Myracoustic" width={140} height={47} style={{ height: 38, width: 'auto' }} priority />
+          <Image src="/logo.png" alt="Myracoustic" width={77} height={38} style={{ height: 38, width: 'auto' }} priority />
           <nav className="hide-mobile" style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
             {navLinks.map((l) => (
               <a key={l.href} href={l.href} className="mss-focusable mss-nav-lien">{l.label}</a>

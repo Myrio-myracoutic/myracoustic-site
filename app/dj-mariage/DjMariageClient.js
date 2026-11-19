@@ -86,7 +86,7 @@ export default function DjMariageClient() {
         background: 'rgba(6,14,22,0.85)', backdropFilter: 'blur(12px)',
         borderBottom: '1px solid rgba(255,255,255,0.06)',
       }}>
-        <Image src="/logo.png" alt="Myracoustic" width={140} height={47} style={{ height: 38, width: 'auto' }} priority />
+        <Image src="/logo.png" alt="Myracoustic" width={77} height={38} style={{ height: 38, width: 'auto' }} priority />
         <div style={{ textAlign: 'right' }}>
           <a href="tel:0768533308" style={{
             display: 'inline-flex', alignItems: 'center', gap: 6,

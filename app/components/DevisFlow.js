@@ -1218,7 +1218,7 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
       {logo ? (
         <>
           <span aria-hidden="true" />
-          <Image src="/logo.png" alt="Myracoustic" width={126} height={42} style={{ height: 42, width: 'auto' }} priority />
+          <Image src="/logo.png" alt="Myracoustic" width={85} height={42} style={{ height: 42, width: 'auto' }} priority />
         </>
       ) : (
         <button onClick={goBack} style={{

@@ -264,7 +264,7 @@ ${HERO_MARIAGE_CSS}
             </h2>
             {INCLUDES.map((item, i) => <BulletItem key={i}>{item}</BulletItem>)}
           </div>
-          <div style={{ borderRadius: 16, minHeight: 380, backgroundImage: 'url(/ban_fête_myr.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
+          <div style={{ borderRadius: 16, minHeight: 380, backgroundImage: 'url(/ban-fete-myr.webp)', backgroundSize: 'cover', backgroundPosition: 'center' }} />
         </Reveal>
       </section>
 

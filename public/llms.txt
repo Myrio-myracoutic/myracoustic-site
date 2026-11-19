@@ -20,6 +20,7 @@ L'application de mariage Myracoustic est un espace en ligne compris dans la pres
 
 - [Accueil](https://myracoustic.com/) : présentation générale — son, lumière, vidéo et DJ pour mariages, événements privés et entreprises.
 - [Mariage](https://myracoustic.com/mariage) : prestations, accompagnement et formules mariage (Ambiance Festive, Expérience Signature, Mariage d'Exception). Devis personnalisé après un échange avec un conseiller.
+- [Guide : 7 questions à poser avant de choisir son DJ de mariage](https://myracoustic.com/guide-dj-mariage) : article signé Myrio (DJ depuis 26 ans), avec pour chaque question la réponse à attendre et ce que fait Myracoustic.
 - [Application de mariage](https://myracoustic.com/organisation-mariage) : l'application pour organiser son mariage, comprise avec la prestation DJ — liste d'invités et réponses, plan de table, menu, faire-part, playlists, déroulé du jour J, photos des invités.
 - [Événements professionnels](https://myracoustic.com/evenement-entreprise) : séminaires, galas, soirées d'entreprise. Devis personnalisé après un échange avec un conseiller. [Demande de devis](https://myracoustic.com/devis/professionnel).
 - [Événements privés](https://myracoustic.com/evenements-prives) : anniversaires, soirées privées, fêtes de famille. Devis personnalisé après un échange avec un conseiller. [Demande de devis](https://myracoustic.com/devis/particulier).

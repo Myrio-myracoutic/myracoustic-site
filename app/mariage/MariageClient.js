@@ -429,10 +429,10 @@ ${HERO_MARIAGE_CSS}
             </div>
             <div>
               <div style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 15.5, marginBottom: 3 }}>
-                Pas encore décidé ? Téléchargez notre guide gratuit
+                Pas encore décidé ? Lisez notre guide
               </div>
               <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13.5 }}>
-                7 questions à poser à tout prestataire DJ de mariage avant de signer.
+                7 questions à poser à un DJ de mariage avant de signer, et les réponses à attendre.
               </div>
             </div>
           </div>
@@ -441,7 +441,7 @@ ${HERO_MARIAGE_CSS}
             padding: '11px 22px', borderRadius: 8, fontSize: 13.5, fontWeight: 700,
             fontFamily: 'var(--font-display), sans-serif', textDecoration: 'none', whiteSpace: 'nowrap',
           }}>
-            Recevoir le guide →
+            Lire le guide →
           </a>
         </Reveal>
       </section>

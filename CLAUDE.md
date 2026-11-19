@@ -42,3 +42,5 @@ Next.js 16 App Router, JavaScript SANS TypeScript, React 19, Supabase, hébergé
 - Fonts : Space Grotesk (titres), Hanken Grotesk (texte).
 - Page publique = page serveur (metadata dédiées : title, description, OG, canonical)
   + composant client `XxxClient.js` + entrée dans `app/sitemap.js`.
+- Tout changement de contenu d'une page publique (texte, sections, mise en page) : mettre à jour
+  sa date `modifie` dans `app/sitemap.js`, dans le même commit. Pas pour une image allégée ni le pied de page.

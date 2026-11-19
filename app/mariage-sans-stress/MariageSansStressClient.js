@@ -367,7 +367,7 @@ ${MARIAGE_BLOCS_CSS}
               fontSize: 'clamp(16px,1.5vw,18px)', lineHeight: 1.75,
               marginBottom: 28, textShadow: '0 1px 14px rgba(13,27,42,0.7)',
             }}>
-              {p ? insecable(p.hero.sousTitre) : <>DJ, son, lumière et le film de votre soirée&nbsp;: tout compris, un seul contact, un devis clair.</>}
+              {p ? insecable(p.hero.sousTitre) : <>Votre DJ mariage autour de Nantes, Rennes et Angers. Son, lumière et film de votre soirée&nbsp;: tout compris, un seul contact.</>}
             </p>
             <p className="mss-hero-typewriter" style={{
               fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(16px,2vw,20px)', fontWeight: 700,

@@ -51,7 +51,7 @@ export default function Footer() {
           {/* Colonne marque */}
           <div>
             <Image src="/logo.png" alt="Myracoustic" width={180} height={60} style={{ height: 60, width: 'auto', marginBottom: 16 }} />
-            <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, lineHeight: 1.8, maxWidth: 240 }}>
+            <p style={{ color: 'rgba(255,255,255,0.62)', fontSize: 14, lineHeight: 1.8, maxWidth: 240 }}>
               Prestataire événementiel premium. Son, lumière, vidéo et DJ pour mariages et événements professionnels.
               Basé à Nort-sur-Erdre, intervient sur Nantes, Angers, Rennes, Saint-Nazaire et toute la région Pays de la Loire.
             </p>
@@ -59,44 +59,44 @@ export default function Footer() {
 
           {/* Services */}
           <div>
-            <h5 style={{
+            <h2 style={{
               fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase',
               color: 'var(--lime)', marginBottom: 16,
               fontFamily: "var(--font-mono), monospace",
             }}>
               Services
-            </h5>
+            </h2>
             {SERVICES.map((s) => (
-              <p key={s} style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, marginBottom: 9 }}>{s}</p>
+              <p key={s} style={{ color: 'rgba(255,255,255,0.62)', fontSize: 14, marginBottom: 9 }}>{s}</p>
             ))}
           </div>
 
           {/* Navigation */}
           <div>
-            <h5 style={{
+            <h2 style={{
               fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase',
               color: 'var(--lime)', marginBottom: 16,
               fontFamily: "var(--font-mono), monospace",
             }}>
               Naviguer
-            </h5>
+            </h2>
             {NAV_LINKS.map((l) => (
               <Link key={l.href} href={l.href} style={{
-                display: 'block', color: 'rgba(255,255,255,0.45)', fontSize: 14, marginBottom: 9,
+                display: 'block', color: 'rgba(255,255,255,0.62)', fontSize: 14, marginBottom: 9,
                 textDecoration: 'none', transition: 'color 0.2s',
               }}
                 onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--lime)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.45)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.62)'; }}
               >
                 {l.label}
               </Link>
             ))}
             <a href="/devis" style={{
-              display: 'block', color: 'rgba(255,255,255,0.45)', fontSize: 14, marginBottom: 9,
+              display: 'block', color: 'rgba(255,255,255,0.62)', fontSize: 14, marginBottom: 9,
               textDecoration: 'none', transition: 'color 0.2s',
             }}
               onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--lime)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.45)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.62)'; }}
             >
               Demander un devis
             </a>
@@ -104,20 +104,20 @@ export default function Footer() {
 
           {/* Zones */}
           <div>
-            <h5 style={{
+            <h2 style={{
               fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase',
               color: 'var(--lime)', marginBottom: 16,
               fontFamily: "var(--font-mono), monospace",
             }}>
               Zones
-            </h5>
+            </h2>
             {CITY_LINKS.map((l) => (
               <Link key={l.href} href={l.href} style={{
-                display: 'block', color: 'rgba(255,255,255,0.45)', fontSize: 14, marginBottom: 9,
+                display: 'block', color: 'rgba(255,255,255,0.62)', fontSize: 14, marginBottom: 9,
                 textDecoration: 'none', transition: 'color 0.2s',
               }}
                 onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--lime)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.45)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.62)'; }}
               >
                 {l.label}
               </Link>
@@ -126,20 +126,20 @@ export default function Footer() {
 
           {/* Contact */}
           <div>
-            <h5 style={{
+            <h2 style={{
               fontSize: 12, letterSpacing: '0.18em', textTransform: 'uppercase',
               color: 'var(--lime)', marginBottom: 16,
               fontFamily: "var(--font-mono), monospace",
             }}>
               Contact
-            </h5>
-            <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, marginBottom: 9, display: 'flex', alignItems: 'center', gap: 7 }}>
+            </h2>
+            <p style={{ color: 'rgba(255,255,255,0.62)', fontSize: 14, marginBottom: 9, display: 'flex', alignItems: 'center', gap: 7 }}>
               <MapPin size={13} strokeWidth={1.8} /> Nort-sur-Erdre — Loire-Atlantique
             </p>
-            <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, marginBottom: 9, display: 'flex', alignItems: 'center', gap: 7 }}>
+            <p style={{ color: 'rgba(255,255,255,0.62)', fontSize: 14, marginBottom: 9, display: 'flex', alignItems: 'center', gap: 7 }}>
               <Phone size={13} strokeWidth={1.8} /> 07 68 53 33 08
             </p>
-            <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 14, marginBottom: 9, display: 'flex', alignItems: 'center', gap: 7 }}>
+            <p style={{ color: 'rgba(255,255,255,0.62)', fontSize: 14, marginBottom: 9, display: 'flex', alignItems: 'center', gap: 7 }}>
               <Mail size={13} strokeWidth={1.8} /> contact@myracoustic.com
             </p>
             <a
@@ -149,11 +149,11 @@ export default function Footer() {
               aria-label="Myracoustic sur Instagram"
               style={{
                 display: 'flex', alignItems: 'center', gap: 7,
-                color: 'rgba(255,255,255,0.45)', fontSize: 14, marginTop: 4,
+                color: 'rgba(255,255,255,0.62)', fontSize: 14, marginTop: 4,
                 textDecoration: 'none', transition: 'color 0.2s',
               }}
               onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--lime)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.45)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.62)'; }}
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <rect x="2" y="2" width="20" height="20" rx="5" />
@@ -169,11 +169,11 @@ export default function Footer() {
               aria-label="Myracoustic sur YouTube"
               style={{
                 display: 'flex', alignItems: 'center', gap: 7,
-                color: 'rgba(255,255,255,0.45)', fontSize: 14, marginTop: 9,
+                color: 'rgba(255,255,255,0.62)', fontSize: 14, marginTop: 9,
                 textDecoration: 'none', transition: 'color 0.2s',
               }}
               onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--lime)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.45)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.62)'; }}
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <rect x="2" y="5" width="20" height="14" rx="4" />
@@ -190,29 +190,29 @@ export default function Footer() {
           display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
-            <p style={{ color: 'rgba(255,255,255,0.25)', fontSize: 13, whiteSpace: 'nowrap' }}>
+            <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 13, whiteSpace: 'nowrap' }}>
               © 2026 Myracoustic.
             </p>
             <a href="https://app.myracoustic.com/connexion" style={{
-              color: 'rgba(255,255,255,0.35)', fontSize: 12, fontWeight: 600,
+              color: 'rgba(255,255,255,0.55)', fontSize: 12, fontWeight: 600,
               textDecoration: 'none', whiteSpace: 'nowrap',
               fontFamily: "var(--font-display), sans-serif",
               transition: 'color 0.2s',
             }}
               onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--lime)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.35)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.55)'; }}
             >
               Espace client
             </a>
             <span style={{ color: 'rgba(255,255,255,0.1)', fontSize: 12 }}>·</span>
             {LEGAL_LINKS.map((l) => (
               <Link key={l.href} href={l.href} style={{
-                color: 'rgba(255,255,255,0.22)', fontSize: 12,
+                color: 'rgba(255,255,255,0.55)', fontSize: 12,
                 textDecoration: 'underline', textDecorationColor: 'rgba(255,255,255,0.12)',
                 transition: 'color 0.2s', whiteSpace: 'nowrap',
               }}
                 onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--lime)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.22)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.55)'; }}
               >
                 {l.label}
               </Link>
@@ -220,12 +220,12 @@ export default function Footer() {
             <button
               onClick={() => window.dispatchEvent(new Event('myra-cookie-prefs'))}
               style={{
-                color: 'rgba(255,255,255,0.22)', fontSize: 12, background: 'none', border: 'none', padding: 0,
+                color: 'rgba(255,255,255,0.55)', fontSize: 12, background: 'none', border: 'none', padding: 0,
                 cursor: 'pointer', textDecoration: 'underline', textDecorationColor: 'rgba(255,255,255,0.12)',
                 transition: 'color 0.2s', whiteSpace: 'nowrap', fontFamily: 'inherit',
               }}
               onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--lime)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.22)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.55)'; }}
             >
               Préférences cookies
             </button>

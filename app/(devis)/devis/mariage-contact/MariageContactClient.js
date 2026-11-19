@@ -30,7 +30,7 @@ const input = {
   borderRadius: 8, padding: '12px 14px', color: '#fff', fontSize: 15, fontFamily: 'inherit',
   outline: 'none', boxSizing: 'border-box',
 };
-const label = { display: 'block', fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)', marginBottom: 7 };
+const label = { display: 'block', fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.62)', marginBottom: 7 };
 const chipStyle = { background: 'rgba(184,239,11,0.1)', border: '1px solid rgba(184,239,11,0.3)', color: 'var(--lime)', borderRadius: 20, padding: '5px 12px', fontSize: 12.5, cursor: 'pointer', fontFamily: 'var(--font-display), sans-serif' };
 const linkBtn = { background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', fontSize: 13, cursor: 'pointer', textDecoration: 'underline', padding: 0, marginTop: 10, fontFamily: 'inherit' };
 
@@ -340,8 +340,9 @@ export default function MariageContactClient() {
 
           {formPhase === 'date' ? (
             <div style={{ marginBottom: 12 }}>
-              <label style={label}>Date du mariage</label>
+              <label htmlFor="mc-date" style={label}>Date du mariage</label>
               <input
+                id="mc-date"
                 type="date"
                 value={nativeDateInput}
                 min={todayIso}
@@ -354,7 +355,7 @@ export default function MariageContactClient() {
               />
 
               {availLoading && nativeDateInput && (
-                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 6 }}>Vérification de la disponibilité…</p>
+                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.62)', marginTop: 6 }}>Vérification de la disponibilité…</p>
               )}
 
               <div ref={feedbackRef}>
@@ -436,27 +437,27 @@ export default function MariageContactClient() {
 
               {/* Formulaire */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-                <div><label style={label}>Prénom</label><input value={firstName} onFocus={() => touch('prenom')} onChange={e => setFirstName(e.target.value)} placeholder="Prénom" style={input} /></div>
-                <div><label style={label}>Nom</label><input value={lastName} onFocus={() => touch('nom')} onChange={e => setLastName(e.target.value)} placeholder="Nom" style={input} /></div>
+                <div><label htmlFor="mc-prenom" style={label}>Prénom</label><input id="mc-prenom" value={firstName} onFocus={() => touch('prenom')} onChange={e => setFirstName(e.target.value)} placeholder="Prénom" style={input} /></div>
+                <div><label htmlFor="mc-nom" style={label}>Nom</label><input id="mc-nom" value={lastName} onFocus={() => touch('nom')} onChange={e => setLastName(e.target.value)} placeholder="Nom" style={input} /></div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-                <div><label style={label}>Téléphone</label><input type="tel" value={phone} onFocus={() => touch('telephone')} onChange={e => setPhone(e.target.value)} placeholder="06 12 34 56 78" style={input} /></div>
-                <div><label style={label}>Email</label><input type="email" value={email} onFocus={() => touch('email')} onChange={e => setEmail(e.target.value)} placeholder="vous@email.com" style={input} /></div>
+                <div><label htmlFor="mc-tel" style={label}>Téléphone</label><input id="mc-tel" type="tel" value={phone} onFocus={() => touch('telephone')} onChange={e => setPhone(e.target.value)} placeholder="06 12 34 56 78" style={input} /></div>
+                <div><label htmlFor="mc-email" style={label}>Email</label><input id="mc-email" type="email" value={email} onFocus={() => touch('email')} onChange={e => setEmail(e.target.value)} placeholder="vous@email.com" style={input} /></div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
-                <div><label style={label}>Nombre de personnes</label><input type="number" min={1} value={guests} onFocus={() => touch('personnes')} onChange={e => setGuests(e.target.value)} placeholder="ex. 120" style={input} /></div>
-                <div><label style={label}>Lieu de l'événement</label><AddressAutocomplete value={lieu} onChange={(v) => { touch('lieu'); setLieu(v); }} onSelect={(s) => setLieu(s.label)} placeholder="Commune ou lieu de réception" inputStyle={input} /></div>
+                <div><label htmlFor="mc-personnes" style={label}>Nombre de personnes</label><input id="mc-personnes" type="number" min={1} value={guests} onFocus={() => touch('personnes')} onChange={e => setGuests(e.target.value)} placeholder="ex. 120" style={input} /></div>
+                <div><label htmlFor="mc-lieu" style={label}>Lieu de l'événement</label><AddressAutocomplete inputId="mc-lieu" value={lieu} onChange={(v) => { touch('lieu'); setLieu(v); }} onSelect={(s) => setLieu(s.label)} placeholder="Commune ou lieu de réception" inputStyle={input} /></div>
               </div>
 
               <div style={{ marginBottom: 12 }}>
-                <label style={label}>Votre projet <span style={{ textTransform: 'none', fontWeight: 400, color: 'rgba(255,255,255,0.3)' }}>(optionnel)</span></label>
-                <textarea value={message} onFocus={() => touch('message')} onChange={e => setMessage(e.target.value)} placeholder="Un mot sur vos envies, votre ambiance, vos questions…" rows={3} style={{ ...input, resize: 'vertical' }} />
+                <label htmlFor="mc-message" style={label}>Votre projet <span style={{ textTransform: 'none', fontWeight: 400, color: 'rgba(255,255,255,0.55)' }}>(optionnel)</span></label>
+                <textarea id="mc-message" value={message} onFocus={() => touch('message')} onChange={e => setMessage(e.target.value)} placeholder="Un mot sur vos envies, votre ambiance, vos questions…" rows={3} style={{ ...input, resize: 'vertical' }} />
               </div>
 
               <div style={{ marginBottom: 20 }}>
-                <label style={label}>Comment nous avez-vous connu ? <span style={{ textTransform: 'none', fontWeight: 400, color: 'rgba(255,255,255,0.3)' }}>(optionnel)</span></label>
-                <select value={sourceDeclared} onChange={e => setSourceDeclared(e.target.value)} style={{ ...input, color: sourceDeclared ? '#fff' : 'rgba(255,255,255,0.4)' }}>
+                <label htmlFor="mc-source" style={label}>Comment nous avez-vous connu ? <span style={{ textTransform: 'none', fontWeight: 400, color: 'rgba(255,255,255,0.55)' }}>(optionnel)</span></label>
+                <select id="mc-source" value={sourceDeclared} onChange={e => setSourceDeclared(e.target.value)} style={{ ...input, color: sourceDeclared ? '#fff' : 'rgba(255,255,255,0.62)' }}>
                   <option value="">— Sélectionner —</option>
                   {SOURCE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>

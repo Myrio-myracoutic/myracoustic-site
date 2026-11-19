@@ -274,7 +274,7 @@ export default function ParticuliersPage() {
       {/* ── CE QUE VOUS OBTENEZ ─────────────────────────────────── */}
       <section style={{
         padding: 'clamp(48px,6vw,80px) 32px',
-        backgroundImage: 'url(/ban_prestation_son.jpg)',
+        backgroundImage: 'url(/ban_prestation_son.webp)',
         backgroundSize: 'cover', backgroundPosition: 'center',
         position: 'relative', overflow: 'hidden',
       }}>

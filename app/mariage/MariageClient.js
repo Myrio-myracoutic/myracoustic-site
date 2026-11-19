@@ -126,7 +126,7 @@ const ENGAGEMENTS = [
 export default function MariageClient() {
   // Photos de fond posées seulement à l'approche du bloc, pour ne pas ralentir le haut de page.
   const [avisRef, avisBg] = useLazyBackground('/ban_mariage_sans-stress-3.jpg');
-  const [parcoursRef, parcoursBg] = useLazyBackground('/ban_prestation_son.jpg');
+  const [parcoursRef, parcoursBg] = useLazyBackground('/ban_prestation_son.webp');
 
   return (
     <div className="mss-page">

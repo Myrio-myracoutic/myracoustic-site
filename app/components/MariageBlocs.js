@@ -411,7 +411,7 @@ export const MARIAGE_BLOCS_CSS = `
    recadrée et la vidéo allégée. À poser en premier dans une <section className="mss-hero"> dont
    le fond est HERO_MARIAGE_PHOTO, avec HERO_MARIAGE_CSS dans le <style> de la page.
    /mariage-sans-stress garde sa propre version (mêmes fichiers, même réglage du voile). */
-export const HERO_MARIAGE_PHOTO = 'url(/ban_mariage_sans-stress.jpg)';
+export const HERO_MARIAGE_PHOTO = 'url(/ban_mariage_sans-stress.webp)';
 
 export const HERO_MARIAGE_CSS = `
         /* Voile réglé pour cette photo (tenues blanches) : mêmes valeurs que sur /mariage-sans-stress. */
@@ -446,7 +446,7 @@ export function FondHeroMariage() {
         <video
           className="mss-hero-video"
           autoPlay muted loop playsInline
-          poster={videoSrc.endsWith('-mobile.mp4') ? '/ban_mariage_sans-stress-mobile.webp' : '/ban_mariage_sans-stress.jpg'}
+          poster={videoSrc.endsWith('-mobile.mp4') ? '/ban_mariage_sans-stress-mobile.webp' : '/ban_mariage_sans-stress.webp'}
           src={videoSrc}
           style={{
             position: 'absolute', inset: 0, zIndex: 0,

@@ -189,7 +189,7 @@ export default function MariageSansStressClient({ porte = null }) {
   const [heroVideoSrc, setHeroVideoSrc] = useState(null);
   const [bannerPhotoRef, bannerPhotoBg] = useLazyBackground('/Ban_bretignolle.jpg');
   const [avisRef, avisBg] = useLazyBackground('/ban_mariage_sans-stress-3.jpg');
-  const [parcoursRef, parcoursBg] = useLazyBackground('/ban_prestation_son.jpg');
+  const [parcoursRef, parcoursBg] = useLazyBackground('/ban_prestation_son.webp');
   const [ctaFinalRef, ctaFinalBg] = useLazyBackground('/ban_mariage_sans-stress-2.jpg');
   useEffect(() => {
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
@@ -328,7 +328,7 @@ ${MARIAGE_BLOCS_CSS}
       {/* ── HERO ────────────────────────────────────────────────── */}
       <section className="mss-hero" style={{
         padding: 'clamp(66px,7vw,80px) 32px clamp(80px,10vw,120px)',
-        backgroundImage: 'url(/ban_mariage_sans-stress.jpg)',
+        backgroundImage: 'url(/ban_mariage_sans-stress.webp)',
         backgroundSize: 'cover', backgroundPosition: 'center',
         position: 'relative', overflow: 'hidden',
       }}>
@@ -338,7 +338,7 @@ ${MARIAGE_BLOCS_CSS}
           <video
             className="mss-hero-video"
             autoPlay muted loop playsInline
-            poster={heroVideoSrc.endsWith('-mobile.mp4') ? '/ban_mariage_sans-stress-mobile.webp' : '/ban_mariage_sans-stress.jpg'}
+            poster={heroVideoSrc.endsWith('-mobile.mp4') ? '/ban_mariage_sans-stress-mobile.webp' : '/ban_mariage_sans-stress.webp'}
             src={heroVideoSrc}
             style={{
               position: 'absolute', inset: 0, zIndex: 0,

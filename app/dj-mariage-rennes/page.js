@@ -7,7 +7,7 @@ const CITY = {
   intro: "Myracoustic anime des mariages à Rennes et dans toute l'Ille-et-Vilaine — DJ, sonorisation, éclairage et animation pour votre plus beau jour.",
   faq: [
     { q: 'Animez-vous des mariages à Rennes et en Ille-et-Vilaine ?',
-      a: "Oui. Myracoustic anime des mariages à Rennes et dans tout le département d'Ille-et-Vilaine. Les frais de déplacement depuis Nort-sur-Erdre sont calculés selon la distance exacte de votre lieu et indiqués en clair dans votre devis." },
+      a: "Oui. Myracoustic anime des mariages à Rennes et dans tout le département d'Ille-et-Vilaine. Les frais de déplacement éventuels sont indiqués clairement dans votre devis." },
     { q: 'Gérez-vous la cérémonie laïque pour les mariages à Rennes ?',
       a: "Oui. Sonorisation de la cérémonie laïque, micro pour l'officiant, musique d'entrée et de sortie — nous couvrons tous les moments clés de votre journée de mariage à Rennes." },
     { q: 'Dans quels lieux intervenez-vous pour les mariages en Ille-et-Vilaine ?',

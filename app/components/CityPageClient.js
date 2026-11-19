@@ -79,7 +79,7 @@ const PILLARS = [
 ];
 
 export default function CityPageClient({ city }) {
-  const { nom, distance, temps, zones, intro, faq } = city;
+  const { nom, zones, intro, faq } = city;
   const cityMeta = CITIES.find((c) => c.nom === nom);
 
   return (
@@ -163,11 +163,12 @@ export default function CityPageClient({ city }) {
             fontFamily: 'var(--font-display), sans-serif',
             fontSize: 'clamp(24px,3.5vw,44px)', fontWeight: 700, marginBottom: 12,
           }}>
-            Basé à Nort-sur-Erdre,{' '}
-            <span style={{ color: 'var(--lime)' }}>{distance} de {nom}</span>
+            {/* Aucune distance ni temps de trajet affichés (choix de Myrio, 19/11) : on nomme la ville. */}
+            Votre prestataire technique{' '}
+            <span style={{ color: 'var(--lime)' }}>à {nom}</span>
           </h2>
-          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 15, lineHeight: 1.7, maxWidth: 640, marginBottom: 28 }}>
-            {nom} est une de nos zones d&apos;intervention régulières ({distance} — {temps}). Nous intervenons également dans les villes et régions suivantes :
+          <p style={{ color: 'rgba(255,255,255,0.62)', fontSize: 15, lineHeight: 1.7, maxWidth: 640, marginBottom: 28 }}>
+            {nom} est une de nos zones d&apos;intervention régulières. Nous intervenons également dans les villes et régions suivantes&nbsp;:
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14 }}>
             {zones.map((z) => (

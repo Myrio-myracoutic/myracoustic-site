@@ -7,7 +7,7 @@ const CITY = {
   intro: "Myracoustic anime des mariages à Angers, dans les domaines et châteaux du Val de Loire et dans tout le Maine-et-Loire.",
   faq: [
     { q: 'Animez-vous des mariages à Angers et en Maine-et-Loire ?',
-      a: "Oui. Myracoustic anime des mariages à Angers et dans tout le Maine-et-Loire — domaines, châteaux, salles de réception. Les frais de déplacement depuis Nort-sur-Erdre sont calculés selon la distance exacte de votre lieu et indiqués en clair dans votre devis." },
+      a: "Oui. Myracoustic anime des mariages à Angers et dans tout le Maine-et-Loire — domaines, châteaux, salles de réception. Les frais de déplacement éventuels sont indiqués clairement dans votre devis." },
     { q: 'Gérez-vous la cérémonie laïque pour les mariages à Angers ?',
       a: "Oui. Sonorisation de la cérémonie laïque, micro sans fil pour l'officiant, musique d'entrée et de sortie personnalisée — nous prenons en charge tous les moments clés de votre journée." },
     { q: 'Dans quels lieux intervenez-vous pour les mariages en Maine-et-Loire ?',

@@ -2,7 +2,7 @@ import PrivesClient from './PrivesClient';
 import { FAQ_ITEMS } from './faq-data';
 
 export const metadata = {
-  title: "Anniversaire, Fête & Soirée Privée à Nantes — Myracoustic",
+  title: "Anniversaire, Fête & Soirée Privée à Nantes",
   description:
     "Anniversaire, fête de famille, soirée privée à Nantes et en Pays de la Loire : Myracoustic crée l'ambiance sonore et visuelle parfaite pour votre événement.",
   alternates: {

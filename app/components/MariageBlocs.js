@@ -183,8 +183,10 @@ export function GalerieMariages() {
               overflow: 'hidden', cursor: 'pointer', background: 'var(--card)', textAlign: 'left',
             }}
           >
+            {/* Description de la photo de couverture : lue par Google et Bing (alt vide signalé par
+                Bing le 19/11). Le bouton garde son aria-label pour les lecteurs d'écran. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={photoSrc(g.slug, 0, true)} alt="" width={640} height={360} loading="lazy" decoding="async"
+            <img src={photoSrc(g.slug, 0, true)} alt={g.photos[0]} width={640} height={360} loading="lazy" decoding="async"
               srcSet={`${photoSrc(g.slug, 0, true)} 640w, ${photoSrc(g.slug, 0, false)} 1366w`}
               sizes="(max-width: 640px) 100vw, 540px"
               style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />

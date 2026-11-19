@@ -3,7 +3,7 @@ import { PORTES } from '../mariage-sans-stress/portes';
 
 // Recherche visée : « application pour organiser son mariage » (et ses proches : application
 // mariage, organisation de mariage en ligne, plan de table, liste d'invités, faire-part en ligne).
-const TITLE = "Application pour organiser son mariage, comprise avec votre DJ";
+const TITLE = "Application pour organiser son mariage, avec votre DJ";
 const DESCRIPTION =
   "Liste d'invités, réponses en ligne, plan de table, menu, faire-part et playlists : l'application pour organiser votre mariage est comprise avec votre DJ.";
 

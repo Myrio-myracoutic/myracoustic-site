@@ -2,7 +2,7 @@ import MariageClient from './MariageClient';
 import { FAQ_ITEMS } from './faq-data';
 
 export const metadata = {
-  title: "DJ Mariage Nantes — Sonorisation & Animation | Myracoustic",
+  title: "DJ Mariage Nantes — Sonorisation & Animation",
   description:
     "DJ mariage professionnel à Nantes et Pays de la Loire. Sonorisation cérémonie, animation soirée dansante, éclairage — un seul prestataire pour votre plus beau jour.",
   alternates: {

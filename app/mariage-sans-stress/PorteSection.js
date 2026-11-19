@@ -202,7 +202,9 @@ export default function PorteSection({ porte, cta }) {
                     // Captures WebP déjà à la bonne taille (390 × 844, double densité) : pas d'optimisation Next à refaire
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      key={e.cle} src={e.capture.src} alt={i === actif ? e.capture.alt : ''} aria-hidden={i === actif ? undefined : true}
+                      // Description toujours présente (Bing signale les alt vides, 19/11) ; les captures
+                      // cachées restent masquées aux lecteurs d'écran par aria-hidden.
+                      key={e.cle} src={e.capture.src} alt={e.capture.alt} aria-hidden={i === actif ? undefined : true}
                       width={780} height={1688} loading="lazy" decoding="async"
                       className="porte-capture" style={{ opacity: i === actif ? 1 : 0 }}
                     />

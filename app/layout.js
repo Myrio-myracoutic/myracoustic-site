@@ -91,10 +91,21 @@ const JSON_LD = {
   ],
   description:
     "Prestataire événementiel : son, lumière, vidéo et DJ pour mariages, événements privés et professionnels.",
+  // Profils de Myracoustic sur d'autres sites : aide Google et les IA à relier ces fiches (et leurs
+  // avis) à la même entreprise. Fiche Google = lien stable par numéro de fiche (cid).
+  sameAs: [
+    "https://maps.google.com/?cid=17436354979667455303",
+    "https://www.mariages.net/musique-mariage/myracoustic--e421755",
+    "https://www.instagram.com/myracoustic.com_off/",
+    "https://www.youtube.com/channel/UCwkJIzar5kZ30lZDRoQGCHg",
+  ],
+  // Avis Google uniquement (le site affiche « ★ 5/5 sur Google »). Relevé sur la fiche le 19/11/2026 :
+  // 5,0 / 5, 6 avis. À mettre à jour quand de nouveaux avis arrivent. (Mariages.net : 5,0 / 5, 3 avis.)
   aggregateRating: {
     "@type": "AggregateRating",
     ratingValue: "5",
-    reviewCount: "5",
+    bestRating: "5",
+    reviewCount: "6",
   },
 };
 

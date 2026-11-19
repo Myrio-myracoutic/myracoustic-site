@@ -23,12 +23,12 @@ const CITY = {
 
 export const metadata = {
   title: "DJ Mariage Angers — Animation & Sonorisation",
-  description: "DJ mariage professionnel à Angers et en Maine-et-Loire. Myracoustic anime votre cérémonie laïque, vin d'honneur et soirée dansante. Devis gratuit en ligne.",
+  description: "DJ mariage professionnel à Angers et en Maine-et-Loire. Myracoustic anime votre cérémonie laïque, vin d'honneur et soirée dansante. Vérifiez si votre date est libre.",
   alternates: { canonical: '/dj-mariage-angers' },
   openGraph: {
     url: '/dj-mariage-angers',
     title: "DJ Mariage Angers — Animation & Sonorisation | Myracoustic",
-    description: "DJ mariage professionnel à Angers et en Maine-et-Loire. Cérémonie, animation soirée, éclairage — devis gratuit en ligne.",
+    description: "DJ mariage professionnel à Angers et en Maine-et-Loire. Cérémonie, animation soirée, éclairage — vérifiez si votre date est libre.",
     images: [{ url: '/particuliers-hero.jpg', width: 1500, height: 780, alt: 'DJ Mariage Angers Myracoustic' }],
   },
 };

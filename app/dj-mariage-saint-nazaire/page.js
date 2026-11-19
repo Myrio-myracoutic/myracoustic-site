@@ -23,12 +23,12 @@ const CITY = {
 
 export const metadata = {
   title: "DJ Mariage Saint-Nazaire — Animation & Sonorisation",
-  description: "DJ mariage professionnel à Saint-Nazaire, La Baule et la presqu'île guérandaise. Myracoustic anime votre cérémonie et soirée dansante. Devis gratuit en ligne.",
+  description: "DJ mariage professionnel à Saint-Nazaire, La Baule et la presqu'île guérandaise. Myracoustic anime votre cérémonie et soirée dansante. Vérifiez si votre date est libre.",
   alternates: { canonical: '/dj-mariage-saint-nazaire' },
   openGraph: {
     url: '/dj-mariage-saint-nazaire',
     title: "DJ Mariage Saint-Nazaire — Animation & Sonorisation | Myracoustic",
-    description: "DJ mariage professionnel à Saint-Nazaire et sur la côte guérandaise. Cérémonie, animation soirée, éclairage — devis gratuit en ligne.",
+    description: "DJ mariage professionnel à Saint-Nazaire et sur la côte guérandaise. Cérémonie, animation soirée, éclairage — vérifiez si votre date est libre.",
     images: [{ url: '/particuliers-hero.jpg', width: 1500, height: 780, alt: 'DJ Mariage Saint-Nazaire Myracoustic' }],
   },
 };

@@ -23,7 +23,7 @@ const CITY = {
 
 export const metadata = {
   title: "DJ Mariage Nantes — Animation & Sonorisation",
-  description: "DJ mariage professionnel à Nantes. Basé à 25 km, Myracoustic anime votre cérémonie laïque, vin d'honneur et soirée dansante. Devis gratuit en ligne.",
+  description: "DJ mariage professionnel à Nantes. Basé à 25 km, Myracoustic anime votre cérémonie laïque, vin d'honneur et soirée dansante. Vérifiez si votre date est libre.",
   alternates: { canonical: '/dj-mariage-nantes' },
   openGraph: {
     url: '/dj-mariage-nantes',

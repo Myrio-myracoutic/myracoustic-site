@@ -11,14 +11,17 @@ import Reveal from '../components/Reveal';
 import { CITIES } from '../lib/cities';
 import { gtagEvent } from '../lib/gtag';
 import {
-  FaqItem, useLazyBackground, ENGAGEMENT_SERENITE, MARIAGE_BLOCS_CSS,
+  FaqItem, useLazyBackground, ENGAGEMENT_SERENITE, MARIAGE_BLOCS_CSS, insecable,
   FondHeroMariage, HERO_MARIAGE_PHOTO, HERO_MARIAGE_CSS,
   BlocApproche, BlocQuiSommesNous, BlocGalerie, BlocServices,
 } from '../components/MariageBlocs';
 
 /* Page mariage principale (référencée, avec le menu et le pied de page du site). Depuis le 18/11,
    elle reprend les blocs de /mariage-sans-stress (approche, équipe, galerie, services, engagement
-   « sérénité ») via components/MariageBlocs.js : un seul texte pour les deux pages. */
+   « sérénité ») via components/MariageBlocs.js : un seul texte pour les deux pages.
+   Depuis le 19/11, les 4 pages « DJ mariage [ville] » utilisent aussi ce composant (prop `city`) :
+   même présentation, avec ce qui est propre à la ville (titre, introduction, distance, FAQ locale,
+   liens vers les autres villes) pour que Google ne les prenne pas pour des copies de /mariage. */
 
 // Bouton unique de la page : même destination partout, un nom de suivi par emplacement.
 function Cta({ location, style }) {
@@ -37,6 +40,23 @@ function Cta({ location, style }) {
       onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--lime)'; e.currentTarget.style.transform = 'translateY(0)'; }}
     >
       Vérifier la disponibilité de ma date →
+    </a>
+  );
+}
+
+// Lien-pastille du maillage interne (villes, sonorisation, page mariage).
+function LienPastille({ href, children }) {
+  return (
+    <a href={href} className="mss-focusable" style={{
+      display: 'inline-flex', alignItems: 'center', minHeight: 44, padding: '10px 18px', borderRadius: 8,
+      border: '1px solid rgba(255,255,255,0.15)', background: 'transparent',
+      color: 'rgba(255,255,255,0.75)', fontFamily: 'var(--font-display), sans-serif',
+      fontSize: 14, fontWeight: 600, textDecoration: 'none', transition: 'all 0.2s',
+    }}
+      onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--lime)'; e.currentTarget.style.color = 'var(--lime)'; e.currentTarget.style.background = 'rgba(184,239,11,0.08)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; e.currentTarget.style.color = 'rgba(255,255,255,0.75)'; e.currentTarget.style.background = 'transparent'; }}
+    >
+      {children}
     </a>
   );
 }
@@ -123,10 +143,17 @@ const ENGAGEMENTS = [
   { icon: ShieldCheck, ...ENGAGEMENT_SERENITE },
 ];
 
-export default function MariageClient() {
+export default function MariageClient({ city } = {}) {
   // Photos de fond posées seulement à l'approche du bloc, pour ne pas ralentir le haut de page.
   const [avisRef, avisBg] = useLazyBackground('/ban_mariage_sans-stress-3.jpg');
   const [parcoursRef, parcoursBg] = useLazyBackground('/ban_prestation_son.webp');
+
+  // Page ville : slug pour le suivi des clics (mariage_cta_nantes_hero…) et le maillage.
+  const ville = city ? CITIES.find((c) => c.nom === city.nom) : null;
+  const lieu = (emplacement) => (ville ? `${ville.slug}_${emplacement}` : emplacement);
+  // « d’Angers » mais « de Nantes » : élision devant une voyelle.
+  const deVille = city ? (/^[AEIOUYÀÂÉÈÊ]/i.test(city.nom) ? `d’${city.nom}` : `de ${city.nom}`) : '';
+  const autresVilles = ville ? CITIES.filter((c) => c.slug !== ville.slug) : CITIES;
 
   return (
     <div className="mss-page">
@@ -175,7 +202,7 @@ ${HERO_MARIAGE_CSS}
         }} />
 
         <div style={{ maxWidth: 1280, margin: '0 auto', position: 'relative', zIndex: 2, width: '100%' }}>
-          <SectionLabel>Mariage</SectionLabel>
+          <SectionLabel>{city ? 'DJ Mariage' : 'Mariage'}</SectionLabel>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 18,
             padding: '6px 14px', borderRadius: 20,
@@ -190,16 +217,20 @@ ${HERO_MARIAGE_CSS}
             fontSize: 'clamp(42px,7vw,96px)', fontWeight: 700,
             lineHeight: 0.95, letterSpacing: '-0.02em', marginBottom: 24,
           }}>
-            VOTRE MARIAGE,<br /><span style={{ color: 'var(--lime)' }}>NOTRE MUSIQUE</span>
+            {city
+              ? <>DJ MARIAGE<br /><span style={{ color: 'var(--lime)' }}>À {city.nom.toUpperCase()}</span></>
+              : <>VOTRE MARIAGE,<br /><span style={{ color: 'var(--lime)' }}>NOTRE MUSIQUE</span></>}
           </h1>
           <p className="mss-hero-subtitle" style={{
             color: 'rgba(255,255,255,0.88)',
             fontSize: 'clamp(15px,1.5vw,18px)', lineHeight: 1.75,
             maxWidth: 520, marginBottom: 36, textShadow: '0 1px 14px rgba(13,27,42,0.7)',
           }}>
-            Le jour où tout se joue. Nous orchestrons le son, la lumière et l&apos;émotion de votre cérémonie à la dernière danse — pour que vous n&apos;ayez qu&apos;à vivre l&apos;instant.
+            {city
+              ? insecable(city.intro)
+              : <>Le jour où tout se joue. Nous orchestrons le son, la lumière et l&apos;émotion de votre cérémonie à la dernière danse — pour que vous n&apos;ayez qu&apos;à vivre l&apos;instant.</>}
           </p>
-          <Cta location="hero" />
+          <Cta location={lieu('hero')} />
           <p style={{ color: 'rgba(255,255,255,0.78)', fontSize: 13, marginTop: 14, fontFamily: 'var(--font-display), sans-serif', textShadow: '0 1px 10px rgba(13,27,42,0.8)' }}>
             Gratuit · sans engagement · réponse sous 24h
           </p>
@@ -223,10 +254,13 @@ ${HERO_MARIAGE_CSS}
           <StatItem value="26" suffix="+" label="Années d'expérience" />
           <StatItem value="200" suffix="+" label="Mariages animés" />
           <StatItem value="5" suffix="★" label="Note sur Google" />
+          {city && <StatItem value={parseInt(city.distance, 10)} suffix=" km" label={deVille} />}
         </Reveal>
         <Reveal style={{ maxWidth: 720, margin: '40px auto 0', textAlign: 'center' }}>
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, lineHeight: 1.8 }}>
-            Basé à Nort-sur-Erdre, à 25 minutes de Nantes, Myracoustic est un prestataire de sonorisation, éclairage, vidéo et animation DJ pour mariages en Pays de la Loire — Nantes, Angers, Rennes, Saint-Nazaire et leurs environs.
+          <p style={{ color: 'rgba(255,255,255,0.62)', fontSize: 14, lineHeight: 1.8 }}>
+            {city
+              ? `Basé à Nort-sur-Erdre, à ${city.temps} ${deVille}, Myracoustic anime des mariages à ${city.nom} et en ${city.departement} : sonorisation, éclairage, vidéo et animation DJ, de la cérémonie à la dernière danse.`
+              : 'Basé à Nort-sur-Erdre, à 25 minutes de Nantes, Myracoustic est un prestataire de sonorisation, éclairage, vidéo et animation DJ pour mariages en Pays de la Loire — Nantes, Angers, Rennes, Saint-Nazaire et leurs environs.'}
           </p>
         </Reveal>
       </section>
@@ -257,7 +291,7 @@ ${HERO_MARIAGE_CSS}
           </div>
           <TestimonialCarousel items={TESTIMONIALS} />
           <Reveal style={{ textAlign: 'center', marginTop: 44 }}>
-            <Cta location="temoignages" style={{ padding: '15px 34px' }} />
+            <Cta location={lieu('temoignages')} style={{ padding: '15px 34px' }} />
           </Reveal>
         </Reveal>
       </section>
@@ -267,7 +301,7 @@ ${HERO_MARIAGE_CSS}
       <BlocGalerie />
 
       {/* ── NOS SERVICES (bloc commun) ──────────────────────────── */}
-      <BlocServices cta={<div style={{ marginTop: 28 }}><Cta location="services" /></div>} />
+      <BlocServices cta={<div style={{ marginTop: 28 }}><Cta location={lieu('services')} /></div>} />
 
       {/* ── PARCOURS D'ACCOMPAGNEMENT ──────────────────────────────── */}
       <section ref={parcoursRef} style={{
@@ -345,7 +379,7 @@ ${HERO_MARIAGE_CSS}
               (étoiles, avatar, badge « Avis Google ») pour qu'on le reconnaisse
               immédiatement comme un témoignage réel, pas un argument marketing. */}
           <p style={{
-            textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: 13.5,
+            textAlign: 'center', color: 'rgba(255,255,255,0.62)', fontSize: 13.5,
             fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em',
             margin: '44px 0 20px',
           }}>
@@ -366,14 +400,16 @@ ${HERO_MARIAGE_CSS}
               fontFamily: 'var(--font-display), sans-serif',
               fontSize: 'clamp(24px,3.5vw,42px)', fontWeight: 700, marginBottom: 12,
             }}>
-              Vous avez des questions ?
+              {city ? insecable(`DJ mariage à ${city.nom} : vos questions`) : 'Vous avez des questions ?'}
             </h2>
             <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 15 }}>
-              Voici les réponses aux questions les plus fréquentes sur nos prestations mariage.
+              {city
+                ? `Les réponses aux questions que l’on nous pose le plus pour un mariage à ${city.nom}.`
+                : 'Voici les réponses aux questions les plus fréquentes sur nos prestations mariage.'}
             </p>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {FAQ_ITEMS.map((item, i) => <FaqItem key={i} {...item} />)}
+            {(city ? city.faq : FAQ_ITEMS).map((item, i) => <FaqItem key={i} {...item} />)}
           </div>
         </Reveal>
       </section>
@@ -415,23 +451,15 @@ ${HERO_MARIAGE_CSS}
       {/* ── DJ MARIAGE PAR VILLE ────────────────────────────────── */}
       <section style={{ padding: 'clamp(48px,6vw,72px) 32px', background: '#060e16', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
         <Reveal style={{ maxWidth: 1000, margin: '0 auto', textAlign: 'center' }}>
-          <SectionLabel style={{ justifyContent: 'center' }}>Votre DJ mariage local</SectionLabel>
+          <SectionLabel style={{ justifyContent: 'center' }}>{city ? 'Myracoustic près de chez vous' : 'Votre DJ mariage local'}</SectionLabel>
           <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(20px,2.5vw,30px)', fontWeight: 700, marginBottom: 24 }}>
-            DJ mariage près de chez vous
+            {city ? 'Explorez nos prestations' : 'DJ mariage près de chez vous'}
           </h2>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, justifyContent: 'center' }}>
-            {CITIES.map((c) => (
-              <a key={c.slug} href={`/dj-mariage-${c.slug}`} style={{
-                display: 'inline-block', padding: '10px 18px', borderRadius: 8,
-                border: '1px solid rgba(255,255,255,0.15)', background: 'transparent',
-                color: 'rgba(255,255,255,0.7)', fontFamily: 'var(--font-display), sans-serif',
-                fontSize: 14, fontWeight: 600, textDecoration: 'none', transition: 'all 0.2s',
-              }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--lime)'; e.currentTarget.style.color = 'var(--lime)'; e.currentTarget.style.background = 'rgba(184,239,11,0.08)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'; e.currentTarget.style.color = 'rgba(255,255,255,0.7)'; e.currentTarget.style.background = 'transparent'; }}
-              >
-                DJ mariage {c.nom}
-              </a>
+            {ville && <LienPastille href="/mariage">Toutes nos prestations mariage</LienPastille>}
+            {ville && <LienPastille href={`/sonorisation-${ville.slug}`}>Sonorisation à {city.nom}</LienPastille>}
+            {autresVilles.map((c) => (
+              <LienPastille key={c.slug} href={`/dj-mariage-${c.slug}`}>DJ mariage {c.nom}</LienPastille>
             ))}
           </div>
         </Reveal>
@@ -449,12 +477,12 @@ ${HERO_MARIAGE_CSS}
           fontFamily: 'var(--font-display), sans-serif',
           fontSize: 'clamp(24px,3.5vw,44px)', fontWeight: 700, marginBottom: 12,
         }}>
-          Disponible pour votre date ?
+          {city ? insecable(`Disponible pour votre date à ${city.nom} ?`) : insecable('Disponible pour votre date ?')}
         </h2>
         <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 16, marginBottom: 32 }}>
           Trois formules claires, un conseiller vous rappelle sous 24h pour finaliser votre devis.
         </p>
-        <Cta location="final" style={{ padding: '16px 40px', fontSize: 17 }} />
+        <Cta location={lieu('final')} style={{ padding: '16px 40px', fontSize: 17 }} />
         </Reveal>
       </section>
 

@@ -23,12 +23,12 @@ const CITY = {
 
 export const metadata = {
   title: "DJ Mariage Rennes — Animation & Sonorisation",
-  description: "DJ mariage professionnel à Rennes et en Ille-et-Vilaine. Myracoustic anime votre cérémonie laïque, vin d'honneur et soirée dansante. Devis gratuit en ligne.",
+  description: "DJ mariage professionnel à Rennes et en Ille-et-Vilaine. Myracoustic anime votre cérémonie laïque, vin d'honneur et soirée dansante. Vérifiez si votre date est libre.",
   alternates: { canonical: '/dj-mariage-rennes' },
   openGraph: {
     url: '/dj-mariage-rennes',
     title: "DJ Mariage Rennes — Animation & Sonorisation | Myracoustic",
-    description: "DJ mariage professionnel à Rennes et en Ille-et-Vilaine. Cérémonie, animation soirée, éclairage — devis gratuit en ligne.",
+    description: "DJ mariage professionnel à Rennes et en Ille-et-Vilaine. Cérémonie, animation soirée, éclairage — vérifiez si votre date est libre.",
     images: [{ url: '/particuliers-hero.jpg', width: 1500, height: 780, alt: 'DJ Mariage Rennes Myracoustic' }],
   },
 };

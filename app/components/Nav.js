@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { devisHref } from '../lib/devis-href';
 import Image from 'next/image';
 import { Menu, X } from 'lucide-react';
 
@@ -77,7 +78,7 @@ export default function Nav() {
           >
             Mon espace
           </a>
-          <a href="/devis" style={{
+          <a href={devisHref(pathname)} style={{
             background: 'var(--lime)', color: '#0d1b2a',
             padding: '10px 20px', borderRadius: 6, fontSize: 14,
             fontWeight: 700, fontFamily: "var(--font-display), sans-serif",
@@ -120,7 +121,7 @@ export default function Nav() {
               {l.label}
             </Link>
           ))}
-          <a href="/devis" onClick={() => setOpen(false)} style={{
+          <a href={devisHref(pathname)} onClick={() => setOpen(false)} style={{
             display: 'block', marginTop: 16, width: '100%',
             background: 'var(--lime)', color: '#0d1b2a',
             padding: '13px 0', borderRadius: 6, fontSize: 15, fontWeight: 700,

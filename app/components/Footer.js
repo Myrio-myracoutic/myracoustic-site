@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { MapPin, Phone, Mail } from 'lucide-react';
 import { AnimatedWave } from './AnimatedWave';
 import { usePathname } from 'next/navigation';
+import { devisHref } from '../lib/devis-href';
 
 const SERVICES = ['Sonorisation', 'Éclairage', 'Vidéo & Mapping', 'Animation DJ'];
 
@@ -91,7 +92,7 @@ export default function Footer() {
                 {l.label}
               </Link>
             ))}
-            <a href="/devis" style={{
+            <a href={devisHref(pathname)} style={{
               display: 'block', color: 'rgba(255,255,255,0.62)', fontSize: 14, marginBottom: 9,
               textDecoration: 'none', transition: 'color 0.2s',
             }}

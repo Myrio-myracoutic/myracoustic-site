@@ -34,6 +34,10 @@ const nextConfig = {
       { source: '/conditions-generales-de-vente', destination: '/cgv', permanent: true },
       { source: '/politique-de-confidentialite', destination: '/politique-confidentialite', permanent: true },
       { source: '/contact', destination: '/devis/particulier', permanent: true },
+      // Pages de l'ancien site WordPress encore connues de Bing (IndexNow Rank Math, 19/11) : 404 sinon.
+      { source: '/prestations', destination: '/', permanent: true },
+      { source: '/actualites', destination: '/', permanent: true },
+      { source: '/le-mag-myracoustic', destination: '/guide-dj-mariage', permanent: true },
       // Ancien tunnel formules mariage (obsolète, remplacé par le modèle lead → appel) → page mariage
       { source: '/devis/mariage', destination: '/mariage', permanent: true },
       { source: '/devis/mariage/:formule', destination: '/mariage', permanent: true },

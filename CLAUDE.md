@@ -44,3 +44,6 @@ Next.js 16 App Router, JavaScript SANS TypeScript, React 19, Supabase, hébergé
   + composant client `XxxClient.js` + entrée dans `app/sitemap.js`.
 - Tout changement de contenu d'une page publique (texte, sections, mise en page) : mettre à jour
   sa date `modifie` dans `app/sitemap.js`, dans le même commit. Pas pour une image allégée ni le pied de page.
+  Ce changement de date déclenche IndexNow tout seul après la mise en ligne (`.github/workflows/indexnow.yml`
+  → `scripts/indexnow.mjs`, qui prévient Bing). Envoi à la main : `node scripts/indexnow.mjs <adresses>`.
+  Ne pas supprimer `public/1aee8dd44c9ad1a30e012cc07e43d525.txt` (clé IndexNow, publique par nature).

@@ -1,0 +1,26 @@
+# Prévient Bing (IndexNow) des pages publiques modifiées, après chaque mise en ligne.
+# Se déclenche seulement quand app/sitemap.js change (une date `modifie` mise à jour = une page
+# modifiée, règle du site/CLAUDE.md). Attend que Vercel ait mis la nouvelle version en ligne.
+name: IndexNow
+
+on:
+  push:
+    branches: [main]
+    paths: ['app/sitemap.js']
+
+permissions:
+  contents: read
+
+jobs:
+  indexnow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Signaler les pages modifiées
+        run: node scripts/indexnow.mjs --diff "${{ github.event.before }}" "${{ github.sha }}" --attendre

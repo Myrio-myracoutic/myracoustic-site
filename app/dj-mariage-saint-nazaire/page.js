@@ -4,9 +4,7 @@ const CITY = {
   nom: 'Saint-Nazaire',
   region: 'Pays de la Loire',
   departement: 'Loire-Atlantique',
-  distance: '60 km',
-  temps: '45 min',
-  intro: "À 60 km de Nort-sur-Erdre, Myracoustic anime des mariages à Saint-Nazaire, La Baule, Guérande et sur toute la côte guérandaise.",
+  intro: "Myracoustic anime des mariages à Saint-Nazaire, La Baule, Guérande et sur toute la côte guérandaise.",
   faq: [
     { q: 'Animez-vous des mariages à Saint-Nazaire et sur la côte ?',
       a: "Oui. Myracoustic anime des mariages à Saint-Nazaire, La Baule, Guérande, Pornichet et dans toute la presqu'île guérandaise. Salles de réception, domaines bord de mer ou à la campagne — nous nous adaptons à tous les lieux." },

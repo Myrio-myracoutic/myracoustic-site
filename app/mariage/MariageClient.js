@@ -20,8 +20,10 @@ import {
    elle reprend les blocs de /mariage-sans-stress (approche, équipe, galerie, services, engagement
    « sérénité ») via components/MariageBlocs.js : un seul texte pour les deux pages.
    Depuis le 19/11, les 4 pages « DJ mariage [ville] » utilisent aussi ce composant (prop `city`) :
-   même présentation, avec ce qui est propre à la ville (titre, introduction, distance, FAQ locale,
-   liens vers les autres villes) pour que Google ne les prenne pas pour des copies de /mariage. */
+   même présentation, avec ce qui est propre à la ville (titre, introduction, département, FAQ locale,
+   liens vers les autres villes) pour que Google ne les prenne pas pour des copies de /mariage.
+   Aucune distance ni temps de trajet sur ces pages (choix de Myrio, 19/11 : un client loin pourrait
+   avoir peur) : on nomme la ville, c'est tout. */
 
 // Bouton unique de la page : même destination partout, un nom de suivi par emplacement.
 function Cta({ location, style }) {
@@ -151,8 +153,6 @@ export default function MariageClient({ city } = {}) {
   // Page ville : slug pour le suivi des clics (mariage_cta_nantes_hero…) et le maillage.
   const ville = city ? CITIES.find((c) => c.nom === city.nom) : null;
   const lieu = (emplacement) => (ville ? `${ville.slug}_${emplacement}` : emplacement);
-  // « d’Angers » mais « de Nantes » : élision devant une voyelle.
-  const deVille = city ? (/^[AEIOUYÀÂÉÈÊ]/i.test(city.nom) ? `d’${city.nom}` : `de ${city.nom}`) : '';
   const autresVilles = ville ? CITIES.filter((c) => c.slug !== ville.slug) : CITIES;
 
   return (
@@ -253,13 +253,11 @@ ${HERO_MARIAGE_CSS}
         }}>
           <StatItem value="26" suffix="+" label="Années d'expérience" />
           <StatItem value="200" suffix="+" label="Mariages animés" />
-          <StatItem value="5" suffix="★" label="Note sur Google" />
-          {city && <StatItem value={parseInt(city.distance, 10)} suffix=" km" label={deVille} />}
-        </Reveal>
+          <StatItem value="5" suffix="★" label="Note sur Google" />        </Reveal>
         <Reveal style={{ maxWidth: 720, margin: '40px auto 0', textAlign: 'center' }}>
           <p style={{ color: 'rgba(255,255,255,0.62)', fontSize: 14, lineHeight: 1.8 }}>
             {city
-              ? `Basé à Nort-sur-Erdre, à ${city.temps} ${deVille}, Myracoustic anime des mariages à ${city.nom} et en ${city.departement} : sonorisation, éclairage, vidéo et animation DJ, de la cérémonie à la dernière danse.`
+              ? `Myracoustic anime des mariages à ${city.nom} et en ${city.departement} : sonorisation, éclairage, vidéo et animation DJ, de la cérémonie à la dernière danse.`
               : 'Basé à Nort-sur-Erdre, à 25 minutes de Nantes, Myracoustic est un prestataire de sonorisation, éclairage, vidéo et animation DJ pour mariages en Pays de la Loire — Nantes, Angers, Rennes, Saint-Nazaire et leurs environs.'}
           </p>
         </Reveal>

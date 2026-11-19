@@ -4,9 +4,7 @@ const CITY = {
   nom: 'Angers',
   region: 'Pays de la Loire',
   departement: 'Maine-et-Loire',
-  distance: '90 km',
-  temps: '55 min',
-  intro: "À 90 km de Nort-sur-Erdre, Myracoustic anime des mariages à Angers, dans les domaines et châteaux du Val de Loire et dans tout le Maine-et-Loire.",
+  intro: "Myracoustic anime des mariages à Angers, dans les domaines et châteaux du Val de Loire et dans tout le Maine-et-Loire.",
   faq: [
     { q: 'Animez-vous des mariages à Angers et en Maine-et-Loire ?',
       a: "Oui. Myracoustic anime des mariages à Angers et dans tout le Maine-et-Loire — domaines, châteaux, salles de réception. Les frais de déplacement depuis Nort-sur-Erdre sont calculés selon la distance exacte de votre lieu et indiqués en clair dans votre devis." },

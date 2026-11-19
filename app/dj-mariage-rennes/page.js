@@ -4,9 +4,7 @@ const CITY = {
   nom: 'Rennes',
   region: 'Bretagne',
   departement: 'Ille-et-Vilaine',
-  distance: '100 km',
-  temps: '1h',
-  intro: "À 100 km de Nort-sur-Erdre, Myracoustic anime des mariages à Rennes et dans toute l'Ille-et-Vilaine — DJ, sonorisation, éclairage et animation pour votre plus beau jour.",
+  intro: "Myracoustic anime des mariages à Rennes et dans toute l'Ille-et-Vilaine — DJ, sonorisation, éclairage et animation pour votre plus beau jour.",
   faq: [
     { q: 'Animez-vous des mariages à Rennes et en Ille-et-Vilaine ?',
       a: "Oui. Myracoustic anime des mariages à Rennes et dans tout le département d'Ille-et-Vilaine. Les frais de déplacement depuis Nort-sur-Erdre sont calculés selon la distance exacte de votre lieu et indiqués en clair dans votre devis." },

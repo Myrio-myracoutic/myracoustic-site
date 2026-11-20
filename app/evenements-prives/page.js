@@ -4,7 +4,7 @@ import { FAQ_ITEMS } from './faq-data';
 export const metadata = {
   title: "Anniversaire, Fête & Soirée Privée à Nantes",
   description:
-    "Anniversaire, fête de famille, soirée privée à Nantes et en Pays de la Loire : Myracoustic crée l'ambiance sonore et visuelle parfaite pour votre événement.",
+    "Anniversaire, fête de famille, soirée entre amis à Nantes et en Pays de la Loire : un DJ qui fait danser toutes les générations. Réponse sous 24h.",
   alternates: {
     canonical: '/evenements-prives',
   },
@@ -12,11 +12,11 @@ export const metadata = {
     url: '/evenements-prives',
     title: "Anniversaire, Fête & Soirée Privée à Nantes — Myracoustic",
     description:
-      "Anniversaire, fête de famille, soirée privée à Nantes et en Pays de la Loire : Myracoustic crée l'ambiance sonore et visuelle parfaite pour votre événement.",
-    images: [{ url: '/evenements-prives-hero.jpg', width: 1500, height: 843, alt: 'Événement privé Myracoustic' }],
+      "Anniversaire, fête de famille, soirée entre amis à Nantes et en Pays de la Loire : un DJ qui fait danser toutes les générations. Réponse sous 24h.",
+    images: [{ url: '/evenements-prives-og.jpg', width: 1200, height: 630, alt: 'Invités qui dansent sous des fanions colorés pendant une soirée privée animée par Myracoustic' }],
   },
   twitter: {
-    images: ['/evenements-prives-hero.jpg'],
+    images: ['/evenements-prives-og.jpg'],
   },
 };
 

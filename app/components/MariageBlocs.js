@@ -64,9 +64,11 @@ const BOUTON_ROND = {
   display: 'flex', alignItems: 'center', justifyContent: 'center',
 };
 
-/* Photos d'un couple en plein écran : flèches, clavier (← → Échap), glisser sur téléphone.
-   Rendue dans document.body : le parent <Reveal> applique un transform qui décalerait un position:fixed. */
-function Visionneuse({ galerie, index, onIndex, onClose }) {
+/* Photos d'un événement en plein écran : flèches, clavier (← → Échap), glisser sur téléphone.
+   Rendue dans document.body : le parent <Reveal> applique un transform qui décalerait un position:fixed.
+   `galerie.titre` (pages fêtes) ou `galerie.couple` (pages mariage) sert de légende ; `label` décrit
+   la fenêtre pour les lecteurs d'écran. */
+function Visionneuse({ galerie, index, onIndex, onClose, label }) {
   const closeRef = useRef(null);
   const touchX = useRef(null);
   const total = galerie.photos.length;
@@ -94,7 +96,7 @@ function Visionneuse({ galerie, index, onIndex, onClose }) {
   }, [galerie.slug, index, total]);
   return createPortal(
     <div
-      role="dialog" aria-modal="true" aria-label={`Photos du mariage ${deCouple(galerie.couple)}`}
+      role="dialog" aria-modal="true" aria-label={label}
       onClick={onClose}
       onTouchStart={(e) => { touchX.current = e.touches[0].clientX; }}
       onTouchEnd={(e) => {
@@ -126,7 +128,7 @@ function Visionneuse({ galerie, index, onIndex, onClose }) {
       />
       <p onClick={(e) => e.stopPropagation()}
         style={{ marginTop: 14, color: 'var(--text-muted)', fontSize: 14, textAlign: 'center' }}>
-        {galerie.couple} — {index + 1} / {total}
+        {galerie.titre ?? galerie.couple} — {index + 1} / {total}
       </p>
       {total > 1 && (
         <>
@@ -162,7 +164,10 @@ export function TelephoneApp() {
   );
 }
 
-export function GalerieMariages() {
+/* Une carte par événement (1re photo = couverture), visionneuse au clic.
+   `sujet(g)` complète « Voir les 5 photos … » et « Photos … » pour les lecteurs d'écran.
+   `colonnes` : absent = disposition 3 + 2 des pages mariage ; 2 ou 3 = cartes de même largeur. */
+export function GalerieCartes({ galeries, sujet, colonnes }) {
   const [ouverte, setOuverte] = useState(null); // { g: galerie, i: photo }
   const declencheur = useRef(null);
   const fermer = useCallback(() => {
@@ -172,11 +177,11 @@ export function GalerieMariages() {
   const changerPhoto = useCallback((i) => setOuverte((o) => (o ? { ...o, i } : o)), []);
   return (
     <>
-      <div className="mss-galerie-grid">
-        {GALERIES.map((g, k) => (
+      <div className={colonnes ? `mss-galerie-grid mss-galerie-grid--${colonnes}` : 'mss-galerie-grid'}>
+        {galeries.map((g, k) => (
           <button
-            key={g.slug} type="button" className="mss-galerie-carte mss-focusable"
-            aria-label={`Voir les ${g.photos.length} photos du mariage ${deCouple(g.couple)}`}
+            key={`${g.slug}-${k}`} type="button" className="mss-galerie-carte mss-focusable"
+            aria-label={`Voir les ${g.photos.length} photos ${sujet(g)}`}
             onClick={(e) => { declencheur.current = e.currentTarget; setOuverte({ g: k, i: 0 }); }}
             style={{
               position: 'relative', padding: 0, border: '1px solid var(--separator)', borderRadius: 12,
@@ -197,7 +202,7 @@ export function GalerieMariages() {
             }}>
               <span className="mss-galerie-titre"
                 style={{ fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, color: 'var(--text)' }}>
-                {g.couple}
+                {g.titre ?? g.couple}
               </span>
               <span style={{ fontSize: 12.5, color: 'var(--text-muted)' }}>{g.photos.length} photos</span>
             </span>
@@ -205,10 +210,15 @@ export function GalerieMariages() {
         ))}
       </div>
       {ouverte && (
-        <Visionneuse galerie={GALERIES[ouverte.g]} index={ouverte.i} onIndex={changerPhoto} onClose={fermer} />
+        <Visionneuse galerie={galeries[ouverte.g]} index={ouverte.i} onIndex={changerPhoto} onClose={fermer}
+          label={`Photos ${sujet(galeries[ouverte.g])}`} />
       )}
     </>
   );
+}
+
+export function GalerieMariages() {
+  return <GalerieCartes galeries={GALERIES} sujet={(g) => `du mariage ${deCouple(g.couple)}`} />;
 }
 
 // Ordre tiré des appels Plaud (03/11) : la piste « pour toutes les générations » est la 1re attente
@@ -396,12 +406,18 @@ export const MARIAGE_BLOCS_CSS = `
         }
         .mss-galerie-carte { aspect-ratio: 16 / 9; grid-column: span 2; }
         .mss-galerie-carte:nth-child(n+4) { grid-column: span 3; }
+        .mss-galerie-grid--2 > .mss-galerie-carte { grid-column: span 3; }
+        .mss-galerie-grid--3 > .mss-galerie-carte { grid-column: span 2; }
+        @media (max-width: 1024px) {
+          .mss-galerie-grid--3 > .mss-galerie-carte { grid-column: span 3; }
+        }
         .mss-galerie-carte img { transition: transform 0.4s ease; }
         .mss-galerie-carte:hover img { transform: scale(1.04); }
         .mss-galerie-titre { font-size: 15px; line-height: 1.25; }
         @media (max-width: 640px) {
           .mss-galerie-grid { grid-template-columns: minmax(0, 1fr); gap: 14px; }
-          .mss-galerie-carte, .mss-galerie-carte:nth-child(n+4) { grid-column: auto; }
+          .mss-galerie-carte, .mss-galerie-carte:nth-child(n+4),
+          .mss-galerie-grid--2 > .mss-galerie-carte, .mss-galerie-grid--3 > .mss-galerie-carte { grid-column: auto; }
         }
         @media (prefers-reduced-motion: reduce) {
           .mss-galerie-carte img { transition: none; }

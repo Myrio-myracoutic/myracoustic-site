@@ -10,7 +10,7 @@ export const FAQ_ITEMS = [
   { q: 'Combien de temps dure la prestation DJ ?',
     a: "La durée est adaptable selon vos besoins : pour un anniversaire, une soirée privée ou une réception, elle est définie avec vous selon votre programme." },
   { q: 'Peut-on faire appel à vous uniquement pour la sonorisation, sans DJ ?',
-    a: "Oui. Nos prestations sont modulables. Vous pouvez faire appel à nous uniquement pour la sonorisation (cérémonie, dîner) ou l'éclairage, sans animation DJ, ou opter pour une solution complète." },
+    a: "Oui. Nos prestations sont modulables. Vous pouvez faire appel à nous uniquement pour la sonorisation (repas, discours) ou l'éclairage, sans animation DJ, ou opter pour une solution complète." },
   { q: "Travaillez-vous avec d'autres prestataires (traiteur, photographe…) ?",
     a: "Oui. Nous avons l'habitude de travailler en coordination avec les traiteurs, photographes et autres prestataires événementiels. Une communication fluide est essentielle pour garantir un déroulement parfait." },
   { q: 'Quel est le délai pour réserver votre prestation ?',

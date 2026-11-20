@@ -9,7 +9,7 @@ export default function sitemap() {
   const routes = [
     { path: '/',                           modifie: '2026-11-18', priority: 1,   changeFrequency: 'monthly' },
     { path: '/evenement-entreprise',       modifie: '2026-11-11', priority: 0.9, changeFrequency: 'monthly' },
-    { path: '/evenements-prives',          modifie: '2026-11-19', priority: 0.9, changeFrequency: 'monthly' },
+    { path: '/evenements-prives',          modifie: '2026-11-20', priority: 0.9, changeFrequency: 'monthly' },
     { path: '/mariage',                    modifie: '2026-11-19', priority: 0.9, changeFrequency: 'monthly' },
     // Portes d'entrée mariage (mariage-sans-stress/portes.js) : pages indexées.
     { path: '/organisation-mariage',       modifie: '2026-11-19', priority: 0.8, changeFrequency: 'monthly' },

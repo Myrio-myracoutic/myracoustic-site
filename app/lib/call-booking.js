@@ -1,8 +1,8 @@
-/* Logique de réservation d'un créneau d'appel, partagée entre :
+/* Logique de réservation d'un créneau d'appel du site :
    - POST /api/call-bookings (tunnel public, requireEmptySlot: true — anti-race sur une fiche fraîche)
-   - PATCH /api/admin/mariage-leads, /api/admin/qonto-quotes, /api/admin/pro-contacts
-     { setCall } (admin, requireEmptySlot: false — programme ou reprogramme un appel pour une
-     fiche existante, avec une fenêtre de dates plus large).
+   - /api/rendez-vous/[token] (le client change lui-même son créneau).
+   L'ancien admin du site (requireEmptySlot: false) a été supprimé au nettoyage du 21/11 : l'admin
+   programme désormais les appels depuis la plateforme (app.myracoustic.com), qui a son propre moteur.
 
    Trois "kind" possibles selon d'où vient la fiche à rappeler — un seul moteur de réservation,
    pas une copie par tunnel (leçon du bug de calendrier du 06/08 : un copier-coller de la logique

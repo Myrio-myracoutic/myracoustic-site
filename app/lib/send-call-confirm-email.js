@@ -1,6 +1,6 @@
 /* Emails autour du créneau d'appel — programmation, modification, annulation.
-   Envoyés au moment de l'action (tunnel public ou admin, app/lib/call-booking.js
-   et app/api/admin/mariage-leads). Best-effort partout : une panne d'envoi
+   Envoyés au moment de l'action (tunnel public, app/lib/call-booking.js).
+   Best-effort partout : une panne d'envoi
    n'annule jamais l'action déjà actée en base. */
 
 // "mardi 4 août 2026 à 9h15" (ou "9h" si l'heure tombe pile)

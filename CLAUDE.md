@@ -9,10 +9,15 @@ Next.js 16 App Router, JavaScript SANS TypeScript, React 19, Supabase, hébergé
 
 ## Zones
 - `app/(devis)/` formulaires de demande : mariage, pro, particulier (plus de devis calculé en ligne)
-- `app/mon-espace/` et `app/admin/` : ancien espace client et ancien back-office, FERMÉS depuis le 17/11.
-  `next.config.mjs` les renvoie vers app.myracoustic.com (dossier `plateforme/`). Code mort gardé
-  jusqu'au nettoyage : ne rien y construire, tout nouvel écran client ou admin va dans `plateforme/`.
-- `app/api/` routes serveur (Qonto, Google Calendar, musique, crons)
+- Ancien espace client (`/mon-espace`) et ancien back-office (`/admin`) : FERMÉS le 17/11, code
+  SUPPRIMÉ le 21/11. `next.config.mjs` renvoie leurs adresses vers app.myracoustic.com (dossier
+  `plateforme/`). Tout écran client ou admin se construit dans `plateforme/`, jamais ici.
+- `app/api/` routes serveur gardées : formulaires de demande (`contact/*`, `leads/mariage`,
+  `lead-magnet`), créneaux d'appel (`call-availability`, `call-bookings`, `rendez-vous`),
+  `availability` (appelée par la proposition de la plateforme), liens suivis des e-mails
+  (`track/*`), séquence du guide (`cron/lead-magnet-sequence`, seul automatisme encore sur le site),
+  `ferme` (réponse 410 des anciennes routes). Les autres automatismes tournent sur la plateforme.
+- Tarifs des formules : uniquement `plateforme/lib/formules.js` (la copie du site a été supprimée).
 - `app/components/` composants partagés — réutiliser avant d'en créer un nouveau
 - `supabase-migrations/` — toute modif de schéma = fichier SQL daté ici (AAAA-MM-JJ_nom.sql)
 
@@ -32,7 +37,7 @@ Next.js 16 App Router, JavaScript SANS TypeScript, React 19, Supabase, hébergé
   ou pire un horaire précis sur un seul jour (RDV 15h-16h au lieu de journée entière), fait qu'aucune
   date n'est bloquée sur `/api/availability`. Bug réel du 06/08/2026 : un mariage confirmé saisi
   à la main comme un simple RDV n'a rien bloqué → un devis envoyé à un autre prospect pour la même date.
-- `lib/qonto-sync.js` lit la date de prestation dans l'**en-tête de la facture payée** pour bloquer
+- La synchro Qonto (`plateforme/lib/qonto-sync.js` depuis le 20/11) lit la date de prestation dans l'**en-tête de la facture payée** pour bloquer
   l'agenda : toute facture créée par code (site ou plateforme) doit recopier `header` du devis.
   Sinon le paiement est enregistré mais la date reste libre, sans alerte (bug réel du 05/11/2026).
 

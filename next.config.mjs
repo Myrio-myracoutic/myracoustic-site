@@ -3,10 +3,10 @@ const PLATEFORME = 'https://app.myracoustic.com';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Étape 4 du chantier particuliers (17/11) : les routes de l'ancien espace client, de l'ancien
-  // admin et de l'ancien devis instantané ne répondent plus (410, voir app/api/ferme). Plus rien
-  // ne les appelle : crons, webhook Qonto et pages publiques passent par d'autres routes (vérifié
-  // le 17/11). `beforeFiles` : appliqué avant les routes encore présentes dans le code, qui
-  // seront supprimées à l'étape 5.
+  // admin et de l'ancien devis instantané répondent « fermé » (410, voir app/api/ferme). Leur code
+  // a été supprimé à l'étape 5 (21/11) ; ces règles restent pour qu'un ancien appel reçoive un
+  // message clair plutôt qu'une page introuvable. `/api/qonto/devis` est encore appelé par l'ancien
+  // calculateur de DevisFlow.js, que plus aucune page n'affiche.
   async rewrites() {
     return {
       beforeFiles: [
@@ -19,8 +19,8 @@ const nextConfig = {
   async redirects() {
     return [
       // Étape 4 du chantier particuliers (17/11) : l'ancien espace client et l'ancien admin du
-      // site sont fermés, tout se passe sur la plateforme. Ces redirections passent avant les
-      // pages (encore dans le code jusqu'au nettoyage de l'étape 5). Non permanentes : réversibles.
+      // site sont fermés (code supprimé le 21/11), tout se passe sur la plateforme. Ces
+      // redirections gardent vivants les liens des anciens e-mails et favoris. Non permanentes.
       { source: '/mon-espace/mot-de-passe-oublie', destination: `${PLATEFORME}/connexion/mot-de-passe-oublie`, permanent: false },
       { source: '/mon-espace/:path*', destination: `${PLATEFORME}/connexion?bascule=1`, permanent: false },
       { source: '/auth/callback', destination: `${PLATEFORME}/connexion?bascule=1`, permanent: false },

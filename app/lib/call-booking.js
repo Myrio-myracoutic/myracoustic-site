@@ -62,12 +62,13 @@ const SOURCES = {
   },
   pro_contact: {
     table: 'pro_contact_leads',
-    select: 'id, prenom, nom, societe, email, tel, event_type, personnes, event_date, budget, lieu, description',
-    summary: (r) => `📞 Appel — ${r.prenom} ${r.nom} (${r.societe})`,
+    select: 'id, prenom, nom, societe, structure, email, tel, event_type, personnes, event_date, budget, lieu, description',
+    // Un particulier n'a pas de société (structure « particulier », 17/11) : sans ce repli, l'agenda affichait « (null) ».
+    summary: (r) => `📞 Appel — ${r.prenom} ${r.nom} (${r.societe || (r.structure === 'particulier' ? 'particulier' : 'pro')})`,
     description: (r) => [
       `Tél : ${r.tel}`,
       `Email : ${r.email}`,
-      `Société : ${r.societe}`,
+      r.societe ? `Société : ${r.societe}` : null,
       r.event_type ? `Type d'événement : ${r.event_type}` : null,
       r.personnes ? `Effectif : ${r.personnes}` : null,
       r.event_date ? `Date souhaitée : ${r.event_date}` : null,

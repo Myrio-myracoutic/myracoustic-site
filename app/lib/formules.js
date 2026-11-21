@@ -106,7 +106,7 @@ export const FORMULES = [
       ceremonie: 'Toute cérémonie (laïque, religieuse, symbolique) + vin d’honneur inclus',
       jourJ: 'Installation + équipe dédiée, suivi en temps réel et communication prioritaire',
     },
-    platform: 'Accès Premium : + moments forts son & lumière, playlists surprises, coordination du déroulé, accompagnement personnalisé par un interlocuteur unique, gestion proactive des imprévus',
+    platform: 'Accès complet : programme, playlists, animations, invités et réponses, menu, plan de table, faire-part, appareil photo jetable et galerie, avec en plus un accompagnement personnalisé par un interlocuteur unique, la coordination du déroulé et la gestion proactive des imprévus',
     options: [
       { key: 'karaoke',  label: 'Karaoké & blind test',     price: 100, category: 'animation' },
     ],

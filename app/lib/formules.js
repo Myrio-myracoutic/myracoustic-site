@@ -36,7 +36,7 @@ export const FORMULES = [
       ceremonie: 'En option (cérémonie laïque, vin d’honneur)',
       jourJ: 'Installation & technicien inclus',
     },
-    platform: 'Accès basique : playlists collaboratives + programmation musicale du déroulé',
+    platform: 'Accès complet : programme, playlists, animations, invités et réponses, menu, plan de table, faire-part, appareil photo jetable et galerie',
     options: [
       { key: 'karaoke',       label: 'Karaoké & blind test',          price: 100, category: 'animation' },
       { key: 'ceremonie',     label: 'Sonorisation cérémonie laïque', price: 190, category: 'sonorisation' },
@@ -75,7 +75,7 @@ export const FORMULES = [
       ceremonie: 'Vin d’honneur inclus',
       jourJ: 'Installation & technicien dédié, accompagnement prioritaire',
     },
-    platform: 'Accès complet : invités & RSVP, menu, plan de table, faire-part + infos pratiques, accès collaborateurs',
+    platform: 'Accès complet : programme, playlists, animations, invités et réponses, menu, plan de table, faire-part, appareil photo jetable et galerie',
     options: [
       { key: 'karaoke',     label: 'Karaoké & blind test',          price: 100, category: 'animation' },
       { key: 'ceremonie',   label: 'Sonorisation cérémonie laïque', price: 190, category: 'sonorisation' },
@@ -125,21 +125,10 @@ export const PLATFORM_PITCH = {
   subtitle: 'Tout gérer, à deux, au même endroit.',
 };
 
-/* Matrice d'accès plateforme par formule — vitrine + futur blocage in-app (events.formule). */
-export const PLATFORM_FEATURES = [
-  { label: 'Playlists & programmation musicale', essentiel: true,  signature: true,  prestige: true },
-  { label: 'Vue d’ensemble & contact',           essentiel: true,  signature: true,  prestige: true },
-  { label: 'Checklist de préparation',            essentiel: true,  signature: true,  prestige: true },
-  { label: 'Galerie photos post-événement',       essentiel: true,  signature: true,  prestige: true },
-  { label: 'Invités & RSVP (+ relances)',         essentiel: false, signature: true,  prestige: true },
-  { label: 'Choix du menu par les invités',       essentiel: false, signature: true,  prestige: true },
-  { label: 'Plan de table',                       essentiel: false, signature: true,  prestige: true },
-  { label: 'Faire-part + infos pratiques',        essentiel: false, signature: true,  prestige: true },
-  { label: 'Accès témoins / proches',             essentiel: false, signature: true,  prestige: true },
-  { label: 'Moments forts son & lumière',         essentiel: false, signature: false, prestige: true },
-  { label: 'Playlists surprises',                 essentiel: false, signature: false, prestige: true },
-  { label: 'Coordination du déroulé',             essentiel: false, signature: false, prestige: true },
-];
+/* Plateforme : tous les mariés ont exactement le même espace, quelle que soit la formule (aucun
+   menu ne dépend de la formule — confirmé par Myrio le 04/11 et le 21/11). L'ancienne matrice
+   PLATFORM_FEATURES, qui réservait invités, menu et plan de table aux formules supérieures, a été
+   retirée le 21/11 : elle n'était plus utilisée et induisait en erreur. */
 
 export const EXTRA_HOUR_PRICE = 70; // heure DJ supplémentaire (TTC) — sauf Signature et Prestige (soirée complète / illimitée)
 

@@ -8,6 +8,7 @@ import MetaPixel from "./components/MetaPixel";
 import OpenAIPixel from "./components/OpenAIPixel";
 import AttributionCapture from "./components/AttributionCapture";
 import CookieConsent from "./components/CookieConsent";
+import AriaBulle from "./components/AriaBulle";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const spaceGrotesk = Space_Grotesk({
@@ -131,6 +132,7 @@ export default function RootLayout({ children }) {
         <main style={{ flexGrow: 1 }}>{children}</main>
         <Footer />
         <CookieConsent />
+        <AriaBulle />
       </body>
     </html>
   );

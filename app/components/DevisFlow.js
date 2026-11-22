@@ -151,8 +151,16 @@ function AnimatedPrice({ value }) {
 function MiniCal({ selected, onSelect, devisPending = {}, bookedDates = new Set(), yearsAhead = 1, loading = false, blockWeddingSeasonSaturdays = false }) {
   const startYr = TODAY.getFullYear();
   const YEARS   = Array.from({ length: yearsAhead + 1 }, (_, i) => startYr + i);
-  const [year,  setYear]  = useState(startYr);
-  const [month, setMonth] = useState(TODAY.getMonth());
+  // Ouvert sur le mois de la date déjà choisie (date transmise par Aria, retour sur l'écran),
+  // sinon sur le mois en cours : sans ça, une date pré-remplie en 2027 restait invisible.
+  const moisChoisi = /^\d{4}-\d{2}-\d{2}$/.test(selected || '') ? selected.split('-').map(Number) : null;
+  const [year,  setYear]  = useState(moisChoisi ? moisChoisi[0] : startYr);
+  const [month, setMonth] = useState(moisChoisi ? moisChoisi[1] - 1 : TODAY.getMonth());
+  useEffect(() => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(selected || '')) return;
+    const [y, m] = selected.split('-').map(Number);
+    setYear(y); setMonth(m - 1);
+  }, [selected]);
 
   const dim  = new Date(year, month + 1, 0).getDate();
   const fd   = (new Date(year, month, 1).getDay() + 6) % 7;

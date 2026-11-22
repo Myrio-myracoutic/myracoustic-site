@@ -666,6 +666,9 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
   const [proType,     setProType]     = useState('');
   const [proPersonnes,setProPersonnes]= useState('');
   const [proDate,     setProDate]     = useState('');
+  // Date choisie (par la personne ou transmise par Aria) : simple ligne + « Modifier » ; le calendrier
+  // ne s'ouvre que pour choisir ou modifier (retour de Myrio du 22/11 : sinon on croit devoir encore choisir).
+  const [proCalendrierOuvert, setProCalendrierOuvert] = useState(false);
   /* Date transmise par Aria (?date=, date vérifiée libre) : calendrier pré-rempli dans la demande
      professionnelle (la date y est un champ facultatif, pas une étape). Seulement si elle est
      toujours libre, une seule fois après le chargement des disponibilités, sans écraser un choix. */
@@ -3074,21 +3077,36 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
                   </ProField>
                 </div>
                 <ProField id="pro-date" label="Date envisagée" optional group>
-                  <MiniCal selected={proDate} onSelect={d => {
-                    if (bookedDates.has(d)) { setBlockedDateThankYou(false); setBlockedDateModal(d); return; }
-                    const n = pendingDates[d] ?? 0;
-                    if (n > 0) { setPendingDateInfo({ date: d, count: n, apply: () => setProDate(d) }); return; }
-                    setProDate(d);
-                  }} devisPending={pendingDates} bookedDates={bookedDates} yearsAhead={2} loading={availabilityLoading} />
-                  {proDate && (
-                    <div style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                      <span style={{ fontSize: 13, color: 'var(--lime)', fontFamily: 'var(--font-display), sans-serif' }}>
-                        <Check size={13} style={{ verticalAlign: '-2px' }} aria-hidden="true" />{' '}{new Date(proDate + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                  {proDate && !proCalendrierOuvert ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', padding: '8px 8px 8px 14px', borderRadius: 10, border: '1px solid rgba(184,239,11,0.35)', background: 'rgba(184,239,11,0.06)' }}>
+                      <span style={{ flex: '1 1 auto', display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 44, fontSize: 15.5, fontWeight: 600, color: 'white', fontFamily: 'var(--font-display), sans-serif' }}>
+                        <Check size={18} color="var(--lime)" aria-hidden="true" style={{ flexShrink: 0 }} />
+                        {new Date(proDate + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                       </span>
-                      <button type="button" onClick={() => setProDate('')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.55)', fontSize: 13, textDecoration: 'underline', cursor: 'pointer', fontFamily: 'inherit', minHeight: 36 }}>
-                        Effacer
-                      </button>
+                      <span style={{ display: 'inline-flex', marginLeft: 'auto' }}>
+                        <button type="button" onClick={() => setProCalendrierOuvert(true)} style={{ background: 'none', border: 'none', color: 'var(--lime)', fontSize: 14, fontWeight: 600, textDecoration: 'underline', cursor: 'pointer', fontFamily: 'inherit', minHeight: 44, padding: '0 10px' }}>
+                          Modifier
+                        </button>
+                        <button type="button" onClick={() => setProDate('')} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.55)', fontSize: 14, textDecoration: 'underline', cursor: 'pointer', fontFamily: 'inherit', minHeight: 44, padding: '0 10px' }}>
+                          Effacer
+                        </button>
+                      </span>
                     </div>
+                  ) : (
+                    <>
+                      <MiniCal selected={proDate} onSelect={d => {
+                        if (bookedDates.has(d)) { setBlockedDateThankYou(false); setBlockedDateModal(d); return; }
+                        const choisir = () => { setProDate(d); setProCalendrierOuvert(false); };
+                        const n = pendingDates[d] ?? 0;
+                        if (n > 0) { setPendingDateInfo({ date: d, count: n, apply: choisir }); return; }
+                        choisir();
+                      }} devisPending={pendingDates} bookedDates={bookedDates} yearsAhead={2} loading={availabilityLoading} />
+                      {proDate && (
+                        <button type="button" onClick={() => setProCalendrierOuvert(false)} style={{ marginTop: 8, background: 'none', border: 'none', color: 'rgba(255,255,255,0.7)', fontSize: 14, textDecoration: 'underline', cursor: 'pointer', fontFamily: 'inherit', minHeight: 44, padding: 0 }}>
+                          Garder le {new Date(proDate + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                        </button>
+                      )}
+                    </>
                   )}
                   {proDate && (pendingDates[proDate] ?? 0) > 0 && (
                     <div style={{ marginTop: 8, padding: '10px 12px', background: 'rgba(249,115,22,0.08)', border: '1px solid rgba(249,115,22,0.28)', borderRadius: 8, fontSize: 12.5, color: '#f97316', lineHeight: 1.6, display: 'flex', alignItems: 'flex-start', gap: 6 }}>

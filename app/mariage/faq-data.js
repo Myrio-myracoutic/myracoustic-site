@@ -32,5 +32,5 @@ export const FAQ_ITEMS = [
   { q: "Qu'est-ce qui est compris dans une prestation de mariage ?",
     a: "Une équipe unique pour le son, la lumière, la vidéo et le DJ : matériel professionnel, éclairage de piste, micros sans fil, installation et démontage, technicien présent sur place, et un espace personnel en ligne pour préparer vos playlists, votre programme, vos invités et votre menu jusqu'au jour J." },
   { q: "Proposez-vous l'éclairage et des effets spéciaux (machine à fumée, étincelles froides) ?",
-    a: "Oui. L'éclairage d'ambiance de la piste est inclus. En option, nous sublimons votre soirée avec la mise en lumière de la salle, une machine à fumée, des machines à étincelles froides pour l'ouverture de bal, ou un mur LED et un vidéoprojecteur pour vos photos et diaporamas." },
+    a: "Oui. L'éclairage de la piste, la fumée lourde et les étincelles froides sont compris dans nos trois formules : de quoi sublimer votre ouverture de bal. Selon la formule, nous ajoutons aussi la mise en lumière de la salle, un vidéoprojecteur ou un mur LED pour vos photos et diaporamas." },
 ];

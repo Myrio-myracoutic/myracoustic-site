@@ -113,7 +113,7 @@ const FAQ = [
   { q: "Quel budget prévoir ?",
     a: "Chaque mariage est unique : le tarif dépend de votre lieu, de la durée de la soirée et des prestations que vous souhaitez. Nous en parlons ensemble lors d'un appel gratuit, puis vous recevez une proposition sur mesure, sans engagement." },
   { q: "Comment se passe la réservation ?",
-    a: "Après notre échange, nous vous envoyons une proposition. Votre date est réservée à réception de l'acompte de 50 % et du contrat signé. Une date réservée n'est plus proposée à d'autres couples." },
+    a: "Après notre échange, nous vous envoyons une proposition. Votre date est réservée à la signature du contrat et à réception de l'acompte. Une date réservée n'est plus proposée à d'autres couples." },
   { q: "Intervenez-vous hors de la région ?",
     a: "Nous intervenons principalement en Pays de la Loire — Nantes, Angers, Rennes, Saint-Nazaire et leurs environs. Pour un lieu plus éloigné, contactez-nous : les frais de déplacement sont précisés dans la proposition." },
   { q: "Peut-on modifier la prestation après la réservation ?",

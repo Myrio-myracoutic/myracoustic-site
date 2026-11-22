@@ -19,6 +19,8 @@ import { gtagEvent } from '../lib/gtag';
 const API = process.env.NEXT_PUBLIC_ARIA_API || 'https://app.myracoustic.com/api/aria';
 const PAGES_SANS_ARIA = ['/mariage-sans-stress', '/dj-mariage', '/organisation-mariage', '/devis', '/rendez-vous'];
 const MEMOIRE = 'aria-conversation';
+const AVATAR = '/aria-avatar.webp';
+const RETRAIT_AVATAR = 36; // avatar des messages (28 px) + espace (8 px) : boutons alignés sur les bulles
 const PROFIL_GA = { mariage: 'mariage', entreprise: 'professionnel', particulier: 'particulier' };
 
 const ACCUEIL = "Bonjour, je suis Aria, l'assistante virtuelle de Myracoustic. Je réponds à vos questions sur nos prestations, et je peux vérifier si votre date est libre.";
@@ -100,6 +102,13 @@ export default function AriaBulle() {
     if (m) { setMessages(m.messages); setConversationId(m.conversationId || null); }
     return () => { annule = true; };
   }, []);
+
+  // Avatar chargé en avance, dès qu'Aria est allumée : pas de rond vide à l'ouverture de la discussion.
+  useEffect(() => {
+    if (!active) return;
+    const image = new window.Image();
+    image.src = AVATAR;
+  }, [active]);
 
   // Bandeau cookies : la bulle n'apparaît qu'une fois le choix fait, et se cache s'il est rouvert.
   useEffect(() => {
@@ -212,9 +221,7 @@ export default function AriaBulle() {
               if (depart != null && (e.changedTouches[0]?.clientY ?? depart) - depart > 60) fermer();
             }}
             style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px 12px 16px', borderBottom: '1px solid var(--separator)', flexShrink: 0 }}>
-            <span aria-hidden="true" style={{ width: 40, height: 40, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'rgba(184,239,11,0.14)', flexShrink: 0 }}>
-              <MessageCircle size={20} color="var(--lime)" />
-            </span>
+            <Avatar taille={40} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <p id="aria-titre" style={{ margin: 0, fontFamily: 'var(--font-display), sans-serif', fontWeight: 700, fontSize: 17 }}>Aria</p>
               <p style={{ margin: 0, fontSize: 13, color: 'var(--text-muted)' }}>Assistante virtuelle (IA) de Myracoustic</p>
@@ -238,6 +245,7 @@ export default function AriaBulle() {
                 {m.role === 'aria' && m.lien && (
                   <a href={m.date ? `${m.lien}?date=${m.date}` : m.lien} onClick={() => clicRendezVous(m)}
                     style={{
+                      marginLeft: RETRAIT_AVATAR,
                       display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 44, padding: '0 18px', borderRadius: 10,
                       background: 'var(--lime)', color: 'var(--bg)', fontWeight: 700, fontSize: 15, textDecoration: 'none',
                     }}>
@@ -247,12 +255,15 @@ export default function AriaBulle() {
               </div>
             ))}
             {attente && (
-              <div aria-label="Aria écrit" style={{ display: 'flex', gap: 5, padding: '14px 16px', borderRadius: 16, borderBottomLeftRadius: 4, background: 'rgba(255,255,255,0.06)', alignSelf: 'flex-start' }}>
-                <span className="aria-point" /><span className="aria-point" /><span className="aria-point" />
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, alignSelf: 'flex-start' }}>
+                <Avatar taille={28} />
+                <div aria-label="Aria écrit" style={{ display: 'flex', gap: 5, padding: '14px 16px', borderRadius: 16, borderBottomLeftRadius: 4, background: 'var(--card)', border: '1px solid var(--separator)' }}>
+                  <span className="aria-point" /><span className="aria-point" /><span className="aria-point" />
+                </div>
               </div>
             )}
             {sansEchange && !attente && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginLeft: RETRAIT_AVATAR }}>
                 {suggestionsPour(pathname).map((s) => (
                   <button key={s} type="button" onClick={() => envoyer(s)}
                     style={{
@@ -300,16 +311,37 @@ export default function AriaBulle() {
   );
 }
 
-function Bulle({ aria, texte }) {
+/* Avatar d'Aria : portrait généré par IA (personne fictive), choisi par Myrio le 22/11.
+   La mention « Assistante virtuelle (IA) » reste affichée sous le nom : ne pas la retirer. */
+function Avatar({ taille, alt = '' }) {
   return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={AVATAR} alt={alt} width={taille} height={taille} decoding="async"
+      style={{
+        width: taille, height: taille, borderRadius: '50%', objectFit: 'cover', flexShrink: 0,
+        border: '1.5px solid rgba(184,239,11,0.55)', background: 'var(--card)',
+      }} />
+  );
+}
+
+function Bulle({ aria, texte }) {
+  const bulle = (
     <div style={{
-      maxWidth: '88%', padding: '10px 14px', borderRadius: 16, fontSize: 16, lineHeight: 1.55, whiteSpace: 'pre-wrap',
+      maxWidth: aria ? undefined : '88%', minWidth: 0, padding: '10px 14px', borderRadius: 16, fontSize: 16, lineHeight: 1.55, whiteSpace: 'pre-wrap',
       background: aria ? 'var(--card)' : 'rgba(184,239,11,0.16)',
       border: `1px solid ${aria ? 'var(--separator)' : 'rgba(184,239,11,0.35)'}`,
       borderBottomLeftRadius: aria ? 4 : 16, borderBottomRightRadius: aria ? 16 : 4,
-      alignSelf: aria ? 'flex-start' : 'flex-end',
+      alignSelf: aria ? undefined : 'flex-end',
     }}>
       {texte}
+    </div>
+  );
+  if (!aria) return bulle;
+  // Réponse d'Aria : son avatar à gauche, aligné sur le bas de la bulle.
+  return (
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, maxWidth: '96%', alignSelf: 'flex-start' }}>
+      <Avatar taille={28} alt="Aria" />
+      {bulle}
     </div>
   );
 }

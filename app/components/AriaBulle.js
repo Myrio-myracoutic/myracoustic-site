@@ -50,16 +50,27 @@ const CSS = `
 .aria-lanceur:focus-visible,.aria-fenetre button:focus-visible,.aria-fenetre a:focus-visible,.aria-fenetre textarea:focus-visible{outline:3px solid #fff;outline-offset:2px}
 .aria-lanceur-texte{display:none}
 @media (min-width:768px){.aria-lanceur-texte{display:inline}}
-.aria-fenetre{position:fixed;z-index:160;display:flex;flex-direction:column;background:var(--bg);color:var(--text);
+.aria-fenetre{position:fixed;z-index:300;display:flex;flex-direction:column;background:var(--bg);color:var(--text);
   border:1px solid var(--separator);box-shadow:0 18px 60px rgba(0,0,0,0.5);
   right:16px;bottom:16px;width:390px;height:min(620px,calc(100dvh - 32px));border-radius:18px;overflow:hidden;
   animation:aria-entree .22s ease-out}
-@media (max-width:640px){.aria-fenetre{inset:0;width:auto;height:100dvh;border-radius:0;border:none}}
+.aria-voile{display:none}
+.aria-poignee{display:none}
+.aria-fermer-texte{display:none}
+@media (max-width:640px){
+  .aria-voile{display:block;position:fixed;inset:0;z-index:290;background:rgba(0,0,0,0.6);animation:aria-fondu .2s ease-out}
+  .aria-fenetre{left:0;right:0;bottom:0;top:max(64px,calc(env(safe-area-inset-top) + 48px));width:auto;height:auto;
+    border:none;border-top:1px solid var(--separator);border-radius:20px 20px 0 0;animation:aria-volet .25s ease-out}
+  .aria-poignee{display:block;width:40px;height:5px;border-radius:3px;background:rgba(255,255,255,0.28);margin:8px auto 0}
+  .aria-fermer-texte{display:inline}
+}
 @keyframes aria-entree{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes aria-volet{from{transform:translateY(100%)}to{transform:none}}
+@keyframes aria-fondu{from{opacity:0}to{opacity:1}}
 .aria-point{width:8px;height:8px;border-radius:50%;background:var(--text-muted);animation:aria-point 1.2s infinite ease-in-out}
 .aria-point:nth-child(2){animation-delay:.15s}.aria-point:nth-child(3){animation-delay:.3s}
 @keyframes aria-point{0%,80%,100%{opacity:.3;transform:none}40%{opacity:1;transform:translateY(-3px)}}
-@media (prefers-reduced-motion:reduce){.aria-fenetre,.aria-point,.aria-lanceur{animation:none;transition:none}}
+@media (prefers-reduced-motion:reduce){.aria-fenetre,.aria-voile,.aria-point,.aria-lanceur{animation:none;transition:none}}
 `;
 
 export default function AriaBulle() {
@@ -75,6 +86,7 @@ export default function AriaBulle() {
   const lanceurRef = useRef(null);
   const champRef = useRef(null);
   const finRef = useRef(null);
+  const departGlisserRef = useRef(null); // téléphone : glisser l'en-tête vers le bas ferme le volet
   const cachee = pageSansAria(pathname);
 
   // Aria allumée ? (réglage de l'admin, mis en cache une minute par la plateforme)
@@ -101,13 +113,15 @@ export default function AriaBulle() {
 
   useEffect(() => { if (ouverte) finRef.current?.scrollIntoView({ block: 'nearest' }); }, [messages, attente, ouverte]);
 
-  // Ouverte : focus dans le champ, Échap pour fermer, page figée derrière sur téléphone.
+  // Ouverte : Échap pour fermer, page figée derrière sur téléphone. Focus dans le champ sur
+  // ordinateur seulement : sur téléphone, le clavier cachait la moitié de l'écran avant même que
+  // le visiteur ait lu l'accueil (retour de Myrio du 22/11).
   useEffect(() => {
     if (!ouverte) return undefined;
-    champRef.current?.focus();
+    const petitEcran = window.matchMedia('(max-width: 640px)').matches;
+    if (!petitEcran) champRef.current?.focus();
     const touche = (e) => { if (e.key === 'Escape') fermer(); };
     window.addEventListener('keydown', touche);
-    const petitEcran = window.matchMedia('(max-width: 640px)').matches;
     const avant = document.body.style.overflow;
     if (petitEcran) document.body.style.overflow = 'hidden';
     return () => { window.removeEventListener('keydown', touche); document.body.style.overflow = avant; };
@@ -185,9 +199,19 @@ export default function AriaBulle() {
         </button>
       )}
 
+      {/* Téléphone : voile sombre au-dessus de la page (et du menu du site) ; le toucher ferme. */}
+      {ouverte && <div className="aria-voile" onClick={fermer} aria-hidden="true" />}
       {ouverte && (
         <div className="aria-fenetre" role="dialog" aria-modal="true" aria-labelledby="aria-titre">
-          <header style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 12px 12px 16px', borderBottom: '1px solid var(--separator)', flexShrink: 0 }}>
+          <div className="aria-poignee" aria-hidden="true" />
+          <header
+            onTouchStart={(e) => { departGlisserRef.current = e.touches[0]?.clientY ?? null; }}
+            onTouchEnd={(e) => {
+              const depart = departGlisserRef.current;
+              departGlisserRef.current = null;
+              if (depart != null && (e.changedTouches[0]?.clientY ?? depart) - depart > 60) fermer();
+            }}
+            style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px 12px 16px', borderBottom: '1px solid var(--separator)', flexShrink: 0 }}>
             <span aria-hidden="true" style={{ width: 40, height: 40, borderRadius: '50%', display: 'grid', placeItems: 'center', background: 'rgba(184,239,11,0.14)', flexShrink: 0 }}>
               <MessageCircle size={20} color="var(--lime)" />
             </span>
@@ -196,8 +220,13 @@ export default function AriaBulle() {
               <p style={{ margin: 0, fontSize: 13, color: 'var(--text-muted)' }}>Assistante virtuelle (IA) de Myracoustic</p>
             </div>
             <button type="button" onClick={fermer} aria-label="Fermer la discussion"
-              style={{ width: 44, height: 44, display: 'grid', placeItems: 'center', borderRadius: 10, border: 'none', background: 'transparent', color: 'var(--text)', cursor: 'pointer' }}>
-              <X size={22} aria-hidden="true" />
+              style={{
+                minWidth: 44, height: 44, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '0 12px',
+                borderRadius: 10, border: '1px solid var(--separator)', background: 'rgba(255,255,255,0.06)', color: 'var(--text)',
+                cursor: 'pointer', fontFamily: 'inherit', fontSize: 14, fontWeight: 600, flexShrink: 0,
+              }}>
+              <X size={20} aria-hidden="true" />
+              <span className="aria-fermer-texte">Fermer</span>
             </button>
           </header>
 
@@ -274,8 +303,8 @@ export default function AriaBulle() {
 function Bulle({ aria, texte }) {
   return (
     <div style={{
-      maxWidth: '88%', padding: '10px 14px', borderRadius: 16, fontSize: 15.5, lineHeight: 1.55, whiteSpace: 'pre-wrap',
-      background: aria ? 'rgba(255,255,255,0.06)' : 'rgba(184,239,11,0.16)',
+      maxWidth: '88%', padding: '10px 14px', borderRadius: 16, fontSize: 16, lineHeight: 1.55, whiteSpace: 'pre-wrap',
+      background: aria ? 'var(--card)' : 'rgba(184,239,11,0.16)',
       border: `1px solid ${aria ? 'var(--separator)' : 'rgba(184,239,11,0.35)'}`,
       borderBottomLeftRadius: aria ? 4 : 16, borderBottomRightRadius: aria ? 16 : 4,
       alignSelf: aria ? 'flex-start' : 'flex-end',

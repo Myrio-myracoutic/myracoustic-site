@@ -139,7 +139,12 @@ export default function AriaBulle() {
       });
       const d = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(d.erreur || "Pardon, je n'ai pas réussi à vous répondre. Réessayez dans un instant.");
-      const suite = [...avecQuestion, { role: 'aria', texte: d.reponse, rendezVous: d.rendezVous, lien: d.lien }];
+      // Date à transmettre au formulaire : la dernière vérifiée LIBRE. Si cette réponse a vérifié des
+      // dates sans en trouver de libre, aucune ; si elle n'en a pas vérifié, celle d'avant est gardée.
+      const verifiees = d.dates || [];
+      const precedente = [...messages].reverse().find((m) => m.role === 'aria')?.date ?? null;
+      const dateLibre = verifiees.length ? (verifiees.filter((x) => x.statut === 'libre').at(-1)?.date ?? null) : precedente;
+      const suite = [...avecQuestion, { role: 'aria', texte: d.reponse, rendezVous: d.rendezVous, lien: d.lien, date: dateLibre }];
       setMessages(suite);
       setConversationId(d.conversationId || conversationId);
       ecrireMemoire({ conversationId: d.conversationId || conversationId, messages: suite });
@@ -202,7 +207,7 @@ export default function AriaBulle() {
               <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: m.role === 'aria' ? 'flex-start' : 'flex-end' }}>
                 <Bulle aria={m.role === 'aria'} texte={m.texte} />
                 {m.role === 'aria' && m.lien && (
-                  <a href={m.lien} onClick={() => clicRendezVous(m)}
+                  <a href={m.date ? `${m.lien}?date=${m.date}` : m.lien} onClick={() => clicRendezVous(m)}
                     style={{
                       display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 44, padding: '0 18px', borderRadius: 10,
                       background: 'var(--lime)', color: 'var(--bg)', fontWeight: 700, fontSize: 15, textDecoration: 'none',

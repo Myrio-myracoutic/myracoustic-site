@@ -7,6 +7,7 @@ import { Building2, Calendar, PartyPopper, Volume2, Headphones, Lightbulb, Mic, 
 import { AnimatedWave } from './AnimatedWave';
 import CallSlotPicker from './CallSlotPicker';
 import { gtagEvent, gtagBeacon, gtagSetUserData } from '../lib/gtag';
+import { dateDepuisAdresse } from '../lib/date-depuis-adresse';
 import { readAttribution, SOURCE_OPTIONS_PRO } from '../lib/attribution';
 import { STRUCTURES, BESOINS_PRO } from '../lib/pro-demande';
 
@@ -657,6 +658,17 @@ export default function DevisFlow({ forcedProfil = null, initialEmail = '' }) {
   const [proType,     setProType]     = useState('');
   const [proPersonnes,setProPersonnes]= useState('');
   const [proDate,     setProDate]     = useState('');
+  /* Date transmise par Aria (?date=, date vérifiée libre) : calendrier pré-rempli dans la demande
+     professionnelle (la date y est un champ facultatif, pas une étape). Seulement si elle est
+     toujours libre, une seule fois après le chargement des disponibilités, sans écraser un choix. */
+  const proDateAdresseLueRef = useRef(false);
+  useEffect(() => {
+    if (availabilityLoading || proDateAdresseLueRef.current) return;
+    proDateAdresseLueRef.current = true;
+    if (forcedProfil !== 'professionnel') return;
+    const k = dateDepuisAdresse(new Date().toISOString().slice(0, 10), null);
+    if (k && !bookedDates.has(k)) setProDate((actuelle) => actuelle || k);
+  }, [availabilityLoading]); // eslint-disable-line react-hooks/exhaustive-deps
   const [proBudget,   setProBudget]   = useState('');
   const [proLieu,     setProLieu]     = useState('');
   const [proDesc,     setProDesc]     = useState('');

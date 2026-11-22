@@ -8,6 +8,7 @@ import MiniCal from '@/app/components/MiniCal';
 import AddressAutocomplete from '@/app/components/AddressAutocomplete';
 import CallSlotPicker from '@/app/components/CallSlotPicker';
 import { gtagEvent, gtagBeacon, gtagSetUserData } from '@/app/lib/gtag';
+import { dateDepuisAdresse } from '@/app/lib/date-depuis-adresse';
 import { readAttribution, SOURCE_OPTIONS_PRO } from '@/app/lib/attribution';
 import { TYPES_EVENEMENT, BESOINS_PARTICULIER } from '@/app/lib/particulier-demande';
 
@@ -195,6 +196,21 @@ export default function ParticulierDemandeClient() {
       checkNativeDate(k);
     }
   });
+
+  /* Date transmise par Aria (bouton « Prendre rendez-vous » après une date vérifiée libre, avec le
+     même agenda) : l'étape date est sautée, la personne arrive directement sur ses coordonnées.
+     « Modifier » reste possible. Si la date a été prise entre-temps, l'étape date s'affiche avec le
+     message habituel « déjà réservée ». Une seule fois, après le chargement des disponibilités. */
+  const dateAdresseLueRef = useRef(false);
+  useEffect(() => {
+    if (availLoading || dateAdresseLueRef.current) return;
+    dateAdresseLueRef.current = true;
+    const k = dateDepuisAdresse(todayIso, maxIso);
+    if (!k) return;
+    dateStartedRef.current = true;
+    if (bookedDates.has(k)) { setNativeDateInput(k); notifyBooked(k, 'native'); return; }
+    confirmDate(k, 'aria');
+  }, [availLoading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* Sur téléphone, le résultat (et le bouton « Valider cette date ») peut tomber sous le bandeau
      cookies ou sous le bas de l'écran : on le ramène à l'écran. */

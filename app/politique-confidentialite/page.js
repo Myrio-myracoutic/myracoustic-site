@@ -2,7 +2,7 @@ import CookiePrefsButtonInline from '../components/CookiePrefsButtonInline';
 
 export const metadata = {
   title: "Politique de confidentialité — Myracoustic",
-  description: "Politique de confidentialité du site Myracoustic.",
+  description: "Comment Myracoustic collecte, utilise et protège vos données : demandes, assistante Aria, cookies, prestataires, durées et droits.",
 };
 
 const SECTIONS = [
@@ -16,8 +16,8 @@ const SECTIONS = [
           <a href="mailto:contact@myracoustic.com" style={{ color: 'var(--lime)' }}>contact@myracoustic.com</a>.
         </p>
         <p>
-          Le site utilise Elementor Forms ainsi que des traceurs publicitaires Google Ads, Meta Pixel, Pixel OpenAI et TikTok Pixel.
-          Ces traceurs sont soumis à votre consentement via la bannière cookies (lorsqu'elle est mise en place).
+          Le site utilise des outils de mesure d’audience et de publicité. Ceux qui déposent des cookies ne le font
+          qu’avec votre accord, donné dans la bannière cookies (voir la section 4).
         </p>
       </>
     ),
@@ -27,12 +27,29 @@ const SECTIONS = [
     body: (
       <>
         <p style={{ marginBottom: 10 }}>
-          Lorsque vous nous contactez (formulaire de contact ou demande de devis), nous collectons : nom et prénom,
-          adresse e-mail, numéro de téléphone, et le contenu de votre message (détails de votre besoin).
+          Lorsque vous faites une demande (mariage, entreprise ou particulier), nous collectons :
         </p>
+        <ul style={{ margin: '0 0 10px', paddingLeft: 20 }}>
+          <li style={{ marginBottom: 6 }}>
+            <strong>Vos coordonnées :</strong> nom, prénom, adresse e-mail et numéro de téléphone ; pour les
+            professionnels, le nom et le type de votre structure, et votre fonction si vous l’indiquez.
+          </li>
+          <li style={{ marginBottom: 6 }}>
+            <strong>Votre événement :</strong> date, lieu, nombre d’invités ou de participants, type d’événement,
+            besoins, budget envisagé (professionnels) et votre message.
+          </li>
+          <li style={{ marginBottom: 6 }}>
+            <strong>Votre rendez-vous :</strong> le créneau d’appel que vous choisissez.
+          </li>
+          <li>
+            <strong>L’origine de votre demande :</strong> la façon dont vous nous avez connus et, si vous arrivez par
+            une publicité, sa provenance (identifiant du clic, campagne), gardée dans votre navigateur jusqu’à l’envoi
+            de votre demande.
+          </li>
+        </ul>
         <p>
-          Des données techniques peuvent également être traitées (par exemple : adresse IP, journaux serveur) à des
-          fins de sécurité et de bon fonctionnement du site.
+          Des données techniques (adresse IP, journaux du serveur) sont aussi traitées pour la sécurité et le bon
+          fonctionnement du site.
         </p>
       </>
     ),
@@ -91,23 +108,40 @@ const SECTIONS = [
     ),
   },
   {
-    title: '4. Cookies et traceurs publicitaires',
+    title: '4. Cookies, mesure d’audience et publicité',
     body: (
       <>
-        <p style={{ marginBottom: 10 }}>
-          Le site utilise des traceurs permettant de mesurer l'efficacité des campagnes publicitaires et, selon votre
-          choix, de proposer du reciblage publicitaire (remarketing) :
-        </p>
+        <p style={{ marginBottom: 10 }}>Le site utilise les outils suivants :</p>
         <ul style={{ margin: '0 0 10px', paddingLeft: 20 }}>
-          <li style={{ marginBottom: 6 }}>Google Ads : conversions, remarketing</li>
-          <li style={{ marginBottom: 6 }}>Meta Pixel : conversions, audiences, retargeting</li>
           <li style={{ marginBottom: 6 }}>
-            Pixel OpenAI (publicités ChatGPT) : mesure des demandes issues de nos publicités. Les coordonnées saisies
-            dans un formulaire peuvent être transmises sous forme hachée (SHA-256, procédé irréversible), jamais en clair
+            <strong>Google Analytics (GA4) :</strong> fréquentation du site et parcours dans les formulaires de demande.
           </li>
-          <li>TikTok Pixel : conversions, audiences, retargeting</li>
+          <li style={{ marginBottom: 6 }}>
+            <strong>Microsoft Clarity :</strong> manière dont les pages sont utilisées (clics, défilement), pour les
+            améliorer.
+          </li>
+          <li style={{ marginBottom: 6 }}>
+            <strong>Vercel Speed Insights :</strong> mesure technique de la vitesse d’affichage des pages.
+          </li>
+          <li style={{ marginBottom: 6 }}>
+            <strong>Google Ads :</strong> mesure des demandes issues de nos annonces et reciblage publicitaire. Si vous
+            l’acceptez, à l’envoi d’une demande, vos coordonnées (e-mail, téléphone, nom, prénom) sont transmises à
+            Google sous forme hachée (procédé irréversible), jamais en clair.
+          </li>
+          <li style={{ marginBottom: 6 }}>
+            <strong>Meta (Facebook, Instagram) :</strong> mesure des demandes issues de nos publicités, audiences et
+            reciblage publicitaire.
+          </li>
+          <li>
+            <strong>OpenAI (publicités ChatGPT) :</strong> mesure des demandes issues de nos publicités.
+          </li>
         </ul>
-        <p>Le site n'utilise ni Google Analytics (GA4), ni Google Tag Manager (GTM).</p>
+        <p>
+          Tant que vous n’avez pas accepté les cookies, ou si vous les refusez, Google Analytics, Google Ads et
+          Microsoft Clarity fonctionnent sans déposer de cookie ni vous attribuer d’identifiant, et les outils de Meta
+          et d’OpenAI ne sont pas chargés. Ces deux derniers ne le sont jamais sur les pages personnelles (liens de
+          proposition, de rendez-vous ou d’invitation).
+        </p>
       </>
     ),
   },
@@ -115,9 +149,11 @@ const SECTIONS = [
     title: '5. Finalités',
     body: (
       <ul style={{ margin: 0, paddingLeft: 20 }}>
-        <li style={{ marginBottom: 6 }}>Répondre à votre demande et en assurer le suivi (contact / devis)</li>
-        <li style={{ marginBottom: 6 }}>Mesurer l'efficacité des publicités (conversions)</li>
-        <li style={{ marginBottom: 6 }}>Créer des audiences et proposer du reciblage publicitaire (si vous l'acceptez)</li>
+        <li style={{ marginBottom: 6 }}>Répondre à votre demande, organiser l’appel que vous avez réservé et vous adresser une proposition</li>
+        <li style={{ marginBottom: 6 }}>Répondre à vos questions avec l’assistante Aria (voir la section 3)</li>
+        <li style={{ marginBottom: 6 }}>Mesurer la fréquentation du site et l’améliorer</li>
+        <li style={{ marginBottom: 6 }}>Mesurer l’efficacité de nos publicités</li>
+        <li style={{ marginBottom: 6 }}>Créer des audiences et proposer du reciblage publicitaire (si vous l’acceptez)</li>
         <li>Assurer la sécurité du site et prévenir la fraude</li>
       </ul>
     ),
@@ -126,9 +162,10 @@ const SECTIONS = [
     title: '6. Base légale (RGPD)',
     body: (
       <ul style={{ margin: 0, paddingLeft: 20 }}>
-        <li style={{ marginBottom: 6 }}>Mesures précontractuelles : traitement d'une demande de devis ou de contact</li>
-        <li style={{ marginBottom: 6 }}>Intérêt légitime : sécurité et bon fonctionnement du site</li>
-        <li>Consentement : cookies et traceurs non essentiels (publicité, remarketing, conversions)</li>
+        <li style={{ marginBottom: 6 }}><strong>Mesures précontractuelles :</strong> traitement de votre demande, de votre rendez-vous et de notre proposition</li>
+        <li style={{ marginBottom: 6 }}><strong>Intérêt légitime :</strong> sécurité et bon fonctionnement du site, assistante Aria (voir la section 3)</li>
+        <li style={{ marginBottom: 6 }}><strong>Consentement :</strong> cookies de mesure d’audience et de publicité, reciblage, transmission de vos coordonnées hachées à Google</li>
+        <li><strong>Obligation légale :</strong> conservation des devis et des factures</li>
       </ul>
     ),
   },
@@ -137,14 +174,20 @@ const SECTIONS = [
     body: (
       <>
         <p style={{ marginBottom: 10 }}>
-          Les données sont traitées par Myracoustic et peuvent être accessibles à des prestataires nécessaires au
-          fonctionnement du site :
+          Vos données sont traitées par Myracoustic. Les prestataires suivants y ont accès, uniquement pour les
+          besoins indiqués :
         </p>
         <ul style={{ margin: 0, paddingLeft: 20 }}>
-          <li style={{ marginBottom: 6 }}>Hébergement : IONOS</li>
-          <li style={{ marginBottom: 6 }}>Site et formulaires : WordPress / Elementor</li>
-          <li style={{ marginBottom: 6 }}>Traceurs publicitaires : Google, Meta, OpenAI, TikTok (sous réserve de votre consentement)</li>
-          <li>Assistante virtuelle Aria : Anthropic (voir la section 3)</li>
+          <li style={{ marginBottom: 6 }}>Hébergement du site et de l’espace client : Vercel</li>
+          <li style={{ marginBottom: 6 }}>Base de données : Supabase (serveurs dans l’Union européenne, en Irlande)</li>
+          <li style={{ marginBottom: 6 }}>E-mails envoyés par le site : Brevo</li>
+          <li style={{ marginBottom: 6 }}>Messagerie et agenda des rendez-vous : Google (Google Workspace)</li>
+          <li style={{ marginBottom: 6 }}>Saisie automatique des adresses : Mapbox</li>
+          <li style={{ marginBottom: 6 }}>Recherche de votre entreprise (professionnels) : annuaire des entreprises de l’État</li>
+          <li style={{ marginBottom: 6 }}>Devis, factures et paiements : Qonto et Mollie</li>
+          <li style={{ marginBottom: 6 }}>Assistante virtuelle Aria : Anthropic (voir la section 3)</li>
+          <li style={{ marginBottom: 6 }}>Mesure d’audience : Google (Analytics), Microsoft (Clarity), Vercel (Speed Insights)</li>
+          <li>Publicité : Google, Meta, OpenAI (selon votre choix dans la bannière cookies)</li>
         </ul>
       </>
     ),
@@ -153,9 +196,10 @@ const SECTIONS = [
     title: '8. Transferts hors Union européenne',
     body: (
       <p>
-        Le recours à des services tiers (Google, Meta, OpenAI, TikTok, et Anthropic pour l’assistante Aria) peut entraîner des transferts de données en dehors de
-        l'Union européenne. Le cas échéant, ces transferts s'appuient sur des mécanismes de protection adaptés
-        (par exemple des clauses contractuelles types) et/ou sur les garanties fournies par ces prestataires.
+        Certains prestataires sont établis aux États-Unis ou peuvent y traiter des données : Vercel, Google,
+        Microsoft, Meta, OpenAI, Mapbox et Anthropic. Ces transferts s’appuient sur des garanties reconnues par
+        l’Union européenne : clauses contractuelles types de la Commission européenne ou certification « Data
+        Privacy Framework », selon le prestataire.
       </p>
     ),
   },
@@ -163,10 +207,11 @@ const SECTIONS = [
     title: '9. Durées de conservation',
     body: (
       <ul style={{ margin: 0, paddingLeft: 20 }}>
-        <li style={{ marginBottom: 6 }}>Données issues des formulaires : jusqu'à 3 ans après le dernier échange</li>
+        <li style={{ marginBottom: 6 }}>Demandes envoyées par les formulaires : jusqu’à 3 ans après le dernier échange</li>
         <li style={{ marginBottom: 6 }}>Conversations avec l’assistante Aria : 180 jours, puis suppression automatique</li>
-        <li style={{ marginBottom: 6 }}>Données contractuelles : durées légales de conservation comptable et de facturation, le cas échéant</li>
-        <li style={{ marginBottom: 6 }}>Cookies et traceurs : en principe jusqu'à 13 mois (variable selon les services et vos choix)</li>
+        <li style={{ marginBottom: 6 }}>Devis et factures : durées légales (10 ans pour les pièces comptables)</li>
+        <li style={{ marginBottom: 6 }}>Votre choix dans la bannière cookies : 6 mois</li>
+        <li style={{ marginBottom: 6 }}>Cookies de mesure d’audience et de publicité : 13 mois au plus</li>
         <li>Journaux techniques : durée limitée, proportionnée aux besoins de sécurité</li>
       </ul>
     ),
@@ -194,15 +239,14 @@ const SECTIONS = [
     body: (
       <>
         <p style={{ marginBottom: 10 }}>
-          Vous pouvez accepter ou refuser les cookies via la bannière de consentement (lorsqu'elle est mise en place)
-          et modifier vos choix à tout moment. Vous pouvez également gérer les cookies directement depuis les
-          paramètres de votre navigateur :
+          Vous pouvez modifier votre choix à tout moment avec le bouton ci-dessous, ou avec le lien « Préférences
+          cookies » en bas de chaque page. Vous pouvez aussi gérer les cookies dans les réglages de votre navigateur,
+          et vos préférences publicitaires chez chaque régie :
         </p>
         <ul style={{ margin: '0 0 16px', paddingLeft: 20 }}>
-          <li style={{ marginBottom: 6 }}>Google Ads : paramètres de publicité Google</li>
+          <li style={{ marginBottom: 6 }}>Google : paramètres de publicité de votre compte Google</li>
           <li style={{ marginBottom: 6 }}>Meta : paramètres de publicité Facebook / Instagram</li>
-          <li style={{ marginBottom: 6 }}>OpenAI : paramètres de publicité de votre compte ChatGPT</li>
-          <li>TikTok : paramètres de confidentialité et de publicité TikTok</li>
+          <li>OpenAI : paramètres de publicité de votre compte ChatGPT</li>
         </ul>
         <CookiePrefsButtonInline />
       </>
@@ -240,6 +284,7 @@ export default function PolitiqueConfidentialitePage() {
         }}>
           Politique de confidentialité
         </h1>
+        <p style={{ color: 'var(--text-light)', fontSize: 14, marginBottom: 8 }}>Mise à jour le 22 novembre 2026.</p>
         <p style={{ color: 'var(--text-light)', fontSize: 14, marginBottom: 48 }}>
           Cette politique explique comment Myracoustic collecte, utilise et protège vos données personnelles
           lorsque vous visitez ce site, utilisez nos formulaires de contact et de devis, ou discutez avec

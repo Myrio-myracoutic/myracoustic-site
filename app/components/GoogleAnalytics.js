@@ -22,7 +22,9 @@ export default function GoogleAnalytics() {
       <Script id="ga4-init" strategy="afterInteractive">
         {`
           gtag('js', new Date());
-          gtag('config', '${GA_ID}');
+          // Cookie limité à 13 mois (recommandation CNIL, annoncé dans la politique de confidentialité) :
+          // par défaut, Google Analytics le garde 2 ans. 13 mois = 395 jours = 34 128 000 secondes.
+          gtag('config', '${GA_ID}', { cookie_expires: 34128000 });
         `}
       </Script>
     </>

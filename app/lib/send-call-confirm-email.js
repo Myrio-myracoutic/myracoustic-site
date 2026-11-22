@@ -1,3 +1,4 @@
+import { apiFetch } from '@/app/lib/api-externe';
 /* Emails autour du créneau d'appel — programmation, modification, annulation.
    Envoyés au moment de l'action (tunnel public, app/lib/call-booking.js).
    Best-effort partout : une panne d'envoi
@@ -38,7 +39,7 @@ export function emailShell(bodyHtml) {
 }
 
 async function sendBrevoEmail({ toEmail, firstName, subject, html }) {
-  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+  const res = await apiFetch('brevo', 'https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'api-key': process.env.BREVO_API_KEY },
     body: JSON.stringify({

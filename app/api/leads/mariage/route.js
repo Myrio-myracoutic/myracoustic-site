@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
 import { resolveSource, campagneAvecPorte, libellePorte } from '@/app/lib/lead-source';
+import { apiFetch } from '@/app/lib/api-externe';
 
 const NOTIF_EMAIL = 'contact@myracoustic.com';
 
@@ -12,7 +13,7 @@ function fmtDate(d) {
 }
 
 async function sendEmail(payload) {
-  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+  const res = await apiFetch('brevo', 'https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'api-key': process.env.BREVO_API_KEY },
     body: JSON.stringify(payload),

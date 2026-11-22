@@ -3,6 +3,7 @@ import { supabaseAdmin } from '@/app/lib/supabase-admin';
 import { resolveSource } from '@/app/lib/lead-source';
 import { TYPES_EVENEMENT, BESOINS_PARTICULIER } from '@/app/lib/particulier-demande';
 import { particulierDemandeConfirmationHtml, esc } from '@/app/lib/particulier-demande-email';
+import { apiFetch } from '@/app/lib/api-externe';
 
 const NOTIF_EMAIL = process.env.GOOGLE_CALENDAR_ID || 'contact@myracoustic.com';
 
@@ -70,7 +71,7 @@ export async function POST(request) {
     ${leadId ? '' : '<p style="color:#b91c1c"><strong>Attention :</strong> la demande n’a pas pu être enregistrée dans les leads. Rappelez cette personne à partir de cet email.</p>'}
   `;
 
-  const envoyer = (payload) => fetch('https://api.brevo.com/v3/smtp/email', {
+  const envoyer = (payload) => apiFetch('brevo', 'https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'api-key': process.env.BREVO_API_KEY },
     body: JSON.stringify(payload),

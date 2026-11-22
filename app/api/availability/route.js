@@ -2,6 +2,7 @@ import { google } from 'googleapis';
 import { NextResponse } from 'next/server';
 import { parseDateFromHeader } from '@/lib/parse-date-fr';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
+import { apiFetch, apiSdk } from '@/app/lib/api-externe';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,7 +19,7 @@ function qHeaders() {
 async function getPendingDates() {
   const counts = {};
 
-  const res = await fetch(`${QONTO_BASE}/quotes?per_page=100`, { headers: qHeaders() });
+  const res = await apiFetch('qonto', `${QONTO_BASE}/quotes?per_page=100`, { headers: qHeaders() });
   if (!res.ok) return counts;
   const data = await res.json();
   const quotes = data.quotes ?? [];
@@ -51,17 +52,18 @@ export async function GET(request) {
     );
     auth.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });
 
-    const calendar = google.calendar({ version: 'v3', auth });
+    // Relances internes de googleapis coupées : c'est app/lib/api-externe.js qui relance.
+    const calendar = google.calendar({ version: 'v3', auth, retry: false, timeout: 15000 });
     const calId = process.env.GOOGLE_CALENDAR_ID || 'primary';
 
-    const res = await calendar.events.list({
+    const res = await apiSdk('google-agenda', 'calendar.events.list', () => calendar.events.list({
       calendarId: calId,
       timeMin: new Date(`${start}T00:00:00`).toISOString(),
       timeMax: new Date(`${end}T23:59:59`).toISOString(),
       singleEvents: true,
       maxResults: 500,
       fields: 'items(start,end,transparency,status,extendedProperties)',
-    });
+    }));
 
     const events = res.data.items ?? [];
     const bookedDates = new Set();

@@ -10,6 +10,7 @@
 import crypto from 'crypto';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
 import { getCalendarClient, getCalendarId } from '@/lib/google-calendar';
+import { apiSdk } from '@/app/lib/api-externe';
 import { addMinutesToTime, parisLocalToUtcISO, parisDatePlusDays, utcToParisParts } from '@/lib/paris-time';
 import { getAvailableSlots, getSlotDurationMinutes } from '@/lib/call-slots';
 import { sendCallConfirmEmail, sendCallCancelEmail, sendBookingLinkEmail, sendCallReminderEmail, fmtSlotDateTime } from '@/app/lib/send-call-confirm-email';
@@ -169,7 +170,9 @@ export async function deleteCallGoogleEvent(googleEventId) {
   if (!googleEventId) return;
   try {
     const calendar = getCalendarClient();
-    await calendar.events.delete({ calendarId: getCalendarId(), eventId: googleEventId });
+    // 404 / 410 = déjà supprimé de l'agenda : rien à signaler.
+    await apiSdk('google-agenda', 'calendar.events.delete', () => calendar.events.delete({ calendarId: getCalendarId(), eventId: googleEventId }),
+      { methode: 'DELETE', statutsNormaux: [404, 410] });
   } catch (err) {
     console.error('Calendar delete error:', err.message);
   }
@@ -214,7 +217,7 @@ export async function bookCallSlot({ kind = 'mariage', refId, date, time, requir
     const calId = getCalendarId();
     const endTime = addMinutesToTime(time, slotMinutes);
 
-    const evRes = await calendar.events.insert({
+    const evRes = await apiSdk('google-agenda', 'calendar.events.insert', () => calendar.events.insert({
       calendarId: calId,
       requestBody: {
         summary: src.summary(updated),
@@ -225,7 +228,7 @@ export async function bookCallSlot({ kind = 'mariage', refId, date, time, requir
         transparency: 'opaque',
         extendedProperties: { private: { [src.extendedKey]: refId, kind: 'call_appointment' } },
       },
-    });
+    }), { methode: 'POST' });
 
     await supabaseAdmin
       .from(src.table)

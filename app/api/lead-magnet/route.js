@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
+import { apiFetch } from '@/app/lib/api-externe';
 
 const SENDER_EMAIL = 'contact@myracoustic.com';
 const PDF_URL = 'https://myracoustic.com/guides/7-questions-dj-mariage.pdf';
@@ -70,7 +71,7 @@ export async function POST(request) {
 </body></html>`;
 
   try {
-    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+    const res = await apiFetch('brevo', 'https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'api-key': process.env.BREVO_API_KEY },
       body: JSON.stringify({

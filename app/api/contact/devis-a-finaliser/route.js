@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { apiFetch } from '@/app/lib/api-externe';
 
 const NOTIF_EMAIL = process.env.GOOGLE_CALENDAR_ID || 'contact@myracoustic.com';
 
@@ -38,7 +39,7 @@ export async function POST(request) {
   `;
 
   try {
-    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+    const res = await apiFetch('brevo', 'https://api.brevo.com/v3/smtp/email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'api-key': process.env.BREVO_API_KEY },
       body: JSON.stringify({

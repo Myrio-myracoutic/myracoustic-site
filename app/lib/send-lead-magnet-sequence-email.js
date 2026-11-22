@@ -1,4 +1,5 @@
 import { SEQUENCE_EMAILS } from './lead-magnet-sequence-data';
+import { apiFetch } from '@/app/lib/api-externe';
 
 const SENDER_EMAIL = 'contact@myracoustic.com';
 const CONTACT_URL = 'https://myracoustic.com/devis/mariage-contact';
@@ -50,7 +51,7 @@ export async function sendLeadMagnetSequenceEmail({ toEmail, firstName, step, id
 </table></td></tr></table>
 </body></html>`;
 
-  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+  const res = await apiFetch('brevo', 'https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'api-key': process.env.BREVO_API_KEY },
     body: JSON.stringify({

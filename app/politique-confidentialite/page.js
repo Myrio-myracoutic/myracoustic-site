@@ -38,7 +38,60 @@ const SECTIONS = [
     ),
   },
   {
-    title: '3. Cookies et traceurs publicitaires',
+    title: '3. Aria, l’assistante virtuelle du site',
+    body: (
+      <>
+        <p style={{ marginBottom: 10 }}>
+          Le site propose une assistante virtuelle, Aria, qui répond à vos questions sur nos prestations et peut
+          vérifier si une date est libre dans notre agenda. Aria est une intelligence artificielle : ses réponses
+          sont générées automatiquement et peuvent comporter des erreurs. Elle ne remplace pas l’échange avec Myrio.
+        </p>
+        <ul style={{ margin: '0 0 10px', paddingLeft: 20 }}>
+          <li style={{ marginBottom: 6 }}>
+            <strong>Données traitées :</strong> les messages que vous écrivez à Aria et ses réponses, la page du site depuis laquelle
+            vous l’utilisez, les dates que vous lui demandez de vérifier, la date et l’heure des échanges. Pour
+            limiter les abus, une empreinte technique est calculée de façon irréversible à partir de votre adresse IP
+            et de votre navigateur : votre adresse IP elle-même n’est pas conservée.
+          </li>
+          <li style={{ marginBottom: 6 }}>
+            <strong>Aria ne vous demande jamais vos coordonnées.</strong> Évitez d’y écrire des informations personnelles (téléphone,
+            adresse, santé…) : pour être recontacté, utilisez le formulaire de demande.
+          </li>
+          <li style={{ marginBottom: 6 }}>
+            <strong>Finalités :</strong> répondre à vos questions, vérifier une date, vous orienter vers une demande de rendez-vous,
+            améliorer les réponses d’Aria (les conversations peuvent être relues par Myracoustic) et prévenir les abus.
+          </li>
+          <li style={{ marginBottom: 6 }}>
+            <strong>Base légale :</strong> l’intérêt légitime de Myracoustic à répondre aux visiteurs qui utilisent Aria et à améliorer
+            ce service, et, lorsque vous préparez une demande, les mesures précontractuelles prises à votre demande.
+          </li>
+          <li style={{ marginBottom: 6 }}>
+            <strong>Prestataire :</strong> pour générer les réponses, vos messages sont transmis à Anthropic (société établie aux
+            États-Unis, éditrice des modèles d’intelligence artificielle Claude), qui agit comme sous-traitant.
+            Anthropic n’utilise pas ces échanges pour entraîner ses modèles. Elle les supprime automatiquement de ses
+            serveurs sous 30 jours, sauf s’ils sont signalés par ses systèmes de sécurité (conservation possible
+            jusqu’à 2 ans) ou si la loi l’impose. Ce transfert vers les États-Unis est encadré par les clauses
+            contractuelles types de la Commission européenne.
+          </li>
+          <li style={{ marginBottom: 6 }}>
+            <strong>Conservation chez Myracoustic :</strong> les conversations sont enregistrées dans notre base de données, hébergée
+            dans l’Union européenne (Irlande), puis supprimées automatiquement au bout de 180 jours.
+          </li>
+          <li>
+            <strong>Mesure d’audience :</strong> selon vos choix dans la bannière cookies, l’ouverture d’Aria et le clic sur
+            « Prendre rendez-vous » sont comptés dans nos statistiques. Le contenu de vos messages n’y figure jamais.
+          </li>
+        </ul>
+        <p>
+          Pour consulter ou faire supprimer une conversation, écrivez à{' '}
+          <a href="mailto:contact@myracoustic.com" style={{ color: 'var(--lime)' }}>contact@myracoustic.com</a>{' '}
+          en indiquant sa date et son sujet : Aria ne connaît pas votre identité.
+        </p>
+      </>
+    ),
+  },
+  {
+    title: '4. Cookies et traceurs publicitaires',
     body: (
       <>
         <p style={{ marginBottom: 10 }}>
@@ -59,7 +112,7 @@ const SECTIONS = [
     ),
   },
   {
-    title: '4. Finalités',
+    title: '5. Finalités',
     body: (
       <ul style={{ margin: 0, paddingLeft: 20 }}>
         <li style={{ marginBottom: 6 }}>Répondre à votre demande et en assurer le suivi (contact / devis)</li>
@@ -70,7 +123,7 @@ const SECTIONS = [
     ),
   },
   {
-    title: '5. Base légale (RGPD)',
+    title: '6. Base légale (RGPD)',
     body: (
       <ul style={{ margin: 0, paddingLeft: 20 }}>
         <li style={{ marginBottom: 6 }}>Mesures précontractuelles : traitement d'une demande de devis ou de contact</li>
@@ -80,7 +133,7 @@ const SECTIONS = [
     ),
   },
   {
-    title: '6. Destinataires et sous-traitants',
+    title: '7. Destinataires et sous-traitants',
     body: (
       <>
         <p style={{ marginBottom: 10 }}>
@@ -90,26 +143,28 @@ const SECTIONS = [
         <ul style={{ margin: 0, paddingLeft: 20 }}>
           <li style={{ marginBottom: 6 }}>Hébergement : IONOS</li>
           <li style={{ marginBottom: 6 }}>Site et formulaires : WordPress / Elementor</li>
-          <li>Traceurs publicitaires : Google, Meta, OpenAI, TikTok (sous réserve de votre consentement)</li>
+          <li style={{ marginBottom: 6 }}>Traceurs publicitaires : Google, Meta, OpenAI, TikTok (sous réserve de votre consentement)</li>
+          <li>Assistante virtuelle Aria : Anthropic (voir la section 3)</li>
         </ul>
       </>
     ),
   },
   {
-    title: '7. Transferts hors Union européenne',
+    title: '8. Transferts hors Union européenne',
     body: (
       <p>
-        Le recours à des services tiers (Google, Meta, OpenAI, TikTok) peut entraîner des transferts de données en dehors de
+        Le recours à des services tiers (Google, Meta, OpenAI, TikTok, et Anthropic pour l’assistante Aria) peut entraîner des transferts de données en dehors de
         l'Union européenne. Le cas échéant, ces transferts s'appuient sur des mécanismes de protection adaptés
         (par exemple des clauses contractuelles types) et/ou sur les garanties fournies par ces prestataires.
       </p>
     ),
   },
   {
-    title: '8. Durées de conservation',
+    title: '9. Durées de conservation',
     body: (
       <ul style={{ margin: 0, paddingLeft: 20 }}>
         <li style={{ marginBottom: 6 }}>Données issues des formulaires : jusqu'à 3 ans après le dernier échange</li>
+        <li style={{ marginBottom: 6 }}>Conversations avec l’assistante Aria : 180 jours, puis suppression automatique</li>
         <li style={{ marginBottom: 6 }}>Données contractuelles : durées légales de conservation comptable et de facturation, le cas échéant</li>
         <li style={{ marginBottom: 6 }}>Cookies et traceurs : en principe jusqu'à 13 mois (variable selon les services et vos choix)</li>
         <li>Journaux techniques : durée limitée, proportionnée aux besoins de sécurité</li>
@@ -117,7 +172,7 @@ const SECTIONS = [
     ),
   },
   {
-    title: '9. Vos droits',
+    title: '10. Vos droits',
     body: (
       <>
         <p style={{ marginBottom: 10 }}>Vous disposez des droits suivants sur vos données personnelles :</p>
@@ -135,7 +190,7 @@ const SECTIONS = [
     ),
   },
   {
-    title: '10. Gestion des cookies',
+    title: '11. Gestion des cookies',
     body: (
       <>
         <p style={{ marginBottom: 10 }}>
@@ -154,7 +209,7 @@ const SECTIONS = [
     ),
   },
   {
-    title: '11. Sécurité',
+    title: '12. Sécurité',
     body: (
       <p>
         Myracoustic met en œuvre des mesures raisonnables pour protéger vos données (mises à jour, limitation des
@@ -164,7 +219,7 @@ const SECTIONS = [
     ),
   },
   {
-    title: '12. Réclamation',
+    title: '13. Réclamation',
     body: (
       <p>
         Si vous estimez, après nous avoir contactés, que vos droits ne sont pas respectés, vous pouvez introduire
@@ -187,7 +242,8 @@ export default function PolitiqueConfidentialitePage() {
         </h1>
         <p style={{ color: 'var(--text-light)', fontSize: 14, marginBottom: 48 }}>
           Cette politique explique comment Myracoustic collecte, utilise et protège vos données personnelles
-          lorsque vous visitez ce site ou utilisez nos formulaires de contact et de devis.
+          lorsque vous visitez ce site, utilisez nos formulaires de contact et de devis, ou discutez avec
+          notre assistante virtuelle Aria.
         </p>
 
         {SECTIONS.map(({ title, body }) => (

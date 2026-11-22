@@ -24,7 +24,7 @@ export default function sitemap() {
     { path: '/dj-mariage-rennes',          modifie: '2026-11-19', priority: 0.8, changeFrequency: 'monthly' },
     { path: '/cgv',                        modifie: '2026-10-27', priority: 0.3, changeFrequency: 'yearly' },
     { path: '/mentions-legales',           modifie: '2026-06-07', priority: 0.3, changeFrequency: 'yearly' },
-    { path: '/politique-confidentialite',  modifie: '2026-11-14', priority: 0.3, changeFrequency: 'yearly' },
+    { path: '/politique-confidentialite',  modifie: '2026-11-22', priority: 0.3, changeFrequency: 'yearly' },
   ];
 
   return routes.map((route) => ({

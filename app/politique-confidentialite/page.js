@@ -95,7 +95,7 @@ const SECTIONS = [
             dans l’Union européenne (Irlande), puis supprimées automatiquement au bout de 180 jours.
           </li>
           <li>
-            <strong>Mesure d’audience :</strong> selon vos choix dans la bannière cookies, l’ouverture d’Aria et le clic sur
+            <strong>Mesure d’audience :</strong> selon vos choix dans la bannière cookies, l’affichage de l’invitation d’Aria, son ouverture et le clic sur
             « Prendre rendez-vous » sont comptés dans nos statistiques. Le contenu de vos messages n’y figure jamais.
           </li>
         </ul>

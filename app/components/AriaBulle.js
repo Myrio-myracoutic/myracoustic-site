@@ -12,6 +12,7 @@ import { gtagEvent } from '../lib/gtag';
  * - Jamais sur les pages des publicités ni dans les parcours de demande (pas de distraction).
  * - Attend que le bandeau cookies soit fermé (jamais de bouton caché par le bandeau).
  * - Conversation gardée le temps de la visite (sessionStorage), côté serveur 180 jours.
+ * - Invitation discrète après 10 s + défilement, une fois par visite ; jamais d'ouverture forcée.
  * Passé par ui-ux-pro-max : plein écran sur téléphone, champ toujours visible, Échap pour fermer,
  * focus rendu au bouton, animation coupée si le visiteur l'a demandé. Charte du site.
  */
@@ -21,6 +22,24 @@ const PAGES_SANS_ARIA = ['/mariage-sans-stress', '/dj-mariage', '/organisation-m
 const MEMOIRE = 'aria-conversation';
 const AVATAR = '/aria-avatar.webp';
 const RETRAIT_AVATAR = 36; // avatar des messages (28 px) + espace (8 px) : boutons alignés sur les bulles
+
+/* Invitation : petit message à côté du bouton, une seule fois par visite, après 10 s de présence
+   si la personne a commencé à faire défiler la page. Choix de Myrio (22/11, option A) : on invite,
+   on n'ouvre jamais la discussion de force (sur téléphone, elle couvrirait la page). */
+const INVITATION_VUE = 'aria-invitation';
+const INVITATION_DELAI_MS = 10000;
+const INVITATION_DEFILEMENT_PX = 200;
+function texteInvitation(page) {
+  if (page.startsWith('/evenement-entreprise')) return 'Une question sur votre événement ? Je peux vérifier si votre date est libre.';
+  return 'Une question ? Je peux vérifier si votre date est libre.';
+}
+// Sans mémoire de navigation (navigation privée stricte) : pas d'invitation, pour ne jamais la répéter.
+function invitationDejaVue() {
+  try { return sessionStorage.getItem(INVITATION_VUE) === '1'; } catch { return true; }
+}
+function noterInvitationVue() {
+  try { sessionStorage.setItem(INVITATION_VUE, '1'); } catch { /* sans mémoire */ }
+}
 const PROFIL_GA = { mariage: 'mariage', entreprise: 'professionnel', particulier: 'particulier' };
 
 const ACCUEIL = "Bonjour, je suis Aria, l'assistante virtuelle de Myracoustic. Je réponds à vos questions sur nos prestations, et je peux vérifier si votre date est libre.";
@@ -49,8 +68,13 @@ const CSS = `
   background:var(--lime);color:var(--bg);font-family:var(--font-display),sans-serif;font-size:15px;font-weight:700;
   box-shadow:0 8px 28px rgba(0,0,0,0.35);transition:transform .2s ease-out,opacity .2s}
 .aria-lanceur:hover{transform:translateY(-2px)}
-.aria-lanceur:focus-visible,.aria-fenetre button:focus-visible,.aria-fenetre a:focus-visible,.aria-fenetre textarea:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.aria-lanceur:focus-visible,.aria-invitation button:focus-visible,.aria-fenetre button:focus-visible,.aria-fenetre a:focus-visible,.aria-fenetre textarea:focus-visible{outline:3px solid #fff;outline-offset:2px}
 .aria-lanceur-texte{display:none}
+.aria-invitation{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:calc(max(16px,env(safe-area-inset-bottom)) + 68px);z-index:150;
+  display:flex;align-items:stretch;max-width:min(300px,calc(100vw - 32px));background:var(--card);color:var(--text);
+  border:1px solid rgba(184,239,11,0.45);border-radius:16px 16px 4px 16px;box-shadow:0 10px 32px rgba(0,0,0,0.4);
+  animation:aria-entree .25s ease-out}
+.aria-invitation button{font-family:inherit;color:inherit;background:none;border:none;cursor:pointer}
 @media (min-width:768px){.aria-lanceur-texte{display:inline}}
 .aria-fenetre{position:fixed;z-index:300;display:flex;flex-direction:column;background:var(--bg);color:var(--text);
   border:1px solid var(--separator);box-shadow:0 18px 60px rgba(0,0,0,0.5);
@@ -72,7 +96,7 @@ const CSS = `
 .aria-point{width:8px;height:8px;border-radius:50%;background:var(--text-muted);animation:aria-point 1.2s infinite ease-in-out}
 .aria-point:nth-child(2){animation-delay:.15s}.aria-point:nth-child(3){animation-delay:.3s}
 @keyframes aria-point{0%,80%,100%{opacity:.3;transform:none}40%{opacity:1;transform:translateY(-3px)}}
-@media (prefers-reduced-motion:reduce){.aria-fenetre,.aria-voile,.aria-point,.aria-lanceur{animation:none;transition:none}}
+@media (prefers-reduced-motion:reduce){.aria-fenetre,.aria-voile,.aria-point,.aria-lanceur,.aria-invitation{animation:none;transition:none}}
 `;
 
 export default function AriaBulle() {
@@ -85,6 +109,7 @@ export default function AriaBulle() {
   const [texte, setTexte] = useState('');
   const [attente, setAttente] = useState(false);
   const [erreur, setErreur] = useState('');
+  const [invitation, setInvitation] = useState(false);
   const lanceurRef = useRef(null);
   const champRef = useRef(null);
   const finRef = useRef(null);
@@ -136,11 +161,41 @@ export default function AriaBulle() {
     return () => { window.removeEventListener('keydown', touche); document.body.style.overflow = avant; };
   }, [ouverte]);
 
-  if (!active || !cookiesChoisis || cachee) return null;
+  // Invitation : 10 s de présence ET un début de défilement, une seule fois par visite, jamais si
+  // la personne a déjà ouvert la discussion ou échangé avec Aria.
+  const bulleVisible = active && cookiesChoisis && !cachee;
+  const dejaEchange = messages.length > 0;
+  useEffect(() => {
+    if (!bulleVisible || ouverte || invitation || dejaEchange || invitationDejaVue()) return undefined;
+    let delaiPasse = false;
+    let aDefile = window.scrollY > INVITATION_DEFILEMENT_PX;
+    let fait = false;
+    const tenter = () => {
+      if (fait || !delaiPasse || !aDefile) return;
+      fait = true;
+      noterInvitationVue();
+      setInvitation(true);
+      gtagEvent('aria_invitation_affichee', { page: pathname });
+    };
+    const surDefilement = () => {
+      if (window.scrollY > INVITATION_DEFILEMENT_PX) { aDefile = true; tenter(); }
+    };
+    const minuteur = setTimeout(() => { delaiPasse = true; tenter(); }, INVITATION_DELAI_MS);
+    window.addEventListener('scroll', surDefilement, { passive: true });
+    return () => { clearTimeout(minuteur); window.removeEventListener('scroll', surDefilement); };
+  }, [bulleVisible, ouverte, invitation, dejaEchange, pathname]);
 
-  function ouvrir() {
+  if (!bulleVisible) return null;
+
+  function ouvrir(source) {
     setOuverte(true);
-    gtagEvent('aria_ouverture', { page: pathname });
+    setInvitation(false);
+    noterInvitationVue(); // discussion ouverte : plus besoin d'inviter pendant cette visite
+    gtagEvent('aria_ouverture', { page: pathname, source });
+  }
+  function fermerInvitation() {
+    setInvitation(false);
+    gtagEvent('aria_invitation_fermee', { page: pathname });
   }
   function fermer() {
     setOuverte(false);
@@ -201,11 +256,25 @@ export default function AriaBulle() {
     <>
       <style>{CSS}</style>
       {!ouverte && (
-        <button ref={lanceurRef} type="button" className="aria-lanceur" onClick={ouvrir}
+        <button ref={lanceurRef} type="button" className="aria-lanceur" onClick={() => ouvrir('bouton')}
           aria-label="Une question ? Discuter avec Aria, l'assistante virtuelle de Myracoustic" aria-haspopup="dialog">
           <MessageCircle size={24} aria-hidden="true" />
           <span className="aria-lanceur-texte">Une question ?</span>
         </button>
+      )}
+      {!ouverte && invitation && (
+        <div className="aria-invitation" role="status">
+          <button type="button" aria-haspopup="dialog"
+            onClick={() => { gtagEvent('aria_invitation_clic', { page: pathname }); ouvrir('invitation'); }}
+            style={{ display: 'flex', alignItems: 'center', gap: 10, minHeight: 56, padding: '10px 4px 10px 12px', textAlign: 'left', fontSize: 15, lineHeight: 1.4 }}>
+            <Avatar taille={36} />
+            <span>{texteInvitation(pathname)}</span>
+          </button>
+          <button type="button" onClick={fermerInvitation} aria-label="Fermer ce message"
+            style={{ width: 44, minHeight: 44, display: 'grid', placeItems: 'center', flexShrink: 0, color: 'var(--text-muted)' }}>
+            <X size={18} aria-hidden="true" />
+          </button>
+        </div>
       )}
 
       {/* Téléphone : voile sombre au-dessus de la page (et du menu du site) ; le toucher ferme. */}

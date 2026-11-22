@@ -138,6 +138,9 @@ export async function GET(request) {
 
   } catch (err) {
     console.error('Google Calendar error:', err.message);
-    return NextResponse.json({ bookedDates: [], pendingDates: {} });
+    // Même réponse qu'avant pour le parcours de demande et la plateforme (rien ne change pour eux),
+    // plus un signal explicite : sans lui, une panne de Google ressemble à « aucune date prise »,
+    // et l'assistante Aria annoncerait une date libre à tort (plateforme/lib/aria/moteur.js).
+    return NextResponse.json({ bookedDates: [], pendingDates: {}, agendaIndisponible: true });
   }
 }

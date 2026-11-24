@@ -288,7 +288,9 @@ export default function PolitiqueConfidentialitePage() {
         <p style={{ color: 'var(--text-light)', fontSize: 14, marginBottom: 48 }}>
           Cette politique explique comment Myracoustic collecte, utilise et protège vos données personnelles
           lorsque vous visitez ce site, utilisez nos formulaires de contact et de devis, ou discutez avec
-          notre assistante virtuelle Aria.
+          notre assistante virtuelle Aria. Votre espace client (app.myracoustic.com) et les pages d’invitation
+          ont leur propre politique :{' '}
+          <a href="https://app.myracoustic.com/confidentialite" style={{ color: 'var(--lime)' }}>la consulter</a>.
         </p>
 
         {SECTIONS.map(({ title, body }) => (

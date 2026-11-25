@@ -1,7 +1,7 @@
 import RendezVousClient from './RendezVousClient';
 
 export const metadata = {
-  title: 'Choisir mon créneau d\'appel — Myracoustic',
+  title: 'Mon rendez-vous — Myracoustic',
   robots: { index: false, follow: false },
 };
 

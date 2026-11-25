@@ -1,4 +1,5 @@
 import { apiFetch } from '@/app/lib/api-externe';
+import { emailVisioConfirmation } from '@/app/lib/rendez-vous-visio';
 /* Emails autour du créneau d'appel — programmation, modification, annulation.
    Envoyés au moment de l'action (tunnel public, app/lib/call-booking.js).
    Best-effort partout : une panne d'envoi
@@ -75,6 +76,14 @@ export async function sendCallConfirmEmail({ toEmail, firstName, tel, slotLabel,
       Ce moment ne vous convient plus ? <a href="${modifyUrl}" style="color:#b8ef0b;">Choisissez un autre créneau</a>.
     </p>` : ''}
   `);
+  await sendBrevoEmail({ toEmail, firstName, subject, html });
+}
+
+/* Premier rendez-vous mariage en visio (25/11) : confirmation ou changement de créneau. Texte et
+   mise en page dans app/lib/rendez-vous-visio.js (fichier commun à la plateforme). Envoyé seulement
+   quand la salle Google Meet a bien été créée ; sinon c'est l'e-mail « appel » ci-dessus qui part. */
+export async function sendVisioConfirmEmail({ toEmail, firstName, ...contenu }) {
+  const { subject, html } = emailVisioConfirmation({ firstName, ...contenu });
   await sendBrevoEmail({ toEmail, firstName, subject, html });
 }
 

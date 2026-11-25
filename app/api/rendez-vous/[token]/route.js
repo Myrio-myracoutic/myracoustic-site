@@ -30,6 +30,10 @@ export async function GET(request, { params }) {
     kind,
     firstName: (FIRST_NAME[kind] || FIRST_NAME.mariage)(row) || '',
     alreadyScheduled: row.call_scheduled_at && !row.call_cancelled_at ? row.call_scheduled_at : null,
+    // Premier rendez-vous mariage : en visio (25/11). visioPrete : la salle existe, le bouton
+    // « Rejoindre la visio » peut s'afficher.
+    visio: !!resolved.visio,
+    visioPrete: !!resolved.visio && !!row.call_scheduled_at && !row.call_cancelled_at && !!row.call_meet_url,
   });
 }
 

@@ -6,16 +6,26 @@
 
    Trois "kind" possibles selon d'où vient la fiche à rappeler — un seul moteur de réservation,
    pas une copie par tunnel (leçon du bug de calendrier du 06/08 : un copier-coller de la logique
-   de blocage de journée avait déjà causé un vrai bug de production, voir site/CLAUDE.md). */
+   de blocage de journée avait déjà causé un vrai bug de production, voir site/CLAUDE.md).
+
+   Depuis le 25/11, le premier rendez-vous d'une demande mariage se fait en visio : l'événement
+   d'agenda est créé avec sa salle Google Meet, gardée dans mariage_leads.call_meet_url (règles et
+   e-mail dans app/lib/rendez-vous-visio.js, fichier commun à la plateforme). Si Google ne crée pas
+   la salle, tout se passe comme avant (événement « Appel », e-mail de l'appel téléphonique). Les
+   rappels (veille, une heure avant) et l'annulation sont gérés par la plateforme. */
 import crypto from 'crypto';
 import { supabaseAdmin } from '@/app/lib/supabase-admin';
 import { getCalendarClient, getCalendarId } from '@/lib/google-calendar';
 import { apiSdk } from '@/app/lib/api-externe';
 import { addMinutesToTime, parisLocalToUtcISO, parisDatePlusDays, utcToParisParts } from '@/lib/paris-time';
 import { getAvailableSlots, getSlotDurationMinutes } from '@/lib/call-slots';
-import { sendCallConfirmEmail, sendCallCancelEmail, sendBookingLinkEmail, sendCallReminderEmail, fmtSlotDateTime } from '@/app/lib/send-call-confirm-email';
+import { sendCallConfirmEmail, sendCallCancelEmail, sendBookingLinkEmail, sendCallReminderEmail, sendVisioConfirmEmail, fmtSlotDateTime } from '@/app/lib/send-call-confirm-email';
+import { avecVisio, demandeVisio, lienVisio, lienRejoindre, lienIcs, lienGoogleAgenda, rappelHeureInutile } from '@/app/lib/rendez-vous-visio';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://myracoustic.com';
+// Adresse de la plateforme pour les liens de visio. Réglée seulement en local (essais sur cet
+// ordinateur) ; en ligne elle est absente et les liens mènent à app.myracoustic.com.
+const PLATEFORME_URL_LOCALE = process.env.NEXT_PUBLIC_PLATEFORME_URL || undefined;
 
 function fmtDate(d) {
   if (!d) return '';
@@ -28,6 +38,7 @@ const SOURCES = {
     table: 'mariage_leads',
     select: 'id, prenom, nom, tel, email, event_date, lieu, guests, message',
     summary: (r) => `📞 Appel — ${r.prenom} ${r.nom} (mariage)`,
+    summaryVisio: (r) => `🎥 Visio — ${r.prenom} ${r.nom} (mariage)`,
     description: (r) => [
       `Tél : ${r.tel}`,
       `Email : ${r.email}`,
@@ -133,8 +144,8 @@ export async function ensureCallToken({ kind = 'mariage', refId }) {
 export async function resolveCallToken(token) {
   if (!token) return null;
   for (const [kind, src] of Object.entries(SOURCES)) {
-    const { data: row } = await supabaseAdmin.from(src.table).select(src.select + ', call_scheduled_at, call_cancelled_at, call_google_event_id').eq('call_token', token).maybeSingle();
-    if (row) return { kind, refId: row.id, row };
+    const { data: row } = await supabaseAdmin.from(src.table).select(src.select + ', call_scheduled_at, call_cancelled_at, call_google_event_id' + (avecVisio(kind) ? ', call_meet_url' : '')).eq('call_token', token).maybeSingle();
+    if (row) return { kind, refId: row.id, row, visio: avecVisio(kind) };
   }
   return null;
 }
@@ -178,6 +189,60 @@ export async function deleteCallGoogleEvent(googleEventId) {
   }
 }
 
+// Google a-t-il refusé la demande pour de bon (rien n'a été créé) ? Un délai dépassé ou une erreur
+// floue ne le garantit pas : dans ce cas on ne retente rien, pour ne pas créer un doublon.
+function refusCertain(err) {
+  const status = Number(err?.status ?? err?.response?.status ?? err?.code);
+  return Number.isInteger(status) && ((status >= 400 && status < 500) || status === 503);
+}
+
+/* Crée l'événement d'agenda du rendez-vous. En visio, il est créé avec sa salle Google Meet ; si
+   Google refuse la salle, on retombe sur l'événement « Appel » habituel (meetUrl reste null).
+   Même logique que plateforme/lib/call-booking.js. */
+async function creerEvenementAgenda({ src, kind, refId, row, date, time, slotMinutes }) {
+  const calendar = getCalendarClient();
+  const calendarId = getCalendarId();
+  const endTime = addMinutesToTime(time, slotMinutes);
+  const corps = (summary) => ({
+    summary,
+    description: src.description(row).filter(Boolean).join('\n'),
+    start: { dateTime: `${date}T${time}:00`, timeZone: 'Europe/Paris' },
+    end: { dateTime: `${date}T${endTime}:00`, timeZone: 'Europe/Paris' },
+    status: 'confirmed',
+    transparency: 'opaque',
+    extendedProperties: { private: { [src.extendedKey]: refId, kind: 'call_appointment' } },
+  });
+  const inserer = (requete) => apiSdk('google-agenda', 'calendar.events.insert',
+    () => calendar.events.insert({ calendarId, ...requete }), { methode: 'POST' });
+
+  if (avecVisio(kind)) {
+    try {
+      const res = await inserer({ conferenceDataVersion: 1, requestBody: { ...corps(src.summaryVisio(row)), ...demandeVisio(crypto.randomUUID()) } });
+      let meetUrl = lienVisio(res.data);
+      if (!meetUrl) {
+        // Salle encore « en attente » : une seconde lecture. Toujours rien : le titre redevient
+        // « Appel », pour que l'agenda dise la même chose que l'e-mail reçu par les mariés.
+        try {
+          await new Promise((r) => setTimeout(r, 1500));
+          const relu = await apiSdk('google-agenda', 'calendar.events.get', () => calendar.events.get({ calendarId, eventId: res.data.id }), { methode: 'GET' });
+          meetUrl = lienVisio(relu.data);
+          if (!meetUrl) {
+            await apiSdk('google-agenda', 'calendar.events.patch', () => calendar.events.patch({ calendarId, eventId: res.data.id, requestBody: { summary: src.summary(row) } }), { methode: 'PATCH' });
+          }
+        } catch (err) {
+          console.error('visio : relecture de la salle impossible :', err.message);
+        }
+      }
+      return { eventId: res.data.id, meetUrl };
+    } catch (err) {
+      if (!refusCertain(err)) throw err;
+      console.error('visio non créée, événement sans salle :', err.message);
+    }
+  }
+  const res = await inserer({ requestBody: corps(src.summary(row)) });
+  return { eventId: res.data.id, meetUrl: null };
+}
+
 /* Réserve/programme le créneau (date, time) pour la fiche `refId` du type `kind`.
    requireEmptySlot=true : n'écrase que si call_scheduled_at est encore vide (protection
    anti-race publique — deux onglets ne peuvent pas confirmer la même fiche deux fois).
@@ -195,10 +260,19 @@ export async function bookCallSlot({ kind = 'mariage', refId, date, time, requir
 
   const isoStart = parisLocalToUtcISO(date, time);
   const slotMinutes = await getSlotDurationMinutes();
+  const visio = avecVisio(kind);
 
   let query = supabaseAdmin
     .from(src.table)
-    .update({ call_scheduled_at: isoStart, call_duration_minutes: slotMinutes, call_cancelled_at: null, call_google_event_id: null })
+    .update({
+      call_scheduled_at: isoStart, call_duration_minutes: slotMinutes, call_cancelled_at: null, call_google_event_id: null,
+      // Visio : nouveau créneau = nouvelle salle et rappels à refaire (le rappel « une heure avant »
+      // est noté d'office quand le rendez-vous est tout proche : la confirmation suffit).
+      ...(visio ? {
+        call_meet_url: null, call_reminder_sent_at: null,
+        call_hour_reminder_sent_at: rappelHeureInutile(isoStart) ? new Date().toISOString() : null,
+      } : {}),
+    })
     .eq('id', refId);
   if (requireEmptySlot) query = query.is('call_scheduled_at', null);
 
@@ -212,27 +286,13 @@ export async function bookCallSlot({ kind = 'mariage', refId, date, time, requir
 
   // Événement Google Calendar : best-effort. Si ça échoue, la réservation en base
   // reste valide — un admin peut recréer l'événement à la main si besoin.
+  let meetUrl = null;
   try {
-    const calendar = getCalendarClient();
-    const calId = getCalendarId();
-    const endTime = addMinutesToTime(time, slotMinutes);
-
-    const evRes = await apiSdk('google-agenda', 'calendar.events.insert', () => calendar.events.insert({
-      calendarId: calId,
-      requestBody: {
-        summary: src.summary(updated),
-        description: src.description(updated).filter(Boolean).join('\n'),
-        start: { dateTime: `${date}T${time}:00`, timeZone: 'Europe/Paris' },
-        end:   { dateTime: `${date}T${endTime}:00`, timeZone: 'Europe/Paris' },
-        status: 'confirmed',
-        transparency: 'opaque',
-        extendedProperties: { private: { [src.extendedKey]: refId, kind: 'call_appointment' } },
-      },
-    }), { methode: 'POST' });
-
+    const cree = await creerEvenementAgenda({ src, kind, refId, row: updated, date, time, slotMinutes });
+    meetUrl = cree.meetUrl;
     await supabaseAdmin
       .from(src.table)
-      .update({ call_google_event_id: evRes.data.id })
+      .update({ call_google_event_id: cree.eventId, ...(visio ? { call_meet_url: meetUrl } : {}) })
       .eq('id', refId);
   } catch (err) {
     console.error('call booking calendar event error:', err.message);
@@ -240,22 +300,28 @@ export async function bookCallSlot({ kind = 'mariage', refId, date, time, requir
 
   // Email de confirmation du créneau : best-effort, comme l'événement Google ci-dessus.
   // Inclut toujours un lien pour que le client modifie lui-même le créneau si besoin.
+  // En visio (salle créée) : bouton « Rejoindre la visio », qui passe par la plateforme.
   try {
     const token = await ensureCallToken({ kind, refId });
-    await sendCallConfirmEmail({
-      toEmail: src.email(updated),
-      firstName: src.firstName(updated),
-      tel: src.tel(updated),
-      slotLabel: fmtSlotDateTime(date, time),
-      isReschedule,
-      topic: src.topic,
-      modifyUrl: token ? `${APP_URL}/rendez-vous/${token}` : null,
-    });
+    const commun = {
+      toEmail: src.email(updated), firstName: src.firstName(updated), tel: src.tel(updated),
+      slotLabel: fmtSlotDateTime(date, time), isReschedule, modifyUrl: token ? `${APP_URL}/rendez-vous/${token}` : null,
+    };
+    if (meetUrl && token) {
+      const rejoindreUrl = lienRejoindre(token, PLATEFORME_URL_LOCALE);
+      await sendVisioConfirmEmail({
+        ...commun, rejoindreUrl,
+        googleUrl: lienGoogleAgenda({ date, time, dureeMinutes: slotMinutes, rejoindreUrl }),
+        icsUrl: lienIcs(token, PLATEFORME_URL_LOCALE),
+      });
+    } else {
+      await sendCallConfirmEmail({ ...commun, topic: src.topic });
+    }
   } catch (err) {
     console.error('call booking confirm email error:', err.message);
   }
 
-  return { ok: true, date, time };
+  return { ok: true, date, time, visio: !!meetUrl };
 }
 
 /* Rappel automatique J-1 pour tous les appels programmés le lendemain (heure de Paris),

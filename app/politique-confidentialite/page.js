@@ -39,7 +39,8 @@ const SECTIONS = [
             besoins, budget envisagé (professionnels) et votre message.
           </li>
           <li style={{ marginBottom: 6 }}>
-            <strong>Votre rendez-vous :</strong> le créneau d’appel que vous choisissez.
+            <strong>Votre rendez-vous :</strong> le créneau que vous choisissez, par téléphone ou en visio, et pour
+            une visio le lien de la salle.
           </li>
           <li>
             <strong>L’origine de votre demande :</strong> la façon dont vous nous avez connus et, si vous arrivez par
@@ -181,7 +182,7 @@ const SECTIONS = [
           <li style={{ marginBottom: 6 }}>Hébergement du site et de l’espace client : Vercel</li>
           <li style={{ marginBottom: 6 }}>Base de données : Supabase (serveurs dans l’Union européenne, en Irlande)</li>
           <li style={{ marginBottom: 6 }}>E-mails envoyés par le site : Brevo</li>
-          <li style={{ marginBottom: 6 }}>Messagerie et agenda des rendez-vous : Google (Google Workspace)</li>
+          <li style={{ marginBottom: 6 }}>Messagerie, agenda des rendez-vous et visio (Google Meet) : Google (Google Workspace)</li>
           <li style={{ marginBottom: 6 }}>Saisie automatique des adresses : Mapbox</li>
           <li style={{ marginBottom: 6 }}>Recherche de votre entreprise (professionnels) : annuaire des entreprises de l’État</li>
           <li style={{ marginBottom: 6 }}>Devis, factures et paiements : Qonto et Mollie</li>

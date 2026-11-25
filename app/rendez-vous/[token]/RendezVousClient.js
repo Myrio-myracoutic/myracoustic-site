@@ -1,10 +1,12 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { CheckCircle2, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, Video } from 'lucide-react';
+import { lienRejoindre } from '@/app/lib/rendez-vous-visio';
 import CallSlotPicker from '@/app/components/CallSlotPicker';
 
 const TOPIC_SUBTITLE = {
-  mariage: (firstName) => `Bonjour ${firstName}, choisissez le moment qui vous arrange pour qu'on échange sur votre mariage.`,
+  // Premier rendez-vous mariage : en visio depuis le 25/11.
+  mariage: (firstName) => `Bonjour ${firstName}, choisissez le moment qui vous arrange : nous nous retrouvons en visio pour parler de votre mariage.`,
   devis: (firstName) => `Bonjour ${firstName}, choisissez le moment qui vous arrange pour qu'on échange sur votre devis.`,
   pro_contact: (firstName) => `Bonjour ${firstName}, choisissez le moment qui vous arrange pour qu'on échange sur votre projet.`,
   event_milestone: (firstName) => `Bonjour ${firstName}, choisissez le moment qui vous arrange pour la suite de votre accompagnement Myracoustic.`,
@@ -12,7 +14,9 @@ const TOPIC_SUBTITLE = {
 
 function fmtScheduled(iso) {
   try {
-    return new Date(iso).toLocaleString('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+    // « Mercredi 2 décembre à 17:30 » : une seule capitale, en tête (plus de majuscule à chaque mot).
+    const texte = new Date(iso).toLocaleString('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+    return texte.charAt(0).toUpperCase() + texte.slice(1);
   } catch { return iso; }
 }
 
@@ -55,8 +59,10 @@ export default function RendezVousClient({ token }) {
         <div style={{ textAlign: 'center', maxWidth: 420 }}>
           <CheckCircle2 size={40} color="var(--lime, #b8ef0b)" style={{ margin: '0 auto 16px' }} />
           <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 22, fontWeight: 800, marginBottom: 10 }}>C'est noté !</h1>
-          <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14.5, lineHeight: 1.7 }}>
-            Votre appel est confirmé — vous recevrez un email de confirmation. Un conseiller Myracoustic vous appellera à ce moment-là.
+          <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14.5, lineHeight: 1.7 }}>
+            {booked.visio
+              ? 'Votre rendez-vous en visio est confirmé. Le bouton pour nous rejoindre vient de partir par e-mail : gardez-le précieusement.'
+              : 'Votre appel est confirmé — vous recevrez un email de confirmation. Un conseiller Myracoustic vous appellera à ce moment-là.'}
           </p>
         </div>
       </div>
@@ -69,16 +75,31 @@ export default function RendezVousClient({ token }) {
         {info.alreadyScheduled && !showPicker ? (
           <div style={{ textAlign: 'center', maxWidth: 460, margin: '0 auto' }}>
             <CheckCircle2 size={36} color="var(--lime, #b8ef0b)" style={{ margin: '0 auto 16px' }} />
-            <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 22, fontWeight: 800, marginBottom: 10 }}>Votre appel est déjà programmé</h1>
-            <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 15, lineHeight: 1.7, marginBottom: 24, textTransform: 'capitalize' }}>
+            <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 22, fontWeight: 800, marginBottom: 10 }}>
+              {info.visio ? 'Votre rendez-vous en visio est programmé' : 'Votre appel est déjà programmé'}
+            </h1>
+            <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: 16, lineHeight: 1.7, marginBottom: 24 }}>
               {fmtScheduled(info.alreadyScheduled)}
             </p>
-            <button onClick={() => setShowPicker(true)} style={{
-              background: 'none', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.7)',
-              borderRadius: 8, padding: '10px 20px', fontSize: 13.5, cursor: 'pointer', fontFamily: 'var(--font-display), sans-serif', fontWeight: 600,
-            }}>
-              Choisir un autre créneau
-            </button>
+            {/* Une seule action principale (rejoindre), le changement de créneau reste discret en dessous. */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
+              {info.visioPrete && (
+                <>
+                  <a href={lienRejoindre(token, process.env.NEXT_PUBLIC_PLATEFORME_URL || undefined)} className="btn-primary" style={{ justifyContent: 'center', minHeight: 48, borderRadius: 8, fontSize: 16, textDecoration: 'none' }}>
+                    <Video size={18} aria-hidden="true" /> Rejoindre la visio
+                  </a>
+                  <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14, lineHeight: 1.6, margin: 0 }}>
+                    Le jour venu, touchez ce bouton. Un souci de connexion ? Nous vous appelons.
+                  </p>
+                </>
+              )}
+              <button onClick={() => setShowPicker(true)} style={{
+                background: 'none', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.7)', minHeight: 44,
+                borderRadius: 8, padding: '10px 20px', fontSize: 14, cursor: 'pointer', fontFamily: 'var(--font-display), sans-serif', fontWeight: 600,
+              }}>
+                Choisir un autre créneau
+              </button>
+            </div>
           </div>
         ) : (
           <CallSlotPicker
@@ -86,7 +107,7 @@ export default function RendezVousClient({ token }) {
             token={token}
             firstName={info.firstName}
             subtitle={(TOPIC_SUBTITLE[info.kind] || TOPIC_SUBTITLE.mariage)(info.firstName)}
-            onBooked={() => setBooked(true)}
+            onBooked={(slot) => setBooked(slot)}
           />
         )}
       </div>

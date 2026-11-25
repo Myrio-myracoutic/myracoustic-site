@@ -307,7 +307,9 @@ export default function MariageContactClient() {
               Merci {firstName} !
             </h1>
             <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 15.5, lineHeight: 1.75, marginBottom: 28 }}>
-              {confirmedSlot
+              {confirmedSlot?.visio
+                ? <>Votre demande est bien enregistrée. <strong style={{ color: '#fff' }}>Nous nous retrouvons en visio le {fmtDateFr(confirmedSlot.date)} à {confirmedSlot.time}</strong> pour parler de votre mariage et construire ensemble la formule qui vous ressemble. Le bouton pour nous rejoindre vous attend dans votre boîte e-mail.</>
+                : confirmedSlot
                 ? <>Votre demande est bien enregistrée. <strong style={{ color: '#fff' }}>Nous vous appelons le {fmtDateFr(confirmedSlot.date)} à {confirmedSlot.time}</strong> pour échanger sur votre mariage et construire ensemble la formule qui vous ressemble.</>
                 : <>Votre demande est bien enregistrée. <strong style={{ color: '#fff' }}>Un conseiller vous rappelle sous 24h</strong> (jours ouvrés) pour échanger sur votre mariage et construire ensemble la formule qui vous ressemble.</>}
             </p>

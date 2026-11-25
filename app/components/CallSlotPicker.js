@@ -1,11 +1,13 @@
 'use client';
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Loader2, Phone, AlertTriangle } from 'lucide-react';
+import { Loader2, Phone, Video, AlertTriangle } from 'lucide-react';
+import { avecVisio } from '@/app/lib/rendez-vous-visio';
 
 const JOURS_FR = ['dim', 'lun', 'mar', 'mer', 'jeu', 'ven', 'sam'];
 
 const DEFAULT_SUBTITLE = {
-  mariage: (firstName) => `Merci ${firstName} ! Un dernier pas : dites-nous quand vous appeler pour parler de votre mariage.`,
+  // Premier rendez-vous mariage : en visio depuis le 25/11 (les autres restent des appels).
+  mariage: (firstName) => `Merci ${firstName} ! Un dernier pas : choisissez le moment de notre rendez-vous en visio, pour parler de votre mariage.`,
   devis: (firstName) => `Merci ${firstName} ! Dites-nous quand vous appeler pour finaliser votre devis.`,
   pro_contact: (firstName) => `Merci ${firstName} ! Dites-nous quand vous appeler pour échanger sur votre projet.`,
 };
@@ -95,11 +97,12 @@ export default function CallSlotPicker({ kind = 'mariage', refId, token, firstNa
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(token ? { date: selectedDate, time } : { kind, refId, date: selectedDate, time }),
       });
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        onBooked({ date: selectedDate, time });
+        // visio : la salle a bien été créée (sinon le rendez-vous se fait par téléphone, comme avant).
+        onBooked({ date: selectedDate, time, visio: !!data.visio });
         return;
       }
-      const data = await res.json().catch(() => ({}));
       if (data.error === 'slot_taken' || data.error === 'lead_already_booked') {
         setBookError('Ce créneau vient d\'être pris à l\'instant — choisissez-en un autre.');
         loadSlots(selectedDate);
@@ -114,13 +117,15 @@ export default function CallSlotPicker({ kind = 'mariage', refId, token, firstNa
   };
 
   const displaySubtitle = subtitle || (DEFAULT_SUBTITLE[kind] || DEFAULT_SUBTITLE.mariage)(firstName);
+  const visio = avecVisio(kind);
+  const Icone = visio ? Video : Phone;
 
   return (
     <div style={{ maxWidth: 560, margin: '0 auto' }}>
       <div style={{ textAlign: 'center', marginBottom: 28 }}>
-        <Phone size={40} color="var(--lime)" style={{ margin: '0 auto 16px' }} />
+        <Icone size={40} color="var(--lime)" aria-hidden="true" style={{ margin: '0 auto 16px' }} />
         <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 25, fontWeight: 800, marginBottom: 10 }}>
-          Choisissez votre créneau d'appel
+          {visio ? 'Choisissez le moment de notre rendez-vous en visio' : 'Choisissez votre créneau d\'appel'}
         </h1>
         <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 15, lineHeight: 1.7 }}>
           {displaySubtitle}

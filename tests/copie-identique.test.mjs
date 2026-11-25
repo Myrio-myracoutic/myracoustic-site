@@ -1,5 +1,6 @@
-// Le cœur du module d'appels externes existe en deux exemplaires (site et plateforme, deux
-// dépôts déployés séparément). Ce test échoue dès qu'ils divergent : modifier les deux ensemble.
+// Le cœur du module d'appels externes et les règles du rendez-vous en visio existent en deux
+// exemplaires (site et plateforme, deux dépôts déployés séparément). Ce test échoue dès qu'ils
+// divergent : modifier les deux ensemble.
 // Ignoré si le dossier plateforme/ n'est pas à côté (ex. copie isolée du site).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -11,6 +12,7 @@ const ici = path.dirname(fileURLToPath(import.meta.url));
 const copies = [
   ['app/lib/api-externe-core.js', '../plateforme/lib/api-externe-core.js'],
   ['app/lib/html-escape.js', '../plateforme/lib/html-escape.js'],
+  ['app/lib/rendez-vous-visio.js', '../plateforme/lib/rendez-vous-visio.js'],
 ];
 
 for (const [site, plateforme] of copies) {

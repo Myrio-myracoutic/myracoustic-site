@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import Image from 'next/image';
-import { CheckCircle2, Loader2, ShieldCheck, Phone, Clock, CalendarX, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, Loader2, ShieldCheck, Phone, Clock, CalendarX, AlertTriangle, Mail } from 'lucide-react';
 import MiniCal from '@/app/components/MiniCal';
 import AddressAutocomplete from '@/app/components/AddressAutocomplete';
 import TestimonialCarousel from '@/app/components/TestimonialCarousel';
@@ -306,13 +306,35 @@ export default function MariageContactClient() {
             <h1 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 27, fontWeight: 800, marginBottom: 14 }}>
               Merci {firstName} !
             </h1>
-            <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 15.5, lineHeight: 1.75, marginBottom: 28 }}>
+            <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 15.5, lineHeight: 1.75, marginBottom: confirmedSlot?.visio ? 20 : 28 }}>
               {confirmedSlot?.visio
-                ? <>Votre demande est bien enregistrée. <strong style={{ color: '#fff' }}>Nous nous retrouvons en visio le {fmtDateFr(confirmedSlot.date)} à {confirmedSlot.time}</strong> pour parler de votre mariage et construire ensemble la formule qui vous ressemble. Le bouton pour nous rejoindre vous attend dans votre boîte e-mail.</>
+                ? <>Votre demande est bien enregistrée. <strong style={{ color: '#fff' }}>Nous nous retrouvons en visio le {fmtDateFr(confirmedSlot.date)} à {confirmedSlot.time}</strong> pour parler de votre mariage et construire ensemble la formule qui vous ressemble.</>
                 : confirmedSlot
                 ? <>Votre demande est bien enregistrée. <strong style={{ color: '#fff' }}>Nous vous appelons le {fmtDateFr(confirmedSlot.date)} à {confirmedSlot.time}</strong> pour échanger sur votre mariage et construire ensemble la formule qui vous ressemble.</>
                 : <>Votre demande est bien enregistrée. <strong style={{ color: '#fff' }}>Un conseiller vous rappelle sous 24h</strong> (jours ouvrés) pour échanger sur votre mariage et construire ensemble la formule qui vous ressemble.</>}
             </p>
+            {/* Le lien de la visio ne voyage que par e-mail : l'adresse saisie est rappelée ici pour
+                qu'une faute de frappe se voie tout de suite (essai du 25/11 : une lettre fausse,
+                aucun e-mail reçu, personne de prévenu). */}
+            {confirmedSlot?.visio && (
+              <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', textAlign: 'left', border: '1px solid rgba(255,255,255,0.14)', borderRadius: 12, padding: '16px 18px', marginBottom: 28 }}>
+                <Mail size={20} color="var(--lime)" aria-hidden="true" style={{ flexShrink: 0, marginTop: 3 }} />
+                <div style={{ minWidth: 0 }}>
+                  <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 15, lineHeight: 1.6, margin: 0 }}>
+                    Le bouton pour nous rejoindre vous attend à cette adresse :
+                  </p>
+                  <p style={{ color: '#fff', fontSize: 17, fontWeight: 700, lineHeight: 1.5, margin: '2px 0 6px', overflowWrap: 'anywhere' }}>
+                    {email.trim().toLowerCase()}
+                  </p>
+                  <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 15, lineHeight: 1.6, margin: 0 }}>
+                    Une faute de frappe ? Appelez-nous, nous corrigeons tout de suite.
+                  </p>
+                  <a href="tel:+33768533308" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minHeight: 44, color: 'var(--lime)', fontSize: 16, fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                    <Phone size={16} aria-hidden="true" /> 07 68 53 33 08
+                  </a>
+                </div>
+              </div>
+            )}
             <Link href="/mariage" className="btn-secondary">Retour à l'accueil mariage</Link>
           </div>
 

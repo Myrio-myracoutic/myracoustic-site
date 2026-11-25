@@ -335,6 +335,16 @@ export default function MariageContactClient() {
                 </div>
               </div>
             )}
+            {/* Questionnaire avant le rendez-vous (25/11) : un lien discret, jamais une obligation.
+                L'e-mail qui le propose part 2 à 3 h plus tard (plateforme). */}
+            {confirmedSlot?.questionnaireUrl && (
+              <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 15, lineHeight: 1.6, margin: '0 0 28px' }}>
+                Envie de préparer notre rendez-vous ? Quelques questions à cocher, quand vous voulez.<br />
+                <a href={confirmedSlot.questionnaireUrl} style={{ display: 'inline-flex', alignItems: 'center', minHeight: 44, color: 'var(--lime)', fontSize: 16, fontWeight: 700, textDecoration: 'underline' }}>
+                  Préparer notre rendez-vous
+                </a>
+              </p>
+            )}
             <Link href="/mariage" className="btn-secondary">Retour à l'accueil mariage</Link>
           </div>
 

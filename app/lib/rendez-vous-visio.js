@@ -236,6 +236,13 @@ const changerCreneau = (modifyUrl, question) => (modifyUrl ? `
       ${question}<br/>${lienDiscret(modifyUrl, 'Choisir un autre créneau')}
     </p>` : '');
 
+// Questionnaire avant le rendez-vous (25/11) : un seul mot la veille s'il n'est pas rempli, sans
+// pression. Le rendez-vous a lieu de toute façon.
+const motQuestionnaire = (questionnaireUrl) => (questionnaireUrl ? `
+    <p style="color:rgba(255,255,255,0.7);font-size:15px;line-height:1.7;margin:0 0 20px;">
+      Un moment d’ici là ? Quelques questions à cocher nous aident à préparer notre rendez-vous. Sinon, aucune importance&nbsp;: nous en parlerons de vive voix.<br/>${lienDiscret(questionnaireUrl, 'Répondre aux questions')}
+    </p>` : '');
+
 // « mercredi 2 décembre 2026 à 17h30 » → première lettre en capitale (plus sûr qu'un style d'e-mail).
 const capitale = (s) => String(s).charAt(0).toUpperCase() + String(s).slice(1);
 
@@ -270,7 +277,7 @@ export function emailVisioConfirmation({ firstName, slotLabel, tel, rejoindreUrl
 }
 
 /* Rappel envoyé la veille. */
-export function emailVisioRappelVeille({ firstName, slotLabel, tel, rejoindreUrl, modifyUrl }) {
+export function emailVisioRappelVeille({ firstName, slotLabel, tel, rejoindreUrl, modifyUrl, questionnaireUrl = null }) {
   const html = cadre({
     apercu: 'Demain, il suffit de toucher un bouton pour nous rejoindre.',
     corps: [
@@ -280,10 +287,32 @@ export function emailVisioRappelVeille({ firstName, slotLabel, tel, rejoindreUrl
       paragraphe('Nous avons hâte de vous retrouver pour parler de votre mariage. Demain, il suffit de toucher ce bouton.'),
       bouton(rejoindreUrl, 'Rejoindre la visio'),
       secours(tel),
+      motQuestionnaire(questionnaireUrl),
       changerCreneau(modifyUrl, 'Un empêchement ?'),
     ].join(''),
   });
   return { subject: `C’est demain : notre rendez-vous en visio, ${slotLabel}`, html };
+}
+
+/* Invitation au questionnaire, envoyée 2 à 3 h après la prise du premier rendez-vous mariage
+   (25/11). Chaleureuse, sans pression : rien n'est obligatoire, aucun délai annoncé.
+   slotLabel : « mercredi 2 décembre 2026 à 17h30 » (facultatif). */
+export function emailQuestionnaire({ firstName, slotLabel = '', questionnaireUrl }) {
+  const quand = slotLabel ? escapeHtml(slotLabel).replace(' à ', ' à&nbsp;') : 'lors de notre rendez-vous';
+  const html = cadre({
+    apercu: 'Quelques questions à cocher, chez vous, quand vous voulez.',
+    corps: [
+      bonjour(firstName),
+      titre('Parlez-nous de votre mariage'),
+      paragraphe('Pour que notre rendez-vous vous ressemble, nous avons préparé quelques questions à cocher. Répondez chez vous, à deux si vous le souhaitez, en prenant votre temps&nbsp;: tout s’enregistre au fur et à mesure.'),
+      bouton(questionnaireUrl, 'Répondre aux questions'),
+      `
+    <p style="color:rgba(255,255,255,0.7);font-size:15px;line-height:1.7;margin:0 0 20px;">
+      Aucune question n’est obligatoire. Et si le temps vous manque, aucune importance&nbsp;: nous en parlerons ensemble ${quand}.
+    </p>`,
+    ].join(''),
+  });
+  return { subject: 'Avant notre rendez-vous : parlez-nous de votre mariage', html };
 }
 
 /* Rappel envoyé environ une heure avant. heure : « 17h30 ». */

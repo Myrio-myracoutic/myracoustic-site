@@ -321,7 +321,27 @@ export async function bookCallSlot({ kind = 'mariage', refId, date, time, requir
     console.error('call booking confirm email error:', err.message);
   }
 
-  return { ok: true, date, time, visio: !!meetUrl };
+  // Questionnaire avant le premier rendez-vous mariage (25/11) : heure de la PREMIÈRE prise de
+  // rendez-vous (l'e-mail du questionnaire part 2 à 3 h après, plateforme/lib/questionnaire-rdv-envoi.js) et
+  // adresse de la page, pour le lien « Préparer notre rendez-vous » de l'écran de fin.
+  let questionnaireUrl = null;
+  if (kind === 'mariage') {
+    try {
+      // Un rendez-vous déplacé n'est pas une première réservation : sans cela, un couple qui avait
+      // pris rendez-vous avant la mise en ligne recevrait l'e-mail en changeant de créneau.
+      if (!isReschedule) {
+        const reserveAt = new Date().toISOString();
+        await supabaseAdmin.from('rdv_questionnaires').upsert({ lead_id: refId, reserve_at: reserveAt }, { onConflict: 'lead_id', ignoreDuplicates: true });
+        await supabaseAdmin.from('rdv_questionnaires').update({ reserve_at: reserveAt }).eq('lead_id', refId).is('reserve_at', null);
+      }
+      const jeton = await ensureCallToken({ kind, refId });
+      if (jeton) questionnaireUrl = `${PLATEFORME_URL_LOCALE || 'https://app.myracoustic.com'}/rendez-vous/${jeton}/questionnaire`;
+    } catch (err) {
+      console.error('questionnaire booking note error:', err.message);
+    }
+  }
+
+  return { ok: true, date, time, visio: !!meetUrl, questionnaireUrl };
 }
 
 /* Rappel automatique J-1 pour tous les appels programmés le lendemain (heure de Paris),

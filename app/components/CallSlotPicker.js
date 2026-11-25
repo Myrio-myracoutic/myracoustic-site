@@ -100,7 +100,7 @@ export default function CallSlotPicker({ kind = 'mariage', refId, token, firstNa
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
         // visio : la salle a bien été créée (sinon le rendez-vous se fait par téléphone, comme avant).
-        onBooked({ date: selectedDate, time, visio: !!data.visio });
+        onBooked({ date: selectedDate, time, visio: !!data.visio, questionnaireUrl: data.questionnaireUrl || null });
         return;
       }
       if (data.error === 'slot_taken' || data.error === 'lead_already_booked') {

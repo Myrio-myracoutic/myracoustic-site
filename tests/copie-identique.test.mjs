@@ -11,6 +11,7 @@ import { fileURLToPath } from 'node:url';
 const ici = path.dirname(fileURLToPath(import.meta.url));
 const copies = [
   ['app/lib/api-externe-core.js', '../plateforme/lib/api-externe-core.js'],
+  ['app/lib/desabonnement-core.js', '../plateforme/lib/desabonnement-core.js'],
   ['app/lib/html-escape.js', '../plateforme/lib/html-escape.js'],
   ['app/lib/rendez-vous-visio.js', '../plateforme/lib/rendez-vous-visio.js'],
 ];

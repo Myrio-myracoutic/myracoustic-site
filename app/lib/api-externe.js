@@ -1,6 +1,8 @@
 import { after } from 'next/server';
 import { supabaseAdmin } from './supabase-admin';
 import { creerAppelsExternes, creerAlerteur, contenuAlerte, nomService } from './api-externe-core';
+import { estEnvoiBrevo, lireEnvoi, avecLienDesabonnement, reponseEnvoiIgnore } from './desabonnement-core';
+import { estDesabonne } from './desabonnement-etat';
 
 /*
  * Point d'entrée unique pour appeler un service externe depuis le site (lot 4, 22/11/2026) :
@@ -14,6 +16,10 @@ import { creerAppelsExternes, creerAlerteur, contenuAlerte, nomService } from '.
  *
  * api-externe-core.js est une COPIE IDENTIQUE de plateforme/lib/api-externe-core.js (règles,
  * nettoyage, alertes) : toute modification se fait dans les deux, `npm test` du site le vérifie.
+ *
+ * Depuis le 25/11, chaque envoi d'e-mail par Brevo reçoit ici notre lien « Se désabonner », et une
+ * relance (envoi marqué `relance`) ne part pas vers une adresse désabonnée : voir apiFetch plus bas
+ * et app/lib/desabonnement-core.js (copie identique de celui de la plateforme, elle aussi vérifiée).
  */
 
 const APP = 'site';
@@ -80,7 +86,7 @@ const store = {
 // Fetch direct, jamais apiFetch : un échec de Brevo ne doit pas relancer une alerte sur l'alerte.
 async function envoyerAlerte(alerte) {
   const { sujet, html } = contenuAlerte(alerte, { appUrl: JOURNAL_URL });
-  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+  const init = {
     method: 'POST',
     signal: AbortSignal.timeout(8000),
     headers: { 'Content-Type': 'application/json', 'api-key': process.env.BREVO_API_KEY },
@@ -90,7 +96,10 @@ async function envoyerAlerte(alerte) {
       subject: sujet,
       htmlContent: html,
     }),
-  });
+  };
+  // Notre lien « Se désabonner » à la place de celui de Brevo (sans effet pour notre boîte).
+  const res = await fetch('https://api.brevo.com/v3/smtp/email',
+    avecLienDesabonnement(init, lireEnvoi(init), { secret: process.env.SUPABASE_SERVICE_ROLE_KEY }));
   await res.body?.cancel().catch(() => {}); // corps inutile : libère la connexion
   if (!res.ok) throw new Error(`Brevo ${res.status}`);
 }
@@ -133,5 +142,20 @@ const appels = creerAppelsExternes({
   signaler: (ligne) => planifier(() => journaliserEtAlerter(ligne)),
 });
 
-export const apiFetch = appels.apiFetch;
+/*
+ * Tout envoi d'e-mail par Brevo passe par ici (app/lib/desabonnement-core.js) :
+ * - une relance ou un conseil (envoi marqué `relance`) ne part pas vers une adresse désabonnée :
+ *   la tâche reçoit une réponse de la forme d'un envoi réussi et n'y revient pas ;
+ * - tous les autres partent, avec notre lien « Se désabonner » à la place de celui de Brevo.
+ * Les autres appels (lectures chez Brevo, autres services) ne sont pas touchés.
+ */
+export async function apiFetch(service, url, init = {}, options = {}) {
+  const envoi = estEnvoiBrevo(service, url, init) ? lireEnvoi(init) : null;
+  if (!envoi) return appels.apiFetch(service, url, init, options);
+  if (envoi.relance && await estDesabonne(envoi.destinataire)) {
+    console.info('[desabonnement] relance non envoyée : adresse désabonnée');
+    return reponseEnvoiIgnore();
+  }
+  return appels.apiFetch(service, url, avecLienDesabonnement(init, envoi, { secret: process.env.SUPABASE_SERVICE_ROLE_KEY }), options);
+}
 export const apiSdk = appels.apiSdk;

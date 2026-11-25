@@ -1,5 +1,6 @@
 import { SEQUENCE_EMAILS } from './lead-magnet-sequence-data';
 import { apiFetch } from '@/app/lib/api-externe';
+import { etiquetteRelance } from '@/app/lib/desabonnement-core';
 
 const SENDER_EMAIL = 'contact@myracoustic.com';
 const CONTACT_URL = 'https://myracoustic.com/devis/mariage-contact';
@@ -60,6 +61,7 @@ export async function sendLeadMagnetSequenceEmail({ toEmail, firstName, step, id
       replyTo: { email: SENDER_EMAIL, name: 'Myracoustic' },
       subject: content.subject,
       htmlContent: html,
+      ...etiquetteRelance(), // e-mail de conseils : ne part pas vers une adresse désabonnée
     }),
   });
   if (!res.ok) throw new Error(`Brevo: ${await res.text()}`);

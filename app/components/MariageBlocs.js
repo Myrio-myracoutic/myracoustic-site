@@ -522,7 +522,7 @@ export function BlocQuiSommesNous() {
         <Reveal style={{ maxWidth: 720, margin: '0 auto', textAlign: 'center' }}>
           <SectionLabel style={{ justifyContent: 'center' }}>Qui sommes-nous</SectionLabel>
           <h2 style={{ fontFamily: 'var(--font-display), sans-serif', fontSize: 'clamp(26px,3.5vw,42px)', fontWeight: 700, marginBottom: 14 }}>
-            Une équipe à deux, du premier appel à la dernière danse
+            Une équipe à deux, du premier rendez-vous à la dernière danse
           </h2>
           <p style={{ color: 'var(--text-muted)', fontSize: 16, lineHeight: 1.8 }}>
             Derrière Myracoustic, il y a un couple. Myrio est aux platines depuis 26 ans, Virginie, son épouse,
@@ -568,7 +568,7 @@ export function BlocServices({ cta }) {
               Tout ce que nous mettons en œuvre pour votre mariage
             </h2>
             <p style={{ color: 'var(--text-muted)', fontSize: 16, lineHeight: 1.7 }}>
-              Chaque mariage est différent&nbsp;: après un premier échange téléphonique, nous construisons avec vous une proposition sur mesure, adaptée à votre lieu, votre date et vos besoins.
+              Chaque mariage est différent&nbsp;: après un premier rendez-vous en visio, nous construisons avec vous une proposition sur mesure, adaptée à votre lieu, votre date et vos besoins.
             </p>
           </Reveal>
 

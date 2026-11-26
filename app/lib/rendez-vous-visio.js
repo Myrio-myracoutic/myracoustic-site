@@ -236,6 +236,15 @@ const changerCreneau = (modifyUrl, question) => (modifyUrl ? `
       ${question}<br/>${lienDiscret(modifyUrl, 'Choisir un autre créneau')}
     </p>` : '');
 
+/* Information sur l'enregistrement (26/11, choix de Myrio) : tous ses rendez-vous sont enregistrés
+   (enregistreur Plaud), visio comme téléphone, pour ne rien oublier. On le dit avant, dans la
+   confirmation et sur la page du rendez-vous ; la personne peut refuser au début de l'échange. */
+export const INFO_ENREGISTREMENT_VISIO = 'Pour ne rien oublier de vos envies, notre échange peut être enregistré. Si vous préférez que non, dites-le-nous au début du rendez-vous.';
+export const INFO_ENREGISTREMENT_APPEL = 'Pour ne rien oublier de votre projet, notre échange peut être enregistré. Si vous préférez que non, dites-le-nous au début de l’appel.';
+
+const infoEnregistrement = () => `
+    <p style="color:rgba(255,255,255,0.7);font-size:15px;line-height:1.7;margin:0 0 20px;">${INFO_ENREGISTREMENT_VISIO}</p>`;
+
 // Questionnaire avant le rendez-vous (25/11) : un seul mot la veille s'il n'est pas rempli, sans
 // pression. Le rendez-vous a lieu de toute façon.
 const motQuestionnaire = (questionnaireUrl) => (questionnaireUrl ? `
@@ -270,6 +279,7 @@ export function emailVisioConfirmation({ firstName, slotLabel, tel, rejoindreUrl
     </p>`,
       agenda,
       secours(tel),
+      infoEnregistrement(),
       changerCreneau(modifyUrl, 'Ce moment ne vous convient plus ?'),
     ].join(''),
   });

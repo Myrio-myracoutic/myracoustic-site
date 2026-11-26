@@ -1,5 +1,5 @@
 import { apiFetch } from '@/app/lib/api-externe';
-import { emailVisioConfirmation } from '@/app/lib/rendez-vous-visio';
+import { emailVisioConfirmation, INFO_ENREGISTREMENT_APPEL } from '@/app/lib/rendez-vous-visio';
 /* Emails autour du créneau d'appel — programmation, modification, annulation.
    Envoyés au moment de l'action (tunnel public, app/lib/call-booking.js).
    Best-effort partout : une panne d'envoi
@@ -69,9 +69,10 @@ export async function sendCallConfirmEmail({ toEmail, firstName, tel, slotLabel,
         <p style="color:#b8ef0b;font-size:16px;font-weight:700;margin:0;text-transform:capitalize;">${slotLabel}</p>
       </td></tr>
     </table>
-    <p style="color:rgba(255,255,255,0.8);font-size:15px;line-height:1.8;margin:0 0 ${modifyUrl ? '20' : '0'}px;">
+    <p style="color:rgba(255,255,255,0.8);font-size:15px;line-height:1.8;margin:0 0 20px;">
       Un conseiller Myracoustic vous appellera au <strong>${tel}</strong> pour échanger ${topic}. Merci d'être disponible à ce moment-là.
     </p>
+    <p style="color:rgba(255,255,255,0.6);font-size:14px;line-height:1.7;margin:0 0 ${modifyUrl ? '20' : '0'}px;">${INFO_ENREGISTREMENT_APPEL}</p>
     ${modifyUrl ? `<p style="color:rgba(255,255,255,0.4);font-size:13px;line-height:1.7;margin:0;">
       Ce moment ne vous convient plus ? <a href="${modifyUrl}" style="color:#b8ef0b;">Choisissez un autre créneau</a>.
     </p>` : ''}

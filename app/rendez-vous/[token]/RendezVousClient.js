@@ -1,8 +1,27 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { CheckCircle2, AlertTriangle, Video } from 'lucide-react';
-import { lienRejoindre } from '@/app/lib/rendez-vous-visio';
+import { lienRejoindre, INFO_ENREGISTREMENT_VISIO, INFO_ENREGISTREMENT_APPEL } from '@/app/lib/rendez-vous-visio';
 import CallSlotPicker from '@/app/components/CallSlotPicker';
+
+const PLATEFORME = process.env.NEXT_PUBLIC_PLATEFORME_URL || 'https://app.myracoustic.com';
+
+/* Tous les rendez-vous sont enregistrés (26/11) : on le dit ici, avant l'échange. */
+function InfoEnregistrement({ visio, marge = 0 }) {
+  return <p style={{ color: 'rgba(255,255,255,0.62)', fontSize: 14, lineHeight: 1.6, margin: marge }}>{visio ? INFO_ENREGISTREMENT_VISIO : INFO_ENREGISTREMENT_APPEL}</p>;
+}
+
+/* Premier rendez-vous mariage : lien discret vers le questionnaire, qui vit sur la plateforme (25/11). */
+function LienQuestionnaire({ token, marge = 0 }) {
+  return (
+    <p style={{ color: 'rgba(255,255,255,0.62)', fontSize: 15, lineHeight: 1.6, margin: marge }}>
+      Envie de préparer notre rendez-vous ? Quelques questions à cocher, quand vous voulez.<br />
+      <a href={`${PLATEFORME}/rendez-vous/${token}/questionnaire`} style={{ display: 'inline-flex', alignItems: 'center', minHeight: 44, color: 'var(--lime, #b8ef0b)', fontSize: 16, fontWeight: 700, textDecoration: 'underline' }}>
+        Préparer notre rendez-vous
+      </a>
+    </p>
+  );
+}
 
 const TOPIC_SUBTITLE = {
   // Premier rendez-vous mariage : en visio depuis le 25/11.
@@ -64,6 +83,8 @@ export default function RendezVousClient({ token }) {
               ? 'Votre rendez-vous en visio est confirmé. Le bouton pour nous rejoindre vient de partir par e-mail : gardez-le précieusement.'
               : 'Votre appel est confirmé — vous recevrez un email de confirmation. Un conseiller Myracoustic vous appellera à ce moment-là.'}
           </p>
+          {info.kind === 'mariage' && <LienQuestionnaire token={token} marge="20px 0 0" />}
+          <InfoEnregistrement visio={booked.visio} marge="16px 0 0" />
         </div>
       </div>
     );
@@ -93,6 +114,7 @@ export default function RendezVousClient({ token }) {
                   </p>
                 </>
               )}
+              {info.kind === 'mariage' && <LienQuestionnaire token={token} />}
               <button onClick={() => setShowPicker(true)} style={{
                 background: 'none', border: '1px solid rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.7)', minHeight: 44,
                 borderRadius: 8, padding: '10px 20px', fontSize: 14, cursor: 'pointer', fontFamily: 'var(--font-display), sans-serif', fontWeight: 600,
@@ -100,6 +122,7 @@ export default function RendezVousClient({ token }) {
                 Choisir un autre créneau
               </button>
             </div>
+            <InfoEnregistrement visio={info.visio} marge="20px 0 0" />
           </div>
         ) : (
           <CallSlotPicker

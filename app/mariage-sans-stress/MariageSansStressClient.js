@@ -111,7 +111,7 @@ const FAQ = [
   { q: "Quelle est la prestation incluse ?",
     a: "Le contenu dépend de vos besoins et de votre lieu. Il est défini ensemble lors de l'échange, puis détaillé dans une proposition personnalisée. Les options possibles incluent le DJ, la sonorisation, l'éclairage, la vidéo, le photobooth et le livre d'or." },
   { q: "Quel budget prévoir ?",
-    a: "Chaque mariage est unique : le tarif dépend de votre lieu, de la durée de la soirée et des prestations que vous souhaitez. Nous en parlons ensemble lors d'un appel gratuit, puis vous recevez une proposition sur mesure, sans engagement." },
+    a: "Chaque mariage est unique : le tarif dépend de votre lieu, de la durée de la soirée et des prestations que vous souhaitez. Nous en parlons ensemble lors d'un rendez-vous gratuit en visio, puis vous recevez une proposition sur mesure, sans engagement." },
   { q: "Comment se passe la réservation ?",
     a: "Après notre échange, nous vous envoyons une proposition. Votre date est réservée à la signature du contrat et à réception de l'acompte. Une date réservée n'est plus proposée à d'autres couples." },
   { q: "Intervenez-vous hors de la région ?",

@@ -42,6 +42,16 @@ const SECTIONS = [
             <strong>Votre rendez-vous :</strong> le créneau que vous choisissez, par téléphone ou en visio, et pour
             une visio le lien de la salle.
           </li>
+          <li style={{ marginBottom: 6 }}>
+            <strong>L’enregistrement de nos échanges :</strong> nos rendez-vous, par téléphone ou en visio, peuvent
+            être enregistrés pour ne rien oublier de votre projet. L’enregistrement est transcrit et résumé par notre
+            outil de prise de notes (Plaud), et le résumé est gardé avec votre demande. Vous pouvez le refuser au
+            début du rendez-vous, ou nous demander ensuite de le supprimer.
+          </li>
+          <li style={{ marginBottom: 6 }}>
+            <strong>Le questionnaire avant un premier rendez-vous (mariage) :</strong> les cases que vous cochez, les
+            phrases que vous choisissez d’écrire et votre chanson. Y répondre n’est jamais obligatoire.
+          </li>
           <li>
             <strong>L’origine de votre demande :</strong> la façon dont vous nous avez connus et, si vous arrivez par
             une publicité, sa provenance (identifiant du clic, campagne), gardée dans votre navigateur jusqu’à l’envoi

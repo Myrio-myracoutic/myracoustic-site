@@ -354,7 +354,7 @@ export default function MariageContactClient() {
               Ils en parlent mieux que nous
             </h2>
             <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, textAlign: 'center', marginBottom: 24 }}>
-              En attendant notre appel, découvrez ce que nos mariés ont vécu.
+              {confirmedSlot ? 'En attendant notre rendez-vous' : 'En attendant notre appel'}, découvrez ce que nos mariés ont vécu.
             </p>
             <TestimonialCarousel items={TESTIMONIALS} force />
           </div>

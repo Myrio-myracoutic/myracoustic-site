@@ -9,10 +9,10 @@ export default function sitemap() {
   const routes = [
     { path: '/',                           modifie: '2026-11-18', priority: 1,   changeFrequency: 'monthly' },
     { path: '/evenement-entreprise',       modifie: '2026-11-11', priority: 0.9, changeFrequency: 'monthly' },
-    { path: '/evenements-prives',          modifie: '2026-11-20', priority: 0.9, changeFrequency: 'monthly' },
-    { path: '/mariage',                    modifie: '2026-11-22', priority: 0.9, changeFrequency: 'monthly' },
+    { path: '/evenements-prives',          modifie: '2026-11-26', priority: 0.9, changeFrequency: 'monthly' },
+    { path: '/mariage',                    modifie: '2026-11-26', priority: 0.9, changeFrequency: 'monthly' },
     // Portes d'entrée mariage (mariage-sans-stress/portes.js) : pages indexées.
-    { path: '/organisation-mariage',       modifie: '2026-11-22', priority: 0.8, changeFrequency: 'monthly' },
+    { path: '/organisation-mariage',       modifie: '2026-11-26', priority: 0.8, changeFrequency: 'monthly' },
     { path: '/guide-dj-mariage',           modifie: '2026-11-19', priority: 0.6, changeFrequency: 'monthly' },
     { path: '/sonorisation-nantes',        modifie: '2026-11-18', priority: 0.8, changeFrequency: 'monthly' },
     { path: '/sonorisation-angers',        modifie: '2026-11-19', priority: 0.8, changeFrequency: 'monthly' },
@@ -24,7 +24,7 @@ export default function sitemap() {
     { path: '/dj-mariage-rennes',          modifie: '2026-11-25', priority: 0.8, changeFrequency: 'monthly' },
     { path: '/cgv',                        modifie: '2026-10-27', priority: 0.3, changeFrequency: 'yearly' },
     { path: '/mentions-legales',           modifie: '2026-06-07', priority: 0.3, changeFrequency: 'yearly' },
-    { path: '/politique-confidentialite',  modifie: '2026-11-25', priority: 0.3, changeFrequency: 'yearly' },
+    { path: '/politique-confidentialite',  modifie: '2026-11-26', priority: 0.3, changeFrequency: 'yearly' },
   ];
 
   return routes.map((route) => ({
